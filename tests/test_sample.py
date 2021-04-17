@@ -12,6 +12,8 @@ Tests for samples on README and RFCs related to CWT/COSE.
 import cwt
 from cwt import claims, cose_key
 
+from .utils import key_path
+
 # A sample of 128-Bit Symmetric Key referred from RFC8392
 SAMPLE_COSE_KEY_RFC8392_A2_1 = (
     "a42050231f4c4d4d3051fdc2ec0a3851d5b3830104024c53796d6d6574726963" "313238030a"
@@ -124,6 +126,50 @@ class TestSample:
             {1: "https://as.example", 2: "dajiaji", 7: b"123"}, key
         )
         decoded = cwt.decode(encoded, key)
+        assert 1 in decoded and decoded[1] == "https://as.example"
+        assert 2 in decoded and decoded[2] == "dajiaji"
+        assert 7 in decoded and decoded[7] == b"123"
+
+    def test_sample_readme_signed_cwt_es256(self):
+        """"""
+        # Load PEM-formatted keys as COSE keys.
+        with open(key_path("private_key_es256.pem")) as key_file:
+            private_key = cose_key.from_pem(key_file.read())
+        with open(key_path("public_key_es256.pem")) as key_file:
+            public_key = cose_key.from_pem(key_file.read())
+
+        # Encode with ES256 signing.
+        encoded = cwt.encode_and_sign(
+            claims.from_json(
+                {"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}
+            ),
+            private_key,
+        )
+
+        # Verify and decode.
+        decoded = cwt.decode(encoded, public_key)
+        assert 1 in decoded and decoded[1] == "https://as.example"
+        assert 2 in decoded and decoded[2] == "dajiaji"
+        assert 7 in decoded and decoded[7] == b"123"
+
+    def test_sample_readme_signed_cwt_ed25519(self):
+        """"""
+        # Load PEM-formatted keys as COSE keys.
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            private_key = cose_key.from_pem(key_file.read())
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            public_key = cose_key.from_pem(key_file.read())
+
+        # Encode with Ed25519 encryption.
+        encoded = cwt.encode_and_sign(
+            claims.from_json(
+                {"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}
+            ),
+            private_key,
+        )
+
+        # Verify and decode.
+        decoded = cwt.decode(encoded, public_key)
         assert 1 in decoded and decoded[1] == "https://as.example"
         assert 2 in decoded and decoded[2] == "dajiaji"
         assert 7 in decoded and decoded[7] == b"123"
