@@ -3,7 +3,7 @@
 [![PyPI version](https://badge.fury.io/py/cwt.svg)](https://badge.fury.io/py/cwt)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/cwt)
 
-A Python (>= 3.6) implementation of CBOR Web Token (CWT) and CBOR Object Signing and Encryption (COSE) compliant with:
+A Python implementation of CBOR Web Token (CWT) and CBOR Object Signing and Encryption (COSE) compliant with:
 - [RFC8392: CBOR Web Token (CWT)](https://tools.ietf.org/html/rfc8392)
 - [RFC8152: CBOR Object Signing and Encryption (COSE)](https://tools.ietf.org/html/rfc8152)
 
@@ -17,7 +17,7 @@ pip install cwt
 
 ## Usase
 
-Python CWT is easy to use.
+Python CWT is an easy-to-use CWT/COSE library a little bit inspired by [PyJWT](https://github.com/jpadilla/pyjwt).
 If you already know about [JSON Web Token (JWT)](https://tools.ietf.org/html/rfc7519),
 little knowledge of [CBOR](https://tools.ietf.org/html/rfc7049), [COSE](https://tools.ietf.org/html/rfc8152)
 and [CWT](https://tools.ietf.org/html/rfc8392) is required to use this library.
