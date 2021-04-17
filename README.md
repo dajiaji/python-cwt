@@ -6,10 +6,10 @@ A Python (>= 3.6) implementation of CBOR Web Token (CWT) and CBOR Object Signing
 
 ## Installing
 
-Install with pip after cloning this repository.
+Install with pip:
 
 ```
-pip install .
+pip install cwt
 ```
 
 ## Usase
