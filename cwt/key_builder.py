@@ -3,12 +3,30 @@ from typing import Any, Dict, Optional, Union
 
 import cbor2
 
-from .const import COSE_ALGORITHMS_SYMMETRIC
+from .const import COSE_ALGORITHMS_SYMMETRIC, COSE_KEY_TYPES
 from .cose_key import COSEKey
 from .key_types.ec2 import EC2Key
 from .key_types.okp import OKPKey
 from .key_types.symmetric import AESCCMKey, HMACKey
+from .utils import int_to_bytes
 
+from cryptography.hazmat.primitives.serialization import (
+    Encoding,
+    load_pem_private_key,
+    load_pem_public_key,
+    NoEncryption,
+    PrivateFormat,
+    PublicFormat,
+)
+
+from cryptography.hazmat.primitives.asymmetric.ec import (
+    EllipticCurvePrivateKey,
+    EllipticCurvePublicKey,
+)
+from cryptography.hazmat.primitives.asymmetric.ed25519 import (
+    Ed25519PrivateKey,
+    Ed25519PublicKey,
+)
 
 class KeyBuilder:
     """"""
@@ -98,9 +116,50 @@ class KeyBuilder:
         # TODO: from JWT to COSE key.
         return self.from_dict(cose_key)
 
-    def from_pem(self, key_data: bytes) -> COSEKey:
+    def from_pem(self, key_data: Union[str, bytes], kid: bytes = b"") -> COSEKey:
         """"""
-        cose_key = cbor2.loads(key_data)
+        if isinstance(key_data, str):
+            key_data = key_data.encode("utf-8")
+        key_str = key_data.decode("utf-8")
+        k: Any = None
+        if "BEGIN PUBLIC" in key_str:
+            k = load_pem_public_key(key_data)
+        elif "BEGIN PRIVATE" in key_str:
+            k = load_pem_private_key(key_data, password=None)
+        elif "BEGIN EC PRIVATE" in key_str:
+            k = load_pem_private_key(key_data, password=None)
+        else:
+            raise ValueError("Failed to decode PEM.")
+
+        cose_key: Dict[int, Any] = {}
+        if isinstance(k, EllipticCurvePrivateKey) or isinstance(k, EllipticCurvePublicKey):
+            cose_key[1] = COSE_KEY_TYPES["EC2"]
+            if k.curve.name == "secp256r1":
+                cose_key[3] = cose_key[-1] = 1
+            elif k.curve.name == "secp384r1":
+                cose_key[3] = cose_key[-1] = 2
+            elif k.curve.name == "secp521r1":
+                cose_key[3] = cose_key[-1] = 3
+            elif k.curve.name == "secp256k1":
+                cose_key[3] = cose_key[-1] = 8
+            else:
+                raise ValueError(f"Unsupported or unknown alg: {k.curve.name}")
+            if isinstance(k, EllipticCurvePublicKey):
+                cose_key[-2] = k.public_numbers().x.to_bytes(32, byteorder="big")
+                cose_key[-3] = k.public_numbers().y.to_bytes(32, byteorder="big")
+            else:
+                cose_key[-2] = k.public_key().public_numbers().x.to_bytes(32, byteorder="big")
+                cose_key[-3] = k.public_key().public_numbers().y.to_bytes(32, byteorder="big")
+                cose_key[-4] = k.private_numbers().private_value.to_bytes(32, byteorder="big")
+        elif isinstance(k, Ed25519PublicKey) or isinstance(k, Ed25519PrivateKey):
+            cose_key[1] = COSE_KEY_TYPES["OKP"]
+            cose_key[3] = -8  # EdDSA
+            cose_key[-1] = 6  # Ed25519
+            if isinstance(k, Ed25519PublicKey):
+                cose_key[-2] = k.public_bytes(Encoding.Raw, PublicFormat.Raw)
+            else:
+                cose_key[-2] = k.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)
+                cose_key[-4] = k.private_bytes(Encoding.Raw, PrivateFormat.Raw, NoEncryption())
         return self.from_dict(cose_key)
 
 
