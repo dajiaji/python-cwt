@@ -1,4 +1,6 @@
+include .pre-commit-config.yaml
 include CHANGES.rst
+include CODE_OF_CONDUCT.md
 include LICENSE
 include tox.ini
 graft docs
