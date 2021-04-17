@@ -1,9 +1,6 @@
 from typing import List
 
 
-def int_to_bytes(n: int) -> bytes:
-    return n.to_bytes(length=(8 + (n + (n < 0)).bit_length()) // 8, byteorder='big')
-
 def i2osp(x: int, x_len: int) -> bytes:
     """
     Integer-to-Octet-String primitive
