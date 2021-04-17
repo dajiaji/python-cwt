@@ -1,6 +1,3 @@
-from typing import List
-
-
 def i2osp(x: int, x_len: int) -> bytes:
     """
     Integer-to-Octet-String primitive
@@ -16,7 +13,7 @@ def i2osp(x: int, x_len: int) -> bytes:
     return bytes.fromhex("".join("%.2x" % x for x in digits[::-1]))
 
 
-def os2ip(octet_string: List[int]) -> int:
+def os2ip(octet_string: bytes) -> int:
     """
     Octet-String-to-Integer primitive
     """
