@@ -5,7 +5,7 @@ from .exceptions import PyCWTDecodeError, PyCWTEncodeError, PyCWTError
 from .key_builder import KeyBuilder, cose_key
 
 __version__ = "0.1.0"
-__title__ = "Python CWT"
+__title__ = "cwt"
 __description__ = "A Python implementation of CWT/COSE"
 __url__ = "https://python-cwt.readthedocs.io"
 __uri__ = __url__
