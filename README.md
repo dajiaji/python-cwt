@@ -110,7 +110,7 @@ with open("./public_key.pem") as key_file:
 # Encode with Ed25519 signing.
 encoded = cwt.encode_and_encrypt(
     claims.from_json(
-        {"iss":"https://as.example", "sub":"dajiaji", "cti":"123"}
+        {"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}
     ),
     private_key,
 )
@@ -121,7 +121,59 @@ decoded = cwt.decode(encoded, public_key)
 
 ### Encrypted CWT
 
+Create an encrypted CWT with `AES-CCM-16-64-256` (AES-CCM mode using 128-bit symmetric key),
+and decrypt it as follows:
 
+```py
+from secrets import token_bytes
+import cwt
+from cwt import cose_key, claims
+
+nonce = token_bytes(13)
+mysecret = token_bytes(32)
+enc_key = cose_key.from_symmetric_key(mysecret, alg="AES-CCM-16-64-256")
+encoded = cwt.encode_and_encrypt(
+    claims.from_json(
+        {"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}
+    ),
+    enc_key,
+    nonce=nonce,
+)
+decoded = cwt.decode(encoded, enc_key)
+```
+
+### Nested CWT
+
+Create a signed CWT and encrypt it, and then decrypt and verify the nested CWT as follows.
+
+```py
+from secrets import token_bytes
+import cwt
+from cwt import cose_key, claims
+
+# Load PEM-formatted keys as COSE keys.
+with open("./private_key.pem") as key_file:
+    private_key = cose_key.from_pem(key_file.read())
+with open("./public_key.pem") as key_file:
+    public_key = cose_key.from_pem(key_file.read())
+
+# Encode with ES256 signing.
+encoded = cwt.encode_and_sign(
+    claims.from_json(
+        {"iss": "https://as.example", "sub":"dajiaji", "cti":"123"}
+    ),
+    private_key
+)
+
+# Encrypt the signed CWT.
+nonce = token_bytes(13)
+mysecret = token_bytes(32)
+enc_key = cose_key.from_symmetric_key(mysecret, alg="AES-CCM-16-64-256")
+nested = cwt.encode_and_encrypt(encoded, enc_key, nonce=nonce)
+
+# Decrypt and verify the nested CWT.
+decoded = cwt.decode(nested, [enc_key, public_key])
+```
 
 ## Tests
 
