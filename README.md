@@ -34,31 +34,39 @@ Create a MACed CWT, verify and decode it as follows:
 import cwt
 from cwt import cose_key, claims
 
-key = cose_key.from_symmetric_key("mysecretpassword")  # "HMAC256/256" is the default algorithm.
-encoded = cwt.encode_and_mac(claims.from_json({"iss":"https://as.example", "sub":"dajiaji", "cti":"123"}), key)
+key = cose_key.from_symmetric_key("mysecretpassword")  # Default algorithm is "HMAC256/256"
+encoded = cwt.encode_and_mac(
+    claims.from_json(
+        {"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}
+    ),
+    key,
+)
 decoded = cwt.decode(encoded, key)
 ```
 
-CBOR-like structure (Dict[int, Any]) can be used as follows:
+CBOR-like structure (Dict[int, Any]) can also be used as follows:
 
 ```py
 import cwt
 
 key = cwt.cose_key.from_symmetric_key("mysecretpassword")
-encoded = cwt.encode_and_mac({1:"https://as.example", 2:"dajiaji", 7:b"123"}, key)
+encoded = cwt.encode_and_mac(
+    {1: "https://as.example", 2: "dajiaji", 7: b"123"},
+    key,
+)
 decoded = cwt.decode(encoded, key)
 ```
 
 ### Signed CWT
 
-Create an ECDSA (with SHA-256) key pair:
+Create an `ES256` (ECDSA with SHA-256) key pair:
 
 ```sh
 $ openssl ecparam -genkey -name prime256v1 -noout -out private_key.pem
 $ openssl ec -in private_key.pem -pubout -out public_key.pem
 ```
 
-Create a Signed CWT, verify and decode it with the key pair  as follows:
+Create a Signed CWT, verify and decode it with the key pair as follows:
 
 ```py
 import cwt
@@ -72,22 +80,22 @@ with open("./public_key.pem") as key_file:
 
 # Encode with ES256 signing.
 encoded = cwt.encode_and_sign(
-    claims.from_json({"iss":"https://as.example", "sub":"dajiaji", "cti":"123"}), private_key)
+    claims.from_json(
+        {"iss": "https://as.example", "sub":"dajiaji", "cti":"123"}
+    ),
+    private_key
+)
 
 # Verify and decode.
 decoded = cwt.decode(encoded, public_key)
 ```
 
-### Encrypted CWT
-
-Create an Ed25519 key pair:
+Algorithms other than `ES256` are also supported. The following is an example of `Ed25519`:
 
 ```sh
 $ openssl genpkey -algorithm ed25519 -out private_key.pem
 $ openssl pkey -in private_key.pem -pubout -out public_key.pem
 ```
-
-Create an Encrypted CWT, verify and decode it with the key pair  as follows:
 
 ```py
 import cwt
@@ -99,13 +107,21 @@ with open("./private_key.pem") as key_file:
 with open("./public_key.pem") as key_file:
     public_key = cose_key.from_pem(key_file.read())
 
-# Encode with ES256 encryption.
+# Encode with Ed25519 signing.
 encoded = cwt.encode_and_encrypt(
-    claims.from_json({"iss":"https://as.example", "sub":"dajiaji", "cti":"123"}), private_key)
+    claims.from_json(
+        {"iss":"https://as.example", "sub":"dajiaji", "cti":"123"}
+    ),
+    private_key,
+)
 
 # Verify and decode.
 decoded = cwt.decode(encoded, public_key)
 ```
+
+### Encrypted CWT
+
+
 
 ## Tests
 
