@@ -1,3 +1,10 @@
+Version 0.1.1
+-------------
+
+Released 2021-04-18
+
+-   Fix description of installation.
+
 Version 0.1.0
 -------------
 
