@@ -1,7 +1,7 @@
 from .claims import Claims, claims
 from .cose import COSE
 from .cwt import CWT, decode, encode_and_encrypt, encode_and_mac, encode_and_sign
-from .exceptions import PyCWTDecodeError, PyCWTEncodeError, PyCWTError
+from .exceptions import CWTError, DecodeError, EncodeError, InvalidSignatureError
 from .key_builder import KeyBuilder, cose_key
 
 __version__ = "0.1.1"
@@ -25,7 +25,8 @@ __all__ = [
     "Claims",
     "cose_key",
     "claims",
-    "PyCWTError",
-    "PyCWTEncodeError",
-    "PyCWTDecodeError",
+    "CWTError",
+    "EncodeError",
+    "DecodeError",
+    "InvalidSignatureError",
 ]

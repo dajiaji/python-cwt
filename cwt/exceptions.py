@@ -1,22 +1,30 @@
-class PyCWTError(Exception):
-    """"""
+class CWTError(Exception):
+    """
+    Base class for all exceptions.
+    """
 
     pass
 
 
-class InvalidSignature(PyCWTError):
-    """"""
+class InvalidSignatureError(CWTError):
+    """
+    An Exception occurred when a signature verification process failed.
+    """
 
     pass
 
 
-class PyCWTEncodeError(PyCWTError):
-    """"""
+class EncodeError(CWTError):
+    """
+    An Exception occurred when a CWT/COSE encoding process failed.
+    """
 
     pass
 
 
-class PyCWTDecodeError(PyCWTError):
-    """"""
+class DecodeError(CWTError):
+    """
+    An Exception occurred when a CWT/COSE decoding process failed.
+    """
 
     pass
