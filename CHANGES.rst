@@ -4,6 +4,11 @@ Changes
 Unreleased
 ----------
 
+Version 0.2.0
+-------------
+
+Released 2021-04-18
+
 - Add docs for CWT. `#9 <https://github.com/dajiaji/python-cwt/pull/9>`__
 - Raname exceptions. `#9 <https://github.com/dajiaji/python-cwt/pull/9>`__
 
