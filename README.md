@@ -8,6 +8,8 @@ A Python implementation of CBOR Web Token (CWT) and CBOR Object Signing and Encr
 - [RFC8392: CBOR Web Token (CWT)](https://tools.ietf.org/html/rfc8392)
 - [RFC8152: CBOR Object Signing and Encryption (COSE)](https://tools.ietf.org/html/rfc8152)
 
+See [Document](https://python-cwt.readthedocs.io/en/stable/) for details.
+
 ## Installing
 
 Install with pip:
