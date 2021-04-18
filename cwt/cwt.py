@@ -8,7 +8,8 @@ from .cose_key import COSEKey
 
 class CWT:
     """
-    A CWT (CBOR Web Token) Implementaion.
+    A CWT (CBOR Web Token) Implementaion, which is built on top of
+    a COSE (CBOR Object Signing and Encryption) implementation.
     """
 
     CBOR_TAG = 61
@@ -20,12 +21,21 @@ class CWT:
         self,
         claims: Union[Dict[int, Any], bytes],
         key: COSEKey,
-        iv: Optional[str] = None,
-        partial_iv: Optional[str] = None,
         tagged: Optional[bool] = False,
     ) -> bytes:
         """
         Encode CWT claims and add MAC to it.
+
+        Args:
+            claims (Union[Dict[int, Any], bytes]): A CWT claims object or byte string.
+            key (COSEKey): A COSE key used to generate a MAC for the claims.
+            tagged (bool): An indicator whether the response is wrapped by CWT tag(61)
+                or not.
+        Returns:
+            bytes: A byte string of the encoded CWT.
+        Raises:
+            ValueError: Invalid arguments.
+            EncodeError: Failed to encode the claims.
         """
         self._validate(claims)
         protected: Dict[int, Any] = {1: key.alg}
@@ -45,6 +55,18 @@ class CWT:
     ) -> bytes:
         """
         Encode CWT claims and sign it.
+
+        Args:
+            claims (Union[Dict[int, Any], bytes]): A CWT claims object or byte string.
+            key (Union[COSEKey, List[COSEKey]]): A COSE key or a list of the keys used
+                to sign claims.
+            tagged (bool): An indicator whether the response is wrapped by CWT tag(61)
+                or not.
+        Returns:
+            bytes: A byte string of the encoded CWT.
+        Raises:
+            ValueError: Invalid arguments.
+            EncodeError: Failed to encode the claims.
         """
         self._validate(claims)
         protected: Dict[int, Any] = {}
@@ -65,6 +87,17 @@ class CWT:
     ) -> bytes:
         """
         Encode CWT claims and encrypt it.
+
+        Args:
+            claims (Union[Dict[int, Any], bytes]): CWT claims.
+            key (COSEKey): A COSE key used to sign the claims.
+            tagged (bool): An indicator whether the response is wrapped by CWT tag(61)
+                or not.
+        Returns:
+            bytes: A byte string of the encoded CWT.
+        Raises:
+            ValueError: Invalid arguments.
+            EncodeError: Failed to encode the claims.
         """
         self._validate(claims)
         protected: Dict[int, Any] = {1: key.alg}
@@ -81,6 +114,16 @@ class CWT:
     def decode(self, data: bytes, key: Union[COSEKey, List[COSEKey]]) -> bytes:
         """
         Verify and decode CWT.
+
+        Args:
+            data (bytes): A byte string of an encoded CWT.
+            key (Union[COSEKey, List[COSEKey]]): A COSE key or a list of the keys used to verify and decrypt the encoded CWT.
+        Returns:
+            bytes: A byte string of the decoded CWT.
+        Raises:
+            ValueError: Invalid arguments.
+            DecodeError: Failed to decode the claims.
+            InvalidSignatureError: Failed to verify the signature.
         """
         cwt = loads(data)
         if isinstance(cwt, CBORTag) and cwt.tag == CWT.CBOR_TAG:
