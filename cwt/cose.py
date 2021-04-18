@@ -112,10 +112,7 @@ class COSE:
                 raise ValueError("Invalid MAP0 format.")
 
             msg = dumps(["MAC0", data.value[0], b"", data.value[2]])
-            try:
-                key.verify(msg, data.value[3])
-            except VerifyError:
-                raise
+            key.verify(msg, data.value[3])
             return loads(data.value[2])
 
         # MAC
@@ -128,10 +125,7 @@ class COSE:
                 raise ValueError("Invalid Signature1 format.")
 
             msg = dumps(["Signature1", data.value[0], b"", data.value[2]])
-            try:
-                key.verify(msg, data.value[3])
-            except VerifyError:
-                raise
+            key.verify(msg, data.value[3])
             return loads(data.value[2])
 
         # Signature

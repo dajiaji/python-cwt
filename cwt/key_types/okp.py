@@ -16,7 +16,7 @@ from cryptography.hazmat.primitives.asymmetric.x25519 import (
 )
 
 from ..cose_key import COSEKey
-from ..exceptions import VerifyError
+from ..exceptions import EncodeError, VerifyError
 
 
 class OKPKey(COSEKey):
@@ -87,16 +87,15 @@ class OKPKey(COSEKey):
             if self._public_key:
                 raise ValueError("Public key cannot be used for signing.")
             return self._private_key.sign(msg)
-        except cryptography.exceptions.Verify as err:
-            raise VerifyError("Failed to verify.") from err
+        except Exception as err:
+            raise EncodeError("Failed to sign.") from err
 
-    def verify(self, msg: bytes, sig: bytes) -> bool:
+    def verify(self, msg: bytes, sig: bytes):
         """"""
         try:
             if self._private_key:
                 self._private_key.public_key().verify(sig, msg)
             else:
                 self._public_key.verify(sig, msg)
-            return True
-        except cryptography.exceptions.InvalidSignature:
-            return False
+        except cryptography.exceptions.InvalidSignature as err:
+            raise VerifyError("Failed to verify.") from err
