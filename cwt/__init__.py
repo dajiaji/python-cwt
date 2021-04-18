@@ -15,15 +15,15 @@ __email__ = "ajitomi@gmail.com"
 __license__ = "MIT"
 __copyright__ = "Copyright 2021 AJITOMI Daisuke"
 __all__ = [
-    "CWT",
     "encode_and_mac",
     "encode_and_sign",
     "encode_and_encrypt",
     "decode",
+    "CWT",
     "COSE",
     "KeyBuilder",
-    "cose_key",
     "Claims",
+    "cose_key",
     "claims",
     "PyCWTError",
     "PyCWTEncodeError",
