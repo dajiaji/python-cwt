@@ -9,7 +9,7 @@ from cryptography.hazmat.primitives.asymmetric.utils import (
 )
 
 from ..cose_key import COSEKey
-from ..exceptions import InvalidSignatureError
+from ..exceptions import VerifyError
 from ..utils import i2osp, os2ip
 
 
@@ -106,7 +106,7 @@ class EC2Key(COSEKey):
             sig = self._private_key.sign(msg, ec.ECDSA(self._hash_alg()))
             return self._der_to_os(self._private_key.curve.key_size, sig)
         except ValueError as err:
-            raise InvalidSignatureError("Failed to sign.") from err
+            raise VerifyError("Failed to sign.") from err
 
     def verify(self, msg: bytes, sig: bytes):
         """"""
@@ -119,10 +119,10 @@ class EC2Key(COSEKey):
             else:
                 der_sig = self._os_to_der(self._public_key.curve.key_size, sig)
                 self._public_key.verify(der_sig, msg, ec.ECDSA(self._hash_alg()))
-        except cryptography.exceptions.InvalidSignature as err:
-            raise InvalidSignatureError("Failed to verify.") from err
+        except cryptography.exceptions.Verify as err:
+            raise VerifyError("Failed to verify.") from err
         except ValueError as err:
-            raise InvalidSignatureError("Invalid signature.") from err
+            raise VerifyError("Invalid signature.") from err
 
     def _der_to_os(self, key_size: int, sig: bytes) -> bytes:
         """"""

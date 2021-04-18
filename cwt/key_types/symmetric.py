@@ -5,6 +5,7 @@ from typing import Any, Dict
 from cryptography.hazmat.primitives.ciphers.aead import AESCCM
 
 from ..cose_key import COSEKey
+from ..exceptions import VerifyError
 
 
 class SymmetricKey(COSEKey):
@@ -66,9 +67,11 @@ class HMACKey(SymmetricKey):
         """"""
         return hmac.new(self._key, msg, self._hash_alg).digest()[0 : self._trunc]
 
-    def verify(self, msg: bytes, sig: bytes) -> bool:
+    def verify(self, msg: bytes, sig: bytes):
         """"""
-        return hmac.compare_digest(sig, self.sign(msg))
+        if hmac.compare_digest(sig, self.sign(msg)):
+            return
+        raise VerifyError("Failed to compare digest.")
 
 
 class AESCCMKey(SymmetricKey):

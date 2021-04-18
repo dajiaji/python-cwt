@@ -2,7 +2,7 @@ from .cose_key import COSEKey
 from .claims import Claims, claims
 from .cose import COSE
 from .cwt import CWT, decode, encode_and_encrypt, encode_and_mac, encode_and_sign
-from .exceptions import CWTError, DecodeError, EncodeError, InvalidSignatureError
+from .exceptions import CWTError, DecodeError, EncodeError, VerifyError
 from .key_builder import KeyBuilder, cose_key
 
 __version__ = "0.1.1"
@@ -30,5 +30,5 @@ __all__ = [
     "CWTError",
     "EncodeError",
     "DecodeError",
-    "InvalidSignatureError",
+    "VerifyError",
 ]

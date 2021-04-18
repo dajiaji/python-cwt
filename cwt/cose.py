@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Union
 from cbor2 import CBORTag, dumps, loads
 
 from .cose_key import COSEKey
-from .exceptions import InvalidSignatureError
+from .exceptions import VerifyError
 
 
 class COSE:
@@ -114,7 +114,7 @@ class COSE:
             msg = dumps(["MAC0", data.value[0], b"", data.value[2]])
             try:
                 key.verify(msg, data.value[3])
-            except InvalidSignatureError:
+            except VerifyError:
                 raise
             return loads(data.value[2])
 
@@ -130,7 +130,7 @@ class COSE:
             msg = dumps(["Signature1", data.value[0], b"", data.value[2]])
             try:
                 key.verify(msg, data.value[3])
-            except InvalidSignatureError:
+            except VerifyError:
                 raise
             return loads(data.value[2])
 
