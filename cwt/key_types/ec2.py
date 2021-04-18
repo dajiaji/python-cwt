@@ -119,7 +119,7 @@ class EC2Key(COSEKey):
             else:
                 der_sig = self._os_to_der(self._public_key.curve.key_size, sig)
                 self._public_key.verify(der_sig, msg, ec.ECDSA(self._hash_alg()))
-        except cryptography.exceptions.Verify as err:
+        except cryptography.exceptions.InvalidSignature as err:
             raise VerifyError("Failed to verify.") from err
         except ValueError as err:
             raise VerifyError("Invalid signature.") from err
