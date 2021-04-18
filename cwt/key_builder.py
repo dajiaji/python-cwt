@@ -57,7 +57,7 @@ class KeyBuilder:
         return
 
     def from_symmetric_key(
-        self, key: Union[bytes, str], alg: str = "HMAC256/256"
+        self, key: Union[bytes, str], alg: str = "HMAC 256/256"
     ) -> COSEKey:
         """"""
         if isinstance(key, str):

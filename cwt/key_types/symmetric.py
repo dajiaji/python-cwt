@@ -47,16 +47,16 @@ class HMACKey(SymmetricKey):
         self._trunc = 0
 
         # Validate alg.
-        if self._alg == 4:  # HMAC256/64
+        if self._alg == 4:  # HMAC 256/64
             self._hash_alg = hashlib.sha256
             self._trunc = 8
-        elif self._alg == 5:  # HMAC256/256
+        elif self._alg == 5:  # HMAC 256/256
             self._hash_alg = hashlib.sha256
             self._trunc = 32
-        elif self._alg == 6:  # HMAC384/384
+        elif self._alg == 6:  # HMAC 384/384
             self._hash_alg = hashlib.sha384
             self._trunc = 48
-        elif self._alg == 7:  # HMAC512/512
+        elif self._alg == 7:  # HMAC 512/512
             self._hash_alg = hashlib.sha512
             self._trunc = 64
         else:

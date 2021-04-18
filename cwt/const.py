@@ -25,10 +25,10 @@ COSE_ALGORITHMS_CEK = {
 
 # COSE Algorithms for MAC.
 COSE_ALGORITHMS_MAC = {
-    "HMAC256/64": 4,  # HMAC w/ SHA-256 truncated to 64 bits
-    "HMAC256/256": 5,  # HMAC w/ SHA-256
-    "HMAC384/384": 6,  # HMAC w/ SHA-384
-    "HMAC512/512": 7,  # HMAC w/ SHA-512
+    "HMAC 256/64": 4,  # HMAC w/ SHA-256 truncated to 64 bits
+    "HMAC 256/256": 5,  # HMAC w/ SHA-256
+    "HMAC 384/384": 6,  # HMAC w/ SHA-384
+    "HMAC 512/512": 7,  # HMAC w/ SHA-512
     "AES-MAC128/64": 14,  # AES-MAC 128-bit key, 64-bit tag
     "AES-MAC256/64": 15,  # AES-MAC 256-bit key, 64-bit tag
     "AES-MAC128/128": 25,  # AES-MAC 128-bit key, 128-bit tag
