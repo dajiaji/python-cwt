@@ -15,15 +15,14 @@
 # sys.path.insert(0, os.path.abspath('.'))
 import sphinx_rtd_theme
 
-
 # -- Project information -----------------------------------------------------
 
-project = 'Python CWT'
-copyright = '2021, AJITOMI Daisuke'
-author = 'AJITOMI Daisuke'
+project = "Python CWT"
+copyright = "2021, AJITOMI Daisuke"
+author = "AJITOMI Daisuke"
 
 # The full version, including alpha/beta/rc tags
-release = 'v0.2.0'
+release = "v0.2.0"
 
 
 # -- General configuration ---------------------------------------------------
@@ -32,10 +31,10 @@ release = 'v0.2.0'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.todo',
-    'sphinx.ext.napoleon',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.todo",
+    "sphinx.ext.napoleon",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -44,7 +43,7 @@ extensions = [
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -52,7 +51,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
+html_theme = "sphinx_rtd_theme"
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # Add any paths that contain custom static files (such as style sheets) here,

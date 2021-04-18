@@ -1,7 +1,7 @@
 from .claims import Claims, claims
 from .cose import COSE
 from .cwt import CWT, decode, encode_and_encrypt, encode_and_mac, encode_and_sign
-from .exceptions import PyCWTDecodeError, PyCWTEncodeError, PyCWTError
+from .exceptions import CWTError, DecodeError, EncodeError, InvalidSignatureError
 from .key_builder import KeyBuilder, cose_key
 
 __version__ = "0.1.1"
@@ -15,17 +15,18 @@ __email__ = "ajitomi@gmail.com"
 __license__ = "MIT"
 __copyright__ = "Copyright 2021 AJITOMI Daisuke"
 __all__ = [
-    "CWT",
     "encode_and_mac",
     "encode_and_sign",
     "encode_and_encrypt",
     "decode",
+    "CWT",
     "COSE",
     "KeyBuilder",
-    "cose_key",
     "Claims",
+    "cose_key",
     "claims",
-    "PyCWTError",
-    "PyCWTEncodeError",
-    "PyCWTDecodeError",
+    "CWTError",
+    "EncodeError",
+    "DecodeError",
+    "InvalidSignatureError",
 ]

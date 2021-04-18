@@ -6,7 +6,7 @@
 Welcome to Python CWT
 =====================
 
-Python CWT is a CBOR Web Token (CWT) and CBOR Object Signing Encryption (COSE)
+Python CWT is a CBOR Web Token (CWT) and CBOR Object Signing and Encryption (COSE)
 implementation compliant with:
 
 - `RFC8392: CBOR Web Token (CWT)`_
@@ -26,18 +26,16 @@ You can install Python CWT with pip:
 And then, you can use it as follows:
 
 .. code-block:: python
- 
-    import cwt
-    from cwt import cose_key, claims
-    
-    key = cose_key.from_symmetric_key("mysecret")  # Default algorithm is "HMAC256/256"
-    encoded = cwt.encode_and_mac(
-        claims.from_json(
-            {"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}
-        ),
-        key,
-    )
-    decoded = cwt.decode(encoded, key)
+
+   import cwt
+   from cwt import cose_key, claims
+
+   key = cose_key.from_symmetric_key("mysecret")
+   encoded = cwt.encode_and_mac(
+       claims.from_json({"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}),
+       key,
+   )
+   decoded = cwt.decode(encoded, key)
 
 Index
 -----
