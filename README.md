@@ -2,6 +2,7 @@
 
 [![PyPI version](https://badge.fury.io/py/cwt.svg)](https://badge.fury.io/py/cwt)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/cwt)
+[![Documentation Status](https://readthedocs.org/projects/python-cwt/badge/?version=latest)](https://python-cwt.readthedocs.io/en/latest/?badge=latest)
 
 A Python implementation of CBOR Web Token (CWT) and CBOR Object Signing and Encryption (COSE) compliant with:
 - [RFC8392: CBOR Web Token (CWT)](https://tools.ietf.org/html/rfc8392)
