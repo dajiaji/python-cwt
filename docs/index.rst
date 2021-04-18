@@ -6,7 +6,7 @@
 Welcome to Python CWT
 =====================
 
-Python CWT is a CBOR Web Token (CWT) and CBOR Object Signing Encryption (COSE)
+Python CWT is a CBOR Web Token (CWT) and CBOR Object Signing and Encryption (COSE)
 implementation compliant with:
 
 - `RFC8392: CBOR Web Token (CWT)`_
