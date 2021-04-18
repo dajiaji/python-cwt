@@ -122,8 +122,8 @@ class CWT:
             bytes: A byte string of the decoded CWT.
         Raises:
             ValueError: Invalid arguments.
-            DecodeError: Failed to decode the claims.
-            InvalidSignatureError: Failed to verify the signature.
+            DecodeError: Failed to decode the CWT.
+            VerifyError: Failed to verify the CWT.
         """
         cwt = loads(data)
         if isinstance(cwt, CBORTag) and cwt.tag == CWT.CBOR_TAG:
