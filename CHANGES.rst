@@ -1,3 +1,11 @@
+Changes
+=======
+
+Unreleased
+----------
+
+- Add docs. `#9 <https://github.com/dajiaji/python-cwt/pull/9>`__
+
 Version 0.1.1
 -------------
 
