@@ -3,7 +3,6 @@ from typing import Any, Dict, List, Optional, Union
 from cbor2 import CBORTag, dumps, loads
 
 from .cose_key import COSEKey
-from .exceptions import VerifyError
 
 
 class COSE:

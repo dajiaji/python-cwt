@@ -1,6 +1,6 @@
-from .cose_key import COSEKey
 from .claims import Claims, claims
 from .cose import COSE
+from .cose_key import COSEKey
 from .cwt import CWT, decode, encode_and_encrypt, encode_and_mac, encode_and_sign
 from .exceptions import CWTError, DecodeError, EncodeError, VerifyError
 from .key_builder import KeyBuilder, cose_key
