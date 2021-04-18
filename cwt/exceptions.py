@@ -6,9 +6,9 @@ class CWTError(Exception):
     pass
 
 
-class InvalidSignatureError(CWTError):
+class VerifyError(CWTError):
     """
-    An Exception occurred when a signature verification process failed.
+    An Exception occurred when a verification process failed.
     """
 
     pass

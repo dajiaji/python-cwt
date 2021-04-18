@@ -4,6 +4,16 @@ Changes
 Unreleased
 ----------
 
+Version 0.2.1
+-------------
+
+Released 2021-04-18
+
+- Add VerifyError. `#11 <https://github.com/dajiaji/python-cwt/pull/11>`__
+- Fix HMAC alg names. `#11 <https://github.com/dajiaji/python-cwt/pull/11>`__
+- Make COSEKey public. `#11 <https://github.com/dajiaji/python-cwt/pull/11>`__
+- Add tests for HMAC. `#11 <https://github.com/dajiaji/python-cwt/pull/11>`__
+
 Version 0.2.0
 -------------
 

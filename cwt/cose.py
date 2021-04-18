@@ -3,7 +3,6 @@ from typing import Any, Dict, List, Optional, Union
 from cbor2 import CBORTag, dumps, loads
 
 from .cose_key import COSEKey
-from .exceptions import InvalidSignatureError
 
 
 class COSE:
@@ -112,10 +111,7 @@ class COSE:
                 raise ValueError("Invalid MAP0 format.")
 
             msg = dumps(["MAC0", data.value[0], b"", data.value[2]])
-            try:
-                key.verify(msg, data.value[3])
-            except InvalidSignatureError:
-                raise
+            key.verify(msg, data.value[3])
             return loads(data.value[2])
 
         # MAC
@@ -128,10 +124,7 @@ class COSE:
                 raise ValueError("Invalid Signature1 format.")
 
             msg = dumps(["Signature1", data.value[0], b"", data.value[2]])
-            try:
-                key.verify(msg, data.value[3])
-            except InvalidSignatureError:
-                raise
+            key.verify(msg, data.value[3])
             return loads(data.value[2])
 
         # Signature

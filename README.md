@@ -38,7 +38,7 @@ Create a MACed CWT, verify and decode it as follows:
 import cwt
 from cwt import cose_key, claims
 
-key = cose_key.from_symmetric_key("mysecretpassword")  # Default algorithm is "HMAC256/256"
+key = cose_key.from_symmetric_key("mysecretpassword")  # Default algorithm is "HMAC 256/256"
 encoded = cwt.encode_and_mac(
     claims.from_json(
         {"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}
