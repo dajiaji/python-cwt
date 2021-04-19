@@ -3,8 +3,8 @@ Supported CWT Claims
 
 `IANA Registry for CWT Claims`_ lists all of registered CWT claims.
 This section shows the claims which this library currently supports.
-In particular, class `Claims` can validate the type of the claims
-and `Claims.from_json` can convert the following Names into Values.
+In particular, class ``Claims`` can validate the type of the claims
+and ``Claims.from_json`` can convert the following Names into Values.
 
 CBOR Web Token (CWT) Claims
 ---------------------------
@@ -12,14 +12,14 @@ CBOR Web Token (CWT) Claims
 +-----------------+--------+-------+-------------------------------------------------------+
 | Name            | Status | Value | Description                                           |
 +=================+========+=======+=======================================================+
-| hcert           |        | -260  | Health Certificate                                    |
+| hcert           | ✅     | -260  | Health Certificate                                    |
 +-----------------+--------+-------+-------------------------------------------------------+
-| EUPHNonce       |        | -259  | Challenge Nonce defined in FIDO Device Onboarding     |
+| EUPHNonce       | ✅     | -259  | Challenge Nonce defined in FIDO Device Onboarding     |
 +-----------------+--------+-------+-------------------------------------------------------+
-| EATMAROEPrefix  |        | -258  | | Signing prefix for multi-app restricted operating   |
+| EATMAROEPrefix  | ✅     | -258  | | Signing prefix for multi-app restricted operating   |
 |                 |        |       | | environments                                        |
 +-----------------+--------+-------+-------------------------------------------------------+
-| EAT-FDO         |        | -257  | EAT-FDO may contain related to FIDO Device Onboarding |
+| EAT-FDO         | ✅     | -257  | EAT-FDO may contain related to FIDO Device Onboarding |
 +-----------------+--------+-------+-------------------------------------------------------+
 | iss             | ✅     | 1     | Issuer                                                |
 +-----------------+--------+-------+-------------------------------------------------------+
@@ -35,7 +35,7 @@ CBOR Web Token (CWT) Claims
 +-----------------+--------+-------+-------------------------------------------------------+
 | cti             | ✅     | 7     | CWT ID                                                |
 +-----------------+--------+-------+-------------------------------------------------------+
-| cnf             |        | 8     | Confirmation                                          |
+| cnf             | ✅     | 8     | Confirmation                                          |
 +-----------------+--------+-------+-------------------------------------------------------+
 
 CWT Confirmation Methods
