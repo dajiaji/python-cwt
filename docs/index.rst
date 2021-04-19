@@ -46,6 +46,7 @@ Index
    installation
    usage
    api
+   claims
    algorithms
    changes
 
