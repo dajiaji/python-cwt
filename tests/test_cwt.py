@@ -112,7 +112,9 @@ class TestCWT:
             # ("private_key_x448.pem", "public_key_x448.pem"),
         ],
     )
-    def test_cwt_encode_and_sign_with_valid_alg(self, private_key_path, public_key_path):
+    def test_cwt_encode_and_sign_with_valid_alg(
+        self, private_key_path, public_key_path
+    ):
         """"""
         c = CWT()
         with open(key_path(private_key_path)) as key_file:
