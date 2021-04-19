@@ -10,6 +10,10 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PrivateKey,
     Ed25519PublicKey,
 )
+from cryptography.hazmat.primitives.asymmetric.ed448 import (
+    Ed448PrivateKey,
+    Ed448PublicKey,
+)
 from cryptography.hazmat.primitives.serialization import (
     Encoding,
     NoEncryption,
@@ -133,35 +137,51 @@ class KeyBuilder:
         if isinstance(k, EllipticCurvePrivateKey) or isinstance(
             k, EllipticCurvePublicKey
         ):
+            key_len: int = 32
             cose_key[1] = COSE_KEY_TYPES["EC2"]
             if k.curve.name == "secp256r1":
                 cose_key[3] = cose_key[-1] = 1
             elif k.curve.name == "secp384r1":
                 cose_key[3] = cose_key[-1] = 2
+                key_len = 48
             elif k.curve.name == "secp521r1":
                 cose_key[3] = cose_key[-1] = 3
+                key_len = 66
             elif k.curve.name == "secp256k1":
                 cose_key[3] = cose_key[-1] = 8
             else:
                 raise ValueError(f"Unsupported or unknown alg: {k.curve.name}")
             if isinstance(k, EllipticCurvePublicKey):
-                cose_key[-2] = k.public_numbers().x.to_bytes(32, byteorder="big")
-                cose_key[-3] = k.public_numbers().y.to_bytes(32, byteorder="big")
+                cose_key[-2] = k.public_numbers().x.to_bytes(key_len, byteorder="big")
+                cose_key[-3] = k.public_numbers().y.to_bytes(key_len, byteorder="big")
             else:
                 cose_key[-2] = (
-                    k.public_key().public_numbers().x.to_bytes(32, byteorder="big")
+                    k.public_key().public_numbers().x.to_bytes(key_len, byteorder="big")
                 )
                 cose_key[-3] = (
-                    k.public_key().public_numbers().y.to_bytes(32, byteorder="big")
+                    k.public_key().public_numbers().y.to_bytes(key_len, byteorder="big")
                 )
                 cose_key[-4] = k.private_numbers().private_value.to_bytes(
-                    32, byteorder="big"
+                    key_len, byteorder="big"
                 )
         elif isinstance(k, Ed25519PublicKey) or isinstance(k, Ed25519PrivateKey):
             cose_key[1] = COSE_KEY_TYPES["OKP"]
             cose_key[3] = -8  # EdDSA
             cose_key[-1] = 6  # Ed25519
             if isinstance(k, Ed25519PublicKey):
+                cose_key[-2] = k.public_bytes(Encoding.Raw, PublicFormat.Raw)
+            else:
+                cose_key[-2] = k.public_key().public_bytes(
+                    Encoding.Raw, PublicFormat.Raw
+                )
+                cose_key[-4] = k.private_bytes(
+                    Encoding.Raw, PrivateFormat.Raw, NoEncryption()
+                )
+        elif isinstance(k, Ed448PublicKey) or isinstance(k, Ed448PrivateKey):
+            cose_key[1] = COSE_KEY_TYPES["OKP"]
+            cose_key[3] = -8  # EdDSA
+            cose_key[-1] = 7  # Ed448
+            if isinstance(k, Ed448PublicKey):
                 cose_key[-2] = k.public_bytes(Encoding.Raw, PublicFormat.Raw)
             else:
                 cose_key[-2] = k.public_key().public_bytes(
