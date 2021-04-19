@@ -8,9 +8,11 @@ Tests for KeyBuilder.
 """
 import pytest
 
+from cwt import COSEKey, KeyBuilder
+
 # from secrets import token_bytes
 
-from cwt import COSEKey, KeyBuilder
+
 # from .utils import key_path
 
 

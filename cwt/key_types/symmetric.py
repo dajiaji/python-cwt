@@ -5,7 +5,7 @@ from typing import Any, Dict
 from cryptography.hazmat.primitives.ciphers.aead import AESCCM
 
 from ..cose_key import COSEKey
-from ..exceptions import VerifyError
+from ..exceptions import DecodeError, EncodeError, VerifyError
 
 
 class SymmetricKey(COSEKey):
@@ -65,7 +65,10 @@ class HMACKey(SymmetricKey):
 
     def sign(self, msg: bytes) -> bytes:
         """"""
-        return hmac.new(self._key, msg, self._hash_alg).digest()[0 : self._trunc]
+        try:
+            return hmac.new(self._key, msg, self._hash_alg).digest()[0 : self._trunc]
+        except Exception as err:
+            raise EncodeError("Failed to sign.") from err
 
     def verify(self, msg: bytes, sig: bytes):
         """"""
@@ -150,7 +153,10 @@ class AESCCMKey(SymmetricKey):
             raise ValueError(
                 "The length of nonce should be %d bytes." % self._nonce_len
             )
-        return self._cipher.encrypt(nonce, msg, aad)
+        try:
+            return self._cipher.encrypt(nonce, msg, aad)
+        except Exception as err:
+            raise EncodeError("Failed to encrypt.") from err
 
     def decrypt(self, msg: bytes, nonce: bytes, aad: bytes) -> bytes:
         """"""
@@ -158,4 +164,7 @@ class AESCCMKey(SymmetricKey):
             raise ValueError(
                 "The length of nonce should be %d bytes." % self._nonce_len
             )
-        return self._cipher.decrypt(nonce, msg, aad)
+        try:
+            return self._cipher.decrypt(nonce, msg, aad)
+        except Exception as err:
+            raise DecodeError("Failed to decrypt.") from err
