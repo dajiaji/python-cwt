@@ -16,8 +16,8 @@ CBOR Web Token (CWT) Claims
 +-----------------+--------+-------+-------------------------------------------------------+
 | EUPHNonce       |        | -259  | Challenge Nonce defined in FIDO Device Onboarding     |
 +-----------------+--------+-------+-------------------------------------------------------+
-| EATMAROEPrefix  |        | -258  | Signing prefix for multi-app restricted operating     |
-|                 |        |       | environments                                          |
+| EATMAROEPrefix  |        | -258  | | Signing prefix for multi-app restricted operating   |
+|                 |        |       | | environments                                        |
 +-----------------+--------+-------+-------------------------------------------------------+
 | EAT-FDO         |        | -257  | EAT-FDO may contain related to FIDO Device Onboarding |
 +-----------------+--------+-------+-------------------------------------------------------+
