@@ -91,6 +91,7 @@ class CWT:
         Args:
             claims (Union[Dict[int, Any], bytes]): CWT claims.
             key (COSEKey): A COSE key used to sign the claims.
+            nonce (bytes): A nonce for encryption.
             tagged (bool): An indicator whether the response is wrapped by CWT tag(61)
                 or not.
         Returns:
