@@ -28,8 +28,29 @@ class TestCWT:
 
     def test_cwt_constructor_without_args(self):
         """"""
-        c = CWT()
-        assert isinstance(c, CWT)
+        ctx = CWT()
+        assert isinstance(ctx, CWT)
+        assert ctx.expires_in == 3600
+
+    def test_cwt_constructor_with_expires_in(self):
+        """"""
+        ctx = CWT(options={"expires_in": 7200})
+        assert isinstance(ctx, CWT)
+        assert ctx.expires_in == 7200
+
+    @pytest.mark.parametrize(
+        "invalid",
+        [
+            {"expires_in": "xxx"},
+            {"expires_in": -1},
+        ],
+    )
+    def test_cwt_constructor_with_invalid_args(self, invalid):
+        """"""
+        with pytest.raises(ValueError) as err:
+            CWT(options=invalid)
+            pytest.fail("CWT() should be fail.")
+        assert "should be" in str(err.value)
 
     def test_cwt_encode_and_mac_with_default_alg(self, ctx):
         """"""
@@ -40,10 +61,15 @@ class TestCWT:
         decoded = ctx.decode(token, key)
         assert 1 in decoded and decoded[1] == "https://as.example"
         assert 2 in decoded and decoded[2] == "someone"
-        assert 2 in decoded and decoded[7] == b"123"
+        assert 4 in decoded and isinstance(decoded[4], int)
+        assert 5 in decoded and isinstance(decoded[5], int)
+        assert 6 in decoded and isinstance(decoded[6], int)
+        assert decoded[5] == decoded[6]
+        assert decoded[4] == decoded[5] + ctx.expires_in
+        assert 7 in decoded and decoded[7] == b"123"
 
     @pytest.mark.parametrize(
-        "claim",
+        "invalid",
         [
             {-260: "wrong_type"},
             {-259: 123},
@@ -59,12 +85,12 @@ class TestCWT:
             {8: 123},
         ],
     )
-    def test_cwt_encode_and_mac_with_invalid_args(self, ctx, claim):
+    def test_cwt_encode_and_mac_with_invalid_args(self, ctx, invalid):
         """"""
         key = cose_key.from_symmetric_key("mysecretpassword")
         with pytest.raises(ValueError) as err:
-            res = ctx.encode_and_mac(claim, key)
-            pytest.fail("encode_and_mac should be fail: res=%s" % vars(res))
+            ctx.encode_and_mac(invalid, key)
+            pytest.fail("encode_and_mac should be fail.")
         assert "should be" in str(err.value)
 
     @pytest.mark.parametrize(
@@ -85,7 +111,7 @@ class TestCWT:
         decoded = ctx.decode(token, key)
         assert 1 in decoded and decoded[1] == "https://as.example"
         assert 2 in decoded and decoded[2] == "someone"
-        assert 2 in decoded and decoded[7] == b"123"
+        assert 7 in decoded and decoded[7] == b"123"
 
     def test_cwt_decode_with_invalid_mac_key(self, ctx):
         """"""
@@ -123,7 +149,7 @@ class TestCWT:
         decoded = ctx.decode(token, enc_key)
         assert 1 in decoded and decoded[1] == "https://as.example"
         assert 2 in decoded and decoded[2] == "someone"
-        assert 2 in decoded and decoded[7] == b"123"
+        assert 7 in decoded and decoded[7] == b"123"
 
     @pytest.mark.parametrize(
         "private_key_path, public_key_path",
@@ -153,7 +179,7 @@ class TestCWT:
         decoded = ctx.decode(token, public_key)
         assert 1 in decoded and decoded[1] == "https://as.example"
         assert 2 in decoded and decoded[2] == "someone"
-        assert 2 in decoded and decoded[7] == b"123"
+        assert 7 in decoded and decoded[7] == b"123"
 
     def test_cwt_decode_with_invalid_enc_key(self, ctx):
         """"""
