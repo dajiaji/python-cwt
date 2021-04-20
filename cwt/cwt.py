@@ -117,7 +117,8 @@ class CWT:
 
         Args:
             data (bytes): A byte string of an encoded CWT.
-            key (Union[COSEKey, List[COSEKey]]): A COSE key or a list of the keys used to verify and decrypt the encoded CWT.
+            key (Union[COSEKey, List[COSEKey]]): A COSE key or a list of the keys
+                used to verify and decrypt the encoded CWT.
         Returns:
             bytes: A byte string of the decoded CWT.
         Raises:
@@ -142,6 +143,14 @@ class CWT:
             if nested.tag not in [16, 96, 17, 97, 18, 98]:
                 raise ValueError("Unsupported or unknown CBOR tag.")
             return
+        if -260 in claims and not isinstance(claims[-260], dict):
+            raise ValueError("hcert(-260) should be map.")
+        if -259 in claims and not isinstance(claims[-259], bytes):
+            raise ValueError("EUPHNonce(-259) should be bstr.")
+        if -258 in claims and not isinstance(claims[-258], bytes):
+            raise ValueError("EATMAROEPrefix(-258) should be bstr.")
+        if -257 in claims and not isinstance(claims[-257], list):
+            raise ValueError("EAT-FDO(-257) should be array.")
         if 1 in claims and not isinstance(claims[1], str):
             raise ValueError("iss(1) should be str.")
         if 2 in claims and not isinstance(claims[2], str):
@@ -162,6 +171,8 @@ class CWT:
             raise ValueError("iat(6) should be int or float.")
         if 7 in claims and not isinstance(claims[7], bytes):
             raise ValueError("cti(7) should be bytes.")
+        if 8 in claims and not isinstance(claims[8], dict):
+            raise ValueError("cnf(7) should be map.")
         return
 
 

@@ -3,8 +3,8 @@ Supported CWT Claims
 
 `IANA Registry for CWT Claims`_ lists all of registered CWT claims.
 This section shows the claims which this library currently supports.
-In particular, class `Claims` can validate the type of the claims
-and `Claims.from_json` can convert the following Names into Values.
+In particular, class ``CWT`` can validate the type of the claims
+and ``Claims.from_json`` can convert the following Names(str) into Values(int).
 
 CBOR Web Token (CWT) Claims
 ---------------------------
