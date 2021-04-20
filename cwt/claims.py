@@ -18,6 +18,8 @@ class Claims:
         """
         Convert JSON-formatted claims into CBOR-formatted claims
         which has numeric keys.
+        If a key string in JSON data cannot be mapped to a numeric key,
+        it will be skipped.
         """
         json_claims: Dict[str, Any]
         if isinstance(claims, str) or isinstance(claims, bytes):
@@ -28,7 +30,7 @@ class Claims:
         for k in json_claims:
             if not isinstance(k, int):
                 break
-            ValueError("It is already CBOR-like format.")
+            raise ValueError("It is already CBOR-like format.")
 
         # Convert JSON to CBOR (Convert the type of key from str to int).
         cbor_claims = {}
