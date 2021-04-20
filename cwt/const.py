@@ -1,3 +1,20 @@
+# Registered CWT Claims
+CWT_CLAIM_NAMES = {
+    "hcert": -260,  # map
+    "EUPHNonce": -259,  # bstr
+    "EATMAROEPrefix": -258,  # bstr
+    "EAT-FDO": -257,  # array
+    "iss": 1,  # text string
+    "sub": 2,  # text string
+    "aud": 3,  # text string
+    "exp": 4,  # integer or floating-point number
+    "nbf": 5,  # integer or floating-point number
+    "iat": 6,  # integer or floating-point number
+    "cti": 7,  # byte string
+    "cnf": 8,  # map
+}
+
+# COSE key types
 COSE_KEY_TYPES = {
     "OKP": 1,  # OCtet Key Pair
     "EC2": 2,  # Elliptic Curve Keys w/ x- and y-coordinate pair
