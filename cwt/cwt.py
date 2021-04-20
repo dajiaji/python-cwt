@@ -1,9 +1,13 @@
+from calendar import timegm
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
 from cbor2 import CBORTag, dumps, loads
 
 from .cose import COSE
 from .cose_key import COSEKey
+
+_CWT_DEFAULT_EXPIRES_IN = 3600
 
 
 class CWT:
@@ -15,7 +19,25 @@ class CWT:
     CBOR_TAG = 61
 
     def __init__(self, options: Optional[Dict[str, Any]] = None):
+        self._expires_in = _CWT_DEFAULT_EXPIRES_IN
         self._cose = COSE(options)
+        if not options:
+            return
+
+        if options["expires_in"]:
+            if not isinstance(options["expires_in"], int):
+                raise ValueError("expires_in should be int.")
+            self._expires_in = options["expires_in"]
+            if self._expires_in <= 0:
+                raise ValueError("expires_in should be positive number.")
+
+    @property
+    def expires_in(self) -> int:
+        """
+        The default lifetime in seconds of CWT.
+        If `exp` is not found in claims, this value will be used with current time.
+        """
+        return self._expires_in
 
     def encode_and_mac(
         self,
@@ -38,6 +60,7 @@ class CWT:
             EncodeError: Failed to encode the claims.
         """
         self._validate(claims)
+        self._set_default_value(claims)
         protected: Dict[int, Any] = {1: key.alg}
         unprotected: Dict[int, Any] = {4: key.kid} if key.kid else {}
         res = self._cose.encode_and_mac(
@@ -69,6 +92,7 @@ class CWT:
             EncodeError: Failed to encode the claims.
         """
         self._validate(claims)
+        self._set_default_value(claims)
         protected: Dict[int, Any] = {}
         unprotected: Dict[int, Any] = {}
         res = self._cose.encode_and_sign(
@@ -101,6 +125,7 @@ class CWT:
             EncodeError: Failed to encode the claims.
         """
         self._validate(claims)
+        self._set_default_value(claims)
         protected: Dict[int, Any] = {1: key.alg}
         unprotected: Dict[int, Any] = {4: key.kid} if key.kid else {}
         if nonce:
@@ -174,6 +199,19 @@ class CWT:
             raise ValueError("cti(7) should be bytes.")
         if 8 in claims and not isinstance(claims[8], dict):
             raise ValueError("cnf(7) should be map.")
+        return
+
+    def _set_default_value(self, claims: Union[Dict[int, Any], bytes]):
+        """"""
+        if isinstance(claims, bytes):
+            return
+        now = timegm(datetime.utcnow().utctimetuple())
+        if 4 not in claims:
+            claims[4] = now + self._expires_in
+        if 5 not in claims:
+            claims[5] = now
+        if 6 not in claims:
+            claims[6] = now
         return
 
 
