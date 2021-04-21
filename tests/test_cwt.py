@@ -13,7 +13,7 @@ import pytest
 
 from cwt import CWT, DecodeError, VerifyError, cose_key
 
-from .utils import key_path
+from .utils import key_path, now
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -31,6 +31,7 @@ class TestCWT:
         ctx = CWT()
         assert isinstance(ctx, CWT)
         assert ctx.expires_in == 3600
+        assert ctx.leeway == 60
 
     def test_cwt_constructor_with_expires_in(self):
         """"""
@@ -38,11 +39,19 @@ class TestCWT:
         assert isinstance(ctx, CWT)
         assert ctx.expires_in == 7200
 
+    def test_cwt_constructor_with_leeway(self):
+        """"""
+        ctx = CWT(options={"leeway": 10})
+        assert isinstance(ctx, CWT)
+        assert ctx.leeway == 10
+
     @pytest.mark.parametrize(
         "invalid",
         [
             {"expires_in": "xxx"},
             {"expires_in": -1},
+            {"leeway": "xxx"},
+            {"leeway": -1},
         ],
     )
     def test_cwt_constructor_with_invalid_args(self, invalid):
@@ -113,18 +122,6 @@ class TestCWT:
         assert 2 in decoded and decoded[2] == "someone"
         assert 7 in decoded and decoded[7] == b"123"
 
-    def test_cwt_decode_with_invalid_mac_key(self, ctx):
-        """"""
-        key = cose_key.from_symmetric_key("mysecretpassword")
-        token = ctx.encode_and_mac(
-            {1: "https://as.example", 2: "someone", 7: b"123"}, key
-        )
-        wrong_key = cose_key.from_symmetric_key("xxxxxxxxxx")
-        with pytest.raises(VerifyError) as err:
-            res = ctx.decode(token, wrong_key)
-            pytest.fail("decode should be fail: res=%s" % vars(res))
-        assert "Failed to compare digest" in str(err.value)
-
     @pytest.mark.parametrize(
         "alg, nonce, key",
         [
@@ -181,6 +178,30 @@ class TestCWT:
         assert 2 in decoded and decoded[2] == "someone"
         assert 7 in decoded and decoded[7] == b"123"
 
+    def test_cwt_encode_and_encrypt_with_invalid_nonce(self, ctx):
+        """"""
+        enc_key = cose_key.from_symmetric_key(token_bytes(16), alg="AES-CCM-16-64-128")
+        with pytest.raises(ValueError) as err:
+            res = ctx.encode_and_encrypt(
+                {1: "https://as.example", 2: "someone", 7: b"123"},
+                enc_key,
+                nonce=token_bytes(7),  # should be 13
+            )
+            pytest.fail("encode_and_encrypt should be fail: res=%s" % vars(res))
+        assert "The length of nonce should be" in str(err.value)
+
+    def test_cwt_decode_with_invalid_mac_key(self, ctx):
+        """"""
+        key = cose_key.from_symmetric_key("mysecretpassword")
+        token = ctx.encode_and_mac(
+            {1: "https://as.example", 2: "someone", 7: b"123"}, key
+        )
+        wrong_key = cose_key.from_symmetric_key("xxxxxxxxxx")
+        with pytest.raises(VerifyError) as err:
+            res = ctx.decode(token, wrong_key)
+            pytest.fail("decode should be fail: res=%s" % vars(res))
+        assert "Failed to compare digest" in str(err.value)
+
     def test_cwt_decode_with_invalid_enc_key(self, ctx):
         """"""
         enc_key = cose_key.from_symmetric_key(token_bytes(16), alg="AES-CCM-16-64-128")
@@ -193,18 +214,34 @@ class TestCWT:
             nonce=token_bytes(13),
         )
         with pytest.raises(DecodeError) as err:
-            res = ctx.decode(token, wrong_key)
-            pytest.fail("decode should be fail: res=%s" % vars(res))
+            ctx.decode(token, wrong_key)
+            pytest.fail("decode should be fail.")
         assert "Failed to decrypt" in str(err.value)
 
-    def test_cwt_encrypt_and_mac_with_invalid_nonce(self, ctx):
+    @pytest.mark.parametrize(
+        "invalid, msg",
+        [
+            (
+                {1: "https://as.example", 2: "a", 4: now() - 100, 5: now(), 6: now()},
+                "The token has expired.",
+            ),
+            (
+                {
+                    1: "https://as.example",
+                    2: "a",
+                    4: now() + 100,
+                    5: now() + 100,
+                    6: now(),
+                },
+                "The token is not yet valid.",
+            ),
+        ],
+    )
+    def test_cwt_decode_with_invalid_claim(self, ctx, invalid, msg):
         """"""
-        enc_key = cose_key.from_symmetric_key(token_bytes(16), alg="AES-CCM-16-64-128")
-        with pytest.raises(ValueError) as err:
-            res = ctx.encode_and_encrypt(
-                {1: "https://as.example", 2: "someone", 7: b"123"},
-                enc_key,
-                nonce=token_bytes(7),  # should be 13
-            )
-            pytest.fail("encode_and_encrypt should be fail: res=%s" % vars(res))
-        assert "The length of nonce should be" in str(err.value)
+        mac_key = cose_key.from_symmetric_key("mysecretpassword")
+        token = ctx.encode_and_mac(invalid, mac_key)
+        with pytest.raises(VerifyError) as err:
+            ctx.decode(token, mac_key)
+            pytest.fail("decode should be fail.")
+        assert msg in str(err.value)
