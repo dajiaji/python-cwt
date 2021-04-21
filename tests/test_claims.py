@@ -16,7 +16,7 @@ def ctx():
     return Claims()
 
 
-class TestKeyBuilder:
+class TestClaims:
     """
     Tests for Claims.
     """

@@ -2,8 +2,9 @@ from calendar import timegm
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
-from cbor2 import CBORTag, dumps, loads
+from cbor2 import CBORTag
 
+from .cbor_processor import CBORProcessor
 from .cose import COSE
 from .cose_key import COSEKey
 from .exceptions import VerifyError
@@ -12,7 +13,7 @@ _CWT_DEFAULT_EXPIRES_IN = 3600  # 1 hour
 _CWT_DEFAULT_LEEWAY = 60  # 1 min
 
 
-class CWT:
+class CWT(CBORProcessor):
     """
     A CWT (CBOR Web Token) Implementaion, which is built on top of
     a COSE (CBOR Object Signing and Encryption) implementation.
@@ -83,8 +84,8 @@ class CWT:
             protected, unprotected, claims, key, out="cbor2/CBORTag"
         )
         if tagged:
-            return dumps(CBORTag(CWT.CBOR_TAG, res))
-        return dumps(res)
+            return self._dumps(CBORTag(CWT.CBOR_TAG, res))
+        return self._dumps(res)
 
     def encode_and_sign(
         self,
@@ -115,8 +116,8 @@ class CWT:
             protected, unprotected, claims, key, out="cbor2/CBORTag"
         )
         if tagged:
-            return dumps(CBORTag(CWT.CBOR_TAG, res))
-        return dumps(res)
+            return self._dumps(CBORTag(CWT.CBOR_TAG, res))
+        return self._dumps(res)
 
     def encode_and_encrypt(
         self,
@@ -150,8 +151,8 @@ class CWT:
             protected, unprotected, claims, key, nonce, out="cbor2/CBORTag"
         )
         if tagged:
-            return dumps(CBORTag(CWT.CBOR_TAG, res))
-        return dumps(res)
+            return self._dumps(CBORTag(CWT.CBOR_TAG, res))
+        return self._dumps(res)
 
     def decode(
         self, data: bytes, key: Union[COSEKey, List[COSEKey]], no_verify: bool = False
@@ -172,7 +173,7 @@ class CWT:
             DecodeError: Failed to decode the CWT.
             VerifyError: Failed to verify the CWT.
         """
-        cwt = loads(data)
+        cwt = self._loads(data)
         if isinstance(cwt, CBORTag) and cwt.tag == CWT.CBOR_TAG:
             cwt = cwt.value
         keys: List[COSEKey] = [key] if isinstance(key, COSEKey) else key
@@ -185,7 +186,7 @@ class CWT:
     def _validate(self, claims: Union[Dict[int, Any], bytes]):
         """"""
         if isinstance(claims, bytes):
-            nested = loads(claims)
+            nested = self._loads(claims)
             if not isinstance(nested, CBORTag):
                 raise ValueError("bytes-formatted claims need CBOR(COSE) Tag.")
             if nested.tag not in [16, 96, 17, 97, 18, 98]:
