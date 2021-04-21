@@ -1,4 +1,10 @@
 import os
+from calendar import timegm
+from datetime import datetime
+
+
+def now() -> int:
+    return timegm(datetime.utcnow().utctimetuple())
 
 
 def key_path(key_name: str) -> str:

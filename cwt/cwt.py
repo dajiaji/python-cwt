@@ -6,8 +6,10 @@ from cbor2 import CBORTag, dumps, loads
 
 from .cose import COSE
 from .cose_key import COSEKey
+from .exceptions import VerifyError
 
-_CWT_DEFAULT_EXPIRES_IN = 3600
+_CWT_DEFAULT_EXPIRES_IN = 3600  # 1 hour
+_CWT_DEFAULT_LEEWAY = 60  # 1 min
 
 
 class CWT:
@@ -20,16 +22,23 @@ class CWT:
 
     def __init__(self, options: Optional[Dict[str, Any]] = None):
         self._expires_in = _CWT_DEFAULT_EXPIRES_IN
+        self._leeway = _CWT_DEFAULT_LEEWAY
         self._cose = COSE(options)
         if not options:
             return
 
-        if options["expires_in"]:
+        if "expires_in" in options:
             if not isinstance(options["expires_in"], int):
                 raise ValueError("expires_in should be int.")
             self._expires_in = options["expires_in"]
             if self._expires_in <= 0:
                 raise ValueError("expires_in should be positive number.")
+        if "leeway" in options:
+            if not isinstance(options["leeway"], int):
+                raise ValueError("leeway should be int.")
+            self._leeway = options["leeway"]
+            if self._leeway <= 0:
+                raise ValueError("leeway should be positive number.")
 
     @property
     def expires_in(self) -> int:
@@ -38,6 +47,13 @@ class CWT:
         If `exp` is not found in claims, this value will be used with current time.
         """
         return self._expires_in
+
+    @property
+    def leeway(self) -> int:
+        """
+        The default leeway in seconds for validating `exp` and `nbf`.
+        """
+        return self._leeway
 
     def encode_and_mac(
         self,
@@ -137,7 +153,9 @@ class CWT:
             return dumps(CBORTag(CWT.CBOR_TAG, res))
         return dumps(res)
 
-    def decode(self, data: bytes, key: Union[COSEKey, List[COSEKey]]) -> bytes:
+    def decode(
+        self, data: bytes, key: Union[COSEKey, List[COSEKey]], no_verify: bool = False
+    ) -> bytes:
         """
         Verify and decode CWT.
 
@@ -145,6 +163,8 @@ class CWT:
             data (bytes): A byte string of an encoded CWT.
             key (Union[COSEKey, List[COSEKey]]): A COSE key or a list of the keys
                 used to verify and decrypt the encoded CWT.
+            no_verify (bool): An indicator whether token verification is skiped
+                or not.
         Returns:
             bytes: A byte string of the decoded CWT.
         Raises:
@@ -158,6 +178,8 @@ class CWT:
         keys: List[COSEKey] = [key] if isinstance(key, COSEKey) else key
         for k in keys:
             cwt = self._cose.decode(cwt, k)
+        if not no_verify:
+            self._verify(cwt)
         return cwt
 
     def _validate(self, claims: Union[Dict[int, Any], bytes]):
@@ -199,6 +221,25 @@ class CWT:
             raise ValueError("cti(7) should be bytes.")
         if 8 in claims and not isinstance(claims[8], dict):
             raise ValueError("cnf(7) should be map.")
+        return
+
+    def _verify(self, claims: Dict[int, Any]):
+        """"""
+        now = timegm(datetime.utcnow().utctimetuple())
+
+        if 4 in claims:  # exp
+            if isinstance(claims[4], int) or isinstance(claims[4], float):
+                if claims[4] < (now - self._leeway):
+                    raise VerifyError("The token has expired.")
+            else:
+                raise ValueError("exp should be int or float.")
+
+        if 5 in claims:  # nbf
+            if isinstance(claims[5], int) or isinstance(claims[5], float):
+                if claims[5] > (now + self._leeway):
+                    raise VerifyError("The token is not yet valid.")
+            else:
+                raise ValueError("nbf should be int or float.")
         return
 
     def _set_default_value(self, claims: Union[Dict[int, Any], bytes]):
