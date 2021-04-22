@@ -1,11 +1,11 @@
-from cbor2 import dumps, loads
 from typing import Any, Dict
+
+from cbor2 import dumps, loads
 
 from .exceptions import DecodeError, EncodeError
 
 
 class CBORProcessor:
-
     def _dumps(self, obj: Dict[int, Any]) -> bytes:
         try:
             return dumps(obj)

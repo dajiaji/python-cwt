@@ -14,20 +14,19 @@ class COSEKey:
             raise ValueError("kty(1) not found.")
         if not isinstance(cose_key[1], int) and not isinstance(cose_key[1], str):
             raise ValueError("kty(1) should be int or str(tstr).")
-        try:
-            self._kty: int = (
-                cose_key[1]
-                if isinstance(cose_key[1], int)
-                else COSE_KEY_TYPES[cose_key[1]]
-            )
-        except ValueError:
+        if isinstance(cose_key[1], int) and cose_key[1] not in [1, 2, 3, 4, 5, 6]:
             raise ValueError(f"Unknown kty: {cose_key[1]}")
+        if isinstance(cose_key[1], str) and cose_key[1] not in COSE_KEY_TYPES:
+            raise ValueError(f"Unknown kty: {cose_key[1]}")
+        self._kty: int = (
+            cose_key[1] if isinstance(cose_key[1], int) else COSE_KEY_TYPES[cose_key[1]]
+        )
         if 2 in cose_key and not isinstance(cose_key[2], bytes):
             raise ValueError("kid(2) should be bytes(bstr).")
         if 3 in cose_key and (
             not isinstance(cose_key[3], int) and not isinstance(cose_key[3], str)
         ):
-            raise ValueError("alg(3) should be int str(tstr).")
+            raise ValueError("alg(3) should be int or str(tstr).")
         if 4 in cose_key and not isinstance(cose_key[4], list):
             raise ValueError("key_ops(4) should be list.")
         if 5 in cose_key and not isinstance(cose_key[5], bytes):

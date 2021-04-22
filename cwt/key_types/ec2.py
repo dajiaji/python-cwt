@@ -9,7 +9,7 @@ from cryptography.hazmat.primitives.asymmetric.utils import (
 )
 
 from ..cose_key import COSEKey
-from ..exceptions import VerifyError
+from ..exceptions import EncodeError, VerifyError
 from ..utils import i2osp, os2ip
 
 
@@ -24,10 +24,6 @@ class EC2Key(COSEKey):
         self._hash_alg: Any = None
 
         # Validate kty.
-        if 1 not in cose_key:
-            raise ValueError("kty(1) not found.")
-        if not isinstance(cose_key[1], int) and not isinstance(cose_key[1], str):
-            raise ValueError("kty(1) should be int or str(tstr).")
         if cose_key[1] != 2:
             raise ValueError("kty(1) should be EC2(2).")
 
@@ -92,21 +88,24 @@ class EC2Key(COSEKey):
             raise ValueError("d(-4) should be bytes(bstr).")
         d = cose_key[-4]
         if len(d) != len(x):
-            raise ValueError("d(-4) should be {} bytes for curve {}", len(x), crv)
-        self._private_key = ec.EllipticCurvePrivateNumbers(
-            int.from_bytes(d, byteorder="big"), public_numbers
-        ).private_key()
+            raise ValueError(f"d(-4) should be {len(x)} bytes for curve {crv}")
+        try:
+            self._private_key = ec.EllipticCurvePrivateNumbers(
+                int.from_bytes(d, byteorder="big"), public_numbers
+            ).private_key()
+        except Exception as err:
+            raise ValueError("Invalid private key.") from err
         return
 
     def sign(self, msg: bytes) -> bytes:
         """"""
+        if self._public_key:
+            raise ValueError("Public key cannot be used for signing.")
         try:
-            if self._public_key:
-                raise ValueError("Public key cannot be used for signing.")
             sig = self._private_key.sign(msg, ec.ECDSA(self._hash_alg()))
             return self._der_to_os(self._private_key.curve.key_size, sig)
-        except ValueError as err:
-            raise VerifyError("Failed to sign.") from err
+        except Exception as err:
+            raise EncodeError("Failed to sign.") from err
 
     def verify(self, msg: bytes, sig: bytes):
         """"""

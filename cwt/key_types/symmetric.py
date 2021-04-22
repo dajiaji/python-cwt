@@ -1,6 +1,6 @@
 import hashlib
 import hmac
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from cryptography.hazmat.primitives.ciphers.aead import AESCCM
 
@@ -18,10 +18,6 @@ class SymmetricKey(COSEKey):
         self._key: bytes = b""
 
         # Validate kty.
-        if 1 not in cose_key:
-            raise ValueError("kty(1) not found.")
-        if not isinstance(cose_key[1], int) and not isinstance(cose_key[1], str):
-            raise ValueError("kty(1) should be int or str(tstr).")
         if cose_key[1] != 4:
             raise ValueError("kty(1) should be Symmetric(4).")
 
@@ -61,7 +57,7 @@ class HMACKey(SymmetricKey):
             self._hash_alg = hashlib.sha512
             self._trunc = 64
         else:
-            raise ValueError("Unsupported or unknown alg: %s" % self._alg)
+            raise ValueError(f"Unsupported or unknown alg({self._alg}) for HMAC.")
 
     def sign(self, msg: bytes) -> bytes:
         """"""
@@ -145,9 +141,9 @@ class AESCCMKey(SymmetricKey):
             self._cipher = AESCCM(self._key)
             self._nonce_len = 7
         else:
-            raise ValueError("Unsupported or unknown alg: %s" % self._alg)
+            raise ValueError(f"Unsupported or unknown alg({self._alg}) for AES CCM.")
 
-    def encrypt(self, msg: bytes, nonce: bytes, aad: bytes) -> bytes:
+    def encrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
         """"""
         if len(nonce) != self._nonce_len:
             raise ValueError(
@@ -158,7 +154,7 @@ class AESCCMKey(SymmetricKey):
         except Exception as err:
             raise EncodeError("Failed to encrypt.") from err
 
-    def decrypt(self, msg: bytes, nonce: bytes, aad: bytes) -> bytes:
+    def decrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
         """"""
         if len(nonce) != self._nonce_len:
             raise ValueError(
