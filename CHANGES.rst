@@ -4,12 +4,20 @@ Changes
 Unreleased
 ----------
 
+Version 0.2.3
+-------------
+
+Released 2021-04-23
+
+- Add test for cose_key and fix bugs. `#21 <https://github.com/dajiaji/python-cwt/pull/21>`__
+- Add support for exp, nbf and iat. `#18 <https://github.com/dajiaji/python-cwt/pull/18>`__
+
 Version 0.2.2
 -------------
 
 Released 2021-04-19
 
-- Add support for Ed448, ES384 and ES512.. `#13 <https://github.com/dajiaji/python-cwt/pull/13>`__
+- Add support for Ed448, ES384 and ES512. `#13 <https://github.com/dajiaji/python-cwt/pull/13>`__
 - Add support for EncodeError and DecodeError. `#13 <https://github.com/dajiaji/python-cwt/pull/11>`__
 - Add test for supported algorithms. `#13 <https://github.com/dajiaji/python-cwt/pull/13>`__
 - Update supported algorithms and claims on docs. `#13 <https://github.com/dajiaji/python-cwt/pull/13>`__
