@@ -10,7 +10,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  tests:
     name: "Python ${{ matrix.python-version }} on ${{ matrix.platform }}"
     runs-on: ${{ matrix.platform }}
     env:
