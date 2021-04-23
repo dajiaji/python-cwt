@@ -6,7 +6,7 @@ from .exceptions import DecodeError, EncodeError
 
 
 class CBORProcessor:
-    def _dumps(self, obj: Dict[int, Any]) -> bytes:
+    def _dumps(self, obj: Any) -> bytes:
         try:
             return dumps(obj)
         except Exception as err:

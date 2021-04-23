@@ -1,11 +1,12 @@
 """
 Tests for SymmetricKey.
 """
-import pytest
 from secrets import token_bytes
 
-from cwt.key_types.symmetric import AESCCMKey, HMACKey, SymmetricKey
+import pytest
+
 from cwt.exceptions import DecodeError, VerifyError
+from cwt.key_types.symmetric import AESCCMKey, HMACKey, SymmetricKey
 
 
 class TestSymmetricKey:
@@ -15,11 +16,13 @@ class TestSymmetricKey:
 
     def test_symmetric_key_constructor_with_hmac_256_256(self):
         """"""
-        key = SymmetricKey({
-            1: 4,
-            -1: b"mysecret",
-            3: 5,  # HMAC 256/256
-        })
+        key = SymmetricKey(
+            {
+                1: 4,
+                -1: b"mysecret",
+                3: 5,  # HMAC 256/256
+            }
+        )
         assert key.kty == 4
         assert key.kid is None
         assert key.alg == 5
@@ -82,11 +85,13 @@ class TestHMACKey:
 
     def test_hmac_key_constructor_with_hmac_256_256(self):
         """"""
-        key = HMACKey({
-            1: 4,
-            -1: b"mysecret",
-            3: 5,  # HMAC 256/256
-        })
+        key = HMACKey(
+            {
+                1: 4,
+                -1: b"mysecret",
+                3: 5,  # HMAC 256/256
+            }
+        )
         assert key.kty == 4
         assert key.kid is None
         assert key.alg == 5
@@ -156,11 +161,13 @@ class TestHMACKey:
 
     def test_hmac_key_verify_with_invalid_signature(self):
         """"""
-        key = HMACKey({
-            1: 4,
-            -1: b"mysecret",
-            3: 5,  # HMAC 256/256
-        })
+        key = HMACKey(
+            {
+                1: 4,
+                -1: b"mysecret",
+                3: 5,  # HMAC 256/256
+            }
+        )
         assert key.kty == 4
         assert key.kid is None
         assert key.alg == 5
@@ -179,11 +186,13 @@ class TestAESCCMKey:
 
     def test_aesccm_key_constructor_with_aes_ccm_16_64_128(self):
         """"""
-        key = AESCCMKey({
-            1: 4,
-            -1: token_bytes(16),
-            3: 10,  # AES-CCM-16-64-128
-        })
+        key = AESCCMKey(
+            {
+                1: 4,
+                -1: token_bytes(16),
+                3: 10,  # AES-CCM-16-64-128
+            }
+        )
         assert key.kty == 4
         assert key.kid is None
         assert key.alg == 10
@@ -237,7 +246,7 @@ class TestAESCCMKey:
             ),
             (
                 {1: 4, -1: b"mysecret", 3: 9},
-                "Unsupported or unknown alg(9) for AES CCM."
+                "Unsupported or unknown alg(9) for AES CCM.",
             ),
             (
                 {1: 4, -1: b"mysecret", 3: 34},
@@ -245,35 +254,35 @@ class TestAESCCMKey:
             ),
             (
                 {1: 4, -1: b"mysecret", 3: 10},
-                "The length of AES-CCM-16-64-128 key should be 16 bytes."
+                "The length of AES-CCM-16-64-128 key should be 16 bytes.",
             ),
             (
                 {1: 4, -1: b"mysecret", 3: 11},
-                "The length of AES-CCM-16-64-256 key should be 32 bytes."
+                "The length of AES-CCM-16-64-256 key should be 32 bytes.",
             ),
             (
                 {1: 4, -1: b"mysecret", 3: 12},
-                "The length of AES-CCM-64-64-128 key should be 16 bytes."
+                "The length of AES-CCM-64-64-128 key should be 16 bytes.",
             ),
             (
                 {1: 4, -1: b"mysecret", 3: 13},
-                "The length of AES-CCM-64-64-256 key should be 32 bytes."
+                "The length of AES-CCM-64-64-256 key should be 32 bytes.",
             ),
             (
                 {1: 4, -1: b"mysecret", 3: 30},
-                "The length of AES-CCM-16-128-128 key should be 16 bytes."
+                "The length of AES-CCM-16-128-128 key should be 16 bytes.",
             ),
             (
                 {1: 4, -1: b"mysecret", 3: 31},
-                "The length of AES-CCM-16-128-256 key should be 32 bytes."
+                "The length of AES-CCM-16-128-256 key should be 32 bytes.",
             ),
             (
                 {1: 4, -1: b"mysecret", 3: 32},
-                "The length of AES-CCM-64-128-128 key should be 16 bytes."
+                "The length of AES-CCM-64-128-128 key should be 16 bytes.",
             ),
             (
                 {1: 4, -1: b"mysecret", 3: 33},
-                "The length of AES-CCM-64-128-256 key should be 32 bytes."
+                "The length of AES-CCM-64-128-256 key should be 32 bytes.",
             ),
         ],
     )
@@ -286,11 +295,13 @@ class TestAESCCMKey:
 
     def test_aesccm_key_decrypt_with_invalid_nonce(self):
         """"""
-        key = AESCCMKey({
-            1: 4,
-            -1: token_bytes(16),
-            3: 10,  # AES-CCM-16-64-128
-        })
+        key = AESCCMKey(
+            {
+                1: 4,
+                -1: token_bytes(16),
+                3: 10,  # AES-CCM-16-64-128
+            }
+        )
         assert key.kty == 4
         assert key.kid is None
         assert key.alg == 10
@@ -304,11 +315,13 @@ class TestAESCCMKey:
 
     def test_aesccm_key_decrypt_with_invalid_length_nonce(self):
         """"""
-        key = AESCCMKey({
-            1: 4,
-            -1: token_bytes(16),
-            3: 10,  # AES-CCM-16-64-128
-        })
+        key = AESCCMKey(
+            {
+                1: 4,
+                -1: token_bytes(16),
+                3: 10,  # AES-CCM-16-64-128
+            }
+        )
         assert key.kty == 4
         assert key.kid is None
         assert key.alg == 10

@@ -134,9 +134,9 @@ class TestSample:
     def test_sample_readme_signed_cwt_es256(self):
         """"""
         # Load PEM-formatted keys as COSE keys.
-        with open(key_path("private_key_es256_2.pem")) as key_file:
+        with open(key_path("private_key_es256.pem")) as key_file:
             private_key = cose_key.from_pem(key_file.read())
-        with open(key_path("public_key_es256_2.pem")) as key_file:
+        with open(key_path("public_key_es256.pem")) as key_file:
             public_key = cose_key.from_pem(key_file.read())
 
         # Encode with ES256 signing.
