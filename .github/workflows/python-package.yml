@@ -45,10 +45,10 @@ jobs:
           python -m pip install coverage[toml]
           python -m coverage combine
           python -m coverage xml
-        if: contains(env.USING_COVERAGE, matrix.python-version) && matrix.platform == 'ubuntu-latest'
+        if: "contains(env.USING_COVERAGE, matrix.python-version) && matrix.platform == 'ubuntu-latest'"
       
       - name: Upload coverage to Codecov
-        if: contains(env.USING_COVERAGE, matrix.python-version) && matrix.platform == 'ubuntu-latest'
+        if: "contains(env.USING_COVERAGE, matrix.python-version) && matrix.platform == 'ubuntu-latest'"
         uses: codecov/codecov-action@v1
         with:
           fail_ci_if_error: true
