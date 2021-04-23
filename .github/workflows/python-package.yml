@@ -93,4 +93,4 @@ jobs:
       run: python -m pip install -e .[dev]
 
     - name: Import package
-      run: python -c 'import cwt; print(jwt.__version__)'
+      run: python -c 'import cwt; print(cwt.__version__)'
