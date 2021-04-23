@@ -3,8 +3,8 @@ Tests for OKPKey.
 """
 import pytest
 
-from cwt.key_types.okp import OKPKey
 from cwt.exceptions import VerifyError
+from cwt.key_types.okp import OKPKey
 
 
 class TestOKPKey:
@@ -14,19 +14,23 @@ class TestOKPKey:
 
     def test_okp_key_constructor_with_ed25519_key(self):
         """"""
-        private_key = OKPKey({
-            1: 1,
-            3: -8,
-            -1: 6,
-            -2: b'\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9',
-            -4: b'B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9'
-        })
-        public_key = OKPKey({
-            1: 1,
-            3: -8,
-            -1: 6,
-            -2: b'\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9',
-        })
+        private_key = OKPKey(
+            {
+                1: 1,
+                3: -8,
+                -1: 6,
+                -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                -4: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
+            }
+        )
+        public_key = OKPKey(
+            {
+                1: 1,
+                3: -8,
+                -1: 6,
+                -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+            }
+        )
         assert private_key.kty == 1
         assert private_key.kid is None
         assert private_key.alg == -8
@@ -81,100 +85,96 @@ class TestOKPKey:
             (
                 {
                     1: 1,
-                    -2: b'\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9',
+                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                 },
                 "crv(-1) not found.",
             ),
             (
                 {
                     1: 1,
-                    -2: b'\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9',
-                    -1: {}
+                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    -1: {},
                 },
                 "crv(-1) should be int or str(tstr).",
             ),
             (
                 {
                     1: 1,
-                    -2: b'\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9',
-                    -1: []
+                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    -1: [],
                 },
                 "crv(-1) should be int or str(tstr).",
             ),
             (
                 {
                     1: 1,
-                    -2: b'\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9',
-                    -1: b"EdDSA"
+                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    -1: b"EdDSA",
                 },
                 "crv(-1) should be int or str(tstr).",
             ),
             (
                 {
                     1: 1,
-                    -2: b'\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9',
-                    -1: 3
+                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    -1: 3,
                 },
                 "Unsupported or unknown curve(3) for OKP.",
             ),
             (
                 {
                     1: 1,
-                    -2: b'\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9',
-                    -1: 8
+                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    -1: 8,
                 },
                 "Unsupported or unknown curve(8) for OKP.",
             ),
             (
-                {
-                    1: 1,
-                    -2: b"invalid-x",
-                    -1: 6
-                },
+                {1: 1, -2: b"invalid-x", -1: 6},
                 "Invalid key parameter.",
             ),
             (
                 {
                     1: 1,
-                    -2: b'\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9',
+                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     -4: "invalid-type-d",
-                    -1: 6
+                    -1: 6,
                 },
                 "d(-4) should be bytes(bstr).",
             ),
             (
                 {
                     1: 1,
-                    -2: b'\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9',
+                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     -4: {},
-                    -1: 6
+                    -1: 6,
                 },
                 "d(-4) should be bytes(bstr).",
             ),
             (
                 {
                     1: 1,
-                    -2: b'\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9',
+                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     -4: [],
-                    -1: 6
+                    -1: 6,
                 },
                 "d(-4) should be bytes(bstr).",
             ),
             (
                 {
                     1: 1,
-                    -2: b'\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9',
+                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     -4: 123,
-                    -1: 6
+                    -1: 6,
                 },
                 "d(-4) should be bytes(bstr).",
             ),
             (
                 {
                     1: 1,
-                    -2: b'\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9',
+                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     -4: b"invalid-d",
-                    -1: 6
+                    -1: 6,
                 },
                 "Invalid key parameter.",
             ),
@@ -189,12 +189,14 @@ class TestOKPKey:
 
     def test_okp_key_sign_with_es256_public_key(self):
         """"""
-        public_key = OKPKey({
-            1: 1,
-            3: -8,
-            -1: 6,
-            -2: b'\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9',
-        })
+        public_key = OKPKey(
+            {
+                1: 1,
+                3: -8,
+                -1: 6,
+                -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+            }
+        )
         with pytest.raises(ValueError) as err:
             public_key.sign(b"Hello world!")
             pytest.fail("sign should not fail.")
@@ -202,13 +204,15 @@ class TestOKPKey:
 
     def test_okp_key_verify_with_invalid_signature(self):
         """"""
-        private_key = OKPKey({
-            1: 1,
-            3: -8,
-            -1: 6,
-            -2: b'\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9',
-            -4: b'B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9'
-        })
+        private_key = OKPKey(
+            {
+                1: 1,
+                3: -8,
+                -1: 6,
+                -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                -4: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
+            }
+        )
         sig = private_key.sign(b"Hello world!")
         with pytest.raises(VerifyError) as err:
             private_key.verify(b"Hello world!", sig + b"xxx")
