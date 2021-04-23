@@ -8,12 +8,11 @@ Tests for KeyBuilder.
 """
 import pytest
 
-from cwt import COSEKey, KeyBuilder
+from cwt import COSEKey, KeyBuilder, cose_key
+
+from .utils import key_path
 
 # from secrets import token_bytes
-
-
-# from .utils import key_path
 
 
 class TestKeyBuilder:
@@ -48,3 +47,29 @@ class TestKeyBuilder:
             res = kb.from_symmetric_key("mysecretpassword", alg="xxx")
             pytest.fail("from_symmetric_key should be fail: res=%s" % vars(res))
         assert "Unsupported or unknown alg" in str(err.value)
+
+    @pytest.mark.parametrize(
+        "private_key_path, public_key_path",
+        [
+            ("private_key_ed25519.pem", "public_key_ed25519.pem"),
+            ("private_key_ed448.pem", "public_key_ed448.pem"),
+            ("private_key_es256.pem", "public_key_es256.pem"),
+            ("private_key_es256k.pem", "public_key_es256k.pem"),
+            ("private_key_es384.pem", "public_key_es384.pem"),
+            ("private_key_es512.pem", "public_key_es512.pem"),
+            ("private_key_x25519.pem", "public_key_x25519.pem"),
+            ("private_key_x448.pem", "public_key_x448.pem"),
+        ],
+    )
+    def test_cwt_encode_and_sign_with_valid_alg(
+        self, private_key_path, public_key_path
+    ):
+        """"""
+        try:
+            with open(key_path(private_key_path)) as key_file:
+                cose_key.from_pem(key_file.read())
+            with open(key_path(public_key_path)) as key_file:
+                cose_key.from_pem(key_file.read())
+        except Exception as err:
+            print(err)
+            pytest.fail("from_pem should not fail.")

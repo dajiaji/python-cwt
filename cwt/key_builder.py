@@ -14,6 +14,11 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PrivateKey,
     Ed25519PublicKey,
 )
+from cryptography.hazmat.primitives.asymmetric.x448 import X448PrivateKey, X448PublicKey
+from cryptography.hazmat.primitives.asymmetric.x25519 import (
+    X25519PrivateKey,
+    X25519PublicKey,
+)
 from cryptography.hazmat.primitives.serialization import (
     Encoding,
     NoEncryption,
@@ -182,6 +187,32 @@ class KeyBuilder:
             cose_key[3] = -8  # EdDSA
             cose_key[-1] = 7  # Ed448
             if isinstance(k, Ed448PublicKey):
+                cose_key[-2] = k.public_bytes(Encoding.Raw, PublicFormat.Raw)
+            else:
+                cose_key[-2] = k.public_key().public_bytes(
+                    Encoding.Raw, PublicFormat.Raw
+                )
+                cose_key[-4] = k.private_bytes(
+                    Encoding.Raw, PrivateFormat.Raw, NoEncryption()
+                )
+        elif isinstance(k, X25519PublicKey) or isinstance(k, X25519PrivateKey):
+            cose_key[1] = COSE_KEY_TYPES["OKP"]
+            cose_key[3] = -8  # EdDSA
+            cose_key[-1] = 4  # X25519
+            if isinstance(k, X25519PublicKey):
+                cose_key[-2] = k.public_bytes(Encoding.Raw, PublicFormat.Raw)
+            else:
+                cose_key[-2] = k.public_key().public_bytes(
+                    Encoding.Raw, PublicFormat.Raw
+                )
+                cose_key[-4] = k.private_bytes(
+                    Encoding.Raw, PrivateFormat.Raw, NoEncryption()
+                )
+        elif isinstance(k, X448PublicKey) or isinstance(k, X448PrivateKey):
+            cose_key[1] = COSE_KEY_TYPES["OKP"]
+            cose_key[3] = -8  # EdDSA
+            cose_key[-1] = 5  # X448
+            if isinstance(k, X448PublicKey):
                 cose_key[-2] = k.public_bytes(Encoding.Raw, PublicFormat.Raw)
             else:
                 cose_key[-2] = k.public_key().public_bytes(
