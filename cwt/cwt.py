@@ -156,7 +156,7 @@ class CWT(CBORProcessor):
 
     def decode(
         self, data: bytes, key: Union[COSEKey, List[COSEKey]], no_verify: bool = False
-    ) -> bytes:
+    ) -> Dict[int, Any]:
         """
         Verify and decode CWT.
 
