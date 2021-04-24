@@ -139,4 +139,4 @@ class COSE(CBORProcessor):
             msg = self._dumps(["Signature", data.value[0], b"", data.value[2]])
             raise NotImplementedError()
 
-        raise ValueError("Unsupported or unknown tag: %d" % data.tag)
+        raise ValueError(f"Unsupported or unknown CBOR tag({data.tag}).")
