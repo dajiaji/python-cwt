@@ -15,6 +15,11 @@ from .utils import key_path
 # from secrets import token_bytes
 
 
+@pytest.fixture(scope="session", autouse=True)
+def ctx():
+    return KeyBuilder()
+
+
 class TestKeyBuilder:
     """
     Tests for KeyBuilder.
@@ -34,19 +39,19 @@ class TestKeyBuilder:
             "HMAC 512/512",
         ],
     )
-    def test_cwt_encode_and_mac_with_valid_alg(self, alg):
-        """"""
-        kb = KeyBuilder()
-        k = kb.from_symmetric_key("mysecretpassword", alg=alg)
+    def test_key_builder_from_symmetric_key_hmac(self, ctx, alg):
+        k = ctx.from_symmetric_key("mysecret", alg=alg)
         assert isinstance(k, COSEKey)
 
-    def test_key_builder_from_symmetric_key_with_invalid_alg(self):
-        """"""
-        kb = KeyBuilder()
+    @pytest.mark.parametrize(
+        "alg",
+        ["xxx", 3, 8, 9, 34],
+    )
+    def test_key_builder_from_symmetric_key_with_invalid_alg(self, ctx, alg):
         with pytest.raises(ValueError) as err:
-            res = kb.from_symmetric_key("mysecretpassword", alg="xxx")
-            pytest.fail("from_symmetric_key should be fail: res=%s" % vars(res))
-        assert "Unsupported or unknown alg" in str(err.value)
+            res = ctx.from_symmetric_key("mysecretpassword", alg=alg)
+            pytest.fail("from_symmetric_key should fail: res=%s" % vars(res))
+        assert f"Unsupported or unknown alg({alg})." in str(err.value)
 
     @pytest.mark.parametrize(
         "private_key_path, public_key_path",
@@ -61,15 +66,49 @@ class TestKeyBuilder:
             ("private_key_x448.pem", "public_key_x448.pem"),
         ],
     )
-    def test_cwt_encode_and_sign_with_valid_alg(
-        self, private_key_path, public_key_path
-    ):
-        """"""
+    def test_key_builder_from_pem(self, private_key_path, public_key_path):
         try:
             with open(key_path(private_key_path)) as key_file:
                 cose_key.from_pem(key_file.read())
             with open(key_path(public_key_path)) as key_file:
                 cose_key.from_pem(key_file.read())
-        except Exception as err:
-            print(err)
+        except Exception:
             pytest.fail("from_pem should not fail.")
+
+    @pytest.mark.parametrize(
+        "invalid, msg",
+        [
+            ("invalidstring", "Failed to decode PEM."),
+            (b"invalidbytes", "Failed to decode PEM."),
+        ],
+    )
+    def test_key_builder_from_pem_with_invalid_args(self, ctx, invalid, msg):
+        with pytest.raises(ValueError) as err:
+            ctx.from_pem(invalid)
+            pytest.fail("from_pem should not fail.")
+        assert msg in str(err.value)
+
+    @pytest.mark.parametrize(
+        "invalid, msg",
+        [
+            ({}, "kty(1) not found."),
+            ({1: b"kty"}, "kty(1) should be int or str(tstr)."),
+            ({1: {}}, "kty(1) should be int or str(tstr)."),
+            ({1: []}, "kty(1) should be int or str(tstr)."),
+            ({1: 7}, "Unsupported or unknown kty(1): 7."),
+            ({1: 4, 3: b"alg"}, "alg(3) should be int or str(tstr)."),
+            ({1: 4, 3: {}}, "alg(3) should be int or str(tstr)."),
+            ({1: 4, 3: []}, "alg(3) should be int or str(tstr)."),
+            ({1: 4, 3: 1}, "Unsupported or unknown alg(3): 1."),
+        ],
+    )
+    def test_key_builder_from_dict_with_invalid_args(self, ctx, invalid, msg):
+        with pytest.raises(ValueError) as err:
+            ctx.from_dict(invalid)
+            pytest.fail("from_dict should fail.")
+        assert msg in str(err.value)
+
+    def test_key_builder_from_jwk(self, ctx):
+        with pytest.raises(NotImplementedError):
+            ctx.from_jwk('{"kty":"OKP"}')
+            pytest.fail("from_jwk should fail.")
