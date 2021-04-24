@@ -164,7 +164,7 @@ class TestEC2Key:
         """"""
         with pytest.raises(TypeError):
             EC2Key()
-            pytest.fail("EC2Key should be fail.")
+            pytest.fail("EC2Key should fail.")
 
     @pytest.mark.parametrize(
         "invalid, msg",
@@ -375,7 +375,7 @@ class TestEC2Key:
         """"""
         with pytest.raises(ValueError) as err:
             EC2Key(invalid)
-            pytest.fail("EC2Key should be fail.")
+            pytest.fail("EC2Key should fail.")
         assert msg in str(err.value)
 
     def test_ec2_key_sign_with_es256_public_key(self):

@@ -184,7 +184,7 @@ class TestOKPKey:
         """"""
         with pytest.raises(ValueError) as err:
             OKPKey(invalid)
-            pytest.fail("OKPKey should be fail.")
+            pytest.fail("OKPKey should fail.")
         assert msg in str(err.value)
 
     def test_okp_key_sign_with_es256_public_key(self):

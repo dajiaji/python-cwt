@@ -74,7 +74,7 @@ class TestSymmetricKey:
         """"""
         with pytest.raises(ValueError) as err:
             SymmetricKey(invalid)
-            pytest.fail("SymmetricKey should be fail.")
+            pytest.fail("SymmetricKey should fail.")
         assert msg in str(err.value)
 
 
@@ -156,7 +156,7 @@ class TestHMACKey:
         """"""
         with pytest.raises(ValueError) as err:
             HMACKey(invalid)
-            pytest.fail("HMACKey should be fail.")
+            pytest.fail("HMACKey should fail.")
         assert msg in str(err.value)
 
     def test_hmac_key_verify_with_invalid_signature(self):
@@ -290,7 +290,7 @@ class TestAESCCMKey:
         """"""
         with pytest.raises(ValueError) as err:
             AESCCMKey(invalid)
-            pytest.fail("AESCCMKey should be fail.")
+            pytest.fail("AESCCMKey should fail.")
         assert msg in str(err.value)
 
     def test_aesccm_key_decrypt_with_invalid_nonce(self):
