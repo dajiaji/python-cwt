@@ -145,8 +145,7 @@ class CWT(CBORProcessor):
         self._set_default_value(claims)
         protected: Dict[int, Any] = {1: key.alg}
         unprotected: Dict[int, Any] = {4: key.kid} if key.kid else {}
-        if nonce:
-            unprotected[5] = nonce
+        unprotected[5] = nonce
         res = self._cose.encode_and_encrypt(
             protected, unprotected, claims, key, nonce, out="cbor2/CBORTag"
         )
@@ -188,9 +187,9 @@ class CWT(CBORProcessor):
         if isinstance(claims, bytes):
             nested = self._loads(claims)
             if not isinstance(nested, CBORTag):
-                raise ValueError("bytes-formatted claims need CBOR(COSE) Tag.")
+                raise ValueError("A bytes-formatted claims needs CBOR(COSE) Tag.")
             if nested.tag not in [16, 96, 17, 97, 18, 98]:
-                raise ValueError("Unsupported or unknown CBOR tag.")
+                raise ValueError(f"Unsupported or unknown CBOR tag({nested.tag}).")
             return
         if -260 in claims and not isinstance(claims[-260], dict):
             raise ValueError("hcert(-260) should be map.")
