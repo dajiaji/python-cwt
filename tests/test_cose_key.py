@@ -31,22 +31,22 @@ class TestCOSEKey:
         assert key.base_iv is None
         with pytest.raises(NotImplementedError):
             key.sign(b"message")
-            pytest.fail("COSEKey.sign() should be fail.")
+            pytest.fail("COSEKey.sign() should fail.")
         with pytest.raises(NotImplementedError):
             key.verify(b"message", b"signature")
-            pytest.fail("COSEKey.verify() should be fail.")
+            pytest.fail("COSEKey.verify() should fail.")
         with pytest.raises(NotImplementedError):
             key.encrypt(b"message", nonce=b"123", aad=None)
-            pytest.fail("COSEKey.encrypt() should be fail.")
+            pytest.fail("COSEKey.encrypt() should fail.")
         with pytest.raises(NotImplementedError):
             key.decrypt(b"message", nonce=b"123", aad=None)
-            pytest.fail("COSEKey.decrypt() should be fail.")
+            pytest.fail("COSEKey.decrypt() should fail.")
 
     def test_cose_key_constructor_without_cose_key(self):
         """"""
         with pytest.raises(TypeError):
             COSEKey()
-            pytest.fail("COSEKey should be fail.")
+            pytest.fail("COSEKey should fail.")
 
     @pytest.mark.parametrize(
         "invalid, msg",
@@ -121,5 +121,5 @@ class TestCOSEKey:
         """"""
         with pytest.raises(ValueError) as err:
             COSEKey(invalid)
-            pytest.fail("COSEKey should be fail.")
+            pytest.fail("COSEKey should fail.")
         assert msg in str(err.value)
