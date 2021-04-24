@@ -1,4 +1,4 @@
-import json
+# import json
 from typing import Any, Dict, Optional, Union
 
 import cbor2
@@ -66,14 +66,14 @@ class KeyBuilder:
         return
 
     def from_symmetric_key(
-        self, key: Union[bytes, str], alg: str = "HMAC 256/256"
+        self, key: Union[bytes, str], alg: Union[int, str] = "HMAC 256/256"
     ) -> COSEKey:
         """"""
         if isinstance(key, str):
             key = key.encode("utf-8")
-        alg_id = COSE_ALGORITHMS_SYMMETRIC.get(alg, None)
-        if not alg_id:
-            raise ValueError("Unsupported or unknown alg: %s" % alg)
+        alg_id = alg if isinstance(alg, int) else COSE_ALGORITHMS_SYMMETRIC.get(alg, 0)
+        if alg_id == 0:
+            raise ValueError(f"Unsupported or unknown alg({alg}).")
 
         cose_key = {
             1: 4,  # kty: 'Symmetric'
@@ -84,7 +84,7 @@ class KeyBuilder:
             return HMACKey(cose_key)
         if alg_id in [10, 11, 12, 13, 30, 31, 32, 33]:
             return AESCCMKey(cose_key)
-        raise ValueError("Unsupported or unknown alg(3): %d" % alg_id)
+        raise ValueError(f"Unsupported or unknown alg({alg_id}).")
 
     def from_dict(self, cose_key: Dict[int, Any]) -> COSEKey:
         """"""
@@ -102,13 +102,13 @@ class KeyBuilder:
             if 3 not in cose_key or (
                 not isinstance(cose_key[3], int) and not isinstance(cose_key[3], str)
             ):
-                raise ValueError("alg(3) should be int str(tstr).")
+                raise ValueError("alg(3) should be int or str(tstr).")
             if cose_key[3] in [4, 5, 6, 7]:
                 return HMACKey(cose_key)
             if cose_key[3] in [10, 11, 12, 13, 30, 31, 32, 33]:
                 return AESCCMKey(cose_key)
-            raise ValueError(f"Unsupported or unknown alg(3): {cose_key[3]}")
-        raise ValueError(f"Unsupported or unknown kty(1): {cose_key[1]}")
+            raise ValueError(f"Unsupported or unknown alg(3): {cose_key[3]}.")
+        raise ValueError(f"Unsupported or unknown kty(1): {cose_key[1]}.")
 
     def from_bytes(self, key_data: bytes) -> COSEKey:
         """"""
@@ -117,11 +117,12 @@ class KeyBuilder:
 
     def from_jwk(self, jwk: Union[str, bytes, Dict[str, Any]]) -> COSEKey:
         """"""
-        cose_key: Dict[int, Any] = {}
-        if not isinstance(jwk, dict):
-            jwk = json.loads(jwk)
-        # TODO: from JWT to COSE key.
-        return self.from_dict(cose_key)
+        raise NotImplementedError
+        # cose_key: Dict[int, Any] = {}
+        # if not isinstance(jwk, dict):
+        #     jwk = json.loads(jwk)
+        # # TODO: from JWT to COSE key.
+        # return self.from_dict(cose_key)
 
     def from_pem(self, key_data: Union[str, bytes], kid: bytes = b"") -> COSEKey:
         """"""
@@ -155,7 +156,7 @@ class KeyBuilder:
             elif k.curve.name == "secp256k1":
                 cose_key[3] = cose_key[-1] = 8
             else:
-                raise ValueError(f"Unsupported or unknown alg: {k.curve.name}")
+                raise ValueError(f"Unsupported or unknown alg: {k.curve.name}.")
             if isinstance(k, EllipticCurvePublicKey):
                 cose_key[-2] = k.public_numbers().x.to_bytes(key_len, byteorder="big")
                 cose_key[-3] = k.public_numbers().y.to_bytes(key_len, byteorder="big")
@@ -221,6 +222,8 @@ class KeyBuilder:
                 cose_key[-4] = k.private_bytes(
                     Encoding.Raw, PrivateFormat.Raw, NoEncryption()
                 )
+        else:
+            raise ValueError("Unsupported or unknown key: {type(k)}.")
         return self.from_dict(cose_key)
 
 
