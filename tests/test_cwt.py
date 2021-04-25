@@ -12,7 +12,7 @@ import cbor2
 import pytest
 from cbor2 import CBORTag
 
-from cwt import CWT, DecodeError, EncodeError, VerifyError, cose_key
+from cwt import CWT, DecodeError, EncodeError, Recipient, VerifyError, cose_key
 
 from .utils import key_path, now
 
@@ -105,6 +105,35 @@ class TestCWT:
             {1: "https://as.example", 2: "someone", 7: b"123"},
             key,
             tagged=True,
+        )
+        decoded = ctx.decode(token, key)
+        assert 1 in decoded and decoded[1] == "https://as.example"
+        assert 2 in decoded and decoded[2] == "someone"
+        assert 7 in decoded and decoded[7] == b"123"
+
+    def test_cwt_encode_and_mac_with_recipient(self, ctx):
+        recipient = Recipient(unprotected={1: -6, 4: b"our-secret"})
+        key = cose_key.from_symmetric_key(
+            "mysecret", alg="HMAC 256/64", kid="our-secret"
+        )
+        token = ctx.encode_and_mac(
+            {1: "https://as.example", 2: "someone", 7: b"123"},
+            key,
+            tagged=True,
+            recipients=[recipient],
+        )
+        decoded = ctx.decode(token, key)
+        assert 1 in decoded and decoded[1] == "https://as.example"
+        assert 2 in decoded and decoded[2] == "someone"
+        assert 7 in decoded and decoded[7] == b"123"
+
+    def test_cwt_encode_and_mac_with_empty_recipient(self, ctx):
+        key = cose_key.from_symmetric_key("mysecret", alg="HMAC 256/64")
+        token = ctx.encode_and_mac(
+            {1: "https://as.example", 2: "someone", 7: b"123"},
+            key,
+            tagged=True,
+            recipients=[],
         )
         decoded = ctx.decode(token, key)
         assert 1 in decoded and decoded[1] == "https://as.example"
