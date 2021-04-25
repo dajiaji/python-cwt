@@ -90,18 +90,20 @@ class TestRecipient:
                 {1: -6, 4: b"our-secret"},
                 b"xxx",
                 [],
-                "ciphertext should be zero-length bytes."
+                "ciphertext should be zero-length bytes.",
             ),
             (
                 b"",
                 {1: -6, 4: b"our-secret"},
                 b"",
                 [Recipient()],
-                "recipients should be absent."
+                "recipients should be absent.",
             ),
         ],
     )
-    def test_recipient_constructor_with_invalid_args(self, protected, unprotected, ciphertext, recipients, msg):
+    def test_recipient_constructor_with_invalid_args(
+        self, protected, unprotected, ciphertext, recipients, msg
+    ):
         with pytest.raises(ValueError) as err:
             Recipient(protected, unprotected, ciphertext, recipients)
             pytest.fail("Recipient() should fail.")
@@ -195,90 +197,27 @@ class TestRecipientsBuilder:
     @pytest.mark.parametrize(
         "invalid, msg",
         [
-            (
-                [{}],
-                "Invalid recipient format."
-            ),
-            (
-                [123],
-                "Invalid recipient format."
-            ),
-            (
-                [[]],
-                "Invalid recipient format."
-            ),
-            (
-                [[b"", {}]],
-                "Invalid recipient format."
-            ),
-            (
-                [[b"", {}, b"", [], {}]],
-                "Invalid recipient format."
-            ),
-            (
-                [["", {}, b""]],
-                "protected header should be bytes."
-            ),
-            (
-                [[{}, {}, b""]],
-                "protected header should be bytes."
-            ),
-            (
-                [[[], {}, b""]],
-                "protected header should be bytes."
-            ),
-            (
-                [[123, {}, b""]],
-                "protected header should be bytes."
-            ),
-            (
-                [[b"", [], b""]],
-                "unprotected header should be dict."
-            ),
-            (
-                [[b"", "", b""]],
-                "unprotected header should be dict."
-            ),
-            (
-                [[b"", b"", b""]],
-                "unprotected header should be dict."
-            ),
-            (
-                [[b"", 123, b""]],
-                "unprotected header should be dict."
-            ),
-            (
-                [[b"", {}, ""]],
-                "ciphertext should be bytes."
-            ),
-            (
-                [[b"", {}, {}]],
-                "ciphertext should be bytes."
-            ),
-            (
-                [[b"", {}, []]],
-                "ciphertext should be bytes."
-            ),
-            (
-                [[b"", {}, 123]],
-                "ciphertext should be bytes."
-            ),
-            (
-                [[b"", {}, b"", {}]],
-                "recipients should be list."
-            ),
-            (
-                [[b"", {}, b"", ""]],
-                "recipients should be list."
-            ),
-            (
-                [[b"", {}, b"", b""]],
-                "recipients should be list."
-            ),
-            (
-                [[b"", {}, b"", 123]],
-                "recipients should be list."
-            ),
+            ([{}], "Invalid recipient format."),
+            ([123], "Invalid recipient format."),
+            ([[]], "Invalid recipient format."),
+            ([[b"", {}]], "Invalid recipient format."),
+            ([[b"", {}, b"", [], {}]], "Invalid recipient format."),
+            ([["", {}, b""]], "protected header should be bytes."),
+            ([[{}, {}, b""]], "protected header should be bytes."),
+            ([[[], {}, b""]], "protected header should be bytes."),
+            ([[123, {}, b""]], "protected header should be bytes."),
+            ([[b"", [], b""]], "unprotected header should be dict."),
+            ([[b"", "", b""]], "unprotected header should be dict."),
+            ([[b"", b"", b""]], "unprotected header should be dict."),
+            ([[b"", 123, b""]], "unprotected header should be dict."),
+            ([[b"", {}, ""]], "ciphertext should be bytes."),
+            ([[b"", {}, {}]], "ciphertext should be bytes."),
+            ([[b"", {}, []]], "ciphertext should be bytes."),
+            ([[b"", {}, 123]], "ciphertext should be bytes."),
+            ([[b"", {}, b"", {}]], "recipients should be list."),
+            ([[b"", {}, b"", ""]], "recipients should be list."),
+            ([[b"", {}, b"", b""]], "recipients should be list."),
+            ([[b"", {}, b"", 123]], "recipients should be list."),
         ],
     )
     def test_recipients_builder_from_list_with_invalid_args(self, invalid, msg):
