@@ -8,11 +8,14 @@ class Recipient(CBORProcessor):
     """
     A COSE Recipient.
     """
-    def __init__(self,
-                 protected: bytes = b"",
-                 unprotected: Dict[int, Any] = {},
-                 ciphertext: bytes = b"",
-                 recipients: List[Any] = []):
+
+    def __init__(
+        self,
+        protected: bytes = b"",
+        unprotected: Dict[int, Any] = {},
+        ciphertext: bytes = b"",
+        recipients: List[Any] = [],
+    ):
 
         # Validate unprotected
         if 1 in unprotected:
@@ -76,10 +79,11 @@ class Recipient(CBORProcessor):
         return res
 
 
-class Recipients():
+class Recipients:
     """
     A Set of COSE Recipients.
     """
+
     def __init__(self, recipients: List[Recipient]):
         self._recipients = recipients
         return
@@ -96,7 +100,7 @@ class Recipients():
         raise ValueError("Failed to derive a key.")
 
 
-class RecipientsBuilder():
+class RecipientsBuilder:
     """
     A Recipients Builder.
     """
@@ -115,7 +119,9 @@ class RecipientsBuilder():
         return Recipients(res)
 
     def _create_recipient(self, recipient: List[Any]) -> Recipient:
-        if not isinstance(recipient, list) or (len(recipient) != 3 and len(recipient) != 4):
+        if not isinstance(recipient, list) or (
+            len(recipient) != 3 and len(recipient) != 4
+        ):
             raise ValueError("Invalid recipient format.")
         if not isinstance(recipient[0], bytes):
             raise ValueError("protected header should be bytes.")
