@@ -4,6 +4,7 @@ from .cose_key import COSEKey
 from .cwt import CWT, decode, encode_and_encrypt, encode_and_mac, encode_and_sign
 from .exceptions import CWTError, DecodeError, EncodeError, VerifyError
 from .key_builder import KeyBuilder, cose_key
+from .recipient import Recipient
 
 __version__ = "0.2.3"
 __title__ = "cwt"
@@ -26,6 +27,7 @@ __all__ = [
     "COSEKey",
     "KeyBuilder",
     "cose_key",
+    "Recipient",
     "claims",
     "CWTError",
     "EncodeError",

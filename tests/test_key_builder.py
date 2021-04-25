@@ -76,6 +76,21 @@ class TestKeyBuilder:
             pytest.fail("from_pem should not fail.")
 
     @pytest.mark.parametrize(
+        "kid, expected",
+        [
+            (b"our-key", b"our-key"),
+            ("our-key", b"our-key"),
+        ],
+    )
+    def test_key_builder_from_pem_with_kid(self, kid, expected):
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            private_key = cose_key.from_pem(key_file.read(), kid=kid)
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            public_key = cose_key.from_pem(key_file.read(), kid=kid)
+        assert private_key.kid == expected
+        assert public_key.kid == expected
+
+    @pytest.mark.parametrize(
         "invalid, msg",
         [
             ("invalidstring", "Failed to decode PEM."),

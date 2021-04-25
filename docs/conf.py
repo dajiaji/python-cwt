@@ -42,6 +42,7 @@ nitpick_ignore = [
     ("py:class", "cwt.cbor_processor.CBORProcessor"),
     ("py:class", "_cbor2.CBORTag"),
     ("py:class", "cwt.exceptions.CWTError"),
+    ("py:class", "cwt.recipient.Recipient"),
 ]
 
 # Add any paths that contain templates here, relative to this directory.

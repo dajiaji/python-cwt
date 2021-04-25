@@ -8,6 +8,7 @@ from .cbor_processor import CBORProcessor
 from .cose import COSE
 from .cose_key import COSEKey
 from .exceptions import VerifyError
+from .recipient import Recipient
 
 _CWT_DEFAULT_EXPIRES_IN = 3600  # 1 hour
 _CWT_DEFAULT_LEEWAY = 60  # 1 min
@@ -61,6 +62,7 @@ class CWT(CBORProcessor):
         claims: Union[Dict[int, Any], bytes],
         key: COSEKey,
         tagged: Optional[bool] = False,
+        recipients: Optional[List[Recipient]] = None,
     ) -> bytes:
         """
         Encode CWT claims and add MAC to it.
@@ -68,6 +70,7 @@ class CWT(CBORProcessor):
         Args:
             claims (Union[Dict[int, Any], bytes]): A CWT claims object or byte string.
             key (COSEKey): A COSE key used to generate a MAC for the claims.
+            recipients (List[Recipient]): A list of recipient information structures.
             tagged (bool): An indicator whether the response is wrapped by CWT tag(61)
                 or not.
         Returns:
@@ -81,7 +84,7 @@ class CWT(CBORProcessor):
         protected: Dict[int, Any] = {1: key.alg}
         unprotected: Dict[int, Any] = {4: key.kid} if key.kid else {}
         res = self._cose.encode_and_mac(
-            protected, unprotected, claims, key, out="cbor2/CBORTag"
+            protected, unprotected, claims, key, recipients, out="cbor2/CBORTag"
         )
         if tagged:
             return self._dumps(CBORTag(CWT.CBOR_TAG, res))

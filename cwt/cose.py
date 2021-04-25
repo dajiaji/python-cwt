@@ -4,6 +4,7 @@ from cbor2 import CBORTag
 
 from .cbor_processor import CBORProcessor
 from .cose_key import COSEKey
+from .recipient import Recipient, RecipientsBuilder
 
 
 class COSE(CBORProcessor):
@@ -13,6 +14,7 @@ class COSE(CBORProcessor):
 
     def __init__(self, options: Optional[Dict[str, Any]] = None):
         self._options = options
+        self._recipients_builder = RecipientsBuilder()
 
     def encode_and_mac(
         self,
@@ -20,14 +22,34 @@ class COSE(CBORProcessor):
         unprotected: Dict[int, Any],
         payload: Union[Dict[int, Any], bytes],
         key: COSEKey,
+        recipients: Optional[List[Recipient]] = None,
         out: Optional[str] = None,
     ) -> Union[bytes, CBORTag]:
 
-        b_protected = self._dumps(protected)
+        ctx = "MAC0" if not recipients else "MAC"
+
+        # MAC0
+        if not recipients:
+            protected[1] = key.alg
+            unprotected[4] = key.kid if key.kid else {}
+            b_protected = self._dumps(protected) if protected else b""
+            b_payload = self._dumps(payload)
+            mac_structure = [ctx, b_protected, b"", b_payload]
+            tag = key.sign(self._dumps(mac_structure))
+            res = CBORTag(17, [b_protected, unprotected, b_payload, tag])
+            return res if out == "cbor2/CBORTag" else self._dumps(res)
+
+        # MAC
+        b_protected = self._dumps(protected) if protected else b""
         b_payload = self._dumps(payload)
-        mac_structure = ["MAC0", b_protected, b"", b_payload]
+        mac_structure = [ctx, b_protected, b"", b_payload]
         tag = key.sign(self._dumps(mac_structure))
-        res = CBORTag(17, [b_protected, unprotected, b_payload, tag])
+        cose_mac: List[Any] = [b_protected, unprotected, b_payload, tag]
+        recs = []
+        for rec in recipients:
+            recs.append(rec.to_list())
+        cose_mac.append(recs)
+        res = CBORTag(97, cose_mac)
         return res if out == "cbor2/CBORTag" else self._dumps(res)
 
     def encode_and_sign(
@@ -117,7 +139,13 @@ class COSE(CBORProcessor):
 
         # MAC
         if data.tag == 97:
-            raise NotImplementedError()
+            if not isinstance(data.value, list) or len(data.value) != 5:
+                raise ValueError("Invalid COSE_Mac structure.")
+            to_be_maced = self._dumps(["MAC", data.value[0], b"", data.value[2]])
+            recipients = self._recipients_builder.from_list(data.value[4])
+            mac_auth_key = recipients.derive_key([key])
+            mac_auth_key.verify(to_be_maced, data.value[3])
+            return self._loads(data.value[2])
 
         # Signature1
         if data.tag == 18:

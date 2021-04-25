@@ -66,7 +66,10 @@ class KeyBuilder:
         return
 
     def from_symmetric_key(
-        self, key: Union[bytes, str], alg: Union[int, str] = "HMAC 256/256"
+        self,
+        key: Union[bytes, str],
+        alg: Union[int, str] = "HMAC 256/256",
+        kid: Union[bytes, str] = b"",
     ) -> COSEKey:
         """"""
         if isinstance(key, str):
@@ -80,6 +83,10 @@ class KeyBuilder:
             3: alg_id,  # alg: int
             -1: key,  # k:   bstr
         }
+        if isinstance(kid, str):
+            kid = kid.encode("utf-8")
+        if kid:
+            cose_key[2] = kid
         if alg_id in [4, 5, 6, 7]:
             return HMACKey(cose_key)
         if alg_id in [10, 11, 12, 13, 30, 31, 32, 33]:
@@ -124,7 +131,9 @@ class KeyBuilder:
         # # TODO: from JWT to COSE key.
         # return self.from_dict(cose_key)
 
-    def from_pem(self, key_data: Union[str, bytes], kid: bytes = b"") -> COSEKey:
+    def from_pem(
+        self, key_data: Union[str, bytes], kid: Union[bytes, str] = b""
+    ) -> COSEKey:
         """"""
         if isinstance(key_data, str):
             key_data = key_data.encode("utf-8")
@@ -140,6 +149,10 @@ class KeyBuilder:
             raise ValueError("Failed to decode PEM.")
 
         cose_key: Dict[int, Any] = {}
+        if isinstance(kid, str):
+            kid = kid.encode("utf-8")
+        if kid:
+            cose_key[2] = kid
         if isinstance(k, EllipticCurvePrivateKey) or isinstance(
             k, EllipticCurvePublicKey
         ):
