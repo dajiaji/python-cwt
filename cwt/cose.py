@@ -31,8 +31,9 @@ class COSE(CBORProcessor):
         # MAC0
         if not recipients:
             protected[1] = key.alg
-            unprotected[4] = key.kid if key.kid else {}
-            b_protected = self._dumps(protected) if protected else b""
+            if key.kid:
+                unprotected[4] = key.kid
+            b_protected = self._dumps(protected)
             b_payload = self._dumps(payload)
             mac_structure = [ctx, b_protected, b"", b_payload]
             tag = key.sign(self._dumps(mac_structure))
@@ -64,7 +65,8 @@ class COSE(CBORProcessor):
         ctx = "Signature" if not isinstance(key, COSEKey) else "Signature1"
         if isinstance(key, COSEKey):
             protected[1] = key.alg
-            unprotected[4] = key.kid if key.kid else {}
+            if key.kid:
+                unprotected[4] = key.kid
 
         b_protected = self._dumps(protected) if protected else b""
         b_payload = self._dumps(payload)
