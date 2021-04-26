@@ -6,6 +6,7 @@
 """
 Tests for Recipient.
 """
+import cbor2
 import pytest
 
 from cwt import Recipient, cose_key
@@ -40,9 +41,13 @@ class TestRecipient:
 
     def test_recipient_constructor_with_args(self):
         child = Recipient(unprotected={1: -6, 4: b"our-secret"})
-        r = Recipient(unprotected={1: -1, 4: b"our-secret"}, recipients=[child])
-        assert isinstance(r, Recipient)
-        assert r.protected == {}
+        r = Recipient(
+            protected={"foo": "bar"},
+            unprotected={1: -1, 4: b"our-secret"},
+            recipients=[child],
+        )
+        assert isinstance(r.protected, dict)
+        assert r.protected["foo"] == "bar"
         assert isinstance(r.unprotected, dict)
         assert r.kid == b"our-secret"
         assert r.alg == -1
@@ -54,6 +59,11 @@ class TestRecipient:
         assert len(res[3]) == 1
         assert isinstance(res[3][0], list)
         assert len(res[3][0]) == 3
+
+    def test_recipient_constructor_with_protected_bytes(self):
+        r = Recipient(protected=cbor2.dumps({"foo": "bar"}))
+        assert isinstance(r.protected, dict)
+        assert r.protected["foo"] == "bar"
 
     def test_recipient_constructor_with_empty_recipients(self):
         r = Recipient(unprotected={1: -6, 4: b"our-secret"}, recipients=[])

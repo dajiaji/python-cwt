@@ -11,7 +11,7 @@ class Recipient(CBORProcessor):
 
     def __init__(
         self,
-        protected: Dict[int, Any] = {},
+        protected: Union[bytes, Dict[int, Any]] = {},
         unprotected: Dict[int, Any] = {},
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
@@ -27,7 +27,12 @@ class Recipient(CBORProcessor):
                     raise ValueError("ciphertext should be zero-length bytes.")
                 if len(recipients) != 0:
                     raise ValueError("recipients should be absent.")
-        self._protected = protected
+        if protected == b"":
+            self._protected = {}
+        elif isinstance(protected, bytes):
+            self._protected = self._loads(protected)
+        else:
+            self._protected = protected
         self._unprotected = unprotected
         self._ciphertext = ciphertext
 
