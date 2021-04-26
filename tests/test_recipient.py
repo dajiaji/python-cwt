@@ -25,8 +25,8 @@ class TestRecipient:
     def test_recipient_constructor(self):
         r = Recipient()
         assert isinstance(r, Recipient)
-        assert r.protected == b""
-        assert isinstance(r.unprotected, dict)
+        assert r.protected == {}
+        assert r.unprotected == {}
         assert r.ciphertext == b""
         assert isinstance(r.recipients, list)
         assert r.kid == b""
@@ -42,7 +42,7 @@ class TestRecipient:
         child = Recipient(unprotected={1: -6, 4: b"our-secret"})
         r = Recipient(unprotected={1: -1, 4: b"our-secret"}, recipients=[child])
         assert isinstance(r, Recipient)
-        assert r.protected == b""
+        assert r.protected == {}
         assert isinstance(r.unprotected, dict)
         assert r.kid == b"our-secret"
         assert r.alg == -1
@@ -58,7 +58,7 @@ class TestRecipient:
     def test_recipient_constructor_with_empty_recipients(self):
         r = Recipient(unprotected={1: -6, 4: b"our-secret"}, recipients=[])
         assert isinstance(r, Recipient)
-        assert r.protected == b""
+        assert r.protected == {}
         assert isinstance(r.unprotected, dict)
         assert r.ciphertext == b""
         assert len(r.recipients) == 0
@@ -68,7 +68,7 @@ class TestRecipient:
     def test_recipient_constructor_with_alg_a128kw(self):
         r = Recipient(unprotected={1: -3, 4: b"our-secret"})
         assert isinstance(r, Recipient)
-        assert r.protected == b""
+        assert r.protected == {}
         assert isinstance(r.unprotected, dict)
         assert r.ciphertext == b""
         assert len(r.recipients) == 0
@@ -79,21 +79,21 @@ class TestRecipient:
         "protected, unprotected, ciphertext, recipients, msg",
         [
             (
-                b"xxx",
+                {"foo": "bar"},
                 {1: -6, 4: b"our-secret"},
                 b"",
                 [],
-                "protected header should be zero-length bytes.",
+                "protected header should be empty.",
             ),
             (
-                b"",
+                {},
                 {1: -6, 4: b"our-secret"},
                 b"xxx",
                 [],
                 "ciphertext should be zero-length bytes.",
             ),
             (
-                b"",
+                {},
                 {1: -6, 4: b"our-secret"},
                 b"",
                 [Recipient()],

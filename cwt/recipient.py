@@ -11,7 +11,7 @@ class Recipient(CBORProcessor):
 
     def __init__(
         self,
-        protected: bytes = b"",
+        protected: Dict[int, Any] = {},
         unprotected: Dict[int, Any] = {},
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
@@ -22,7 +22,7 @@ class Recipient(CBORProcessor):
             alg = unprotected[1]
             if alg == -6:  # direct
                 if len(protected) != 0:
-                    raise ValueError("protected header should be zero-length bytes.")
+                    raise ValueError("protected header should be empty.")
                 if len(ciphertext) != 0:
                     raise ValueError("ciphertext should be zero-length bytes.")
                 if len(recipients) != 0:
@@ -42,7 +42,7 @@ class Recipient(CBORProcessor):
         return
 
     @property
-    def protected(self) -> bytes:
+    def protected(self) -> Dict[int, Any]:
         return self._protected
 
     @property
