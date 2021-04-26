@@ -309,6 +309,27 @@ class TestCWT:
         assert 2 in decoded and decoded[2] == "someone"
         assert 7 in decoded and decoded[7] == b"123"
 
+    def test_cwt_encode_and_sign_with_multiple_signatures(self, ctx):
+        """"""
+        with open(key_path("private_key_es256.pem")) as key_file:
+            private_key_1 = cose_key.from_pem(key_file.read(), kid="1")
+        with open(key_path("public_key_es256.pem")) as key_file:
+            public_key_1 = cose_key.from_pem(key_file.read(), kid="1")
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            private_key_2 = cose_key.from_pem(key_file.read(), kid="2")
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            public_key_2 = cose_key.from_pem(key_file.read(), kid="2")
+        token = ctx.encode_and_sign(
+            {1: "https://as.example", 2: "someone", 7: b"123"},
+            [private_key_1, private_key_2],
+        )
+        decoded = ctx.decode(token, public_key_1)
+        assert isinstance(decoded, dict)
+        assert 1 in decoded and decoded[1] == "https://as.example"
+        decoded = ctx.decode(token, public_key_2)
+        assert isinstance(decoded, dict)
+        assert 1 in decoded and decoded[1] == "https://as.example"
+
     def test_cwt_encode_and_encrypt_with_invalid_nonce(self, ctx):
         """"""
         enc_key = cose_key.from_symmetric_key(token_bytes(16), alg="AES-CCM-16-64-128")
