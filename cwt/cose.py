@@ -82,11 +82,11 @@ class COSE(CBORProcessor):
         sigs = []
         for k in key:
             p_header = self._dumps({1: k.alg})
-            u_header = self._dumps({4: k.kid} if k.kid else {})
+            u_header = {4: k.kid} if k.kid else {}
             sig_structure = [ctx, b_protected, p_header, b"", b_payload]
             sig = k.sign(self._dumps(sig_structure))
-            sigs.append(self._dumps([p_header, u_header, sig]))
-        res = CBORTag(18, [b_protected, unprotected, b_payload, sigs])
+            sigs.append([p_header, u_header, sig])
+        res = CBORTag(98, [b_protected, unprotected, b_payload, sigs])
         return res if out == "cbor2/CBORTag" else self._dumps(res)
 
     def encode_and_encrypt(
@@ -154,8 +154,10 @@ class COSE(CBORProcessor):
             if not isinstance(data.value, list) or len(data.value) != 4:
                 raise ValueError("Invalid Signature1 format.")
 
-            msg = self._dumps(["Signature1", data.value[0], b"", data.value[2]])
-            key.verify(msg, data.value[3])
+            to_be_signed = self._dumps(
+                ["Signature1", data.value[0], b"", data.value[2]]
+            )
+            key.verify(to_be_signed, data.value[3])
             return self._loads(data.value[2])
 
         # Signature
@@ -165,8 +167,16 @@ class COSE(CBORProcessor):
             sigs = data.value[3]
             if not isinstance(sigs, list):
                 raise ValueError("Invalid Signature format.")
-
-            msg = self._dumps(["Signature", data.value[0], b"", data.value[2]])
-            raise NotImplementedError()
-
+            for sig in sigs:
+                if not isinstance(sig, list) or len(sig) != 3:
+                    raise ValueError("Invalid Signature format.")
+                uh = sig[1]
+                if uh[4] != key.kid:
+                    continue
+                to_be_signed = self._dumps(
+                    ["Signature", data.value[0], sig[0], b"", data.value[2]]
+                )
+                key.verify(to_be_signed, sig[2])
+                return self._loads(data.value[2])
+            raise ValueError("Verification key not found.")
         raise ValueError(f"Unsupported or unknown CBOR tag({data.tag}).")
