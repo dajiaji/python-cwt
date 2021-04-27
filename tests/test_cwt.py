@@ -334,13 +334,32 @@ class TestCWT:
         """"""
         enc_key = cose_key.from_symmetric_key(token_bytes(16), alg="AES-CCM-16-64-128")
         with pytest.raises(ValueError) as err:
-            res = ctx.encode_and_encrypt(
+            ctx.encode_and_encrypt(
                 {1: "https://as.example", 2: "someone", 7: b"123"},
                 enc_key,
                 nonce=token_bytes(7),  # should be 13
             )
-            pytest.fail("encode_and_encrypt should fail: res=%s" % vars(res))
+            pytest.fail("encode_and_encrypt should fail.")
         assert "The length of nonce should be" in str(err.value)
+
+    def test_cwt_encode_and_sign_with_signatures_kid_mismatch(self, ctx):
+        """"""
+        with open(key_path("private_key_es256.pem")) as key_file:
+            private_key_1 = cose_key.from_pem(key_file.read(), kid="1")
+        with open(key_path("public_key_es256.pem")) as key_file:
+            public_key_1 = cose_key.from_pem(key_file.read(), kid="3")
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            private_key_2 = cose_key.from_pem(key_file.read(), kid="2")
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            cose_key.from_pem(key_file.read(), kid="2")
+        token = ctx.encode_and_sign(
+            {1: "https://as.example", 2: "someone", 7: b"123"},
+            [private_key_1, private_key_2],
+        )
+        with pytest.raises(ValueError) as err:
+            ctx.decode(token, public_key_1)
+            pytest.fail("decode should fail.")
+        assert "Verification key not found." in str(err.value)
 
     def test_cwt_decode_with_invalid_mac_key(self, ctx):
         """"""
@@ -410,6 +429,45 @@ class TestCWT:
             ctx.decode(tagged_token, key)
             pytest.fail("decode should fail.")
         assert "Unsupported or unknown CBOR tag(62)." in str(err.value)
+
+    @pytest.mark.parametrize(
+        "invalid, msg",
+        [
+            (
+                cbor2.dumps(CBORTag(98, [])),
+                "Invalid Signature format.",
+            ),
+            (
+                cbor2.dumps(CBORTag(98, {})),
+                "Invalid Signature format.",
+            ),
+            (
+                cbor2.dumps(CBORTag(98, b"")),
+                "Invalid Signature format.",
+            ),
+            (
+                cbor2.dumps(CBORTag(98, 123)),
+                "Invalid Signature format.",
+            ),
+            (
+                cbor2.dumps(CBORTag(98, [b"", b"", b"", b""])),
+                "Invalid Signature format.",
+            ),
+            (
+                cbor2.dumps(CBORTag(98, [b"", b"", b"", [b""]])),
+                "Invalid Signature format.",
+            ),
+        ]
+    )
+    def test_cwt_decode_with_invalid_sinatures(self, ctx, invalid, msg):
+        """"""
+        with open(key_path("public_key_es256.pem")) as key_file:
+            public_key = cose_key.from_pem(key_file.read(), kid="1")
+
+        with pytest.raises(ValueError) as err:
+            ctx.decode(invalid, public_key)
+            pytest.fail("decode should fail.")
+        assert msg in str(err.value)
 
     @pytest.mark.parametrize(
         "claims",
