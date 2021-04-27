@@ -457,7 +457,7 @@ class TestCWT:
                 cbor2.dumps(CBORTag(98, [b"", b"", b"", [b""]])),
                 "Invalid Signature format.",
             ),
-        ]
+        ],
     )
     def test_cwt_decode_with_invalid_sinatures(self, ctx, invalid, msg):
         """"""
