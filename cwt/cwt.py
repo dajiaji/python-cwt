@@ -128,6 +128,7 @@ class CWT(CBORProcessor):
         key: COSEKey,
         nonce: bytes,
         tagged: Optional[bool] = False,
+        recipients: Optional[List[Recipient]] = None,
     ) -> bytes:
         """
         Encode CWT claims and encrypt it.
@@ -136,6 +137,7 @@ class CWT(CBORProcessor):
             claims (Union[Dict[int, Any], bytes]): CWT claims.
             key (COSEKey): A COSE key used to sign the claims.
             nonce (bytes): A nonce for encryption.
+            recipients (List[Recipient]): A list of recipient information structures.
             tagged (bool): An indicator whether the response is wrapped by CWT tag(61)
                 or not.
         Returns:
@@ -150,7 +152,7 @@ class CWT(CBORProcessor):
         unprotected: Dict[int, Any] = {4: key.kid} if key.kid else {}
         unprotected[5] = nonce
         res = self._cose.encode_and_encrypt(
-            protected, unprotected, claims, key, nonce, out="cbor2/CBORTag"
+            protected, unprotected, claims, key, nonce, recipients, out="cbor2/CBORTag"
         )
         if tagged:
             return self._dumps(CBORTag(CWT.CBOR_TAG, res))

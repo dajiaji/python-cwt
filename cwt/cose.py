@@ -96,14 +96,34 @@ class COSE(CBORProcessor):
         payload: Union[Dict[int, Any], bytes],
         key: COSEKey,
         nonce: bytes = b"",
+        recipients: Optional[List[Recipient]] = None,
         out: str = "",
     ) -> bytes:
 
-        b_protected = self._dumps(protected)
+        ctx = "Encrypt0" if not recipients else "Encrypt"
+
+        # Encrypt0
+        if not recipients:
+            b_protected = self._dumps(protected) if protected else b""
+            b_payload = self._dumps(payload)
+            enc_structure = [ctx, b_protected, b""]
+            aad = self._dumps(enc_structure)
+            ciphertext = key.encrypt(b_payload, nonce, aad)
+            res = CBORTag(16, [b_protected, unprotected, ciphertext])
+            return res if out == "cbor2/CBORTag" else self._dumps(res)
+
+        # Encrypt
+        b_protected = self._dumps(protected) if protected else b""
         b_payload = self._dumps(payload)
-        aad = self._dumps(["Encrypt0", b_protected, b""])
+        enc_structure = [ctx, b_protected, b""]
+        aad = self._dumps(enc_structure)
         ciphertext = key.encrypt(b_payload, nonce, aad)
-        res = CBORTag(16, [b_protected, unprotected, ciphertext])
+        cose_enc: List[Any] = [b_protected, unprotected, ciphertext]
+        recs = []
+        for rec in recipients:
+            recs.append(rec.to_list())
+        cose_enc.append(recs)
+        res = CBORTag(96, cose_enc)
         return res if out == "cbor2/CBORTag" else self._dumps(res)
 
     def decode(self, data: Union[bytes, CBORTag], key: COSEKey) -> Dict[int, Any]:
@@ -128,7 +148,18 @@ class COSE(CBORProcessor):
 
         # Encrypt
         if data.tag == 96:
-            raise NotImplementedError()
+            if not isinstance(data.value, list) or len(data.value) != 4:
+                raise ValueError("Invalid Encrypt format.")
+
+            aad = self._dumps(["Encrypt", data.value[0], b""])
+            unprotected = data.value[1]
+            if not isinstance(unprotected, dict):
+                raise ValueError("unprotected header should be dict.")
+            nonce = unprotected.get(5, None)
+            recipients = self._recipients_builder.from_list(data.value[3])
+            enc_key = recipients.derive_key([key])
+            payload = enc_key.decrypt(data.value[2], nonce, aad)
+            return self._loads(payload)
 
         # MAC0
         if data.tag == 17:
