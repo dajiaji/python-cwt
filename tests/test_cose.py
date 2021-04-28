@@ -6,15 +6,14 @@
 """
 Tests for COSE.
 """
-from secrets import token_bytes
 
 import cbor2
 import pytest
 from cbor2 import CBORTag
 
-from cwt import COSE, DecodeError, EncodeError, Recipient, VerifyError, cose_key
+from cwt import COSE, cose_key
 
-from .utils import key_path, now
+from .utils import key_path
 
 
 @pytest.fixture(scope="session", autouse=True)
