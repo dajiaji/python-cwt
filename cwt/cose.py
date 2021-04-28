@@ -164,7 +164,7 @@ class COSE(CBORProcessor):
         # MAC0
         if data.tag == 17:
             if not isinstance(data.value, list) or len(data.value) != 4:
-                raise ValueError("Invalid MAP0 format.")
+                raise ValueError("Invalid MAC0 format.")
 
             msg = self._dumps(["MAC0", data.value[0], b"", data.value[2]])
             key.verify(msg, data.value[3])
@@ -173,7 +173,7 @@ class COSE(CBORProcessor):
         # MAC
         if data.tag == 97:
             if not isinstance(data.value, list) or len(data.value) != 5:
-                raise ValueError("Invalid COSE_Mac structure.")
+                raise ValueError("Invalid MAC format.")
             to_be_maced = self._dumps(["MAC", data.value[0], b"", data.value[2]])
             recipients = self._recipients_builder.from_list(data.value[4])
             mac_auth_key = recipients.derive_key([key])
