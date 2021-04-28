@@ -263,6 +263,20 @@ class TestCWT:
         assert 2 in decoded and decoded[2] == "someone"
         assert 7 in decoded and decoded[7] == b"123"
 
+    def test_cwt_encode_and_encrypt_with_recipient_direct(self, ctx):
+        enc_key = cose_key.from_symmetric_key(
+            token_bytes(16), alg="AES-CCM-16-64-128", kid="our-secret"
+        )
+        recipient = Recipient(unprotected={1: -6, 4: b"our-secret"})
+        token = ctx.encode_and_encrypt(
+            {1: "https://as.example", 2: "someone", 7: b"123"},
+            enc_key,
+            nonce=token_bytes(13),
+            recipients=[recipient],
+        )
+        decoded = ctx.decode(token, enc_key)
+        assert 1 in decoded and decoded[1] == "https://as.example"
+
     @pytest.mark.parametrize(
         "private_key_path, public_key_path",
         [
@@ -460,6 +474,45 @@ class TestCWT:
         ],
     )
     def test_cwt_decode_with_invalid_sinatures(self, ctx, invalid, msg):
+        """"""
+        with open(key_path("public_key_es256.pem")) as key_file:
+            public_key = cose_key.from_pem(key_file.read(), kid="1")
+
+        with pytest.raises(ValueError) as err:
+            ctx.decode(invalid, public_key)
+            pytest.fail("decode should fail.")
+        assert msg in str(err.value)
+
+    @pytest.mark.parametrize(
+        "invalid, msg",
+        [
+            (
+                cbor2.dumps(CBORTag(96, [])),
+                "Invalid Encrypt format.",
+            ),
+            (
+                cbor2.dumps(CBORTag(96, {})),
+                "Invalid Encrypt format.",
+            ),
+            (
+                cbor2.dumps(CBORTag(96, b"")),
+                "Invalid Encrypt format.",
+            ),
+            (
+                cbor2.dumps(CBORTag(96, 123)),
+                "Invalid Encrypt format.",
+            ),
+            (
+                cbor2.dumps(CBORTag(96, [b"", b"", b""])),
+                "Invalid Encrypt format.",
+            ),
+            (
+                cbor2.dumps(CBORTag(96, [b"", b"", b"", [b""]])),
+                "unprotected header should be dict.",
+            ),
+        ],
+    )
+    def test_cwt_decode_with_invalid_cose_encrypt(self, ctx, invalid, msg):
         """"""
         with open(key_path("public_key_es256.pem")) as key_file:
             public_key = cose_key.from_pem(key_file.read(), kid="1")
