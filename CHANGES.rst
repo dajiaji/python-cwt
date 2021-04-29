@@ -4,6 +4,18 @@ Changes
 Unreleased
 ----------
 
+Version 0.3.0
+-------------
+
+Released 2021-04-29
+
+- Add docstring to COSE, KeyBuilder and more. `#39 <https://github.com/dajiaji/python-cwt/pull/39>`__
+- Add support for COSE_Encrypt structure. `#36 <https://github.com/dajiaji/python-cwt/pull/36>`__
+- Add support for COSE_Signature structure. `#35 <https://github.com/dajiaji/python-cwt/pull/35>`__
+- Change protected_header type from bytes to dict. `#34 <https://github.com/dajiaji/python-cwt/pull/34>`__
+- Add support for COSE_Mac structure. `#32 <https://github.com/dajiaji/python-cwt/pull/32>`__
+- Add test for CWT. `#29 <https://github.com/dajiaji/python-cwt/pull/29>`__
+
 Version 0.2.3
 -------------
 
