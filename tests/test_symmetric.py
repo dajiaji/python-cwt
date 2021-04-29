@@ -6,7 +6,13 @@ from secrets import token_bytes
 import pytest
 
 from cwt.exceptions import DecodeError, EncodeError, VerifyError
-from cwt.key_types.symmetric import AESCCMKey, AESGCMKey, HMACKey, SymmetricKey
+from cwt.key_types.symmetric import (
+    AESCCMKey,
+    AESGCMKey,
+    ChaCha20Key,
+    HMACKey,
+    SymmetricKey,
+)
 
 
 class TestSymmetricKey:
@@ -510,5 +516,111 @@ class TestAESGCMKey:
         nonce = token_bytes(12)
         encrypted = key.encrypt(b"Hello world!", nonce=nonce)
         with pytest.raises(DecodeError) as err:
-            key.decrypt(encrypted, nonce=token_bytes(13))
+            key.decrypt(encrypted, nonce=token_bytes(12))
+        assert "Failed to decrypt." in str(err.value)
+
+
+class TestChaCha20Key:
+    """
+    Tests for ChaCha20Key.
+    """
+
+    def test_chacha20_key_constructor(self):
+        key = ChaCha20Key(
+            {
+                1: 4,
+                -1: token_bytes(32),
+                3: 24,  # ChaCha20/Poly1305
+            }
+        )
+        assert key.kty == 4
+        assert key.kid is None
+        assert key.alg == 24
+        assert key.key_ops is None
+        assert key.base_iv is None
+        nonce = token_bytes(16)
+        try:
+            encrypted = key.encrypt(b"Hello world!", nonce=nonce)
+            assert key.decrypt(encrypted, nonce) == b"Hello world!"
+        except Exception:
+            pytest.fail("sign/verify should not fail.")
+
+    @pytest.mark.parametrize(
+        "key_args",
+        [
+            {1: 4, 3: 24},
+        ],
+    )
+    def test_chacha20_key_constructor_without_key(self, key_args):
+        key = ChaCha20Key(key_args)
+        assert key.kty == 4
+        assert key.kid is None
+        assert key.key_ops is None
+        assert key.base_iv is None
+        nonce = token_bytes(16)
+        try:
+            encrypted = key.encrypt(b"Hello world!", nonce=nonce)
+            assert key.decrypt(encrypted, nonce) == b"Hello world!"
+        except Exception:
+            pytest.fail("sign/verify should not fail.")
+
+    @pytest.mark.parametrize(
+        "invalid, msg",
+        [
+            (
+                {1: 4, -1: b"mysecret", 3: 0},
+                "Unsupported or unknown alg(3) for ChaCha20: 0",
+            ),
+            (
+                {1: 4, -1: b"mysecret", 3: 24},
+                "The length of ChaCha20/Poly1305 key should be 32 bytes.",
+            ),
+        ],
+    )
+    def test_chacha20_key_constructor_with_invalid_args(self, invalid, msg):
+        with pytest.raises(ValueError) as err:
+            ChaCha20Key(invalid)
+            pytest.fail("ChaCha20Key should fail.")
+        assert msg in str(err.value)
+
+    def test_chacha20_key_encrypt_with_empty_nonce(self):
+        key = ChaCha20Key(
+            {
+                1: 4,
+                -1: token_bytes(32),
+                3: 24,  # ChaCha20/Poly1305
+            }
+        )
+        with pytest.raises(EncodeError) as err:
+            key.encrypt(b"Hello world!", nonce=b"")
+        assert "Failed to encrypt." in str(err.value)
+
+    def test_chacha20_key_decrypt_with_different_nonce(self):
+        """"""
+        key = ChaCha20Key(
+            {
+                1: 4,
+                -1: token_bytes(32),
+                3: 24,  # ChaCha20/Poly1305
+            }
+        )
+        nonce = token_bytes(16)
+        encrypted = key.encrypt(b"Hello world!", nonce=nonce)
+        decrypted = key.decrypt(encrypted, nonce=token_bytes(16))
+        assert b"Hello world!" != decrypted
+
+    def test_chacha20_key_decrypt_with_invalid_nonce(self):
+        """"""
+        key = ChaCha20Key(
+            {
+                1: 4,
+                -1: token_bytes(32),
+                3: 24,  # ChaCha20/Poly1305
+            }
+        )
+        nonce = token_bytes(16)
+        encrypted = key.encrypt(b"Hello world!", nonce=nonce)
+        with pytest.raises(DecodeError) as err:
+            key.decrypt(encrypted, nonce=token_bytes(8))
+            pytest.fail("decrypt should fail.")
         assert "Failed to decrypt." in str(err.value)

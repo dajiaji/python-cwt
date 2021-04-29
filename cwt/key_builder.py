@@ -32,7 +32,7 @@ from .const import COSE_ALGORITHMS_SYMMETRIC, COSE_KEY_TYPES
 from .cose_key import COSEKey
 from .key_types.ec2 import EC2Key
 from .key_types.okp import OKPKey
-from .key_types.symmetric import AESCCMKey, AESGCMKey, HMACKey
+from .key_types.symmetric import AESCCMKey, AESGCMKey, ChaCha20Key, HMACKey
 
 
 class KeyBuilder:
@@ -111,6 +111,8 @@ class KeyBuilder:
             return HMACKey(cose_key)
         if alg_id in [10, 11, 12, 13, 30, 31, 32, 33]:
             return AESCCMKey(cose_key)
+        if alg_id == 24:
+            return ChaCha20Key(cose_key)
         raise ValueError(f"Unsupported or unknown alg({alg_id}).")
 
     def from_dict(self, cose_key: Dict[int, Any]) -> COSEKey:

@@ -3,6 +3,7 @@ import hmac
 from secrets import token_bytes
 from typing import Any, Dict, Optional
 
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms
 from cryptography.hazmat.primitives.ciphers.aead import AESCCM, AESGCM
 
 from ..cose_key import COSEKey
@@ -10,6 +11,7 @@ from ..exceptions import DecodeError, EncodeError, VerifyError
 
 _CWT_DEFAULT_HMAC_KEY_SIZE = 32  # bytes
 _CWT_DEFAULT_AESGCM_NONCE_SIZE = 12  # bytes
+_CWT_CHACHA20_POLY1305_NONCE_SIZE = 16  # bytes
 
 
 class SymmetricKey(COSEKey):
@@ -234,5 +236,42 @@ class AESGCMKey(SymmetricKey):
         """"""
         try:
             return self._cipher.decrypt(nonce, msg, aad)
+        except Exception as err:
+            raise DecodeError("Failed to decrypt.") from err
+
+
+class ChaCha20Key(SymmetricKey):
+    def __init__(self, cose_key: Dict[int, Any]):
+        super().__init__(cose_key)
+
+        # Validate alg.
+        if self._alg != 24:  # ChaCha20/Poly1305
+            raise ValueError(
+                f"Unsupported or unknown alg(3) for ChaCha20: {self._alg}."
+            )
+        if not self._key:
+            self._key = token_bytes(32)
+        if len(self._key) != 32:
+            raise ValueError("The length of ChaCha20/Poly1305 key should be 32 bytes.")
+        return
+
+    def generate_nonce(self):
+        return token_bytes(_CWT_CHACHA20_POLY1305_NONCE_SIZE)
+
+    def encrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
+        try:
+            algorithm = algorithms.ChaCha20(self._key, nonce)
+            cipher = Cipher(algorithm, mode=None)
+            encryptor = cipher.encryptor()
+            return encryptor.update(msg)
+        except Exception as err:
+            raise EncodeError("Failed to encrypt.") from err
+
+    def decrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
+        try:
+            algorithm = algorithms.ChaCha20(self._key, nonce)
+            cipher = Cipher(algorithm, mode=None)
+            decryptor = cipher.decryptor()
+            return decryptor.update(msg)
         except Exception as err:
             raise DecodeError("Failed to decrypt.") from err
