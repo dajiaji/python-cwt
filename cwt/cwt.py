@@ -83,7 +83,7 @@ class CWT(CBORProcessor):
         self,
         claims: Union[Dict[int, Any], bytes],
         key: COSEKey,
-        tagged: Optional[bool] = False,
+        tagged: bool = False,
         recipients: Optional[List[Recipient]] = None,
     ) -> bytes:
         """
@@ -116,7 +116,7 @@ class CWT(CBORProcessor):
         self,
         claims: Union[Dict[int, Any], bytes],
         key: Union[COSEKey, List[COSEKey]],
-        tagged: Optional[bool] = False,
+        tagged: bool = False,
     ) -> bytes:
         """
         Encode CWT claims and sign it.
@@ -149,7 +149,7 @@ class CWT(CBORProcessor):
         claims: Union[Dict[int, Any], bytes],
         key: COSEKey,
         nonce: bytes,
-        tagged: Optional[bool] = False,
+        tagged: bool = False,
         recipients: Optional[List[Recipient]] = None,
     ) -> bytes:
         """
