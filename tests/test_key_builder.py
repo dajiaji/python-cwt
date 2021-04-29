@@ -45,7 +45,7 @@ class TestKeyBuilder:
 
     @pytest.mark.parametrize(
         "alg",
-        ["xxx", 3, 8, 9, 34],
+        ["xxx", 0, 8, 9, 34],
     )
     def test_key_builder_from_symmetric_key_with_invalid_alg(self, ctx, alg):
         with pytest.raises(ValueError) as err:

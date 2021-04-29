@@ -2,7 +2,7 @@ import hashlib
 import hmac
 from typing import Any, Dict, Optional
 
-from cryptography.hazmat.primitives.ciphers.aead import AESCCM
+from cryptography.hazmat.primitives.ciphers.aead import AESCCM, AESGCM
 
 from ..cose_key import COSEKey
 from ..exceptions import DecodeError, EncodeError, VerifyError
@@ -160,6 +160,51 @@ class AESCCMKey(SymmetricKey):
             raise ValueError(
                 "The length of nonce should be %d bytes." % self._nonce_len
             )
+        try:
+            return self._cipher.decrypt(nonce, msg, aad)
+        except Exception as err:
+            raise DecodeError("Failed to decrypt.") from err
+
+
+class AESGCMKey(SymmetricKey):
+    """"""
+
+    def __init__(self, cose_key: Dict[int, Any]):
+        """"""
+        super().__init__(cose_key)
+
+        self._cipher: AESGCM
+
+        # Validate alg.
+        if self._alg == 1:  # A128GCM
+            if not self._key:
+                self._key = AESGCM.generate_key(bit_length=128)
+            if len(self._key) != 16:
+                raise ValueError("The length of A128GCM key should be 16 bytes.")
+        elif self._alg == 2:  # A192GCM
+            if not self._key:
+                self._key = AESGCM.generate_key(bit_length=192)
+            if len(self._key) != 24:
+                raise ValueError("The length of A192GCM key should be 24 bytes.")
+        elif self._alg == 3:  # A256GCM
+            if not self._key:
+                self._key = AESGCM.generate_key(bit_length=256)
+            if len(self._key) != 32:
+                raise ValueError("The length of A256GCM key should be 32 bytes.")
+        else:
+            raise ValueError(f"Unsupported or unknown alg(3) for AES GCM: {self._alg}.")
+        self._cipher = AESGCM(self._key)
+        return
+
+    def encrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
+        """"""
+        try:
+            return self._cipher.encrypt(nonce, msg, aad)
+        except Exception as err:
+            raise EncodeError("Failed to encrypt.") from err
+
+    def decrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
+        """"""
         try:
             return self._cipher.decrypt(nonce, msg, aad)
         except Exception as err:

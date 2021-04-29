@@ -5,8 +5,8 @@ from secrets import token_bytes
 
 import pytest
 
-from cwt.exceptions import DecodeError, VerifyError
-from cwt.key_types.symmetric import AESCCMKey, HMACKey, SymmetricKey
+from cwt.exceptions import DecodeError, EncodeError, VerifyError
+from cwt.key_types.symmetric import AESCCMKey, AESGCMKey, HMACKey, SymmetricKey
 
 
 class TestSymmetricKey:
@@ -293,6 +293,19 @@ class TestAESCCMKey:
             pytest.fail("AESCCMKey should fail.")
         assert msg in str(err.value)
 
+    def test_aesgcm_key_encrypt_without_msg(self):
+        key = AESCCMKey(
+            {
+                1: 4,
+                -1: token_bytes(16),
+                3: 10,  # AES-CCM-16-64-128
+            }
+        )
+        nonce = token_bytes(13)
+        with pytest.raises(EncodeError) as err:
+            key.encrypt(None, nonce=nonce)
+        assert "Failed to encrypt." in str(err.value)
+
     def test_aesccm_key_decrypt_with_invalid_nonce(self):
         """"""
         key = AESCCMKey(
@@ -332,3 +345,91 @@ class TestAESCCMKey:
         with pytest.raises(ValueError) as err:
             key.decrypt(encrypted, nonce=token_bytes(7))
         assert "The length of nonce should be 13 bytes." in str(err.value)
+
+
+class TestAESGCMKey:
+    """
+    Tests for AESGCMKey.
+    """
+
+    def test_aesgcm_key_constructor_with_aes_gcm_a128gcm(self):
+        """"""
+        key = AESGCMKey(
+            {
+                1: 4,
+                -1: token_bytes(16),
+                3: 1,  # A128GCM
+            }
+        )
+        assert key.kty == 4
+        assert key.kid is None
+        assert key.alg == 1
+        assert key.key_ops is None
+        assert key.base_iv is None
+        nonce = token_bytes(12)
+        try:
+            encrypted = key.encrypt(b"Hello world!", nonce=nonce)
+            assert key.decrypt(encrypted, nonce) == b"Hello world!"
+        except Exception:
+            pytest.fail("sign/verify should not fail.")
+
+    @pytest.mark.parametrize(
+        "invalid, msg",
+        [
+            (
+                {1: 4, -1: b"mysecret", 3: 4},
+                "Unsupported or unknown alg(3) for AES GCM: 4",
+            ),
+            (
+                {1: 4, -1: b"mysecret", 3: 1},
+                "The length of A128GCM key should be 16 bytes.",
+            ),
+            (
+                {1: 4, -1: b"mysecret", 3: 2},
+                "The length of A192GCM key should be 24 bytes.",
+            ),
+            (
+                {1: 4, -1: b"mysecret", 3: 3},
+                "The length of A256GCM key should be 32 bytes.",
+            ),
+        ],
+    )
+    def test_aesgcm_key_constructor_with_invalid_args(self, invalid, msg):
+        """"""
+        with pytest.raises(ValueError) as err:
+            AESGCMKey(invalid)
+            pytest.fail("AESGCMKey should fail.")
+        assert msg in str(err.value)
+
+    def test_aesgcm_key_encrypt_with_empty_nonce(self):
+        """"""
+        key = AESGCMKey(
+            {
+                1: 4,
+                -1: token_bytes(16),
+                3: 1,  # A128GCM
+            }
+        )
+        with pytest.raises(EncodeError) as err:
+            key.encrypt(b"Hello world!", nonce=b"")
+        assert "Failed to encrypt." in str(err.value)
+
+    def test_aesgcm_key_decrypt_with_invalid_nonce(self):
+        """"""
+        key = AESGCMKey(
+            {
+                1: 4,
+                -1: token_bytes(16),
+                3: 1,  # A128GCM
+            }
+        )
+        assert key.kty == 4
+        assert key.kid is None
+        assert key.alg == 1
+        assert key.key_ops is None
+        assert key.base_iv is None
+        nonce = token_bytes(12)
+        encrypted = key.encrypt(b"Hello world!", nonce=nonce)
+        with pytest.raises(DecodeError) as err:
+            key.decrypt(encrypted, nonce=token_bytes(13))
+        assert "Failed to decrypt." in str(err.value)
