@@ -247,6 +247,27 @@ class TestCWT:
         assert 2 in decoded and decoded[2] == "someone"
         assert 7 in decoded and decoded[7] == b"123"
 
+    @pytest.mark.parametrize(
+        "alg, key",
+        [
+            ("A128GCM", token_bytes(16)),
+            ("A192GCM", token_bytes(24)),
+            ("A256GCM", token_bytes(32)),
+        ],
+    )
+    def test_cwt_encode_and_encrypt_with_valid_alg_aes_gcm(self, ctx, alg, key):
+        """"""
+        enc_key = cose_key.from_symmetric_key(key, alg=alg)
+        token = ctx.encode_and_encrypt(
+            {1: "https://as.example", 2: "someone", 7: b"123"},
+            enc_key,
+            nonce=token_bytes(12),
+        )
+        decoded = ctx.decode(token, enc_key)
+        assert 1 in decoded and decoded[1] == "https://as.example"
+        assert 2 in decoded and decoded[2] == "someone"
+        assert 7 in decoded and decoded[7] == b"123"
+
     def test_cwt_encode_and_encrypt_with_tagged(self, ctx):
         """"""
         key = token_bytes(16)

@@ -32,7 +32,7 @@ from .const import COSE_ALGORITHMS_SYMMETRIC, COSE_KEY_TYPES
 from .cose_key import COSEKey
 from .key_types.ec2 import EC2Key
 from .key_types.okp import OKPKey
-from .key_types.symmetric import AESCCMKey, HMACKey
+from .key_types.symmetric import AESCCMKey, AESGCMKey, HMACKey
 
 
 class KeyBuilder:
@@ -73,7 +73,7 @@ class KeyBuilder:
 
     def from_symmetric_key(
         self,
-        key: Union[bytes, str],
+        key: Union[bytes, str] = b"",
         alg: Union[int, str] = "HMAC 256/256",
         kid: Union[bytes, str] = b"",
     ) -> COSEKey:
@@ -105,6 +105,8 @@ class KeyBuilder:
             kid = kid.encode("utf-8")
         if kid:
             cose_key[2] = kid
+        if alg_id in [1, 2, 3]:
+            return AESGCMKey(cose_key)
         if alg_id in [4, 5, 6, 7]:
             return HMACKey(cose_key)
         if alg_id in [10, 11, 12, 13, 30, 31, 32, 33]:

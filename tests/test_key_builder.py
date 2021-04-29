@@ -45,12 +45,39 @@ class TestKeyBuilder:
 
     @pytest.mark.parametrize(
         "alg",
-        ["xxx", 3, 8, 9, 34],
+        [
+            "HMAC 256/64",
+            "HMAC 256/256",
+            "HMAC 384/384",
+            "HMAC 512/512",
+            "A128GCM",
+            "A192GCM",
+            "A256GCM",
+            "AES-CCM-16-64-128",
+            "AES-CCM-16-64-256",
+            "AES-CCM-64-64-128",
+            "AES-CCM-64-64-256",
+            "AES-CCM-16-128-128",
+            "AES-CCM-16-128-256",
+            "AES-CCM-64-128-128",
+            "AES-CCM-64-128-256",
+        ],
+    )
+    def test_key_builder_from_symmetric_key_without_key(self, ctx, alg):
+        try:
+            k = ctx.from_symmetric_key(alg=alg)
+            assert k.kty == 4
+        except Exception:
+            pytest.fail("from_symmetric_key should not fail.")
+
+    @pytest.mark.parametrize(
+        "alg",
+        ["xxx", 0, 8, 9, 34],
     )
     def test_key_builder_from_symmetric_key_with_invalid_alg(self, ctx, alg):
         with pytest.raises(ValueError) as err:
-            res = ctx.from_symmetric_key("mysecretpassword", alg=alg)
-            pytest.fail("from_symmetric_key should fail: res=%s" % vars(res))
+            ctx.from_symmetric_key("mysecretpassword", alg=alg)
+            pytest.fail("from_symmetric_key should fail.")
         assert f"Unsupported or unknown alg({alg})." in str(err.value)
 
     @pytest.mark.parametrize(
