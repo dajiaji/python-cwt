@@ -31,7 +31,7 @@ class COSE(CBORProcessor):
         payload: Union[Dict[int, Any], bytes],
         key: COSEKey,
         recipients: Optional[List[Recipient]] = None,
-        out: Optional[str] = None,
+        out: str = "",
     ) -> Union[bytes, CBORTag]:
         """
         Encode data and add MAC to it.
@@ -88,7 +88,7 @@ class COSE(CBORProcessor):
         unprotected: Dict[int, Any],
         payload: Union[Dict[int, Any], bytes],
         key: Union[COSEKey, List[COSEKey]],
-        out: Optional[str] = None,
+        out: str = "",
     ) -> Union[bytes, CBORTag]:
         """
         Encode data and sign it.
