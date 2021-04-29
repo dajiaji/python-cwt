@@ -247,6 +247,47 @@ class TestCWT:
         assert 2 in decoded and decoded[2] == "someone"
         assert 7 in decoded and decoded[7] == b"123"
 
+    def test_cwt_encode_and_encrypt_with_invalid_key_and_without_nonce(self, ctx):
+        """"""
+        enc_key = cose_key.from_symmetric_key(alg="HMAC 256/64")
+        with pytest.raises(ValueError) as err:
+            ctx.encode_and_encrypt(
+                {1: "https://as.example", 2: "someone", 7: b"123"},
+                enc_key,
+            )
+        assert (
+            "Nonce generation is not supported for the key. Set a nonce explicitly."
+            in str(err.value)
+        )
+
+    @pytest.mark.parametrize(
+        "alg",
+        [
+            "A128GCM",
+            "A192GCM",
+            "A256GCM",
+            "AES-CCM-16-64-128",
+            "AES-CCM-16-64-256",
+            "AES-CCM-64-64-128",
+            "AES-CCM-64-64-256",
+            "AES-CCM-16-128-128",
+            "AES-CCM-16-128-256",
+            "AES-CCM-64-128-128",
+            "AES-CCM-64-128-256",
+        ],
+    )
+    def test_cwt_encode_and_encrypt_without_key_and_nonce(self, ctx, alg):
+        """"""
+        enc_key = cose_key.from_symmetric_key(alg=alg)
+        token = ctx.encode_and_encrypt(
+            {1: "https://as.example", 2: "someone", 7: b"123"},
+            enc_key,
+        )
+        decoded = ctx.decode(token, enc_key)
+        assert 1 in decoded and decoded[1] == "https://as.example"
+        assert 2 in decoded and decoded[2] == "someone"
+        assert 7 in decoded and decoded[7] == b"123"
+
     @pytest.mark.parametrize(
         "alg, key",
         [

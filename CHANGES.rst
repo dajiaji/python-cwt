@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Make nonce optional for CWT.encode_and_encrypt. `#42 <https://github.com/dajiaji/python-cwt/pull/42>`__
 - Add support for AES-GCM (A128GCM, A192GCM and A256GCM). `#41 <https://github.com/dajiaji/python-cwt/pull/41>`__
 - Make key optional for KeyBuilder.from_symmetric_key. `#41 <https://github.com/dajiaji/python-cwt/pull/41>`__
 

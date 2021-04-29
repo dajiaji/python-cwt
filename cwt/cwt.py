@@ -148,7 +148,7 @@ class CWT(CBORProcessor):
         self,
         claims: Union[Dict[int, Any], bytes],
         key: COSEKey,
-        nonce: bytes,
+        nonce: bytes = b"",
         tagged: bool = False,
         recipients: Optional[List[Recipient]] = None,
     ) -> bytes:
@@ -172,6 +172,14 @@ class CWT(CBORProcessor):
         self._set_default_value(claims)
         protected: Dict[int, Any] = {1: key.alg}
         unprotected: Dict[int, Any] = {4: key.kid} if key.kid else {}
+        if not nonce:
+            try:
+                nonce = key.generate_nonce()
+            except NotImplementedError:
+                raise ValueError(
+                    "Nonce generation is not supported for the key. Set a nonce explicitly."
+                )
+
         unprotected[5] = nonce
         res = self._cose.encode_and_encrypt(
             protected, unprotected, claims, key, nonce, recipients, out="cbor2/CBORTag"

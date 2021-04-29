@@ -75,6 +75,23 @@ class COSEKey:
         """
         return self._object.get(5, None)
 
+    def generate_nonce(self) -> bytes:
+        """
+        Returns a nonce with a size suitable for the algorithm.
+        This function will be called internally in :class:`CWT <cwt.CWT>`
+        when no nonce is specified by the application.
+        This function adopts ``secrets.token_bytes()`` to generate a nonce.
+        If you do not want to use it, you should explicitly set a nonce to
+        :class:`CWT <cwt.CWT>` functions
+        (e.g., :func:`encode_and_encrypt <cwt.CWT.encode_and_encrypt>`).
+
+        Returns:
+            bytes: A byte string of a generated nonce.
+        Raises:
+            NotImplementedError: Not implemented.
+        """
+        raise NotImplementedError
+
     def sign(self, msg: bytes) -> bytes:
         """
         Returns a digital signature for the specified message
