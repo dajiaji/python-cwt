@@ -9,6 +9,7 @@ from ..cose_key import COSEKey
 from ..exceptions import DecodeError, EncodeError, VerifyError
 
 _CWT_DEFAULT_HMAC_KEY_SIZE = 32  # bytes
+_CWT_DEFAULT_AESGCM_NONCE_SIZE = 12  # bytes
 
 
 class SymmetricKey(COSEKey):
@@ -163,6 +164,9 @@ class AESCCMKey(SymmetricKey):
         else:
             raise ValueError(f"Unsupported or unknown alg({self._alg}) for AES CCM.")
 
+    def generate_nonce(self):
+        return token_bytes(self._nonce_len)
+
     def encrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
         """"""
         if len(nonce) != self._nonce_len:
@@ -215,6 +219,9 @@ class AESGCMKey(SymmetricKey):
             raise ValueError(f"Unsupported or unknown alg(3) for AES GCM: {self._alg}.")
         self._cipher = AESGCM(self._key)
         return
+
+    def generate_nonce(self):
+        return token_bytes(_CWT_DEFAULT_AESGCM_NONCE_SIZE)
 
     def encrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
         """"""
