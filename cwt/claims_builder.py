@@ -4,13 +4,19 @@ from typing import Any, Dict, Optional, Union
 from .const import CWT_CLAIM_NAMES
 
 
-class Claims:
+class ClaimsBuilder:
     """
-    CBOR Web Token (CWT) Claims Generator.
+    CBOR Web Token (CWT) Claims Builder.
+
+    ``cwt.claims`` is a global object of this class initialized with default settings.
     """
 
     def __init__(self, options: Optional[Dict[str, Any]] = None):
-        """"""
+        """
+        Constructor.
+
+        At the current implementation, any ``options`` will be ignored.
+        """
         self._options = options
         return
 
@@ -51,4 +57,4 @@ class Claims:
 
 
 # export
-claims = Claims()
+claims = ClaimsBuilder()

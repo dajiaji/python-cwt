@@ -36,9 +36,11 @@ from .key_types.symmetric import AESCCMKey, HMACKey
 
 
 class KeyBuilder:
-    """"""
+    """
+    A :class:`COSEKey <cwt.COSEKey>` Builder.
+    """
 
-    COSE_KEY_COMMON_PARAMS = {
+    _COSE_KEY_COMMON_PARAMS = {
         "kty": 1,  # tstr / int
         "kid": 2,  # bstr
         "alg": 3,  # tstr / int
@@ -47,7 +49,7 @@ class KeyBuilder:
         # * label => values
     }
 
-    COSE_KEY_OPERATION_VALUES = {
+    _COSE_KEY_OPERATION_VALUES = {
         "sign": 1,
         "verify": 2,
         "encrypt": 3,
@@ -61,7 +63,11 @@ class KeyBuilder:
     }
 
     def __init__(self, options: Optional[Dict[str, Any]] = None):
-        """"""
+        """
+        Constructor.
+
+        At the current implementation, any ``options`` will be ignored.
+        """
         self._options = options
         return
 
@@ -71,7 +77,19 @@ class KeyBuilder:
         alg: Union[int, str] = "HMAC 256/256",
         kid: Union[bytes, str] = b"",
     ) -> COSEKey:
-        """"""
+        """
+        Create a COSE key from a symmetric key.
+
+        Args:
+            key (Union[bytes, str]): A key bytes or string.
+            alg (Union[int, str]): An algorithm label(int) or name(str). Supported ``alg`` are listed
+                in `Supported COSE Algorithms <https://python-cwt.readthedocs.io/en/stable/algorithms.html>`_.
+            kid (Union[bytes, str]): A key identifier.
+        Returns:
+            COSEKey: A COSE key object.
+        Raises:
+            ValueError: Invalid arguments.
+        """
         if isinstance(key, str):
             key = key.encode("utf-8")
         alg_id = alg if isinstance(alg, int) else COSE_ALGORITHMS_SYMMETRIC.get(alg, 0)
@@ -94,7 +112,17 @@ class KeyBuilder:
         raise ValueError(f"Unsupported or unknown alg({alg_id}).")
 
     def from_dict(self, cose_key: Dict[int, Any]) -> COSEKey:
-        """"""
+        """
+        Create a COSE key from a CBOR-like dictionary with numeric keys.
+
+        Args:
+            cose_key (Dict[int, Any]): A CBOR-like dictionary with numeric keys
+                of a COSE key.
+        Returns:
+            COSEKey: A COSE key object.
+        Raises:
+            ValueError: Invalid arguments.
+        """
 
         # Validate COSE Key common parameters.
         if 1 not in cose_key:
@@ -118,7 +146,17 @@ class KeyBuilder:
         raise ValueError(f"Unsupported or unknown kty(1): {cose_key[1]}.")
 
     def from_bytes(self, key_data: bytes) -> COSEKey:
-        """"""
+        """
+        Create a COSE key from CBOR-formatted key data.
+
+        Args:
+            key_data (bytes): CBOR-formatted key data.
+        Returns:
+            COSEKey: A COSE key object.
+        Raises:
+            ValueError: Invalid arguments.
+            DecodeError: Failed to decode the key data.
+        """
         cose_key = cbor2.loads(key_data)
         return self.from_dict(cose_key)
 
@@ -134,7 +172,17 @@ class KeyBuilder:
     def from_pem(
         self, key_data: Union[str, bytes], kid: Union[bytes, str] = b""
     ) -> COSEKey:
-        """"""
+        """
+        Create a COSE key from PEM-formatted key data.
+
+        Args:
+            key_data (bytes): A PEM-formatted key data.
+        Returns:
+            COSEKey: A COSE key object.
+        Raises:
+            ValueError: Invalid arguments.
+            DecodeError: Failed to decode the key data.
+        """
         if isinstance(key_data, str):
             key_data = key_data.encode("utf-8")
         key_str = key_data.decode("utf-8")

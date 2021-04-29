@@ -1,4 +1,4 @@
-from .claims import Claims, claims
+from .claims_builder import ClaimsBuilder, claims
 from .cose import COSE
 from .cose_key import COSEKey
 from .cwt import CWT, decode, encode_and_encrypt, encode_and_mac, encode_and_sign
@@ -23,7 +23,7 @@ __all__ = [
     "decode",
     "CWT",
     "COSE",
-    "Claims",
+    "ClaimsBuilder",
     "COSEKey",
     "KeyBuilder",
     "cose_key",
