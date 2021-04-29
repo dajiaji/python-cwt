@@ -17,12 +17,34 @@ _CWT_DEFAULT_LEEWAY = 60  # 1 min
 class CWT(CBORProcessor):
     """
     A CWT (CBOR Web Token) Implementaion, which is built on top of
-    a COSE (CBOR Object Signing and Encryption) implementation.
+    :class:`COSE <cwt.COSE>`
+
+    ``cwt.cwt`` is a global object of this class initialized with default settings.
     """
 
     CBOR_TAG = 61
 
     def __init__(self, options: Optional[Dict[str, Any]] = None):
+        """
+        Constructor.
+
+        Args:
+            options (Optional[Dict[str, Any]]): Options for the initial
+                configuration of CWT. At this time, ``expires_in`` (default
+                value: ``3600`` ) and ``leaway`` (default value: ``60``) are
+                only supported. See also :func:`expires_in <cwt.CWT.expires_in>`,
+                :func:`leeway <cwt.CWT.leeway>`.
+
+        Examples:
+
+            >>> from cwt import CWT, claims, cose_key
+            >>> ctx = CWT({"expires_in": 3600*24, "leeway": 10})
+            >>> key = cose_key.from_symmetric_key("mysecret")
+            >>> token = ctx.encode_and_mac(
+            ...     claims.from_json({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}),
+            ...     key,
+            ... )
+        """
         self._expires_in = _CWT_DEFAULT_EXPIRES_IN
         self._leeway = _CWT_DEFAULT_LEEWAY
         self._cose = COSE(options)
@@ -53,7 +75,7 @@ class CWT(CBORProcessor):
     @property
     def leeway(self) -> int:
         """
-        The default leeway in seconds for validating `exp` and `nbf`.
+        The default leeway in seconds for validating ``exp`` and ``nbf``.
         """
         return self._leeway
 
@@ -135,7 +157,7 @@ class CWT(CBORProcessor):
 
         Args:
             claims (Union[Dict[int, Any], bytes]): CWT claims.
-            key (COSEKey): A COSE key used to sign the claims.
+            key (COSEKey): A COSE key used to encrypt the claims.
             nonce (bytes): A nonce for encryption.
             recipients (List[Recipient]): A list of recipient information structures.
             tagged (bool): An indicator whether the response is wrapped by CWT tag(61)
@@ -188,7 +210,6 @@ class CWT(CBORProcessor):
         return cwt
 
     def _validate(self, claims: Union[Dict[int, Any], bytes]):
-        """"""
         if isinstance(claims, bytes):
             nested = self._loads(claims)
             if not isinstance(nested, CBORTag):
@@ -229,7 +250,6 @@ class CWT(CBORProcessor):
         return
 
     def _verify(self, claims: Dict[int, Any]):
-        """"""
         now = timegm(datetime.utcnow().utctimetuple())
 
         if 4 in claims:  # exp
