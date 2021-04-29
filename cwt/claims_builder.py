@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional, Union
 from .const import CWT_CLAIM_NAMES
 
 
-class Claims:
+class ClaimsBuilder:
     """
     CBOR Web Token (CWT) Claims Generator.
     """
@@ -51,4 +51,4 @@ class Claims:
 
 
 # export
-claims = Claims()
+claims = ClaimsBuilder()

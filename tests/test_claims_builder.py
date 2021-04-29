@@ -4,27 +4,27 @@
 # W0621: Redefined outer name
 
 """
-Tests for Claims.
+Tests for ClaimsBuilder.
 """
 import pytest
 
-from cwt import Claims
+from cwt import ClaimsBuilder
 
 
 @pytest.fixture(scope="session", autouse=True)
 def ctx():
-    return Claims()
+    return ClaimsBuilder()
 
 
-class TestClaims:
+class TestClaimsBuilder:
     """
-    Tests for Claims.
+    Tests for ClaimsBuilder.
     """
 
-    def test_claims_constructor(self):
+    def test_claims_builder_constructor(self):
         """"""
-        c = Claims()
-        assert isinstance(c, Claims)
+        c = ClaimsBuilder()
+        assert isinstance(c, ClaimsBuilder)
 
     @pytest.mark.parametrize(
         "json, expected",
@@ -39,7 +39,7 @@ class TestClaims:
             ({}, {}),
         ],
     )
-    def test_claims_from_json(self, ctx, json, expected):
+    def test_claims_builder_from_json(self, ctx, json, expected):
         """"""
         claims = ctx.from_json(json)
         for k, v in claims.items():
@@ -53,14 +53,14 @@ class TestClaims:
             {1: "coap://as.example.com"},
         ],
     )
-    def test_claims_from_json_with_invalid_arg(self, ctx, invalid):
+    def test_claims_builder_from_json_with_invalid_arg(self, ctx, invalid):
         """"""
         with pytest.raises(ValueError) as err:
             res = ctx.from_json(invalid)
             pytest.fail("from_json should fail: res=%s" % res)
         assert "It is already CBOR-like format." in str(err.value)
 
-    def test_claims_from_json_with_unknown_key(self, ctx):
+    def test_claims_builder_from_json_with_unknown_key(self, ctx):
         """"""
         claims = ctx.from_json(
             {
