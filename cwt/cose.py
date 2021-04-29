@@ -203,7 +203,7 @@ class COSE(CBORProcessor):
 
         Args:
             data (Union[bytes, CBORTag]): A byte string or cbor2.CBORTag of an
-            encoded data.
+                encoded data.
             key (COSEKey): A COSE key to verify and decrypt the encoded data.
         Returns:
             Dict[int, Any]: A decoded CBOR-like object.
