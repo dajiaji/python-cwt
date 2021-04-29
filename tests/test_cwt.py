@@ -266,6 +266,7 @@ class TestCWT:
             "A128GCM",
             "A192GCM",
             "A256GCM",
+            "ChaCha20/Poly1305",
             "AES-CCM-16-64-128",
             "AES-CCM-16-64-256",
             "AES-CCM-64-64-128",
