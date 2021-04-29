@@ -49,10 +49,6 @@ class TestSymmetricKey:
                 "kty(1) should be int or str(tstr).",
             ),
             (
-                {1: 4},
-                "k(-1) not found.",
-            ),
-            (
                 {1: 4, -1: 123},
                 "k(-1) should be bytes(bstr).",
             ),
@@ -103,6 +99,25 @@ class TestHMACKey:
         except Exception:
             pytest.fail("sign/verify should not fail.")
 
+    def test_hmac_key_constructor_with_hmac_256_256_without_key(self):
+        """"""
+        key = HMACKey(
+            {
+                1: 4,
+                3: 5,  # HMAC 256/256
+            }
+        )
+        assert key.kty == 4
+        assert key.kid is None
+        assert key.alg == 5
+        assert key.key_ops is None
+        assert key.base_iv is None
+        try:
+            sig = key.sign(b"Hello world!")
+            key.verify(b"Hello world!", sig)
+        except Exception:
+            pytest.fail("sign/verify should not fail.")
+
     @pytest.mark.parametrize(
         "invalid, msg",
         [
@@ -121,10 +136,6 @@ class TestHMACKey:
             (
                 {1: []},
                 "kty(1) should be int or str(tstr).",
-            ),
-            (
-                {1: 4},
-                "k(-1) not found.",
             ),
             (
                 {1: 4, -1: 123},
@@ -206,6 +217,56 @@ class TestAESCCMKey:
             pytest.fail("sign/verify should not fail.")
 
     @pytest.mark.parametrize(
+        "key_args, nonce",
+        [
+            (
+                {1: 4, 3: 10},
+                token_bytes(13),
+            ),
+            (
+                {1: 4, 3: 11},
+                token_bytes(13),
+            ),
+            (
+                {1: 4, 3: 12},
+                token_bytes(7),
+            ),
+            (
+                {1: 4, 3: 13},
+                token_bytes(7),
+            ),
+            (
+                {1: 4, 3: 30},
+                token_bytes(13),
+            ),
+            (
+                {1: 4, 3: 31},
+                token_bytes(13),
+            ),
+            (
+                {1: 4, 3: 32},
+                token_bytes(7),
+            ),
+            (
+                {1: 4, 3: 33},
+                token_bytes(7),
+            ),
+        ],
+    )
+    def test_aesccm_key_constructor_with_aes_ccm_without_key(self, key_args, nonce):
+        """"""
+        key = AESCCMKey(key_args)
+        assert key.kty == 4
+        assert key.kid is None
+        assert key.key_ops is None
+        assert key.base_iv is None
+        try:
+            encrypted = key.encrypt(b"Hello world!", nonce=nonce)
+            assert key.decrypt(encrypted, nonce) == b"Hello world!"
+        except Exception:
+            pytest.fail("sign/verify should not fail.")
+
+    @pytest.mark.parametrize(
         "invalid, msg",
         [
             (
@@ -223,10 +284,6 @@ class TestAESCCMKey:
             (
                 {1: []},
                 "kty(1) should be int or str(tstr).",
-            ),
-            (
-                {1: 4},
-                "k(-1) not found.",
             ),
             (
                 {1: 4, -1: 123},
@@ -364,6 +421,28 @@ class TestAESGCMKey:
         assert key.kty == 4
         assert key.kid is None
         assert key.alg == 1
+        assert key.key_ops is None
+        assert key.base_iv is None
+        nonce = token_bytes(12)
+        try:
+            encrypted = key.encrypt(b"Hello world!", nonce=nonce)
+            assert key.decrypt(encrypted, nonce) == b"Hello world!"
+        except Exception:
+            pytest.fail("sign/verify should not fail.")
+
+    @pytest.mark.parametrize(
+        "key_args",
+        [
+            {1: 4, 3: 1},
+            {1: 4, 3: 2},
+            {1: 4, 3: 3},
+        ],
+    )
+    def test_aesgcm_key_constructor_with_aes_ccm_without_key(self, key_args):
+        """"""
+        key = AESGCMKey(key_args)
+        assert key.kty == 4
+        assert key.kid is None
         assert key.key_ops is None
         assert key.base_iv is None
         nonce = token_bytes(12)

@@ -73,7 +73,7 @@ class KeyBuilder:
 
     def from_symmetric_key(
         self,
-        key: Union[bytes, str],
+        key: Union[bytes, str] = b"",
         alg: Union[int, str] = "HMAC 256/256",
         kid: Union[bytes, str] = b"",
     ) -> COSEKey:

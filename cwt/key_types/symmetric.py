@@ -1,11 +1,14 @@
 import hashlib
 import hmac
+from secrets import token_bytes
 from typing import Any, Dict, Optional
 
 from cryptography.hazmat.primitives.ciphers.aead import AESCCM, AESGCM
 
 from ..cose_key import COSEKey
 from ..exceptions import DecodeError, EncodeError, VerifyError
+
+_CWT_DEFAULT_HMAC_KEY_SIZE = 32  # bytes
 
 
 class SymmetricKey(COSEKey):
@@ -22,11 +25,10 @@ class SymmetricKey(COSEKey):
             raise ValueError("kty(1) should be Symmetric(4).")
 
         # Validate k.
-        if -1 not in cose_key:
-            raise ValueError("k(-1) not found.")
-        if -1 in cose_key and not isinstance(cose_key[-1], bytes):
-            raise ValueError("k(-1) should be bytes(bstr).")
-        self._key = cose_key[-1]
+        if -1 in cose_key:
+            if not isinstance(cose_key[-1], bytes):
+                raise ValueError("k(-1) should be bytes(bstr).")
+            self._key = cose_key[-1]
 
         if 3 not in cose_key:
             raise ValueError("alg(3) not found.")
@@ -42,6 +44,8 @@ class HMACKey(SymmetricKey):
 
         self._hash_alg = None
         self._trunc = 0
+        if not self._key:
+            self._key = token_bytes(_CWT_DEFAULT_HMAC_KEY_SIZE)
 
         # Validate alg.
         if self._alg == 4:  # HMAC 256/64
@@ -85,6 +89,8 @@ class AESCCMKey(SymmetricKey):
 
         # Validate alg.
         if self._alg == 10:  # AES-CCM-16-64-128
+            if not self._key:
+                self._key = AESCCM.generate_key(bit_length=128)
             if len(self._key) != 16:
                 raise ValueError(
                     "The length of AES-CCM-16-64-128 key should be 16 bytes."
@@ -92,6 +98,8 @@ class AESCCMKey(SymmetricKey):
             self._cipher = AESCCM(self._key, tag_length=8)
             self._nonce_len = 13
         elif self._alg == 11:  # AES-CCM-16-64-256
+            if not self._key:
+                self._key = AESCCM.generate_key(bit_length=256)
             if len(self._key) != 32:
                 raise ValueError(
                     "The length of AES-CCM-16-64-256 key should be 32 bytes."
@@ -99,6 +107,8 @@ class AESCCMKey(SymmetricKey):
             self._cipher = AESCCM(self._key, tag_length=8)
             self._nonce_len = 13
         elif self._alg == 12:  # AES-CCM-64-64-128
+            if not self._key:
+                self._key = AESCCM.generate_key(bit_length=128)
             if len(self._key) != 16:
                 raise ValueError(
                     "The length of AES-CCM-64-64-128 key should be 16 bytes."
@@ -106,6 +116,8 @@ class AESCCMKey(SymmetricKey):
             self._cipher = AESCCM(self._key, tag_length=8)
             self._nonce_len = 7
         elif self._alg == 13:  # AES-CCM-64-64-256
+            if not self._key:
+                self._key = AESCCM.generate_key(bit_length=256)
             if len(self._key) != 32:
                 raise ValueError(
                     "The length of AES-CCM-64-64-256 key should be 32 bytes."
@@ -113,6 +125,8 @@ class AESCCMKey(SymmetricKey):
             self._cipher = AESCCM(self._key, tag_length=8)
             self._nonce_len = 7
         elif self._alg == 30:  # AES-CCM-16-128-128
+            if not self._key:
+                self._key = AESCCM.generate_key(bit_length=128)
             if len(self._key) != 16:
                 raise ValueError(
                     "The length of AES-CCM-16-128-128 key should be 16 bytes."
@@ -120,6 +134,8 @@ class AESCCMKey(SymmetricKey):
             self._cipher = AESCCM(self._key)
             self._nonce_len = 13
         elif self._alg == 31:  # AES-CCM-16-128-256
+            if not self._key:
+                self._key = AESCCM.generate_key(bit_length=256)
             if len(self._key) != 32:
                 raise ValueError(
                     "The length of AES-CCM-16-128-256 key should be 32 bytes."
@@ -127,6 +143,8 @@ class AESCCMKey(SymmetricKey):
             self._cipher = AESCCM(self._key)
             self._nonce_len = 13
         elif self._alg == 32:  # AES-CCM-64-128-128
+            if not self._key:
+                self._key = AESCCM.generate_key(bit_length=128)
             if len(self._key) != 16:
                 raise ValueError(
                     "The length of AES-CCM-64-128-128 key should be 16 bytes."
@@ -134,6 +152,8 @@ class AESCCMKey(SymmetricKey):
             self._cipher = AESCCM(self._key)
             self._nonce_len = 7
         elif self._alg == 33:  # AES-CCM-64-128-256
+            if not self._key:
+                self._key = AESCCM.generate_key(bit_length=256)
             if len(self._key) != 32:
                 raise ValueError(
                     "The length of AES-CCM-64-128-256 key should be 32 bytes."
