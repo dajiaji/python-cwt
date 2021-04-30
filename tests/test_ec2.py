@@ -13,7 +13,6 @@ class TestEC2Key:
     """
 
     def test_ec2_key_constructor_with_es256_key(self):
-        """"""
         private_key = EC2Key(
             {
                 1: 2,
@@ -53,7 +52,6 @@ class TestEC2Key:
             pytest.fail("sign/verify should not fail.")
 
     def test_ec2_key_constructor_with_es384_key(self):
-        """"""
         private_key = EC2Key(
             {
                 1: 2,
@@ -93,7 +91,6 @@ class TestEC2Key:
             pytest.fail("sign/verify should not fail.")
 
     def test_ec2_key_constructor_with_es512_key(self):
-        """"""
         private_key = EC2Key(
             {
                 1: 2,
@@ -133,7 +130,6 @@ class TestEC2Key:
             pytest.fail("sign/verify should not fail.")
 
     def test_ec2_(self):
-        """"""
         private_key = EC2Key(
             {
                 1: 2,
@@ -173,7 +169,6 @@ class TestEC2Key:
             pytest.fail("sign/verify should not fail.")
 
     def test_cose_key_constructor_without_cose_key(self):
-        """"""
         with pytest.raises(TypeError):
             EC2Key()
             pytest.fail("EC2Key should fail.")
@@ -384,14 +379,12 @@ class TestEC2Key:
         ],
     )
     def test_ec2_key_constructor_with_invalid_args(self, invalid, msg):
-        """"""
         with pytest.raises(ValueError) as err:
             EC2Key(invalid)
             pytest.fail("EC2Key should fail.")
         assert msg in str(err.value)
 
     def test_ec2_key_sign_with_es256_public_key(self):
-        """"""
         public_key = EC2Key(
             {
                 1: 2,
@@ -407,7 +400,6 @@ class TestEC2Key:
         assert "Public key cannot be used for signing." in str(err.value)
 
     def test_ec2_key_verify_with_another_es256_public_key(self):
-        """"""
         private_key = EC2Key(
             {
                 1: 2,
@@ -435,7 +427,6 @@ class TestEC2Key:
         assert "Failed to verify." in str(err.value)
 
     def test_ec2_key_verify_with_invalid_signature(self):
-        """"""
         private_key = EC2Key(
             {
                 1: 2,

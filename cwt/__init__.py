@@ -1,7 +1,14 @@
 from .claims_builder import ClaimsBuilder, claims
 from .cose import COSE
 from .cose_key import COSEKey
-from .cwt import CWT, decode, encode_and_encrypt, encode_and_mac, encode_and_sign
+from .cwt import (
+    CWT,
+    decode,
+    encode,
+    encode_and_encrypt,
+    encode_and_mac,
+    encode_and_sign,
+)
 from .exceptions import CWTError, DecodeError, EncodeError, VerifyError
 from .key_builder import KeyBuilder, cose_key
 from .recipient import Recipient
@@ -17,6 +24,7 @@ __email__ = "ajitomi@gmail.com"
 __license__ = "MIT"
 __copyright__ = "Copyright 2021 AJITOMI Daisuke"
 __all__ = [
+    "encode",
     "encode_and_mac",
     "encode_and_sign",
     "encode_and_encrypt",

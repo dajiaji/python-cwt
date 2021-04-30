@@ -176,7 +176,6 @@ class TestCOSE:
         ],
     )
     def test_cose_decode_with_invalid_data(self, ctx, invalid, msg):
-        """"""
         with open(key_path("public_key_es256.pem")) as key_file:
             public_key = cose_key.from_pem(key_file.read(), kid="1")
 

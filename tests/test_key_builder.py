@@ -26,7 +26,6 @@ class TestKeyBuilder:
     """
 
     def test_key_builder_constructor(self):
-        """"""
         c = KeyBuilder()
         assert isinstance(c, KeyBuilder)
 

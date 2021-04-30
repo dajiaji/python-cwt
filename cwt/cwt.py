@@ -5,6 +5,8 @@ from typing import Any, Dict, List, Optional, Union
 from cbor2 import CBORTag
 
 from .cbor_processor import CBORProcessor
+from .claims_builder import ClaimsBuilder
+from .const import COSE_KEY_OPERATION_VALUES
 from .cose import COSE
 from .cose_key import COSEKey
 from .exceptions import VerifyError
@@ -48,6 +50,7 @@ class CWT(CBORProcessor):
         self._expires_in = _CWT_DEFAULT_EXPIRES_IN
         self._leeway = _CWT_DEFAULT_LEEWAY
         self._cose = COSE(options)
+        self._claims = ClaimsBuilder()
         if not options:
             return
 
@@ -78,6 +81,60 @@ class CWT(CBORProcessor):
         The default leeway in seconds for validating ``exp`` and ``nbf``.
         """
         return self._leeway
+
+    def encode(
+        self,
+        claims: Union[Dict[str, Any], Dict[int, Any], bytes, str],
+        key: COSEKey,
+        nonce: bytes = b"",
+        tagged: bool = False,
+        recipients: Optional[List[Recipient]] = None,
+    ) -> bytes:
+        """
+        Encodes CWT with MAC, signing or encryption.
+        This is a wrapper function of the following functions for easy use:
+
+        * :func:`encode_and_mac <cwt.CWT.encode_and_mac>`
+        * :func:`encode_and_sign <cwt.CWT.encode_and_sign>`
+        * :func:`encode_and_encrypt <cwt.CWT.encode_and_encrypt>`
+
+        Therefore, it must be clear whether the use of the specified key is for MAC,
+        signing, or encryption. For this purpose, the key must have the ``key_ops``
+        parameter set to identify the usage.
+
+        Args:
+            claims (Union[Dict[int, Any], bytes]): A CWT claims object or byte string.
+            key (COSEKey): A COSE key used to generate a MAC for the claims.
+            recipients (List[Recipient]): A list of recipient information structures.
+            tagged (bool): An indicator whether the response is wrapped by CWT tag(61)
+                or not.
+        Returns:
+            bytes: A byte string of the encoded CWT.
+        Raises:
+            ValueError: Invalid arguments.
+            EncodeError: Failed to encode the claims.
+        """
+        if isinstance(claims, str):
+            claims = claims.encode("utf-8")
+        if isinstance(claims, bytes):
+            try:
+                claims = self._claims.from_json(claims)
+            except ValueError:
+                return self._encode(claims, key, nonce, tagged, recipients)
+        else:
+            # Following code causes mypy error:
+            # for k, v in claims.items():
+            #     if isinstance(k, str):
+            #         claims = self._claims.from_json(claims)
+            #     break
+            # To avoid the error:
+            json_claims: Dict[str, Any] = {}
+            for k, v in claims.items():
+                if isinstance(k, str):
+                    json_claims[k] = v
+            if json_claims:
+                claims = self._claims.from_json(json_claims)
+        return self._encode(claims, key, nonce, tagged, recipients)
 
     def encode_and_mac(
         self,
@@ -217,6 +274,28 @@ class CWT(CBORProcessor):
             self._verify(cwt)
         return cwt
 
+    def _encode(
+        self,
+        claims: Union[Dict[Any, Any], bytes],
+        key: COSEKey,
+        nonce: bytes = b"",
+        tagged: bool = False,
+        recipients: Optional[List[Recipient]] = None,
+    ) -> bytes:
+        if COSE_KEY_OPERATION_VALUES["sign"] in key.key_ops:
+            if [ops for ops in key.key_ops if ops in [3, 4, 9, 10]]:
+                raise ValueError("The key operation could not be specified.")
+            return self.encode_and_sign(claims, key, tagged)
+        if COSE_KEY_OPERATION_VALUES["encrypt"] in key.key_ops:
+            if [ops for ops in key.key_ops if ops in [1, 2, 9, 10]]:
+                raise ValueError("The key operation could not be specified.")
+            return self.encode_and_encrypt(claims, key, nonce, tagged, recipients)
+        if COSE_KEY_OPERATION_VALUES["MAC create"] in key.key_ops:
+            if [ops for ops in key.key_ops if ops in [1, 2, 3, 4]]:
+                raise ValueError("The key operation could not be specified.")
+            return self.encode_and_mac(claims, key, tagged, recipients)
+        raise ValueError("The key operation could not be specified.")
+
     def _validate(self, claims: Union[Dict[int, Any], bytes]):
         if isinstance(claims, bytes):
             nested = self._loads(claims)
@@ -290,6 +369,7 @@ class CWT(CBORProcessor):
 
 # export
 _cwt = CWT()
+encode = _cwt.encode
 encode_and_mac = _cwt.encode_and_mac
 encode_and_sign = _cwt.encode_and_sign
 encode_and_encrypt = _cwt.encode_and_encrypt
