@@ -8,12 +8,12 @@ from cryptography.hazmat.primitives.asymmetric.utils import (
     encode_dss_signature,
 )
 
-from ..cose_key import COSEKey
 from ..exceptions import EncodeError, VerifyError
 from ..utils import i2osp, os2ip
+from .signature import SignatureKey
 
 
-class EC2Key(COSEKey):
+class EC2Key(SignatureKey):
     """"""
 
     def __init__(self, cose_key: Dict[int, Any]):

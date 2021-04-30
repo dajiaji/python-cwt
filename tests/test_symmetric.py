@@ -97,7 +97,9 @@ class TestHMACKey:
         assert key.kty == 4
         assert key.kid is None
         assert key.alg == 5
-        assert key.key_ops is None
+        assert len(key.key_ops) == 2
+        assert 9 in key.key_ops
+        assert 10 in key.key_ops
         assert key.base_iv is None
         try:
             sig = key.sign(b"Hello world!")
@@ -116,7 +118,9 @@ class TestHMACKey:
         assert key.kty == 4
         assert key.kid is None
         assert key.alg == 5
-        assert key.key_ops is None
+        assert len(key.key_ops) == 2
+        assert 9 in key.key_ops
+        assert 10 in key.key_ops
         assert key.base_iv is None
         try:
             sig = key.sign(b"Hello world!")
@@ -167,6 +171,14 @@ class TestHMACKey:
                 {1: 4, -1: b"mysecret", 3: 8},
                 "Unsupported or unknown alg(8) for HMAC.",
             ),
+            (
+                {1: 4, -1: b"mysecret", 3: 4, 4: [1, 2, 3]},
+                "Unknown or not permissible key_ops(4) for MACAuthenticationKey: 1.",
+            ),
+            (
+                {1: 4, -1: b"mysecret", 3: 4, 4: [9, 10, 11]},
+                "Unknown or not permissible key_ops(4) for MACAuthenticationKey: 11.",
+            ),
         ],
     )
     def test_hmac_key_constructor_with_invalid_args(self, invalid, msg):
@@ -188,7 +200,9 @@ class TestHMACKey:
         assert key.kty == 4
         assert key.kid is None
         assert key.alg == 5
-        assert key.key_ops is None
+        assert len(key.key_ops) == 2
+        assert 9 in key.key_ops
+        assert 10 in key.key_ops
         assert key.base_iv is None
         sig = key.sign(b"Hello world!")
         with pytest.raises(VerifyError) as err:
@@ -213,7 +227,11 @@ class TestAESCCMKey:
         assert key.kty == 4
         assert key.kid is None
         assert key.alg == 10
-        assert key.key_ops is None
+        assert len(key.key_ops) == 4
+        assert 3 in key.key_ops
+        assert 4 in key.key_ops
+        assert 5 in key.key_ops
+        assert 6 in key.key_ops
         assert key.base_iv is None
         nonce = token_bytes(13)
         try:
@@ -264,7 +282,11 @@ class TestAESCCMKey:
         key = AESCCMKey(key_args)
         assert key.kty == 4
         assert key.kid is None
-        assert key.key_ops is None
+        assert len(key.key_ops) == 4
+        assert 3 in key.key_ops
+        assert 4 in key.key_ops
+        assert 5 in key.key_ops
+        assert 6 in key.key_ops
         assert key.base_iv is None
         try:
             encrypted = key.encrypt(b"Hello world!", nonce=nonce)
@@ -347,6 +369,18 @@ class TestAESCCMKey:
                 {1: 4, -1: b"mysecret", 3: 33},
                 "The length of AES-CCM-64-128-256 key should be 32 bytes.",
             ),
+            (
+                {1: 4, 3: 10, 4: [1, 2]},
+                "Unknown or not permissible key_ops(4) for ContentEncryptionKey: 1.",
+            ),
+            (
+                {1: 4, 3: 10, 4: [3, 4, 11]},
+                "Unknown or not permissible key_ops(4) for ContentEncryptionKey: 11.",
+            ),
+            (
+                {1: 4, 3: 10, 4: [5, 6, 11]},
+                "Unknown or not permissible key_ops(4) for ContentEncryptionKey: 11.",
+            ),
         ],
     )
     def test_aesccm_key_constructor_with_invalid_args(self, invalid, msg):
@@ -381,7 +415,11 @@ class TestAESCCMKey:
         assert key.kty == 4
         assert key.kid is None
         assert key.alg == 10
-        assert key.key_ops is None
+        assert len(key.key_ops) == 4
+        assert 3 in key.key_ops
+        assert 4 in key.key_ops
+        assert 5 in key.key_ops
+        assert 6 in key.key_ops
         assert key.base_iv is None
         nonce = token_bytes(13)
         encrypted = key.encrypt(b"Hello world!", nonce=nonce)
@@ -401,7 +439,11 @@ class TestAESCCMKey:
         assert key.kty == 4
         assert key.kid is None
         assert key.alg == 10
-        assert key.key_ops is None
+        assert len(key.key_ops) == 4
+        assert 3 in key.key_ops
+        assert 4 in key.key_ops
+        assert 5 in key.key_ops
+        assert 6 in key.key_ops
         assert key.base_iv is None
         nonce = token_bytes(13)
         encrypted = key.encrypt(b"Hello world!", nonce=nonce)
@@ -427,7 +469,11 @@ class TestAESGCMKey:
         assert key.kty == 4
         assert key.kid is None
         assert key.alg == 1
-        assert key.key_ops is None
+        assert len(key.key_ops) == 4
+        assert 3 in key.key_ops
+        assert 4 in key.key_ops
+        assert 5 in key.key_ops
+        assert 6 in key.key_ops
         assert key.base_iv is None
         nonce = token_bytes(12)
         try:
@@ -449,7 +495,11 @@ class TestAESGCMKey:
         key = AESGCMKey(key_args)
         assert key.kty == 4
         assert key.kid is None
-        assert key.key_ops is None
+        assert len(key.key_ops) == 4
+        assert 3 in key.key_ops
+        assert 4 in key.key_ops
+        assert 5 in key.key_ops
+        assert 6 in key.key_ops
         assert key.base_iv is None
         nonce = token_bytes(12)
         try:
@@ -476,6 +526,18 @@ class TestAESGCMKey:
             (
                 {1: 4, -1: b"mysecret", 3: 3},
                 "The length of A256GCM key should be 32 bytes.",
+            ),
+            (
+                {1: 4, 3: 1, 4: [1, 2]},
+                "Unknown or not permissible key_ops(4) for ContentEncryptionKey: 1.",
+            ),
+            (
+                {1: 4, 3: 1, 4: [3, 4, 11]},
+                "Unknown or not permissible key_ops(4) for ContentEncryptionKey: 11.",
+            ),
+            (
+                {1: 4, 3: 1, 4: [5, 6, 11]},
+                "Unknown or not permissible key_ops(4) for ContentEncryptionKey: 11.",
             ),
         ],
     )
@@ -511,7 +573,11 @@ class TestAESGCMKey:
         assert key.kty == 4
         assert key.kid is None
         assert key.alg == 1
-        assert key.key_ops is None
+        assert len(key.key_ops) == 4
+        assert 3 in key.key_ops
+        assert 4 in key.key_ops
+        assert 5 in key.key_ops
+        assert 6 in key.key_ops
         assert key.base_iv is None
         nonce = token_bytes(12)
         encrypted = key.encrypt(b"Hello world!", nonce=nonce)
@@ -536,7 +602,11 @@ class TestChaCha20Key:
         assert key.kty == 4
         assert key.kid is None
         assert key.alg == 24
-        assert key.key_ops is None
+        assert len(key.key_ops) == 4
+        assert 3 in key.key_ops
+        assert 4 in key.key_ops
+        assert 5 in key.key_ops
+        assert 6 in key.key_ops
         assert key.base_iv is None
         nonce = token_bytes(16)
         try:
@@ -555,7 +625,11 @@ class TestChaCha20Key:
         key = ChaCha20Key(key_args)
         assert key.kty == 4
         assert key.kid is None
-        assert key.key_ops is None
+        assert len(key.key_ops) == 4
+        assert 3 in key.key_ops
+        assert 4 in key.key_ops
+        assert 5 in key.key_ops
+        assert 6 in key.key_ops
         assert key.base_iv is None
         nonce = token_bytes(16)
         try:
@@ -574,6 +648,18 @@ class TestChaCha20Key:
             (
                 {1: 4, -1: b"mysecret", 3: 24},
                 "The length of ChaCha20/Poly1305 key should be 32 bytes.",
+            ),
+            (
+                {1: 4, 3: 24, 4: [1, 2]},
+                "Unknown or not permissible key_ops(4) for ContentEncryptionKey: 1.",
+            ),
+            (
+                {1: 4, 3: 24, 4: [3, 4, 11]},
+                "Unknown or not permissible key_ops(4) for ContentEncryptionKey: 11.",
+            ),
+            (
+                {1: 4, 3: 24, 4: [5, 6, 11]},
+                "Unknown or not permissible key_ops(4) for ContentEncryptionKey: 11.",
             ),
         ],
     )

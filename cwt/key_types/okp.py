@@ -15,11 +15,11 @@ from cryptography.hazmat.primitives.asymmetric.x25519 import (
     X25519PublicKey,
 )
 
-from ..cose_key import COSEKey
 from ..exceptions import EncodeError, VerifyError
+from .signature import SignatureKey
 
 
-class OKPKey(COSEKey):
+class OKPKey(SignatureKey):
     """"""
 
     def __init__(self, cose_key: Dict[int, Any]):

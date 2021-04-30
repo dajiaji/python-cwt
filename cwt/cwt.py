@@ -276,7 +276,6 @@ class CWT(CBORProcessor):
         return
 
     def _set_default_value(self, claims: Union[Dict[int, Any], bytes]):
-        """"""
         if isinstance(claims, bytes):
             return
         now = timegm(datetime.utcnow().utctimetuple())
