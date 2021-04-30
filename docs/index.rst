@@ -28,14 +28,11 @@ And then, you can use it as follows:
 .. code-block:: python
 
    import cwt
-   from cwt import cose_key, claims
+   from cwt import cose_key
 
-   key = cose_key.from_symmetric_key("mysecret")
-   encoded = cwt.encode_and_mac(
-       claims.from_json({"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}),
-       key,
-   )
-   decoded = cwt.decode(encoded, key)
+   key = cose_key.from_symmetric_key(alg="HMAC 256/256")
+   token = cwt.encode({"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}, key)
+   decoded = cwt.decode(token, key)
 
 Index
 -----
