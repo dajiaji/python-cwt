@@ -86,7 +86,7 @@ class KeyBuilder:
             key = key.encode("utf-8")
         alg_id = alg if isinstance(alg, int) else COSE_ALGORITHMS_SYMMETRIC.get(alg, 0)
         if alg_id == 0:
-            raise ValueError(f"Unsupported or unknown alg({alg}).")
+            raise ValueError(f"Unsupported or unknown alg(3): {alg}.")
 
         cose_key = {
             1: 4,  # kty: 'Symmetric'
@@ -109,16 +109,7 @@ class KeyBuilder:
             except Exception:
                 raise ValueError("Unsupported or unknown key_ops.")
         cose_key[4] = key_ops_labels
-
-        if alg_id in [1, 2, 3]:
-            return AESGCMKey(cose_key)
-        if alg_id in [4, 5, 6, 7]:
-            return HMACKey(cose_key)
-        if alg_id in [10, 11, 12, 13, 30, 31, 32, 33]:
-            return AESCCMKey(cose_key)
-        if alg_id == 24:
-            return ChaCha20Key(cose_key)
-        raise ValueError(f"Unsupported or unknown alg({alg_id}).")
+        return self.from_dict(cose_key)
 
     def from_dict(self, cose_key: Dict[int, Any]) -> COSEKey:
         """
@@ -147,10 +138,14 @@ class KeyBuilder:
                 not isinstance(cose_key[3], int) and not isinstance(cose_key[3], str)
             ):
                 raise ValueError("alg(3) should be int or str(tstr).")
+            if cose_key[3] in [1, 2, 3]:
+                return AESGCMKey(cose_key)
             if cose_key[3] in [4, 5, 6, 7]:
                 return HMACKey(cose_key)
             if cose_key[3] in [10, 11, 12, 13, 30, 31, 32, 33]:
                 return AESCCMKey(cose_key)
+            if cose_key[3] == 24:
+                return ChaCha20Key(cose_key)
             raise ValueError(f"Unsupported or unknown alg(3): {cose_key[3]}.")
         raise ValueError(f"Unsupported or unknown kty(1): {cose_key[1]}.")
 

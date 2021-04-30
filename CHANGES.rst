@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Fix bug on KeyBuilder.from_dict. `#45 <https://github.com/dajiaji/python-cwt/pull/45>`__
 - Add support for key_ops. `#44 <https://github.com/dajiaji/python-cwt/pull/44>`__
 - Add support for ChaCha20/Poly1305. `#43 <https://github.com/dajiaji/python-cwt/pull/43>`__
 - Make nonce optional for CWT.encode_and_encrypt. `#42 <https://github.com/dajiaji/python-cwt/pull/42>`__
