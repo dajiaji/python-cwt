@@ -13,7 +13,6 @@ class TestOKPKey:
     """
 
     def test_okp_key_constructor_with_ed25519_key(self):
-        """"""
         private_key = OKPKey(
             {
                 1: 1,
@@ -184,14 +183,12 @@ class TestOKPKey:
         ],
     )
     def test_okp_key_constructor_with_invalid_args(self, invalid, msg):
-        """"""
         with pytest.raises(ValueError) as err:
             OKPKey(invalid)
             pytest.fail("OKPKey should fail.")
         assert msg in str(err.value)
 
     def test_okp_key_sign_with_es256_public_key(self):
-        """"""
         public_key = OKPKey(
             {
                 1: 1,
@@ -206,7 +203,6 @@ class TestOKPKey:
         assert "Public key cannot be used for signing." in str(err.value)
 
     def test_okp_key_verify_with_invalid_signature(self):
-        """"""
         private_key = OKPKey(
             {
                 1: 1,

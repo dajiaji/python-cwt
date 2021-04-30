@@ -21,7 +21,6 @@ class TestSymmetricKey:
     """
 
     def test_symmetric_key_constructor_with_hmac_256_256(self):
-        """"""
         key = SymmetricKey(
             {
                 1: 4,
@@ -73,7 +72,6 @@ class TestSymmetricKey:
         ],
     )
     def test_symmetric_key_constructor_with_invalid_args(self, invalid, msg):
-        """"""
         with pytest.raises(ValueError) as err:
             SymmetricKey(invalid)
             pytest.fail("SymmetricKey should fail.")
@@ -86,7 +84,6 @@ class TestHMACKey:
     """
 
     def test_hmac_key_constructor_with_hmac_256_256(self):
-        """"""
         key = HMACKey(
             {
                 1: 4,
@@ -108,7 +105,6 @@ class TestHMACKey:
             pytest.fail("sign/verify should not fail.")
 
     def test_hmac_key_constructor_with_hmac_256_256_without_key(self):
-        """"""
         key = HMACKey(
             {
                 1: 4,
@@ -182,14 +178,12 @@ class TestHMACKey:
         ],
     )
     def test_hmac_key_constructor_with_invalid_args(self, invalid, msg):
-        """"""
         with pytest.raises(ValueError) as err:
             HMACKey(invalid)
             pytest.fail("HMACKey should fail.")
         assert msg in str(err.value)
 
     def test_hmac_key_verify_with_invalid_signature(self):
-        """"""
         key = HMACKey(
             {
                 1: 4,
@@ -216,7 +210,6 @@ class TestAESCCMKey:
     """
 
     def test_aesccm_key_constructor_with_aes_ccm_16_64_128(self):
-        """"""
         key = AESCCMKey(
             {
                 1: 4,
@@ -278,7 +271,6 @@ class TestAESCCMKey:
         ],
     )
     def test_aesccm_key_constructor_with_aes_ccm_without_key(self, key_args, nonce):
-        """"""
         key = AESCCMKey(key_args)
         assert key.kty == 4
         assert key.kid is None
@@ -384,7 +376,6 @@ class TestAESCCMKey:
         ],
     )
     def test_aesccm_key_constructor_with_invalid_args(self, invalid, msg):
-        """"""
         with pytest.raises(ValueError) as err:
             AESCCMKey(invalid)
             pytest.fail("AESCCMKey should fail.")
@@ -404,7 +395,6 @@ class TestAESCCMKey:
         assert "Failed to encrypt." in str(err.value)
 
     def test_aesccm_key_decrypt_with_invalid_nonce(self):
-        """"""
         key = AESCCMKey(
             {
                 1: 4,
@@ -428,7 +418,6 @@ class TestAESCCMKey:
         assert "Failed to decrypt." in str(err.value)
 
     def test_aesccm_key_decrypt_with_invalid_length_nonce(self):
-        """"""
         key = AESCCMKey(
             {
                 1: 4,
@@ -458,7 +447,6 @@ class TestAESGCMKey:
     """
 
     def test_aesgcm_key_constructor_with_aes_gcm_a128gcm(self):
-        """"""
         key = AESGCMKey(
             {
                 1: 4,
@@ -491,7 +479,6 @@ class TestAESGCMKey:
         ],
     )
     def test_aesgcm_key_constructor_with_aes_ccm_without_key(self, key_args):
-        """"""
         key = AESGCMKey(key_args)
         assert key.kty == 4
         assert key.kid is None
@@ -542,14 +529,12 @@ class TestAESGCMKey:
         ],
     )
     def test_aesgcm_key_constructor_with_invalid_args(self, invalid, msg):
-        """"""
         with pytest.raises(ValueError) as err:
             AESGCMKey(invalid)
             pytest.fail("AESGCMKey should fail.")
         assert msg in str(err.value)
 
     def test_aesgcm_key_encrypt_with_empty_nonce(self):
-        """"""
         key = AESGCMKey(
             {
                 1: 4,
@@ -562,7 +547,6 @@ class TestAESGCMKey:
         assert "Failed to encrypt." in str(err.value)
 
     def test_aesgcm_key_decrypt_with_invalid_nonce(self):
-        """"""
         key = AESGCMKey(
             {
                 1: 4,
@@ -682,7 +666,6 @@ class TestChaCha20Key:
         assert "Failed to encrypt." in str(err.value)
 
     def test_chacha20_key_decrypt_with_different_nonce(self):
-        """"""
         key = ChaCha20Key(
             {
                 1: 4,
@@ -696,7 +679,6 @@ class TestChaCha20Key:
         assert b"Hello world!" != decrypted
 
     def test_chacha20_key_decrypt_with_invalid_nonce(self):
-        """"""
         key = ChaCha20Key(
             {
                 1: 4,

@@ -22,7 +22,6 @@ class TestCOSEKey:
     """
 
     def test_cose_key_constructor(self):
-        """"""
         key = COSEKey({1: 1, 2: b"123", 3: 1})
         assert key.kty == 1
         assert key.kid == b"123"
@@ -46,7 +45,6 @@ class TestCOSEKey:
             pytest.fail("COSEKey.decrypt() should fail.")
 
     def test_cose_key_constructor_without_cose_key(self):
-        """"""
         with pytest.raises(TypeError):
             COSEKey()
             pytest.fail("COSEKey should fail.")
@@ -121,7 +119,6 @@ class TestCOSEKey:
         ],
     )
     def test_cose_key_constructor_with_invalid_args(self, invalid, msg):
-        """"""
         with pytest.raises(ValueError) as err:
             COSEKey(invalid)
             pytest.fail("COSEKey should fail.")

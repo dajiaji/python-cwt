@@ -155,13 +155,11 @@ class TestSample:
         assert 1 in decoded and decoded[1] == "https://as.example"
 
     def test_sample_readme_signed_cwt_es256_old(self):
-        # Load PEM-formatted keys as COSE keys.
         with open(key_path("private_key_es256.pem")) as key_file:
             private_key = cose_key.from_pem(key_file.read())
         with open(key_path("public_key_es256.pem")) as key_file:
             public_key = cose_key.from_pem(key_file.read())
 
-        # Encode with ES256 signing.
         encoded = cwt.encode_and_sign(
             claims.from_json(
                 {"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}
@@ -169,34 +167,28 @@ class TestSample:
             private_key,
         )
 
-        # Verify and decode.
         decoded = cwt.decode(encoded, public_key)
         assert 1 in decoded and decoded[1] == "https://as.example"
 
     def test_sample_readme_signed_cwt_es256(self):
-        # Load PEM-formatted keys as COSE keys.
         with open(key_path("private_key_es256.pem")) as key_file:
             private_key = cose_key.from_pem(key_file.read())
         with open(key_path("public_key_es256.pem")) as key_file:
             public_key = cose_key.from_pem(key_file.read())
 
-        # Encode with ES256 signing.
         token = cwt.encode(
             {"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}, private_key
         )
 
-        # Verify and decode.
         decoded = cwt.decode(token, public_key)
         assert 1 in decoded and decoded[1] == "https://as.example"
 
     def test_sample_readme_signed_cwt_es384_old(self):
-        # Load PEM-formatted keys as COSE keys.
         with open(key_path("private_key_es384.pem")) as key_file:
             private_key = cose_key.from_pem(key_file.read())
         with open(key_path("public_key_es384.pem")) as key_file:
             public_key = cose_key.from_pem(key_file.read())
 
-        # Encode with ES384 signing.
         encoded = cwt.encode_and_sign(
             claims.from_json(
                 {"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}
@@ -204,34 +196,28 @@ class TestSample:
             private_key,
         )
 
-        # Verify and decode.
         decoded = cwt.decode(encoded, public_key)
         assert 1 in decoded and decoded[1] == "https://as.example"
 
     def test_sample_readme_signed_cwt_es384(self):
-        # Load PEM-formatted keys as COSE keys.
         with open(key_path("private_key_es384.pem")) as key_file:
             private_key = cose_key.from_pem(key_file.read())
         with open(key_path("public_key_es384.pem")) as key_file:
             public_key = cose_key.from_pem(key_file.read())
 
-        # Encode with ES384 signing.
         token = cwt.encode(
             {"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}, private_key
         )
 
-        # Verify and decode.
         decoded = cwt.decode(token, public_key)
         assert 1 in decoded and decoded[1] == "https://as.example"
 
     def test_sample_readme_signed_cwt_es512_old(self):
-        # Load PEM-formatted keys as COSE keys.
         with open(key_path("private_key_es512.pem")) as key_file:
             private_key = cose_key.from_pem(key_file.read())
         with open(key_path("public_key_es512.pem")) as key_file:
             public_key = cose_key.from_pem(key_file.read())
 
-        # Encode with ES512 signing.
         encoded = cwt.encode_and_sign(
             claims.from_json(
                 {"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}
@@ -239,34 +225,28 @@ class TestSample:
             private_key,
         )
 
-        # Verify and decode.
         decoded = cwt.decode(encoded, public_key)
         assert 1 in decoded and decoded[1] == "https://as.example"
 
     def test_sample_readme_signed_cwt_es512(self):
-        # Load PEM-formatted keys as COSE keys.
         with open(key_path("private_key_es512.pem")) as key_file:
             private_key = cose_key.from_pem(key_file.read())
         with open(key_path("public_key_es512.pem")) as key_file:
             public_key = cose_key.from_pem(key_file.read())
 
-        # Encode with ES512 signing.
         token = cwt.encode(
             {"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}, private_key
         )
 
-        # Verify and decode.
         decoded = cwt.decode(token, public_key)
         assert 1 in decoded and decoded[1] == "https://as.example"
 
     def test_sample_readme_signed_cwt_es256k_old(self):
-        # Load PEM-formatted keys as COSE keys.
         with open(key_path("private_key_es256k.pem")) as key_file:
             private_key = cose_key.from_pem(key_file.read())
         with open(key_path("public_key_es256k.pem")) as key_file:
             public_key = cose_key.from_pem(key_file.read())
 
-        # Encode with ES256K signing.
         encoded = cwt.encode_and_sign(
             claims.from_json(
                 {"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}
@@ -274,34 +254,28 @@ class TestSample:
             private_key,
         )
 
-        # Verify and decode.
         decoded = cwt.decode(encoded, public_key)
         assert 1 in decoded and decoded[1] == "https://as.example"
 
     def test_sample_readme_signed_cwt_es256k(self):
-        # Load PEM-formatted keys as COSE keys.
         with open(key_path("private_key_es256k.pem")) as key_file:
             private_key = cose_key.from_pem(key_file.read())
         with open(key_path("public_key_es256k.pem")) as key_file:
             public_key = cose_key.from_pem(key_file.read())
 
-        # Encode with ES256K signing.
         token = cwt.encode(
             {"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}, private_key
         )
 
-        # Verify and decode.
         decoded = cwt.decode(token, public_key)
         assert 1 in decoded and decoded[1] == "https://as.example"
 
     def test_sample_readme_signed_cwt_ed25519_old(self):
-        # Load PEM-formatted keys as COSE keys.
         with open(key_path("private_key_ed25519.pem")) as key_file:
             private_key = cose_key.from_pem(key_file.read())
         with open(key_path("public_key_ed25519.pem")) as key_file:
             public_key = cose_key.from_pem(key_file.read())
 
-        # Encode with Ed25519 encryption.
         encoded = cwt.encode_and_sign(
             claims.from_json(
                 {"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}
@@ -309,23 +283,19 @@ class TestSample:
             private_key,
         )
 
-        # Verify and decode.
         decoded = cwt.decode(encoded, public_key)
         assert 1 in decoded and decoded[1] == "https://as.example"
 
     def test_sample_readme_signed_cwt_ed25519(self):
-        # Load PEM-formatted keys as COSE keys.
         with open(key_path("private_key_ed25519.pem")) as key_file:
             private_key = cose_key.from_pem(key_file.read())
         with open(key_path("public_key_ed25519.pem")) as key_file:
             public_key = cose_key.from_pem(key_file.read())
 
-        # Encode with Ed25519 encryption.
         token = cwt.encode(
             {"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}, private_key
         )
 
-        # Verify and decode.
         decoded = cwt.decode(token, public_key)
         assert 1 in decoded and decoded[1] == "https://as.example"
 
@@ -352,13 +322,11 @@ class TestSample:
         assert 1 in decoded and decoded[1] == "https://as.example"
 
     def test_sample_readme_nested_cwt_old(self):
-        # Load PEM-formatted keys as COSE keys.
         with open(key_path("private_key_es256.pem")) as key_file:
             private_key = cose_key.from_pem(key_file.read())
         with open(key_path("public_key_es256.pem")) as key_file:
             public_key = cose_key.from_pem(key_file.read())
 
-        # Encode with ES256 signing.
         encoded = cwt.encode_and_sign(
             claims.from_json(
                 {"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}
@@ -366,33 +334,27 @@ class TestSample:
             private_key,
         )
 
-        # Encrypt the signed CWT.
         nonce = token_bytes(13)
         mysecret = token_bytes(32)
         enc_key = cose_key.from_symmetric_key(mysecret, alg="AES-CCM-16-64-256")
         nested = cwt.encode_and_encrypt(encoded, enc_key, nonce=nonce)
 
-        # Decrypt and verify the nested CWT.
         decoded = cwt.decode(nested, [enc_key, public_key])
         assert 1 in decoded and decoded[1] == "https://as.example"
 
     def test_sample_readme_nested_cwt(self):
-        # Load PEM-formatted keys as COSE keys.
         with open(key_path("private_key_es256.pem")) as key_file:
             private_key = cose_key.from_pem(key_file.read())
         with open(key_path("public_key_es256.pem")) as key_file:
             public_key = cose_key.from_pem(key_file.read())
 
-        # Encode with ES256 signing.
         token = cwt.encode(
             {"iss": "https://as.example", "sub": "dajiaji", "cti": "124"}, private_key
         )
 
-        # Encrypt the signed CWT.
         enc_key = cose_key.from_symmetric_key(alg="ChaCha20/Poly1305")
         nested = cwt.encode(token, enc_key)
 
-        # Decrypt and verify the nested CWT.
         decoded = cwt.decode(nested, [enc_key, public_key])
         assert 1 in decoded and decoded[1] == "https://as.example"
 

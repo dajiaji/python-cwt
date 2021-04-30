@@ -22,7 +22,6 @@ class TestClaimsBuilder:
     """
 
     def test_claims_builder_constructor(self):
-        """"""
         c = ClaimsBuilder()
         assert isinstance(c, ClaimsBuilder)
 
@@ -40,7 +39,6 @@ class TestClaimsBuilder:
         ],
     )
     def test_claims_builder_from_json(self, ctx, json, expected):
-        """"""
         claims = ctx.from_json(json)
         for k, v in claims.items():
             assert v == expected[k]
@@ -54,14 +52,12 @@ class TestClaimsBuilder:
         ],
     )
     def test_claims_builder_from_json_with_invalid_arg(self, ctx, invalid):
-        """"""
         with pytest.raises(ValueError) as err:
             res = ctx.from_json(invalid)
             pytest.fail("from_json should fail: res=%s" % res)
         assert "It is already CBOR-like format." in str(err.value)
 
     def test_claims_builder_from_json_with_unknown_key(self, ctx):
-        """"""
         claims = ctx.from_json(
             {
                 "iss": "coap://as.example.com",
