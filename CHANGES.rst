@@ -4,6 +4,12 @@ Changes
 Unreleased
 ----------
 
+
+Version 0.4.0
+-------------
+
+Released 2021-04-30
+
 - Add CWT.encode. `#46 <https://github.com/dajiaji/python-cwt/pull/46>`__
 - Fix bug on KeyBuilder.from_dict. `#45 <https://github.com/dajiaji/python-cwt/pull/45>`__
 - Add support for key_ops. `#44 <https://github.com/dajiaji/python-cwt/pull/44>`__
