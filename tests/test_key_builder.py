@@ -31,17 +31,20 @@ class TestKeyBuilder:
         assert isinstance(c, KeyBuilder)
 
     @pytest.mark.parametrize(
-        "alg",
+        "alg, alg_label",
         [
-            "HMAC 256/64",
-            "HMAC 256/256",
-            "HMAC 384/384",
-            "HMAC 512/512",
+            ("HMAC 256/64", 4),
+            ("HMAC 256/256", 5),
+            ("HMAC 384/384", 6),
+            ("HMAC 512/512", 7),
         ],
     )
-    def test_key_builder_from_symmetric_key_hmac(self, ctx, alg):
+    def test_key_builder_from_symmetric_key_hmac(self, ctx, alg, alg_label):
         k = ctx.from_symmetric_key("mysecret", alg=alg)
         assert isinstance(k, COSEKey)
+        assert k.alg == alg_label
+        assert 9 in k.key_ops
+        assert 10 in k.key_ops
 
     @pytest.mark.parametrize(
         "alg",
@@ -71,14 +74,70 @@ class TestKeyBuilder:
             pytest.fail("from_symmetric_key should not fail.")
 
     @pytest.mark.parametrize(
+        "alg, key_ops, expected",
+        [
+            ("HMAC 256/64", [9, 10], [9, 10]),
+            ("HMAC 256/256", [9, 10], [9, 10]),
+            ("HMAC 384/384", [9, 10], [9, 10]),
+            ("HMAC 512/512", [9, 10], [9, 10]),
+            ("HMAC 256/64", [9], [9]),
+            ("HMAC 256/64", [10], [10]),
+            ("HMAC 256/64", ["MAC create", "MAC verify"], [9, 10]),
+            ("HMAC 256/64", ["MAC create"], [9]),
+            ("HMAC 256/64", ["MAC verify"], [10]),
+            ("A128GCM", [3, 4, 5, 6], [3, 4, 5, 6]),
+            ("A192GCM", [3, 4, 5, 6], [3, 4, 5, 6]),
+            ("A256GCM", [3, 4, 5, 6], [3, 4, 5, 6]),
+            ("A128GCM", [3, 4], [3, 4]),
+            ("A128GCM", [5, 6], [5, 6]),
+            ("A128GCM", ["encrypt", "decrypt"], [3, 4]),
+            ("A128GCM", ["wrap key", "unwrap key"], [5, 6]),
+            ("AES-CCM-16-64-128", [3, 4, 5, 6], [3, 4, 5, 6]),
+            ("AES-CCM-16-64-256", [3, 4, 5, 6], [3, 4, 5, 6]),
+            ("AES-CCM-64-64-128", [3, 4, 5, 6], [3, 4, 5, 6]),
+            ("AES-CCM-64-64-256", [3, 4, 5, 6], [3, 4, 5, 6]),
+            ("AES-CCM-16-128-128", [3, 4, 5, 6], [3, 4, 5, 6]),
+            ("AES-CCM-16-128-256", [3, 4, 5, 6], [3, 4, 5, 6]),
+            ("AES-CCM-64-128-128", [3, 4, 5, 6], [3, 4, 5, 6]),
+            ("AES-CCM-64-128-256", [3, 4, 5, 6], [3, 4, 5, 6]),
+            ("AES-CCM-16-64-128", [3, 4], [3, 4]),
+            ("AES-CCM-16-64-128", [5, 6], [5, 6]),
+            ("AES-CCM-16-64-128", ["encrypt", "decrypt"], [3, 4]),
+            ("AES-CCM-16-64-128", ["wrap key", "unwrap key"], [5, 6]),
+            ("ChaCha20/Poly1305", [3, 4, 5, 6], [3, 4, 5, 6]),
+            ("ChaCha20/Poly1305", [3, 4], [3, 4]),
+            ("ChaCha20/Poly1305", [5, 6], [5, 6]),
+            ("ChaCha20/Poly1305", ["encrypt", "decrypt"], [3, 4]),
+            ("ChaCha20/Poly1305", ["wrap key", "unwrap key"], [5, 6]),
+        ],
+    )
+    def test_key_builder_from_symmetric_key_with_key_ops(
+        self, ctx, alg, key_ops, expected
+    ):
+        k = ctx.from_symmetric_key(alg=alg, key_ops=key_ops)
+        assert len(k.key_ops) == len(key_ops)
+        for ops in k.key_ops:
+            assert ops in expected
+
+    @pytest.mark.parametrize(
         "alg",
         ["xxx", 0, 8, 9, 34],
     )
     def test_key_builder_from_symmetric_key_with_invalid_alg(self, ctx, alg):
         with pytest.raises(ValueError) as err:
-            ctx.from_symmetric_key("mysecretpassword", alg=alg)
+            ctx.from_symmetric_key("mysecret", alg=alg)
             pytest.fail("from_symmetric_key should fail.")
         assert f"Unsupported or unknown alg({alg})." in str(err.value)
+
+    @pytest.mark.parametrize(
+        "key_ops",
+        [["xxx"], ["MAC create", "MAC verify", "xxx"]],
+    )
+    def test_key_builder_from_symmetric_key_with_invalid_key_ops(self, ctx, key_ops):
+        with pytest.raises(ValueError) as err:
+            ctx.from_symmetric_key("mysecret", key_ops=key_ops)
+            pytest.fail("from_symmetric_key should fail.")
+        assert "Unsupported or unknown key_ops." in str(err.value)
 
     @pytest.mark.parametrize(
         "private_key_path, public_key_path",
@@ -118,16 +177,78 @@ class TestKeyBuilder:
         assert public_key.kid == expected
 
     @pytest.mark.parametrize(
+        "key_ops, expected",
+        [
+            ([2], [2]),
+            (["verify"], [2]),
+        ],
+    )
+    def test_key_builder_from_pem_public_with_key_ops(self, key_ops, expected):
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            k = cose_key.from_pem(key_file.read(), key_ops=key_ops)
+        assert len(k.key_ops) == len(key_ops)
+        for ops in k.key_ops:
+            assert ops in expected
+
+    @pytest.mark.parametrize(
+        "key_ops, expected",
+        [
+            ([1, 2], [1, 2]),
+            (["sign", "verify"], [1, 2]),
+            (["verify"], [2]),
+            (["sign"], [1]),
+        ],
+    )
+    def test_key_builder_from_pem_private_with_key_ops(self, key_ops, expected):
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            k = cose_key.from_pem(key_file.read(), key_ops=key_ops)
+        assert len(k.key_ops) == len(key_ops)
+        for ops in k.key_ops:
+            assert ops in expected
+
+    @pytest.mark.parametrize(
         "invalid, msg",
         [
             ("invalidstring", "Failed to decode PEM."),
             (b"invalidbytes", "Failed to decode PEM."),
         ],
     )
-    def test_key_builder_from_pem_with_invalid_args(self, ctx, invalid, msg):
+    def test_key_builder_from_pem_with_invalid_key(self, ctx, invalid, msg):
         with pytest.raises(ValueError) as err:
             ctx.from_pem(invalid)
             pytest.fail("from_pem should not fail.")
+        assert msg in str(err.value)
+
+    @pytest.mark.parametrize(
+        "invalid, msg",
+        [
+            ([1], "Unknown or not permissible key_ops(4) for SignatureKey: 1"),
+            (["sign"], "Unknown or not permissible key_ops(4) for SignatureKey: 1"),
+        ],
+    )
+    def test_key_builder_from_pem_public_with_invalid_key_ops(self, ctx, invalid, msg):
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            with pytest.raises(ValueError) as err:
+                cose_key.from_pem(key_file.read(), key_ops=invalid)
+                pytest.fail("from_pem should fail.")
+        assert msg in str(err.value)
+
+    @pytest.mark.parametrize(
+        "invalid, msg",
+        [
+            ([9], "Unknown or not permissible key_ops(4) for SignatureKey: 9"),
+            (
+                ["MAC create"],
+                "Unknown or not permissible key_ops(4) for SignatureKey: 9",
+            ),
+            (["xxx"], "Unsupported or unknown key_ops."),
+        ],
+    )
+    def test_key_builder_from_pem_private_with_invalid_key_ops(self, ctx, invalid, msg):
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            with pytest.raises(ValueError) as err:
+                cose_key.from_pem(key_file.read(), key_ops=invalid)
+                pytest.fail("from_pem should fail.")
         assert msg in str(err.value)
 
     @pytest.mark.parametrize(

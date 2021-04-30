@@ -6,6 +6,7 @@ from typing import Any, Dict, Optional
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms
 from cryptography.hazmat.primitives.ciphers.aead import AESCCM, AESGCM
 
+from ..const import COSE_KEY_OPERATION_VALUES
 from ..cose_key import COSEKey
 from ..exceptions import DecodeError, EncodeError, VerifyError
 
@@ -38,7 +39,57 @@ class SymmetricKey(COSEKey):
         self._alg = cose_key[3]
 
 
-class HMACKey(SymmetricKey):
+class MACAuthenticationKey(SymmetricKey):
+    _ACCEPTABLE_KEY_OPS = [
+        COSE_KEY_OPERATION_VALUES["MAC create"],
+        COSE_KEY_OPERATION_VALUES["MAC verify"],
+    ]
+
+    def __init__(self, cose_key: Dict[int, Any]):
+        super().__init__(cose_key)
+
+        # Validate key_opt.
+        if 4 not in self._object or not self._object[4]:
+            self._object[4] = MACAuthenticationKey._ACCEPTABLE_KEY_OPS
+            return
+        not_acceptable = [
+            ops
+            for ops in self._object[4]
+            if ops not in MACAuthenticationKey._ACCEPTABLE_KEY_OPS
+        ]
+        if not_acceptable:
+            raise ValueError(
+                f"Unknown or not permissible key_ops(4) for MACAuthenticationKey: {not_acceptable[0]}."
+            )
+
+
+class ContentEncryptionKey(SymmetricKey):
+    _ACCEPTABLE_KEY_OPS = [
+        COSE_KEY_OPERATION_VALUES["encrypt"],
+        COSE_KEY_OPERATION_VALUES["decrypt"],
+        COSE_KEY_OPERATION_VALUES["wrap key"],
+        COSE_KEY_OPERATION_VALUES["unwrap key"],
+    ]
+
+    def __init__(self, cose_key: Dict[int, Any]):
+        super().__init__(cose_key)
+
+        # Validate key_opt.
+        if 4 not in self._object or not self._object[4]:
+            self._object[4] = ContentEncryptionKey._ACCEPTABLE_KEY_OPS
+            return
+        not_acceptable = [
+            ops
+            for ops in self._object[4]
+            if ops not in ContentEncryptionKey._ACCEPTABLE_KEY_OPS
+        ]
+        if not_acceptable:
+            raise ValueError(
+                f"Unknown or not permissible key_ops(4) for ContentEncryptionKey: {not_acceptable[0]}."
+            )
+
+
+class HMACKey(MACAuthenticationKey):
     """"""
 
     def __init__(self, cose_key: Dict[int, Any]):
@@ -80,7 +131,7 @@ class HMACKey(SymmetricKey):
         raise VerifyError("Failed to compare digest.")
 
 
-class AESCCMKey(SymmetricKey):
+class AESCCMKey(ContentEncryptionKey):
     """"""
 
     def __init__(self, cose_key: Dict[int, Any]):
@@ -192,7 +243,7 @@ class AESCCMKey(SymmetricKey):
             raise DecodeError("Failed to decrypt.") from err
 
 
-class AESGCMKey(SymmetricKey):
+class AESGCMKey(ContentEncryptionKey):
     """"""
 
     def __init__(self, cose_key: Dict[int, Any]):
@@ -219,6 +270,7 @@ class AESGCMKey(SymmetricKey):
                 raise ValueError("The length of A256GCM key should be 32 bytes.")
         else:
             raise ValueError(f"Unsupported or unknown alg(3) for AES GCM: {self._alg}.")
+
         self._cipher = AESGCM(self._key)
         return
 
@@ -240,7 +292,7 @@ class AESGCMKey(SymmetricKey):
             raise DecodeError("Failed to decrypt.") from err
 
 
-class ChaCha20Key(SymmetricKey):
+class ChaCha20Key(ContentEncryptionKey):
     def __init__(self, cose_key: Dict[int, Any]):
         super().__init__(cose_key)
 
@@ -249,6 +301,7 @@ class ChaCha20Key(SymmetricKey):
             raise ValueError(
                 f"Unsupported or unknown alg(3) for ChaCha20: {self._alg}."
             )
+
         if not self._key:
             self._key = token_bytes(32)
         if len(self._key) != 32:

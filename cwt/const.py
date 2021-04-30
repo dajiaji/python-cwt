@@ -24,6 +24,20 @@ COSE_KEY_TYPES = {
     "WalnutDSA": 6,  # WalnutDSA public key
 }
 
+# COSE key operation values.
+COSE_KEY_OPERATION_VALUES = {
+    "sign": 1,
+    "verify": 2,
+    "encrypt": 3,
+    "decrypt": 4,
+    "wrap key": 5,
+    "unwrap key": 6,
+    "derive key": 7,
+    "derive bits": 8,
+    "MAC create": 9,
+    "MAC verify": 10,
+}
+
 # COSE Algorithms for Content Encryption Key (CEK).
 COSE_ALGORITHMS_CEK = {
     "A128GCM": 1,  # AES-GCM mode w/ 128-bit key, 128-bit tag
