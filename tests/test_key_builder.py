@@ -127,7 +127,7 @@ class TestKeyBuilder:
         with pytest.raises(ValueError) as err:
             ctx.from_symmetric_key("mysecret", alg=alg)
             pytest.fail("from_symmetric_key should fail.")
-        assert f"Unsupported or unknown alg({alg})." in str(err.value)
+        assert f"Unsupported or unknown alg(3): {alg}." in str(err.value)
 
     @pytest.mark.parametrize(
         "key_ops",
@@ -252,6 +252,64 @@ class TestKeyBuilder:
         assert msg in str(err.value)
 
     @pytest.mark.parametrize(
+        "cose_key",
+        [
+            # OKP
+            {
+                1: 1,
+                3: -8,
+                -1: 6,
+                -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                -4: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
+            },
+            {
+                1: 1,
+                3: -8,
+                -1: 6,
+                -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+            },
+            # EC2
+            {
+                1: 2,
+                3: 1,
+                -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+                -1: 1,
+            },
+            {
+                1: 2,
+                3: 1,
+                -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                -1: 1,
+            },
+            # Symmetric
+            {1: 4, 3: 1},
+            {1: 4, 3: 2},
+            {1: 4, 3: 3},
+            {1: 4, 3: 4},
+            {1: 4, 3: 5},
+            {1: 4, 3: 6},
+            {1: 4, 3: 7},
+            {1: 4, 3: 10},
+            {1: 4, 3: 11},
+            {1: 4, 3: 12},
+            {1: 4, 3: 13},
+            {1: 4, 3: 24},
+            {1: 4, 3: 30},
+            {1: 4, 3: 31},
+            {1: 4, 3: 32},
+            {1: 4, 3: 33},
+        ],
+    )
+    def test_key_builder_from_dict_with_valid_args(self, ctx, cose_key):
+        try:
+            ctx.from_dict(cose_key)
+        except Exception:
+            pytest.fail("from_dict should not fail.")
+
+    @pytest.mark.parametrize(
         "invalid, msg",
         [
             ({}, "kty(1) not found."),
@@ -262,7 +320,7 @@ class TestKeyBuilder:
             ({1: 4, 3: b"alg"}, "alg(3) should be int or str(tstr)."),
             ({1: 4, 3: {}}, "alg(3) should be int or str(tstr)."),
             ({1: 4, 3: []}, "alg(3) should be int or str(tstr)."),
-            ({1: 4, 3: 1}, "Unsupported or unknown alg(3): 1."),
+            ({1: 4, 3: 0}, "Unsupported or unknown alg(3): 0."),
         ],
     )
     def test_key_builder_from_dict_with_invalid_args(self, ctx, invalid, msg):
