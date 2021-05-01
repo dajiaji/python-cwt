@@ -367,6 +367,31 @@ class TestCWT:
         assert 2 in decoded and decoded[2] == "someone"
         assert 7 in decoded and decoded[7] == b"123"
 
+    @pytest.mark.parametrize(
+        "alg",
+        [
+            "RS256",
+            "RS384",
+            "RS512",
+            -257,
+            -258,
+            -259,
+        ],
+    )
+    def test_cwt_encode_and_sign_with_valid_alg_rsa(self, ctx, alg):
+        with open(key_path("public_key_rsa.pem")) as key_file:
+            public_key = cose_key.from_pem(key_file.read(), alg=alg)
+        with open(key_path("private_key_rsa.pem")) as key_file:
+            private_key = cose_key.from_pem(key_file.read(), alg=alg)
+        token = ctx.encode_and_sign(
+            {1: "https://as.example", 2: "someone", 7: b"123"},
+            private_key,
+        )
+        decoded = ctx.decode(token, public_key)
+        assert 1 in decoded and decoded[1] == "https://as.example"
+        assert 2 in decoded and decoded[2] == "someone"
+        assert 7 in decoded and decoded[7] == b"123"
+
     def test_cwt_encode_and_sign_with_tagged(self, ctx):
         with open(key_path("private_key_es256.pem")) as key_file:
             private_key = cose_key.from_pem(key_file.read())

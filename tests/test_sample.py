@@ -299,6 +299,19 @@ class TestSample:
         decoded = cwt.decode(token, public_key)
         assert 1 in decoded and decoded[1] == "https://as.example"
 
+    def test_sample_readme_signed_cwt_rs256(self):
+        with open(key_path("private_key_rsa.pem")) as key_file:
+            private_key = cose_key.from_pem(key_file.read(), alg="RS256")
+        with open(key_path("public_key_rsa.pem")) as key_file:
+            public_key = cose_key.from_pem(key_file.read(), alg="RS256")
+
+        token = cwt.encode(
+            {"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}, private_key
+        )
+
+        decoded = cwt.decode(token, public_key)
+        assert 1 in decoded and decoded[1] == "https://as.example"
+
     def test_sample_readme_encrypted_cwt_old(self):
         nonce = token_bytes(13)
         mysecret = token_bytes(32)
