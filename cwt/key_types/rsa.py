@@ -29,6 +29,7 @@ class RSAKey(COSEKey):
 
         self._key: Any = None
         self._hash: Any = None
+        self._padding: Any = None
 
         # Validate kty.
         if cose_key[1] != 3:
@@ -39,14 +40,20 @@ class RSAKey(COSEKey):
             raise ValueError("alg(3) not found.")
         if cose_key[3] not in COSE_ALGORITHMS_RSA.values():
             raise ValueError(f"Unsupported or unknown alg(3) for RSA: {cose_key[3]}.")
-        if cose_key[3] == -259:
+        if cose_key[3] == -259 or cose_key[3] == -39:
             self._hash = hashes.SHA512
-        elif cose_key[3] == -258:
+        elif cose_key[3] == -258 or cose_key[3] == -38:
             self._hash = hashes.SHA384
-        elif cose_key[3] == -257:
+        elif cose_key[3] == -257 or cose_key[3] == -37:
             self._hash = hashes.SHA256
         else:
             raise ValueError(f"Unsupported or unknown alg(3) for RSA: {cose_key[3]}.")
+        if cose_key[3] in [-37, -38, -39]:
+            self._padding = padding.PSS(
+                mgf=padding.MGF1(self._hash()), salt_length=padding.PSS.MAX_LENGTH
+            )
+        else:
+            self._padding = padding.PKCS1v15()
 
         # Validate key_ops.
         if -3 not in cose_key:  # the RSA private exponent d.
@@ -124,17 +131,15 @@ class RSAKey(COSEKey):
         if isinstance(self._key, RSAPublicKey):
             raise ValueError("Public key cannot be used for signing.")
         try:
-            return self._key.sign(msg, padding.PKCS1v15(), self._hash())
+            return self._key.sign(msg, self._padding, self._hash())
         except Exception as err:
             raise EncodeError("Failed to sign.") from err
 
     def verify(self, msg: bytes, sig: bytes):
         try:
             if isinstance(self._key, RSAPublicKey):
-                self._key.verify(sig, msg, padding.PKCS1v15(), self._hash())
+                self._key.verify(sig, msg, self._padding, self._hash())
             else:
-                self._key.public_key().verify(
-                    sig, msg, padding.PKCS1v15(), self._hash()
-                )
+                self._key.public_key().verify(sig, msg, self._padding, self._hash())
         except Exception as err:
             raise VerifyError("Failed to verify.") from err

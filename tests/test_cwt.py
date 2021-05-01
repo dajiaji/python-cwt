@@ -370,9 +370,15 @@ class TestCWT:
     @pytest.mark.parametrize(
         "alg",
         [
+            "PS256",
+            "PS384",
+            "PS512",
             "RS256",
             "RS384",
             "RS512",
+            -37,
+            -38,
+            -39,
             -257,
             -258,
             -259,

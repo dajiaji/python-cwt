@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Add support for RSASSA-PSS. `#49 <https://github.com/dajiaji/python-cwt/pull/49>`__
 - Add support for RSASSA-PKCS1-v1_5. `#48 <https://github.com/dajiaji/python-cwt/pull/48>`__
 
 Version 0.4.0

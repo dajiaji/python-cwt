@@ -74,6 +74,9 @@ COSE_ALGORITHMS_SIG_RSA = {
     "RS512": -259,  # RSASSA-PKCS1-v1_5 using SHA-512
     "RS384": -258,  # RSASSA-PKCS1-v1_5 using SHA-384
     "RS256": -257,  # RSASSA-PKCS1-v1_5 using SHA-256
+    "PS512": -39,  # RSASSA-PSS w/ SHA-512
+    "PS384": -38,  # RSASSA-PSS w/ SHA-384
+    "PS256": -37,  # RSASSA-PSS w/ SHA-256
     # etc.
 }
 
