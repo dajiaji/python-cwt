@@ -23,3 +23,14 @@ def os2ip(octet_string: bytes) -> int:
     for i in range(x_len):
         x += octet_string[i] * 256 ** i
     return x
+
+
+def uint_to_bytes(v: int) -> bytes:
+    if v < 0:
+        raise ValueError("Not a positive number.")
+    rem = v
+    length = 0
+    while rem != 0:
+        rem = rem >> 8
+        length += 1
+    return v.to_bytes(length, "big")

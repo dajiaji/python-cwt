@@ -14,6 +14,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PrivateKey,
     Ed25519PublicKey,
 )
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey
 from cryptography.hazmat.primitives.asymmetric.x448 import X448PrivateKey, X448PublicKey
 from cryptography.hazmat.primitives.asymmetric.x25519 import (
     X25519PrivateKey,
@@ -28,11 +29,18 @@ from cryptography.hazmat.primitives.serialization import (
     load_pem_public_key,
 )
 
-from .const import COSE_ALGORITHMS_SYMMETRIC, COSE_KEY_OPERATION_VALUES, COSE_KEY_TYPES
+from .const import (
+    COSE_ALGORITHMS_RSA,
+    COSE_ALGORITHMS_SYMMETRIC,
+    COSE_KEY_OPERATION_VALUES,
+    COSE_KEY_TYPES,
+)
 from .cose_key import COSEKey
 from .key_types.ec2 import EC2Key
 from .key_types.okp import OKPKey
+from .key_types.rsa import RSAKey
 from .key_types.symmetric import AESCCMKey, AESGCMKey, ChaCha20Key, HMACKey
+from .utils import uint_to_bytes
 
 
 class KeyBuilder:
@@ -133,6 +141,8 @@ class KeyBuilder:
             return OKPKey(cose_key)
         if cose_key[1] == 2:
             return EC2Key(cose_key)
+        if cose_key[1] == 3:
+            return RSAKey(cose_key)
         if cose_key[1] == 4:
             if 3 not in cose_key or (
                 not isinstance(cose_key[3], int) and not isinstance(cose_key[3], str)
@@ -165,7 +175,6 @@ class KeyBuilder:
         return self.from_dict(cose_key)
 
     def from_jwk(self, jwk: Union[str, bytes, Dict[str, Any]]) -> COSEKey:
-        """"""
         raise NotImplementedError
         # cose_key: Dict[int, Any] = {}
         # if not isinstance(jwk, dict):
@@ -176,6 +185,7 @@ class KeyBuilder:
     def from_pem(
         self,
         key_data: Union[str, bytes],
+        alg: Union[int, str] = "",
         kid: Union[bytes, str] = b"",
         key_ops: Optional[Union[List[int], List[str]]] = None,
     ) -> COSEKey:
@@ -184,6 +194,9 @@ class KeyBuilder:
 
         Args:
             key_data (bytes): A PEM-formatted key data.
+            alg (Union[int, str]): An algorithm label(int) or name(str).
+                Different from ::func::`cwt.KeyBuilder.from_symmetric_key`, it is only used when an algorithm
+                cannot be specified by the PEM data, such as RSA family algorithms.
             kid (Union[bytes, str]): A key identifier.
             key_ops (Union[List[int], List[str]]): A list of key operation values. Following values can be used:
                 ``1("sign")``, ``2("verify")``, ``3("encrypt")``, ``4("decrypt")``, ``5("wrap key")``,
@@ -226,7 +239,32 @@ class KeyBuilder:
                 raise ValueError("Unsupported or unknown key_ops.")
         cose_key[4] = key_ops_labels
 
-        if isinstance(k, EllipticCurvePrivateKey) or isinstance(
+        if isinstance(k, RSAPublicKey) or isinstance(k, RSAPrivateKey):
+            if not alg:
+                raise ValueError("alg parameter should be specified for an RSA key.")
+            if isinstance(alg, str):
+                if alg not in COSE_ALGORITHMS_RSA:
+                    raise ValueError(f"Unsupported or unknow alg: {alg}.")
+                alg = COSE_ALGORITHMS_RSA[alg]
+            cose_key[1] = COSE_KEY_TYPES["RSA"]
+            cose_key[3] = alg
+            if isinstance(k, RSAPublicKey):
+                pub_nums = k.public_numbers()
+                cose_key[-1] = uint_to_bytes(pub_nums.n)
+                cose_key[-2] = uint_to_bytes(pub_nums.e)
+            else:
+                priv_nums = k.private_numbers()
+                cose_key[-1] = uint_to_bytes(priv_nums.public_numbers.n)
+                cose_key[-2] = uint_to_bytes(priv_nums.public_numbers.e)
+                cose_key[-3] = uint_to_bytes(priv_nums.d)
+                cose_key[-4] = uint_to_bytes(priv_nums.p)
+                cose_key[-5] = uint_to_bytes(priv_nums.q)
+                cose_key[-6] = uint_to_bytes(priv_nums.dmp1)  # dP
+                cose_key[-7] = uint_to_bytes(priv_nums.dmq1)  # dQ
+                cose_key[-8] = uint_to_bytes(priv_nums.iqmp)  # qInv
+                print(cose_key)
+
+        elif isinstance(k, EllipticCurvePrivateKey) or isinstance(
             k, EllipticCurvePublicKey
         ):
             key_len: int = 32
@@ -309,7 +347,7 @@ class KeyBuilder:
                     Encoding.Raw, PrivateFormat.Raw, NoEncryption()
                 )
         else:
-            raise ValueError("Unsupported or unknown key: {type(k)}.")
+            raise ValueError(f"Unsupported or unknown key: {type(k)}.")
         return self.from_dict(cose_key)
 
 

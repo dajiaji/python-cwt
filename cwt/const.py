@@ -68,5 +68,17 @@ COSE_ALGORITHMS_MAC = {
     # etc.
 }
 
+# COSE Algorithms for Signature with RSA.
+COSE_ALGORITHMS_SIG_RSA = {
+    "R1": -65535,  # RSASSA-PKCS1-v1_5 using SHA-1 (No plan to support)
+    "RS512": -259,  # RSASSA-PKCS1-v1_5 using SHA-512
+    "RS384": -258,  # RSASSA-PKCS1-v1_5 using SHA-384
+    "RS256": -257,  # RSASSA-PKCS1-v1_5 using SHA-256
+    # etc.
+}
+
 # COSE Algorithms for Symmetric Keys.
 COSE_ALGORITHMS_SYMMETRIC = dict(COSE_ALGORITHMS_MAC, **COSE_ALGORITHMS_CEK)
+
+# COSE Algorithms for RSA Keys.
+COSE_ALGORITHMS_RSA = dict(COSE_ALGORITHMS_SIG_RSA)
