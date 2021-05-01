@@ -262,7 +262,6 @@ class KeyBuilder:
                 cose_key[-6] = uint_to_bytes(priv_nums.dmp1)  # dP
                 cose_key[-7] = uint_to_bytes(priv_nums.dmq1)  # dQ
                 cose_key[-8] = uint_to_bytes(priv_nums.iqmp)  # qInv
-                print(cose_key)
 
         elif isinstance(k, EllipticCurvePrivateKey) or isinstance(
             k, EllipticCurvePublicKey
