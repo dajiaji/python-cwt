@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from .const import COSE_KEY_TYPES
 
