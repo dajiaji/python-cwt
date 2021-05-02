@@ -38,6 +38,10 @@ class SymmetricKey(COSEKey):
             raise ValueError("alg(3) not found.")
         self._alg = cose_key[3]
 
+    @property
+    def key(self) -> bytes:
+        return self._key
+
 
 class MACAuthenticationKey(SymmetricKey):
     _ACCEPTABLE_KEY_OPS = [

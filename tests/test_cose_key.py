@@ -29,6 +29,9 @@ class TestCOSEKey:
         assert key.key_ops is None
         assert key.base_iv is None
         with pytest.raises(NotImplementedError):
+            key.key
+            pytest.fail("COSEKey.key should fail.")
+        with pytest.raises(NotImplementedError):
             key.generate_nonce()
             pytest.fail("COSEKey.generate_nonce() should fail.")
         with pytest.raises(NotImplementedError):

@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from .const import COSE_KEY_TYPES
 
@@ -39,6 +39,13 @@ class COSEKey:
             raise ValueError("Base IV(5) should be bytes(bstr).")
         self._object = cose_key
         return
+
+    @property
+    def key(self) -> bytes:
+        """
+        A body of the symmetric key.
+        """
+        raise NotImplementedError("Symmetric key only supports 'key' property.")
 
     @property
     def kty(self) -> int:
