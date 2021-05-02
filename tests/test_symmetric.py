@@ -28,6 +28,7 @@ class TestSymmetricKey:
                 3: 5,  # HMAC 256/256
             }
         )
+        assert key.key == b"mysecret"
         assert key.kty == 4
         assert key.kid is None
         assert key.alg == 5

@@ -35,6 +35,7 @@ class TestEC2Key:
         assert private_key.kty == 2
         assert private_key.kid is None
         assert private_key.alg == 1
+        assert private_key.crv == 1
         assert len(private_key.key_ops) == 2
         assert 1 in private_key.key_ops
         assert 2 in private_key.key_ops
@@ -42,6 +43,7 @@ class TestEC2Key:
         assert public_key.kty == 2
         assert public_key.kid is None
         assert public_key.alg == 1
+        assert public_key.crv == 1
         assert len(public_key.key_ops) == 1
         assert 2 in public_key.key_ops
         assert public_key.base_iv is None
@@ -74,6 +76,7 @@ class TestEC2Key:
         assert private_key.kty == 2
         assert private_key.kid is None
         assert private_key.alg == 2
+        assert private_key.crv == 2
         assert len(private_key.key_ops) == 2
         assert 1 in private_key.key_ops
         assert 2 in private_key.key_ops
@@ -81,6 +84,7 @@ class TestEC2Key:
         assert public_key.kty == 2
         assert public_key.kid is None
         assert public_key.alg == 2
+        assert public_key.crv == 2
         assert len(public_key.key_ops) == 1
         assert 2 in public_key.key_ops
         assert public_key.base_iv is None
@@ -113,6 +117,7 @@ class TestEC2Key:
         assert private_key.kty == 2
         assert private_key.kid is None
         assert private_key.alg == 3
+        assert private_key.crv == 3
         assert len(private_key.key_ops) == 2
         assert 1 in private_key.key_ops
         assert 2 in private_key.key_ops
@@ -120,6 +125,7 @@ class TestEC2Key:
         assert public_key.kty == 2
         assert public_key.kid is None
         assert public_key.alg == 3
+        assert public_key.crv == 3
         assert len(public_key.key_ops) == 1
         assert 2 in public_key.key_ops
         assert public_key.base_iv is None

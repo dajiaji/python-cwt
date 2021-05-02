@@ -14,10 +14,7 @@ from .signature import SignatureKey
 
 
 class EC2Key(SignatureKey):
-    """"""
-
     def __init__(self, cose_key: Dict[int, Any]):
-        """"""
         super().__init__(cose_key)
         self._public_key: Any = None
         self._private_key: Any = None
@@ -97,8 +94,11 @@ class EC2Key(SignatureKey):
             raise ValueError("Invalid private key.") from err
         return
 
+    @property
+    def crv(self) -> int:
+        return self._object[-1]
+
     def sign(self, msg: bytes) -> bytes:
-        """"""
         if self._public_key:
             raise ValueError("Public key cannot be used for signing.")
         try:
@@ -108,7 +108,6 @@ class EC2Key(SignatureKey):
             raise EncodeError("Failed to sign.") from err
 
     def verify(self, msg: bytes, sig: bytes):
-        """"""
         try:
             if self._private_key:
                 der_sig = self._os_to_der(self._private_key.curve.key_size, sig)
@@ -124,13 +123,11 @@ class EC2Key(SignatureKey):
             raise VerifyError("Invalid signature.") from err
 
     def _der_to_os(self, key_size: int, sig: bytes) -> bytes:
-        """"""
         num_bytes = (key_size + 7) // 8
         r, s = decode_dss_signature(sig)
         return i2osp(r, num_bytes) + i2osp(s, num_bytes)
 
     def _os_to_der(self, key_size: int, sig: bytes) -> bytes:
-        """"""
         num_bytes = (key_size + 7) // 8
         if len(sig) != 2 * num_bytes:
             raise ValueError("Invalid signature.")

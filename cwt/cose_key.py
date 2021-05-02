@@ -41,6 +41,13 @@ class COSEKey:
         return
 
     @property
+    def key(self) -> bytes:
+        """
+        A body of the symmetric key.
+        """
+        raise NotImplementedError("Symmetric key only supports 'key' property.")
+
+    @property
     def kty(self) -> int:
         """
         Identification of the key type.
@@ -62,6 +69,13 @@ class COSEKey:
         return self._object.get(3, None)
 
     @property
+    def crv(self) -> int:
+        """
+        A curve of the key type.
+        """
+        raise NotImplementedError("OKP and EC2 key support 'crv' property.")
+
+    @property
     def key_ops(self) -> list:
         """
         Restrict set of permissible operations.
@@ -74,6 +88,15 @@ class COSEKey:
         Base IV to be xor-ed with Partial IVs.
         """
         return self._object.get(5, None)
+
+    def to_dict(self) -> Dict[int, Any]:
+        """
+        Returns a CBOR-like structure (Dict[int, Any]) of the COSE key.
+
+        Returns:
+            Dict[int, Any]: A CBOR-like structure of the COSE key.
+        """
+        return self._object
 
     def generate_nonce(self) -> bytes:
         """

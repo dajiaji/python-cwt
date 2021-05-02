@@ -384,6 +384,112 @@ class TestSample:
         decoded = cwt.decode(nested, [enc_key, public_key])
         assert 1 in decoded and decoded[1] == "https://as.example"
 
+    # def test_sample_readme_cwt_with_pop_jwk(self):
+    #     with open(key_path("private_key_ed25519.pem")) as key_file:
+    #         private_key = cose_key.from_pem(key_file.read())
+    #     with open(key_path("public_key_es256.pem")) as key_file:
+    #         pop_key = cose_key.from_pem(key_file.read())
+    #     token = cwt.encode(
+    #         {
+    #             "iss": "https://as.example",
+    #             "sub": "dajiaji",
+    #             "cti": "124",
+    #             "cnf": {
+    #                 "jwk": { ... },
+    #             },
+    #         },
+    #         private_key,
+    #     )
+
+    #     with open(key_path("public_key_ed25519.pem")) as key_file:
+    #         public_key = cose_key.from_pem(key_file.read())
+    #     decoded = cwt.decode(token, public_key)
+    #     assert 8 in decoded and isinstance(decoded[8], list)
+    #     extracted = cose_key.from_dict(decoded[8])
+    #     assert extracted.kty == 2  # EC2
+    #     assert extracted.alg == -7  # ES256
+
+    def test_sample_readme_cwt_with_pop_cose_key(self):
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            private_key = cose_key.from_pem(key_file.read())
+        with open(key_path("public_key_es256.pem")) as key_file:
+            pop_key = cose_key.from_pem(key_file.read())
+        token = cwt.encode(
+            {
+                1: "https://as.example",  # iss
+                2: "dajiaji",  # sub
+                7: b"123",  # cti
+                8: {  # cnf
+                    1: pop_key.to_dict(),
+                },
+            },
+            private_key,
+        )
+
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            public_key = cose_key.from_pem(key_file.read())
+        decoded = cwt.decode(token, public_key)
+        assert 8 in decoded and isinstance(decoded[8], dict)
+        assert 1 in decoded[8] and isinstance(decoded[8][1], dict)
+        extracted = cose_key.from_dict(decoded[8][1])
+        assert extracted.kty == 2  # EC2
+        assert extracted.crv == 1  # P-256
+
+    def test_sample_readme_cwt_with_pop_encrypted_cose_key(self):
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            private_key = cose_key.from_pem(key_file.read())
+        enc_key = cose_key.from_symmetric_key(
+            "a-client-secret-of-cwt-recipient",  # Just 32 bytes!
+            alg="ChaCha20/Poly1305",
+        )
+        pop_key = cose_key.from_symmetric_key(
+            "a-client-secret-of-cwt-presenter",
+            alg="HMAC 256/256",
+        )
+        token = cwt.encode(
+            {
+                1: "https://as.example",  # iss
+                2: "dajiaji",  # sub
+                7: b"124",  # cti
+                8: {  # cnf
+                    2: cose_key.to_encrypted_cose_key(pop_key, enc_key),
+                },
+            },
+            private_key,
+        )
+
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            public_key = cose_key.from_pem(key_file.read())
+        decoded = cwt.decode(token, public_key)
+        assert 8 in decoded and isinstance(decoded[8], dict)
+        assert 2 in decoded[8] and isinstance(decoded[8][2], list)
+        extracted = cose_key.from_encrypted_cose_key(decoded[8][2], enc_key)
+        print(extracted)
+        assert extracted.kty == 4  # Symmetric
+        assert extracted.alg == 5  # HMAC 256/256
+        assert extracted.key == b"a-client-secret-of-cwt-presenter"
+
+    def test_sample_readme_cwt_with_pop_kid(self):
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            private_key = cose_key.from_pem(key_file.read())
+        token = cwt.encode(
+            {
+                1: "https://as.example",  # iss
+                2: "dajiaji",  # sub
+                7: b"124",  # cti
+                8: {  # cnf
+                    3: b"pop-key-id-of-cwt-presenter",
+                },
+            },
+            private_key,
+        )
+
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            public_key = cose_key.from_pem(key_file.read())
+        decoded = cwt.decode(token, public_key)
+        assert 8 in decoded and isinstance(decoded[8], dict)
+        assert 3 in decoded[8] and decoded[8][3] == b"pop-key-id-of-cwt-presenter"
+
     def test_sample_rfc8392_a3(self):
         key = cose_key.from_bytes(bytes.fromhex(SAMPLE_COSE_KEY_RFC8392_A2_3))
         encoded = bytes.fromhex(SAMPLE_CWT_RFC8392_A3)
