@@ -45,6 +45,7 @@ Index
    api
    claims
    algorithms
+   specs
    changes
 
 .. _`RFC8392: CBOR Web Token (CWT)`: https://tools.ietf.org/html/rfc8392
