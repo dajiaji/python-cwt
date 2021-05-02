@@ -11,11 +11,12 @@ A Python implementation of [CBOR Web Token (CWT)](https://tools.ietf.org/html/rf
 and [CBOR Object Signing and Encryption (COSE)](https://tools.ietf.org/html/rfc8152).
 
 See [Document](https://python-cwt.readthedocs.io/en/stable/) for details:
-    - [Usage Examples](https://python-cwt.readthedocs.io/en/stable/usage.html)
-    - [API Reference](https://python-cwt.readthedocs.io/en/stable/api.html)
-    - [Supported CWT Claims](https://python-cwt.readthedocs.io/en/stable/claims.html)
-    - [Supported COSE Algorithms](https://python-cwt.readthedocs.io/en/stable/algorithms.html)
-    - [Referenced Specifications](https://python-cwt.readthedocs.io/en/stable/specs.html)
+
+- [Usage Examples](https://python-cwt.readthedocs.io/en/stable/usage.html)
+- [API Reference](https://python-cwt.readthedocs.io/en/stable/api.html)
+- [Supported CWT Claims](https://python-cwt.readthedocs.io/en/stable/claims.html)
+- [Supported COSE Algorithms](https://python-cwt.readthedocs.io/en/stable/algorithms.html)
+- [Referenced Specifications](https://python-cwt.readthedocs.io/en/stable/specs.html)
 
 ## Installing
 
