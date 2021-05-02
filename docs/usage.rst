@@ -14,7 +14,7 @@ Create a MACed CWT, verify and decode it as follows:
     try:
         key = cose_key.from_symmetric_key(alg="HMAC 256/256")
         token = cwt.encode(
-            {"iss": "https://as.example", "sub": "dajiaji", "cti": "123"},
+            {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"},
             key,
         )
         decoded = cwt.decode(token, key)
@@ -36,7 +36,7 @@ CBOR-like structure (Dict[int, Any]) can also be used as follows:
     from cwt import cose_key
 
     key = cose_key.from_symmetric_key(alg="HMAC 256/256")
-    token = cwt.encode({1: "https://as.example", 2: "dajiaji", 7: b"123"}, key)
+    token = cwt.encode({1: "coaps://as.example", 2: "dajiaji", 7: b"123"}, key)
     decoded = cwt.decode(token, key)
 
 Algorithms other than ``HMAC 256/256`` are listed in `Supported COSE Algorithms`_ .
@@ -67,7 +67,7 @@ Create a Signed CWT, verify and decode it with the key pair as follows:
 
     # Encode with Ed25519 signing.
     token = cwt.encode(
-        {"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}, private_key
+        {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
     )
 
     # Verify and decode.
@@ -93,7 +93,7 @@ Algorithms other than ``Ed25519`` are also supported. The following is an exampl
 
     # Encode with ES256 signing.
     token = cwt.encode(
-        {"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}, private_key
+        {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
     )
 
     # Verify and decode.
@@ -114,7 +114,7 @@ and decrypt it as follows:
 
     enc_key = cose_key.from_symmetric_key(alg="ChaCha20/Poly1305")
     token = cwt.encode(
-        {"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}, enc_key
+        {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, enc_key
     )
     decoded = cwt.decode(token, enc_key)
 
@@ -128,7 +128,7 @@ Algorithms other than ``ChaCha20/Poly1305`` are also supported. The following is
 
     enc_key = cose_key.from_symmetric_key(alg="AES-CCM-16-64-256")
     token = cwt.encode(
-        {"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}, enc_key
+        {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, enc_key
     )
     decoded = cwt.decode(token, enc_key)
 
@@ -152,7 +152,7 @@ Create a signed CWT and encrypt it, and then decrypt and verify the nested CWT a
 
     # Encode with ES256 signing.
     token = cwt.encode(
-        {"iss": "https://as.example", "sub": "dajiaji", "cti": "124"}, private_key
+        {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "124"}, private_key
     )
 
     # Encrypt the signed CWT.
@@ -180,7 +180,7 @@ Create a CWT which has a PoP key as follows:
     # Sets the PoP key to a CWT for the presenter.
     token = cwt.encode(
         {
-            1: "https://as.example",  # iss
+            1: "coaps://as.example",  # iss
             2: "dajiaji",  # sub
             7: b"123",  # cti
             8: {  # cnf
@@ -226,7 +226,7 @@ In case of another PoP confirmation method ``Encrypted_COSE_Key``:
 
     token = cwt.encode(
         {
-            1: "https://as.example",  # iss
+            1: "coaps://as.example",  # iss
             2: "dajiaji",  # sub
             7: b"124",  # cti
             8: {  # cnf
@@ -251,7 +251,7 @@ In case of another PoP confirmation method ``kid``:
 
     token = cwt.encode(
         {
-            1: "https://as.example",  # iss
+            1: "coaps://as.example",  # iss
             2: "dajiaji",  # sub
             7: b"124",  # cti
             8: {  # cnf
