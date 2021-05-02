@@ -69,6 +69,13 @@ class COSEKey:
         return self._object.get(3, None)
 
     @property
+    def crv(self) -> int:
+        """
+        A curve of the key type.
+        """
+        raise NotImplementedError("OKP and EC2 key support 'crv' property.")
+
+    @property
     def key_ops(self) -> list:
         """
         Restrict set of permissible operations.

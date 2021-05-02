@@ -20,10 +20,8 @@ from .signature import SignatureKey
 
 
 class OKPKey(SignatureKey):
-    """"""
 
     def __init__(self, cose_key: Dict[int, Any]):
-        """"""
         super().__init__(cose_key)
         self._public_key: Any = None
         self._private_key: Any = None
@@ -79,8 +77,11 @@ class OKPKey(SignatureKey):
             raise ValueError("Invalid key parameter.") from err
         return
 
+    @property
+    def crv(self) -> int:
+        return self._object[-1]
+
     def sign(self, msg: bytes) -> bytes:
-        """"""
         if self._public_key:
             raise ValueError("Public key cannot be used for signing.")
         try:
@@ -89,7 +90,6 @@ class OKPKey(SignatureKey):
             raise EncodeError("Failed to sign.") from err
 
     def verify(self, msg: bytes, sig: bytes):
-        """"""
         try:
             if self._private_key:
                 self._private_key.public_key().verify(sig, msg)

@@ -32,6 +32,9 @@ class TestCOSEKey:
             key.key
             pytest.fail("COSEKey.key should fail.")
         with pytest.raises(NotImplementedError):
+            key.crv
+            pytest.fail("COSEKey.crv should fail.")
+        with pytest.raises(NotImplementedError):
             key.generate_nonce()
             pytest.fail("COSEKey.generate_nonce() should fail.")
         with pytest.raises(NotImplementedError):
