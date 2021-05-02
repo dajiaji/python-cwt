@@ -34,6 +34,7 @@ Followings are typical and basic examples which encode CWT, verify and decode it
 - [Signed CWT](#signed-cwt)
 - [Encrypted CWT](#encrypted-cwt)
 - [Nested CWT](#nested-cwt)
+- [CWT with PoP key](#cwt-with-pop-key)
 
 See [Usage Examples](https://python-cwt.readthedocs.io/en/latest/usage.html) for details.
 
@@ -137,6 +138,47 @@ nested = cwt.encode(token, enc_key)
 # Decrypt and verify the nested CWT.
 decoded = cwt.decode(nested, [enc_key, public_key])
 ```
+
+### Nested CWT with PoP key
+
+This library supports [Proof-of-Possession Key Semantics for CBOR Web Tokens (CWTs)](https://tools.ietf.org/html/rfc8747).
+A CWT can include a PoP key as follows:
+
+```py
+# An issuer's signing key.
+with open(key_path("private_key_ed25519.pem")) as key_file:
+    private_key = cose_key.from_pem(key_file.read())
+
+# A CWT presenter's PoP key.
+with open(key_path("public_key_es256.pem")) as key_file:
+    pop_key = cose_key.from_pem(key_file.read())
+
+# The issuer can set the PoP key to a CWT:
+token = cwt.encode(
+    {
+        1: "https://as.example",  # iss
+        2: "dajiaji",  # sub
+        7: b"123",  # cti
+        8: {  # cnf
+            1: pop_key.to_dict(),
+        },
+    },
+    private_key,
+)
+
+# A CWT recipient can extract the PoP key from the CWT:
+with open(key_path("public_key_ed25519.pem")) as key_file:
+    public_key = cose_key.from_pem(key_file.read())
+decoded = cwt.decode(token, public_key)
+extracted_pop_key = cose_key.from_dict(decoded[8][1]) #  8:cnf, 1:COSE_Key
+
+# Then, the recipient can verify the message sent by the presenter
+# with the signature which is also sent by the presenter as follows:
+#    extracted_pop_key.verify(message, signature)
+```
+
+[Usage Examples](https://python-cwt.readthedocs.io/en/latest/usage.html) shows other examples which
+use other confirmation methods for PoP keys.
 
 ## Tests
 
