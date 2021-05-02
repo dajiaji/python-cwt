@@ -20,7 +20,6 @@ from .signature import SignatureKey
 
 
 class OKPKey(SignatureKey):
-
     def __init__(self, cose_key: Dict[int, Any]):
         super().__init__(cose_key)
         self._public_key: Any = None
