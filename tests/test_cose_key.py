@@ -28,6 +28,10 @@ class TestCOSEKey:
         assert key.alg == 1
         assert key.key_ops is None
         assert key.base_iv is None
+        raw = key.to_dict()
+        assert raw[1] == 1
+        assert raw[2] == b"123"
+        assert raw[3] == 1
         with pytest.raises(NotImplementedError):
             key.key
             pytest.fail("COSEKey.key should fail.")

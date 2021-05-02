@@ -89,6 +89,15 @@ class COSEKey:
         """
         return self._object.get(5, None)
 
+    def to_dict(self) -> Dict[int, Any]:
+        """
+        Returns a CBOR-like structure (Dict[int, Any]) of the COSE key.
+
+        Returns:
+            Dict[int, Any]: A CBOR-like structure of the COSE key.
+        """
+        return self._object
+
     def generate_nonce(self) -> bytes:
         """
         Returns a nonce with a size suitable for the algorithm.
