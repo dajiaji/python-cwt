@@ -1,0 +1,7 @@
+{
+    "kty": "oct",
+    "use": "sig",
+    "kid": "HS384-01",
+    "k": "vpdeao6CC_ze7hgqROayslNs0k_SydKu6XUto0AI6UWx5PbIN8mqbr6aH2ikwYcX0f_ufZHDYW_9x6-DkQxm4--vkoSBLrCZ2iEuriQv4CywwdK1_IAjrVWXg0B3pku3oZv3Q7PIZ-V4Mi5Ad8lYyuNQb-jEg8b0cz0Gtfr0CSqI1PzlRefGJmpL70NrtxL1CPZ-mUhPRsuj25nYXxndq-xBw-n6e0Pe2OExRkJ5kYOnsSwSFWE2EYP8L81vcyN8YcPCXZFBOlkjPuZwIJVWGnfTPW7XoIKXozhbUAn9SmrscwZOs9pTOEvS_uoaaHIWGT90Dwt4kM0S0sxV9OZFOg",
+    "alg": "HS384"
+}

@@ -6,12 +6,14 @@
 """
 Tests for KeyBuilder.
 """
+import json
 from secrets import token_bytes
 
 import cbor2
 import pytest
 
-from cwt import COSEKey, KeyBuilder, cose_key
+import cwt
+from cwt import COSEKey, KeyBuilder, claims, cose_key
 
 from .utils import key_path
 
@@ -389,7 +391,165 @@ class TestKeyBuilder:
             in str(err.value)
         )
 
-    def test_key_builder_from_jwk(self, ctx):
-        with pytest.raises(NotImplementedError):
-            ctx.from_jwk('{"kty":"OKP"}')
+    @pytest.mark.parametrize(
+        "key",
+        [
+            "hs256.json",
+            "hs384.json",
+            "hs512.json",
+            "private_key_ed25519.json",
+            "public_key_ed25519.json",
+            "private_key_ed448.json",
+            "public_key_ed448.json",
+            "private_key_es256.json",
+            "public_key_es256.json",
+            "private_key_es384.json",
+            "public_key_es384.json",
+            "private_key_es512.json",
+            "public_key_es512.json",
+            "private_key_es256k.json",
+            "public_key_es256k.json",
+            "private_key_rsa.json",
+            "public_key_rsa.json",
+        ],
+    )
+    def test_key_builder_from_jwk(self, ctx, key):
+        try:
+            with open(key_path(key)) as key_file:
+                ctx.from_jwk(key_file.read())
+        except Exception:
+            pytest.fail("from_jwk should not fail.")
+
+    def test_key_builder_from_jwk_with_key_ops(self, ctx):
+        try:
+            with open(key_path("public_key_ed25519.json")) as key_file:
+                obj = json.loads(key_file.read())
+                obj["key_ops"] = ["verify"]
+                ctx.from_jwk(obj)
+        except Exception:
+            pytest.fail("from_jwk should not fail.")
+
+    def test_key_builder_from_jwk_without_use(self, ctx):
+        try:
+            with open(key_path("public_key_ed25519.json")) as key_file:
+                obj = json.loads(key_file.read())
+                del obj["use"]
+                ctx.from_jwk(obj)
+        except Exception:
+            pytest.fail("from_jwk should not fail.")
+
+    @pytest.mark.parametrize(
+        "private_key_path, public_key_path",
+        [
+            ("private_key_ed25519.json", "public_key_ed25519.json"),
+            ("private_key_ed448.json", "public_key_ed448.json"),
+            ("private_key_es256.json", "public_key_es256.json"),
+            ("private_key_es256k.json", "public_key_es256k.json"),
+            ("private_key_es384.json", "public_key_es384.json"),
+            ("private_key_es512.json", "public_key_es512.json"),
+            ("private_key_rsa.json", "public_key_rsa.json"),
+        ],
+    )
+    def test_key_builder_from_jwk_with_encode_and_sign(
+        self, ctx, private_key_path, public_key_path
+    ):
+        with open(key_path(private_key_path)) as key_file:
+            private_key = ctx.from_jwk(key_file.read())
+        with open(key_path(public_key_path)) as key_file:
+            public_key = ctx.from_jwk(key_file.read())
+        token = cwt.encode_and_sign(
+            claims.from_json(
+                {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}
+            ),
+            private_key,
+        )
+        # token = cwt.encode(
+        #     {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"},
+        #     private_key,
+        # )
+        decoded = cwt.decode(token, public_key)
+        assert 1 in decoded and decoded[1] == "coaps://as.example"
+
+    @pytest.mark.parametrize(
+        "private_key_path, public_key_path",
+        [
+            ("private_key_ed25519.json", "public_key_ed25519.json"),
+            ("private_key_ed448.json", "public_key_ed448.json"),
+            ("private_key_es256.json", "public_key_es256.json"),
+            ("private_key_es256k.json", "public_key_es256k.json"),
+            ("private_key_es384.json", "public_key_es384.json"),
+            ("private_key_es512.json", "public_key_es512.json"),
+            ("private_key_rsa.json", "public_key_rsa.json"),
+        ],
+    )
+    def test_key_builder_from_jwk_with_encode(
+        self, ctx, private_key_path, public_key_path
+    ):
+        with open(key_path(private_key_path)) as key_file:
+            private_key = ctx.from_jwk(key_file.read())
+        with open(key_path(public_key_path)) as key_file:
+            public_key = ctx.from_jwk(key_file.read())
+        token = cwt.encode(
+            {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"},
+            private_key,
+        )
+        decoded = cwt.decode(token, public_key)
+        assert 1 in decoded and decoded[1] == "coaps://as.example"
+
+    @pytest.mark.parametrize(
+        "invalid, msg",
+        [
+            ({}, "kty not found."),
+            ({"kty": "xxx"}, "Unknown kty: xxx."),
+            ({"kty": "OKP", "kid": 123}, "kid should be str."),
+            ({"kty": "OKP", "kid": "123", "alg": 123}, "alg should be str."),
+            ({"kty": "OKP", "alg": 123}, "alg should be str."),
+            (
+                {"kty": "OKP", "kid": "123", "alg": "xxx"},
+                "Unsupported or unknown alg: xxx.",
+            ),
+            ({"kty": "OKP", "kid": "123"}, "crv not found."),
+            ({"kty": "OKP", "kid": "123", "crv": "xxx"}, "Unknown crv: xxx."),
+            (
+                {"kty": "OKP", "kid": "123", "crv": "Ed25519", "use": "xxx"},
+                "Unknown use: xxx.",
+            ),
+            (
+                {"kty": "OKP", "kid": "123", "crv": "Ed25519", "key_ops": "xxx"},
+                "key_ops should be list.",
+            ),
+            (
+                {
+                    "kty": "OKP",
+                    "kid": "123",
+                    "crv": "Ed25519",
+                    "use": "enc",
+                    "key_ops": ["xxx"],
+                },
+                "Unsupported or unknown key_ops.",
+            ),
+            (
+                {
+                    "kty": "OKP",
+                    "kid": "123",
+                    "crv": "Ed25519",
+                    "use": "enc",
+                    "key_ops": ["verify"],
+                },
+                "use and key_ops are conflicted each other.",
+            ),
+            (
+                {"kty": "oct", "kid": "123"},
+                "k is not found or invalid format.",
+            ),
+            (
+                {"kty": "oct", "kid": "123", "use": "sig", "key_ops": ["verify"]},
+                "k is not found or invalid format.",
+            ),
+        ],
+    )
+    def test_key_builder_from_jwk_with_invalid_arg(self, ctx, invalid, msg):
+        with pytest.raises(ValueError) as err:
+            ctx.from_jwk(invalid)
             pytest.fail("from_jwk should fail.")
+        assert msg in str(err.value)

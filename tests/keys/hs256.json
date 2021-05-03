@@ -1,0 +1,7 @@
+{
+    "kty": "oct",
+    "use": "sig",
+    "kid": "HS256-01",
+    "k": "l6WRtQu5RJx0IF_POv0pcPilEMM5KUdlw8jo3VBmvvLucQ6uFxSEXhZU4S8hdgQGjPDOk8NfVNa9PPYYnWJJHSaTQl97Bmjr6BV3Z4wPZlIP8pT3IDLM7IwJPNrsE3IWr1d-n8SB_Q-nX9NPte4h8NjZrfM3c_8ne5gcEqjh5J5era9GkRDlBGAN_fqmY-f1AvBz3vxW_raU9EixvROqcZiywgt06aQq6ErjW-edzyLHDU4fLsGPavjUOukLBzByiB5TGMypJuMj_4LBUs1x7jdnAIJeVVQvH5gtHTMlBp95WzJUnWFifriwcVKK-CtXo8Og6HIioihI95bQ6lwNYg",
+    "alg": "HS256"
+}

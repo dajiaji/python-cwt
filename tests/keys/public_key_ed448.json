@@ -1,0 +1,8 @@
+{
+    "kty": "OKP",
+    "use": "sig",
+    "crv": "Ed448",
+    "kid": "Ed448-01",
+    "x": "25isUWIosUkM2ynOPFP5t7BbwM1_iFQmKBpHvA0hgXpRX6yyu-nq6BBmpS3J0DYTlZIoA4qwgSqA",
+    "alg": "EdDSA"
+}

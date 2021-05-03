@@ -6,9 +6,10 @@
 """
 Tests for samples on README and RFCs related to CWT/COSE.
 """
-# import cbor2
-# import pytest
 from secrets import token_bytes
+
+# import cbor2
+import pytest
 
 import cwt
 from cwt import claims, cose_key
@@ -375,7 +376,7 @@ class TestSample:
             public_key = cose_key.from_pem(key_file.read())
 
         token = cwt.encode(
-            {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "124"}, private_key
+            {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
         )
 
         enc_key = cose_key.from_symmetric_key(alg="ChaCha20/Poly1305")
@@ -384,30 +385,112 @@ class TestSample:
         decoded = cwt.decode(nested, [enc_key, public_key])
         assert 1 in decoded and decoded[1] == "coaps://as.example"
 
-    # def test_sample_readme_cwt_with_pop_jwk(self):
-    #     with open(key_path("private_key_ed25519.pem")) as key_file:
-    #         private_key = cose_key.from_pem(key_file.read())
-    #     with open(key_path("public_key_es256.pem")) as key_file:
-    #         pop_key = cose_key.from_pem(key_file.read())
-    #     token = cwt.encode(
-    #         {
-    #             "iss": "coaps://as.example",
-    #             "sub": "dajiaji",
-    #             "cti": "124",
-    #             "cnf": {
-    #                 "jwk": { ... },
-    #             },
-    #         },
-    #         private_key,
-    #     )
+    def test_sample_readme_cwt_with_pop_jwk(self):
 
-    #     with open(key_path("public_key_ed25519.pem")) as key_file:
-    #         public_key = cose_key.from_pem(key_file.read())
-    #     decoded = cwt.decode(token, public_key)
-    #     assert 8 in decoded and isinstance(decoded[8], list)
-    #     extracted = cose_key.from_dict(decoded[8])
-    #     assert extracted.kty == 2  # EC2
-    #     assert extracted.alg == -7  # ES256
+        # issuer:
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            private_key = cose_key.from_pem(key_file.read())
+        token = cwt.encode(
+            {
+                "iss": "coaps://as.example",
+                "sub": "dajiaji",
+                "cti": "123",
+                "cnf": {
+                    "jwk": {
+                        "kty": "OKP",
+                        "use": "sig",
+                        "crv": "Ed25519",
+                        "kid": "01",
+                        "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+                        "alg": "EdDSA",
+                    },
+                },
+            },
+            private_key,
+        )
+
+        # presenter:
+        msg = b"could-you-sign-this-message?"  # Provided by recipient.
+        pop_key_private = cose_key.from_jwk(
+            {
+                "kty": "OKP",
+                "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
+                "use": "sig",
+                "crv": "Ed25519",
+                "kid": "01",
+                "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+                "alg": "EdDSA",
+            }
+        )
+        sig = pop_key_private.sign(msg)
+
+        # recipient:
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            public_key = cose_key.from_pem(key_file.read())
+        decoded = cwt.decode(token, public_key)
+        assert 8 in decoded and isinstance(decoded[8], dict)
+        assert 1 in decoded[8] and isinstance(decoded[8][1], dict)
+        extracted = cose_key.from_dict(decoded[8][1])
+        try:
+            extracted.verify(msg, sig)
+        except Exception:
+            pytest.fail("verify should not fail.")
+
+    def test_sample_readme_cwt_with_pop_encrypted_cose_key_readable(self):
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            private_key = cose_key.from_pem(key_file.read())
+        enc_key = cose_key.from_symmetric_key(
+            "a-client-secret-of-cwt-recipient",  # Just 32 bytes!
+            alg="ChaCha20/Poly1305",
+        )
+        pop_key = cose_key.from_symmetric_key(
+            "a-client-secret-of-cwt-presenter",
+            alg="HMAC 256/256",
+        )
+        token = cwt.encode(
+            {
+                "iss": "coaps://as.example",
+                "sub": "dajiaji",
+                "cti": "123",
+                "cnf": {
+                    # 'eck'(Encrypted Cose Key) is a keyword defined by this library.
+                    "eck": cose_key.to_encrypted_cose_key(pop_key, enc_key),
+                },
+            },
+            private_key,
+        )
+
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            public_key = cose_key.from_pem(key_file.read())
+        decoded = cwt.decode(token, public_key)
+        assert 8 in decoded and isinstance(decoded[8], dict)
+        assert 2 in decoded[8] and isinstance(decoded[8][2], list)
+        extracted = cose_key.from_encrypted_cose_key(decoded[8][2], enc_key)
+        assert extracted.kty == 4  # Symmetric
+        assert extracted.alg == 5  # HMAC 256/256
+        assert extracted.key == b"a-client-secret-of-cwt-presenter"
+
+    def test_sample_readme_cwt_with_pop_kid_readable(self):
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            private_key = cose_key.from_pem(key_file.read())
+
+        token = cwt.encode(
+            {
+                "iss": "coaps://as.example",
+                "sub": "dajiaji",
+                "cti": "123",
+                "cnf": {
+                    "kid": "pop-key-id-of-cwt-presenter",
+                },
+            },
+            private_key,
+        )
+
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            public_key = cose_key.from_pem(key_file.read())
+        decoded = cwt.decode(token, public_key)
+        assert 8 in decoded and isinstance(decoded[8], dict)
+        assert 3 in decoded[8] and decoded[8][3] == b"pop-key-id-of-cwt-presenter"
 
     def test_sample_readme_cwt_with_pop_cose_key(self):
         with open(key_path("private_key_ed25519.pem")) as key_file:
@@ -450,7 +533,7 @@ class TestSample:
             {
                 1: "coaps://as.example",  # iss
                 2: "dajiaji",  # sub
-                7: b"124",  # cti
+                7: b"123",  # cti
                 8: {  # cnf
                     2: cose_key.to_encrypted_cose_key(pop_key, enc_key),
                 },
@@ -464,7 +547,6 @@ class TestSample:
         assert 8 in decoded and isinstance(decoded[8], dict)
         assert 2 in decoded[8] and isinstance(decoded[8][2], list)
         extracted = cose_key.from_encrypted_cose_key(decoded[8][2], enc_key)
-        print(extracted)
         assert extracted.kty == 4  # Symmetric
         assert extracted.alg == 5  # HMAC 256/256
         assert extracted.key == b"a-client-secret-of-cwt-presenter"
@@ -476,7 +558,7 @@ class TestSample:
             {
                 1: "coaps://as.example",  # iss
                 2: "dajiaji",  # sub
-                7: b"124",  # cti
+                7: b"123",  # cti
                 8: {  # cnf
                     3: b"pop-key-id-of-cwt-presenter",
                 },

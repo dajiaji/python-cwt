@@ -24,6 +24,44 @@ COSE_KEY_TYPES = {
     "WalnutDSA": 6,  # WalnutDSA public key
 }
 
+# JWK Parameters
+JWK_PARAMS_COMMON = {
+    "kty": 1,
+    "kid": 2,
+    "alg": 3,
+    # "use": *,
+    "key_ops": 4,
+}
+
+JWK_PARAMS_OKP = {
+    # "crv": -1,
+    "x": -2,
+    "d": -4,
+}
+
+JWK_PARAMS_EC = {
+    # "crv": -1,
+    "x": -2,
+    "y": -3,
+    "d": -4,
+}
+
+JWK_PARAMS_RSA = {
+    "n": -1,
+    "e": -2,
+    "d": -3,
+    "p": -4,
+    "q": -5,
+    "dp": -6,
+    "dq": -7,
+    "qi": -8,
+    "oth": -9,
+}
+
+COSE_KEY_PARAMS_SYMMETRIC = {
+    "k": -1,
+}
+
 # COSE key operation values.
 COSE_KEY_OPERATION_VALUES = {
     "sign": 1,
@@ -78,6 +116,56 @@ COSE_ALGORITHMS_SIG_RSA = {
     "PS384": -38,  # RSASSA-PSS w/ SHA-384
     "PS256": -37,  # RSASSA-PSS w/ SHA-256
     # etc.
+}
+
+JOSE_ALGORITHMS_SUPPORTED = {
+    "RS512": -259,
+    "RS384": -258,
+    "RS256": -257,
+    "ES256K": -47,
+    "PS512": -39,
+    "PS384": -38,
+    "PS256": -37,
+    "ES512": -36,
+    "ES384": -35,
+    "EdDSA": -8,
+    "ES256": -7,
+    "dir": -6,
+    "A128GCM": 1,
+    "A192GCM": 2,
+    "A256GCM": 3,
+    "HS256": 5,
+    "HS384": 6,
+    "HS512": 7,
+}
+
+JWK_TYPES = {
+    "OKP": 1,
+    "EC": 2,  # EC2
+    "RSA": 3,
+    "oct": 4,  # Symmetric
+}
+
+JWK_OPERATIONS = {
+    "sign": 1,
+    "verify": 2,
+    "encrypt": 3,
+    "decrypt": 4,
+    "wrapKey": 5,
+    "unwrapKey": 6,
+    "deriveKey": 7,
+    "deriveBits": 8,
+}
+
+JWK_ELLIPTIC_CURVES = {
+    "P-256": 1,
+    "P-384": 2,
+    "P-521": 3,
+    "X25519": 4,
+    "X448": 5,
+    "Ed25519": 6,
+    "Ed448": 7,
+    "secp256k1": 8,
 }
 
 # COSE Algorithms for Symmetric Keys.

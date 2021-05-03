@@ -2,6 +2,7 @@ import json
 from typing import Any, Dict, Optional, Union
 
 from .const import CWT_CLAIM_NAMES
+from .key_builder import KeyBuilder
 
 
 class ClaimsBuilder:
@@ -18,6 +19,7 @@ class ClaimsBuilder:
         At the current implementation, any ``options`` will be ignored.
         """
         self._options = options
+        self._key_builder = KeyBuilder()
         return
 
     def from_json(self, claims: Union[str, bytes, Dict[str, Any]]) -> Dict[int, Any]:
@@ -27,7 +29,7 @@ class ClaimsBuilder:
         If a key string in JSON data cannot be mapped to a numeric key,
         it will be skipped.
         """
-        json_claims: Dict[str, Any]
+        json_claims: Dict[str, Any] = {}
         if isinstance(claims, str) or isinstance(claims, bytes):
             json_claims = json.loads(claims)
         else:
@@ -39,12 +41,25 @@ class ClaimsBuilder:
             raise ValueError("It is already CBOR-like format.")
 
         # Convert JSON to CBOR (Convert the type of key from str to int).
-        cbor_claims = {}
+        cbor_claims: Dict[int, Any] = {}
         for k, v in json_claims.items():
             if k not in CWT_CLAIM_NAMES:
                 # TODO Support additional arguments.
                 continue
-            cbor_claims[CWT_CLAIM_NAMES[k]] = v
+            if k == "cnf":
+                if not isinstance(v, dict):
+                    raise ValueError("cnf value should be dict.")
+                if "jwk" in v:
+                    key = self._key_builder.from_jwk(v["jwk"])
+                    cbor_claims[CWT_CLAIM_NAMES[k]] = {1: key.to_dict()}
+                elif "eck" in v:
+                    cbor_claims[CWT_CLAIM_NAMES[k]] = {2: v["eck"]}
+                elif "kid" in v:
+                    cbor_claims[CWT_CLAIM_NAMES[k]] = {3: v["kid"].encode("utf-8")}
+                else:
+                    raise ValueError("Supported cnf value not found.")
+            else:
+                cbor_claims[CWT_CLAIM_NAMES[k]] = v
 
         # Convert test string should be bstr into bstr.
         # -259: EUPHNonce
