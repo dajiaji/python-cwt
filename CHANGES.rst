@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Add support for JWK keyword of alg and key_ops. `#55 <https://github.com/dajiaji/python-cwt/pull/55>`__
 - Add from_jwk. `#53 <https://github.com/dajiaji/python-cwt/pull/53>`__
 - Add support for PoP key (cnf claim). `#50 <https://github.com/dajiaji/python-cwt/pull/50>`__
 - Add to_dict to COSEKey. `#50 <https://github.com/dajiaji/python-cwt/pull/50>`__
