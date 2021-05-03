@@ -1,0 +1,9 @@
+{
+    "kty": "EC",
+    "use": "sig",
+    "crv": "secp256k1",
+    "kid": "secp256k1-01",
+    "x": "6_W-2tVwr9SU0Ts9sFmZgt8JrlxDi8d6G5ltwL2futU",
+    "y": "mEOme4oiQsXnNwtlfyH5hEkvLDxrtqDUY0UXBIMRuL0",
+    "alg": "ES256K"
+}

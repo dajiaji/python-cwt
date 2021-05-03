@@ -1,3 +1,6 @@
+import base64
+
+
 def i2osp(x: int, x_len: int) -> bytes:
     """
     Integer-to-Octet-String primitive
@@ -34,3 +37,11 @@ def uint_to_bytes(v: int) -> bytes:
         rem = rem >> 8
         length += 1
     return v.to_bytes(length, "big")
+
+
+def base64url_decode(v: str) -> bytes:
+    bv = v.encode("ascii")
+    rem = len(bv) % 4
+    if rem > 0:
+        bv += b"=" * (4 - rem)
+    return base64.urlsafe_b64decode(bv)

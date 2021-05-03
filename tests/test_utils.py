@@ -3,7 +3,7 @@ Tests for utils
 """
 import pytest
 
-from cwt.utils import i2osp, uint_to_bytes
+from cwt.utils import base64url_decode, i2osp, uint_to_bytes
 
 
 class TestUtils:
@@ -22,3 +22,7 @@ class TestUtils:
             uint_to_bytes(-1)
             pytest.fail("uint_to_bytes should fail.")
         assert "Not a positive number." in str(err.value)
+
+    def test_base64url_decode_without_padding(self):
+        res = base64url_decode("aaaabbbb")
+        assert len(res) == 6

@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Add from_jwk. `#53 <https://github.com/dajiaji/python-cwt/pull/53>`__
 - Add support for PoP key (cnf claim). `#50 <https://github.com/dajiaji/python-cwt/pull/50>`__
 - Add to_dict to COSEKey. `#50 <https://github.com/dajiaji/python-cwt/pull/50>`__
 - Add crv property to COSEKey. `#50 <https://github.com/dajiaji/python-cwt/pull/50>`__

@@ -46,16 +46,27 @@ class TestClaimsBuilder:
         len(claims) == len(expected)
 
     @pytest.mark.parametrize(
-        "invalid",
+        "invalid, msg",
         [
-            {1: "coap://as.example.com"},
+            (
+                {1: "coap://as.example.com"},
+                "It is already CBOR-like format.",
+            ),
+            (
+                {"cnf": "xxx"},
+                "cnf value should be dict.",
+            ),
+            (
+                {"cnf": {"foo": "bar"}},
+                "Supported cnf value not found.",
+            ),
         ],
     )
-    def test_claims_builder_from_json_with_invalid_arg(self, ctx, invalid):
+    def test_claims_builder_from_json_with_invalid_arg(self, ctx, invalid, msg):
         with pytest.raises(ValueError) as err:
             res = ctx.from_json(invalid)
             pytest.fail("from_json should fail: res=%s" % res)
-        assert "It is already CBOR-like format." in str(err.value)
+        assert msg in str(err.value)
 
     def test_claims_builder_from_json_with_unknown_key(self, ctx):
         claims = ctx.from_json(
