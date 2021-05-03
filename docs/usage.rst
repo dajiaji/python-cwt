@@ -71,7 +71,7 @@ Create a Signed CWT, verify and decode it with the key pair as follows:
     decoded = cwt.decode(token, public_key)
 
 JWKs can also be used instead of the PEM-formatted keys as follows:
-    
+
 .. code-block:: python
 
     private_key = cose_key.from_jwk(
@@ -90,7 +90,7 @@ JWKs can also be used instead of the PEM-formatted keys as follows:
         "kid": "01",
         "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
     )
-    
+
     token = cwt.encode(
         {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
     )
