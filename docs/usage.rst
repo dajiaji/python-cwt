@@ -12,7 +12,7 @@ Create a MACed CWT, verify and decode it as follows:
     from cwt import cose_key
 
     try:
-        key = cose_key.from_symmetric_key(alg="HMAC 256/256")
+        key = cose_key.from_symmetric_key(alg="HS256")
         token = cwt.encode(
             {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"},
             key,
@@ -35,11 +35,11 @@ CBOR-like structure (Dict[int, Any]) can also be used as follows:
     import cwt
     from cwt import cose_key
 
-    key = cose_key.from_symmetric_key(alg="HMAC 256/256")
+    key = cose_key.from_symmetric_key(alg="HMAC 256/256")  # Same as "HS256"
     token = cwt.encode({1: "coaps://as.example", 2: "dajiaji", 7: b"123"}, key)
     decoded = cwt.decode(token, key)
 
-Algorithms other than ``HMAC 256/256`` are listed in `Supported COSE Algorithms`_ .
+Algorithms other than ``HS256`` are listed in `Supported COSE Algorithms`_ .
 
 Signed CWT
 ----------
