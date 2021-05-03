@@ -18,8 +18,10 @@ CWT_CLAIM_NAMES = {
 COSE_KEY_TYPES = {
     "OKP": 1,  # OCtet Key Pair
     "EC2": 2,  # Elliptic Curve Keys w/ x- and y-coordinate pair
+    "EC": 2,  # Elliptic Curve Keys w/ x- and y-coordinate pair (JWK)
     "RSA": 3,  # RSA Key
     "Symmetric": 4,  # Symmetric Keys
+    "oct": 4,  # Symmetric Keys (JWK)
     "HSS-LMS": 5,  # Public key for HSS/LMS hash-based digital signature
     "WalnutDSA": 6,  # WalnutDSA public key
 }
@@ -74,6 +76,12 @@ COSE_KEY_OPERATION_VALUES = {
     "derive bits": 8,
     "MAC create": 9,
     "MAC verify": 10,
+    "wrapKey": 5,  # JWK
+    "unwrapKey": 6,  # JWK
+    "deriveKey": 7,  # JWK
+    "deriveBits": 8,  # JWK
+    "createMAC": 9,  # JWK-like lowerCamelCase
+    "verifyMAC": 10,  # JWK-like lowerCamelCase
 }
 
 # COSE Algorithms for Content Encryption Key (CEK).
@@ -96,6 +104,9 @@ COSE_ALGORITHMS_CEK = {
 # COSE Algorithms for MAC.
 COSE_ALGORITHMS_MAC = {
     "HMAC 256/64": 4,  # HMAC w/ SHA-256 truncated to 64 bits
+    "HS256": 5,  # HMAC w/ SHA-256 (JWK)
+    "HS384": 6,  # HMAC w/ SHA-384 (JWK)
+    "HS512": 7,  # HMAC w/ SHA-512 (JWK)
     "HMAC 256/256": 5,  # HMAC w/ SHA-256
     "HMAC 384/384": 6,  # HMAC w/ SHA-384
     "HMAC 512/512": 7,  # HMAC w/ SHA-512

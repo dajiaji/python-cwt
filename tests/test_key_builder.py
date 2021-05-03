@@ -57,6 +57,9 @@ class TestKeyBuilder:
             "HMAC 256/256",
             "HMAC 384/384",
             "HMAC 512/512",
+            "HS256",  # allow JWK alg name
+            "HS384",  # allow JWK alg name
+            "HS512",  # allow JWK alg name
             "A128GCM",
             "A192GCM",
             "A256GCM",
