@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional, Union
 from cbor2 import CBORTag
 
 from .cbor_processor import CBORProcessor
+from .claims import Claims
 from .claims_builder import ClaimsBuilder
 from .const import COSE_KEY_OPERATION_VALUES
 from .cose import COSE
@@ -84,7 +85,7 @@ class CWT(CBORProcessor):
 
     def encode(
         self,
-        claims: Union[Dict[str, Any], Dict[int, Any], bytes, str],
+        claims: Union[Claims, Dict[str, Any], Dict[int, Any], bytes, str],
         key: COSEKey,
         nonce: bytes = b"",
         tagged: bool = False,
@@ -103,7 +104,8 @@ class CWT(CBORProcessor):
         parameter set to identify the usage.
 
         Args:
-            claims (Union[Dict[int, Any], bytes]): A CWT claims object or byte string.
+            claims (Union[Claims, Dict[str, Any], Dict[int, Any], bytes, str]): A CWT
+                claims object, or a JWT claims object, text string or byte string.
             key (COSEKey): A COSE key used to generate a MAC for the claims.
             recipients (List[Recipient]): A list of recipient information structures.
             tagged (bool): An indicator whether the response is wrapped by CWT tag(61)
@@ -114,6 +116,8 @@ class CWT(CBORProcessor):
             ValueError: Invalid arguments.
             EncodeError: Failed to encode the claims.
         """
+        if isinstance(claims, Claims):
+            return self._encode(claims, key, nonce, tagged, recipients)
         if isinstance(claims, str):
             claims = claims.encode("utf-8")
         if isinstance(claims, bytes):
@@ -138,7 +142,7 @@ class CWT(CBORProcessor):
 
     def encode_and_mac(
         self,
-        claims: Union[Dict[int, Any], bytes],
+        claims: Union[Claims, Dict[int, Any], bytes],
         key: COSEKey,
         tagged: bool = False,
         recipients: Optional[List[Recipient]] = None,
@@ -147,7 +151,8 @@ class CWT(CBORProcessor):
         Encode CWT claims and add MAC to it.
 
         Args:
-            claims (Union[Dict[int, Any], bytes]): A CWT claims object or byte string.
+            claims (Union[Claims, Dict[int, Any], bytes]): A CWT claims object or byte
+                string.
             key (COSEKey): A COSE key used to generate a MAC for the claims.
             recipients (List[Recipient]): A list of recipient information structures.
             tagged (bool): An indicator whether the response is wrapped by CWT tag(61)
@@ -158,7 +163,10 @@ class CWT(CBORProcessor):
             ValueError: Invalid arguments.
             EncodeError: Failed to encode the claims.
         """
-        self._validate(claims)
+        if not isinstance(claims, Claims):
+            self._validate(claims)
+        else:
+            claims = claims.to_dict()
         self._set_default_value(claims)
         protected: Dict[int, Any] = {1: key.alg}
         unprotected: Dict[int, Any] = {4: key.kid} if key.kid else {}
@@ -171,7 +179,7 @@ class CWT(CBORProcessor):
 
     def encode_and_sign(
         self,
-        claims: Union[Dict[int, Any], bytes],
+        claims: Union[Claims, Dict[int, Any], bytes],
         key: Union[COSEKey, List[COSEKey]],
         tagged: bool = False,
     ) -> bytes:
@@ -179,7 +187,8 @@ class CWT(CBORProcessor):
         Encode CWT claims and sign it.
 
         Args:
-            claims (Union[Dict[int, Any], bytes]): A CWT claims object or byte string.
+            claims (Claims, Union[Dict[int, Any], bytes]): A CWT claims object or byte
+                string.
             key (Union[COSEKey, List[COSEKey]]): A COSE key or a list of the keys used
                 to sign claims.
             tagged (bool): An indicator whether the response is wrapped by CWT tag(61)
@@ -190,7 +199,10 @@ class CWT(CBORProcessor):
             ValueError: Invalid arguments.
             EncodeError: Failed to encode the claims.
         """
-        self._validate(claims)
+        if not isinstance(claims, Claims):
+            self._validate(claims)
+        else:
+            claims = claims.to_dict()
         self._set_default_value(claims)
         protected: Dict[int, Any] = {}
         unprotected: Dict[int, Any] = {}
@@ -203,7 +215,7 @@ class CWT(CBORProcessor):
 
     def encode_and_encrypt(
         self,
-        claims: Union[Dict[int, Any], bytes],
+        claims: Union[Claims, Dict[int, Any], bytes],
         key: COSEKey,
         nonce: bytes = b"",
         tagged: bool = False,
@@ -213,7 +225,8 @@ class CWT(CBORProcessor):
         Encode CWT claims and encrypt it.
 
         Args:
-            claims (Union[Dict[int, Any], bytes]): CWT claims.
+            claims (Claims, Union[Dict[int, Any], bytes]): A CWT claims object or byte
+            string.
             key (COSEKey): A COSE key used to encrypt the claims.
             nonce (bytes): A nonce for encryption.
             recipients (List[Recipient]): A list of recipient information structures.
@@ -225,7 +238,10 @@ class CWT(CBORProcessor):
             ValueError: Invalid arguments.
             EncodeError: Failed to encode the claims.
         """
-        self._validate(claims)
+        if not isinstance(claims, Claims):
+            self._validate(claims)
+        else:
+            claims = claims.to_dict()
         self._set_default_value(claims)
         protected: Dict[int, Any] = {1: key.alg}
         unprotected: Dict[int, Any] = {4: key.kid} if key.kid else {}
@@ -276,7 +292,7 @@ class CWT(CBORProcessor):
 
     def _encode(
         self,
-        claims: Union[Dict[Any, Any], bytes],
+        claims: Union[Claims, Dict[Any, Any], bytes],
         key: COSEKey,
         nonce: bytes = b"",
         tagged: bool = False,
@@ -304,36 +320,7 @@ class CWT(CBORProcessor):
             if nested.tag not in [16, 96, 17, 97, 18, 98]:
                 raise ValueError(f"Unsupported or unknown CBOR tag({nested.tag}).")
             return
-        if -260 in claims and not isinstance(claims[-260], dict):
-            raise ValueError("hcert(-260) should be map.")
-        if -259 in claims and not isinstance(claims[-259], bytes):
-            raise ValueError("EUPHNonce(-259) should be bstr.")
-        if -258 in claims and not isinstance(claims[-258], bytes):
-            raise ValueError("EATMAROEPrefix(-258) should be bstr.")
-        if -257 in claims and not isinstance(claims[-257], list):
-            raise ValueError("EAT-FDO(-257) should be array.")
-        if 1 in claims and not isinstance(claims[1], str):
-            raise ValueError("iss(1) should be str.")
-        if 2 in claims and not isinstance(claims[2], str):
-            raise ValueError("sub(2) should be str.")
-        if 3 in claims and not isinstance(claims[3], str):
-            raise ValueError("aud(3) should be str.")
-        if 4 in claims and not (
-            isinstance(claims[4], int) or isinstance(claims[4], float)
-        ):
-            raise ValueError("exp(4) should be int or float.")
-        if 5 in claims and not (
-            isinstance(claims[5], int) or isinstance(claims[5], float)
-        ):
-            raise ValueError("nbf(5) should be int or float.")
-        if 6 in claims and not (
-            isinstance(claims[6], int) or isinstance(claims[6], float)
-        ):
-            raise ValueError("iat(6) should be int or float.")
-        if 7 in claims and not isinstance(claims[7], bytes):
-            raise ValueError("cti(7) should be bytes.")
-        if 8 in claims and not isinstance(claims[8], dict):
-            raise ValueError("cnf(7) should be map.")
+        self._claims.validate(claims)
         return
 
     def _verify(self, claims: Dict[int, Any]):

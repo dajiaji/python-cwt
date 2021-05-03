@@ -12,7 +12,16 @@ import cbor2
 import pytest
 from cbor2 import CBORTag
 
-from cwt import CWT, COSEKey, DecodeError, EncodeError, Recipient, VerifyError, cose_key
+from cwt import (
+    CWT,
+    COSEKey,
+    DecodeError,
+    EncodeError,
+    Recipient,
+    VerifyError,
+    claims,
+    cose_key,
+)
 
 from .utils import key_path, now
 
@@ -57,6 +66,19 @@ class TestCWT:
             CWT(options=invalid)
             pytest.fail("CWT() should fail.")
         assert "should be" in str(err.value)
+
+    def test_cwt_encode_with_claims_object(self, ctx):
+        key = cose_key.from_symmetric_key(alg="HS256")
+        token = ctx.encode(
+            claims.from_json(
+                {"iss": "https://as.example", "sub": "someone", "cti": b"123"}
+            ),
+            key,
+        )
+        decoded = ctx.decode(token, key)
+        assert 1 in decoded and decoded[1] == "https://as.example"
+        assert 2 in decoded and decoded[2] == "someone"
+        assert 7 in decoded and decoded[7] == b"123"
 
     @pytest.mark.parametrize(
         "invalid_key",

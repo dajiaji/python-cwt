@@ -39,11 +39,57 @@ class TestClaimsBuilder:
         ],
     )
     def test_claims_builder_from_json(self, ctx, json, expected):
-        claims = ctx.from_json(json)
+        claims = ctx.from_json(json).to_dict()
         for k, v in claims.items():
             assert v == expected[k]
             assert isinstance(v, type(expected[k]))
         len(claims) == len(expected)
+
+    @pytest.mark.parametrize(
+        "json",
+        [
+            {
+                "iss": "coap://as.example.com",
+                "sub": "erikw",
+                "aud": "coap://light.example.com",
+                "cti": "123",
+                "exp": 1444064944,
+                "nbf": 1443944944,
+                "iat": 1443944944,
+                "cnf": {
+                    "jwk": {
+                        "kty": "OKP",
+                        "use": "sig",
+                        "crv": "Ed25519",
+                        "kid": "01",
+                        "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+                        "alg": "EdDSA",
+                    },
+                },
+            },
+        ],
+    )
+    def test_claims_builder_from_json_with_cnf(self, ctx, json):
+        claims = ctx.from_json(json)
+        assert claims.iss == "coap://as.example.com"
+        assert claims.sub == "erikw"
+        assert claims.aud == "coap://light.example.com"
+        assert claims.cti == "123"
+        assert claims.exp == 1444064944
+        assert claims.nbf == 1443944944
+        assert claims.iat == 1443944944
+        assert isinstance(claims.cnf, dict)
+
+    def test_claims_builder_from_json_with_empty_object(self, ctx):
+        claims = ctx.from_json({})
+        assert claims.iss is None
+        assert claims.sub is None
+        assert claims.aud is None
+        assert claims.cti is None
+        assert claims.exp is None
+        assert claims.nbf is None
+        assert claims.iat is None
+        assert claims.cnf is None
 
     @pytest.mark.parametrize(
         "invalid, msg",
@@ -74,6 +120,6 @@ class TestClaimsBuilder:
                 "iss": "coap://as.example.com",
                 "unknown": "something",
             }
-        )
+        ).to_dict()
         assert len(claims) == 1
         assert claims[1] == "coap://as.example.com"
