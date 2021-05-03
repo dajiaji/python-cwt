@@ -70,6 +70,32 @@ Create a Signed CWT, verify and decode it with the key pair as follows:
 
     decoded = cwt.decode(token, public_key)
 
+JWKs can also be used instead of the PEM-formatted keys as follows:
+    
+.. code-block:: python
+
+    private_key = cose_key.from_jwk(
+        "kty": "OKP",
+        "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
+        "use": "sig",
+        "crv": "Ed25519",
+        "kid": "01",
+        "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+        "alg": "EdDSA",
+    )
+    public_key = cose_key.from_jwk(
+        "kty": "OKP",
+        "use": "sig",
+        "crv": "Ed25519",
+        "kid": "01",
+        "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+    )
+    
+    token = cwt.encode(
+        {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
+    )
+    decoded = cwt.decode(token, public_key)
+
 Algorithms other than ``Ed25519`` are also supported. The following is an example of ``ES256``:
 
 .. code-block:: console
