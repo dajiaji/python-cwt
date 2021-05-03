@@ -207,7 +207,7 @@ token = cwt.encode(
 
 On the CWT presenter side:
 
-```
+```py
 # Prepares a private PoP key in advance.
 with open("./private_pop_key.pem") as key_file:
     pop_key_private = cose_key.from_pem(key_file.read())
