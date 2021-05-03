@@ -85,17 +85,42 @@ Create a Signed CWT with `Ed25519`, verify and decode it with the key pair as fo
 import cwt
 from cwt import cose_key
 
-# Load PEM-formatted keys as COSE keys.
 with open("./private_key.pem") as key_file:
     private_key = cose_key.from_pem(key_file.read())
 with open("./public_key.pem") as key_file:
     public_key = cose_key.from_pem(key_file.read())
 
 
-# Encode with Ed25519 signing.
-token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key)
+token = cwt.encode(
+    {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
+)
 
-# Verify and decode.
+decoded = cwt.decode(token, public_key)
+```
+
+JWKs can also be used instead of the PEM-formatted keys as follows:
+
+```py
+private_key = cose_key.from_jwk(
+    "kty": "OKP",
+    "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
+    "use": "sig",
+    "crv": "Ed25519",
+    "kid": "01",
+    "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+    "alg": "EdDSA",
+)
+public_key = cose_key.from_jwk(
+    "kty": "OKP",
+    "use": "sig",
+    "crv": "Ed25519",
+    "kid": "01",
+    "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+)
+
+token = cwt.encode(
+    {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
+)
 decoded = cwt.decode(token, public_key)
 ```
 
@@ -127,20 +152,21 @@ Create a signed CWT and encrypt it, and then decrypt and verify the nested CWT a
 import cwt
 from cwt import cose_key
 
-# Load PEM-formatted keys as COSE keys.
 with open("./private_key.pem") as key_file:
     private_key = cose_key.from_pem(key_file.read())
 with open("./public_key.pem") as key_file:
     public_key = cose_key.from_pem(key_file.read())
 
-# Encode with ES256 signing.
-token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "124"}, private_key)
+# Creates a CWT with ES256 signing.
+token = cwt.encode(
+    {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
+)
 
-# Encrypt the signed CWT.
+# Encrypts the signed CWT.
 enc_key = cose_key.from_symmetric_key(alg="ChaCha20/Poly1305")
 nested = cwt.encode(token, enc_key)
 
-# Decrypt and verify the nested CWT.
+# Decrypts and verifies the nested CWT.
 decoded = cwt.decode(nested, [enc_key, public_key])
 ```
 
@@ -149,37 +175,60 @@ decoded = cwt.decode(nested, [enc_key, public_key])
 This library supports [Proof-of-Possession Key Semantics for CBOR Web Tokens (CWTs)](https://tools.ietf.org/html/rfc8747).
 A CWT can include a PoP key as follows:
 
-```py
-# An issuer prepares a signing key for CWT in advance.
-with open(key_path("private_key_ed25519.pem")) as key_file:
-    private_key = cose_key.from_pem(key_file.read())
+On the issuer side:
 
-# Prepares the presenter's PoP key.
-with open(key_path("public_key_es256.pem")) as key_file:
-    pop_key = cose_key.from_pem(key_file.read())
+```py
+# Prepares a signing key for CWT in advance.
+with open(key_path("private_key_of_issuer.pem")) as key_file:
+    private_key = cose_key.from_pem(key_file.read())
 
 # Sets the PoP key to a CWT for the presenter.
 token = cwt.encode(
     {
-        1: "coaps://as.example",  # iss
-        2: "dajiaji",  # sub
-        7: b"123",  # cti
-        8: {  # cnf
-            1: pop_key.to_dict(),
+        "iss": "coaps://as.example",
+        "sub": "dajiaji",
+        "cti": "123",
+        "cnf": {
+            "jwk": {  # Provided by the CWT presenter.
+                "kty": "OKP",
+                "use": "sig",
+                "crv": "Ed25519",
+                "kid": "01",
+                "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+                "alg": "EdDSA",
+            },
         },
     },
     private_key,
 )
+
+# Issues the token to the presenter.
 ```
 
-On the CWT recipient side, extracts the PoP key and uses it as follows:
+On the CWT presenter side:
+
+```
+# Prepares a private PoP key in advance.
+with open("./private_pop_key.pem") as key_file:
+    pop_key_private = cose_key.from_pem(key_file.read())
+
+# Receives a message (e.g., nonce)  from the recipient.
+msg = b"could-you-sign-this-message?"  # Provided by recipient.
+
+# Signs the message with the private PoP key.
+sig = pop_key_private.sign(msg)
+
+# Sends the msg and the sig with the CWT to the recipient.
+```
+
+On the CWT recipient side:
 
 ```py
-# A CWT recipient prepares the public key of the issuer in advance.
-with open(key_path("public_key_ed25519.pem")) as key_file:
+# Prepares the public key of the issuer in advance.
+with open(key_path("public_key_of_issuer.pem")) as key_file:
     public_key = cose_key.from_pem(key_file.read())
 
-# Verifies and decodes the CWT received.
+# Verifies and decodes the CWT received from the presenter.
 decoded = cwt.decode(token, public_key)
 
 # Extracts the PoP key from the CWT.
@@ -187,7 +236,7 @@ extracted_pop_key = cose_key.from_dict(decoded[8][1]) #  8:cnf, 1:COSE_Key
 
 # Then, verifies the message sent by the presenter
 # with the signature which is also sent by the presenter as follows:
-#    extracted_pop_key.verify(message, signature)
+extracted_pop_key.verify(msg, sig)
 ```
 
 [Usage Examples](https://python-cwt.readthedocs.io/en/latest/usage.html#cwt-with-pop-key) shows other examples which
