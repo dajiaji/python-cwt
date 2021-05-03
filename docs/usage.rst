@@ -74,22 +74,29 @@ JWKs can also be used instead of the PEM-formatted keys as follows:
 
 .. code-block:: python
 
-    private_key = cose_key.from_jwk({
-        "kty": "OKP",
-        "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
-        "use": "sig",
-        "crv": "Ed25519",
-        "kid": "01",
-        "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
-        "alg": "EdDSA",
-    })
-    public_key = cose_key.from_jwk({
-        "kty": "OKP",
-        "use": "sig",
-        "crv": "Ed25519",
-        "kid": "01",
-        "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
-    })
+    import cwt
+    from cwt import cose_key
+
+    private_key = cose_key.from_jwk(
+        {
+            "kty": "OKP",
+            "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
+            "use": "sig",
+            "crv": "Ed25519",
+            "kid": "01",
+            "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+            "alg": "EdDSA",
+        }
+    )
+    public_key = cose_key.from_jwk(
+        {
+            "kty": "OKP",
+            "use": "sig",
+            "crv": "Ed25519",
+            "kid": "01",
+            "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+        }
+    )
 
     token = cwt.encode(
         {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
@@ -190,6 +197,9 @@ On the issuer side:
 
 .. code-block:: python
 
+    import cwt
+    from cwt import cose_key
+
     # Prepares a signing key for CWT in advance.
     with open(key_path("private_key_of_issuer.pem")) as key_file:
         private_key = cose_key.from_pem(key_file.read())
@@ -220,6 +230,9 @@ On the CWT presenter side:
 
 .. code-block:: python
 
+    import cwt
+    from cwt import cose_key
+
     # Prepares a private PoP key in advance.
     with open("./private_pop_key.pem") as key_file:
         pop_key_private = cose_key.from_pem(key_file.read())
@@ -236,15 +249,19 @@ On the CWT recipient side:
 
 .. code-block:: python
 
+    import cwt
+    from cwt import claims, cose_key
+
     # Prepares the public key of the issuer in advance.
     with open(key_path("public_key_of_issuer.pem")) as key_file:
         public_key = cose_key.from_pem(key_file.read())
 
     # Verifies and decodes the CWT received from the presenter.
-    decoded = cwt.decode(token, public_key)
+    raw = cwt.decode(token, public_key)
+    decoded = claims.from_dict(raw)
 
     # Extracts the PoP key from the CWT.
-    extracted_pop_key = cose_key.from_dict(decoded[8][1])  #  8:cnf, 1:COSE_Key
+    extracted_pop_key = cose_key.from_dict(decoded.cnf)  #  = raw[8][1]
 
     # Then, verifies the message sent by the presenter
     # with the signature which is also sent by the presenter as follows:
@@ -253,6 +270,9 @@ On the CWT recipient side:
 In case of another PoP confirmation method ``Encrypted_COSE_Key``:
 
 .. code-block:: python
+
+    import cwt
+    from cwt import claims, cose_key
 
     with open(key_path("private_key_ed25519.pem")) as key_file:
         private_key = cose_key.from_pem(key_file.read())
@@ -281,13 +301,17 @@ In case of another PoP confirmation method ``Encrypted_COSE_Key``:
 
     with open(key_path("public_key_ed25519.pem")) as key_file:
         public_key = cose_key.from_pem(key_file.read())
-    decoded = cwt.decode(token, public_key)
-    extracted_pop_key = cose_key.from_encrypted_cose_key(decoded[8][2], enc_key)
+    raw = cwt.decode(token, public_key)
+    decoded = claims.from_dict(raw)
+    extracted_pop_key = cose_key.from_encrypted_cose_key(decoded.cnf, enc_key)
     # extracted_pop_key.verify(message, signature)
 
 In case of another PoP confirmation method ``kid``:
 
 .. code-block:: python
+
+    import cwt
+    from cwt import claims, cose_key
 
     with open(key_path("private_key_ed25519.pem")) as key_file:
         private_key = cose_key.from_pem(key_file.read())
@@ -306,7 +330,8 @@ In case of another PoP confirmation method ``kid``:
 
     with open(key_path("public_key_ed25519.pem")) as key_file:
         public_key = cose_key.from_pem(key_file.read())
-    decoded = cwt.decode(token, public_key)
-    # decoded[8][3] is kid.
+    raw = cwt.decode(token, public_key)
+    decoded = claims.from_dict(raw)
+    # decoded.cnf(=raw[8][3]) is kid.
 
 .. _`Supported COSE Algorithms`: ./algorithms.html

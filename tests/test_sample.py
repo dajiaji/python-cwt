@@ -430,7 +430,8 @@ class TestSample:
         decoded = cwt.decode(token, public_key)
         assert 8 in decoded and isinstance(decoded[8], dict)
         assert 1 in decoded[8] and isinstance(decoded[8][1], dict)
-        extracted = cose_key.from_dict(decoded[8][1])
+        c = claims.from_dict(decoded)
+        extracted = cose_key.from_dict(c.cnf)
         try:
             extracted.verify(msg, sig)
         except Exception:
@@ -465,7 +466,8 @@ class TestSample:
         decoded = cwt.decode(token, public_key)
         assert 8 in decoded and isinstance(decoded[8], dict)
         assert 2 in decoded[8] and isinstance(decoded[8][2], list)
-        extracted = cose_key.from_encrypted_cose_key(decoded[8][2], enc_key)
+        c = claims.from_dict(decoded)
+        extracted = cose_key.from_encrypted_cose_key(c.cnf, enc_key)
         assert extracted.kty == 4  # Symmetric
         assert extracted.alg == 5  # HMAC 256/256
         assert extracted.key == b"a-client-secret-of-cwt-presenter"
@@ -491,6 +493,8 @@ class TestSample:
         decoded = cwt.decode(token, public_key)
         assert 8 in decoded and isinstance(decoded[8], dict)
         assert 3 in decoded[8] and decoded[8][3] == b"pop-key-id-of-cwt-presenter"
+        c = claims.from_dict(decoded)
+        assert c.cnf == "pop-key-id-of-cwt-presenter"
 
     def test_sample_readme_cwt_with_pop_cose_key(self):
         with open(key_path("private_key_ed25519.pem")) as key_file:

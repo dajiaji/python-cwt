@@ -1,6 +1,7 @@
 import json
 from typing import Any, Dict, Optional, Union
 
+from .claims import Claims
 from .const import CWT_CLAIM_NAMES
 from .key_builder import KeyBuilder
 
@@ -22,12 +23,37 @@ class ClaimsBuilder:
         self._key_builder = KeyBuilder()
         return
 
-    def from_json(self, claims: Union[str, bytes, Dict[str, Any]]) -> Dict[int, Any]:
+    def from_dict(self, claims: Dict[int, Any]) -> Claims:
         """
-        Convert JSON-formatted claims into CBOR-formatted claims
-        which has numeric keys.
-        If a key string in JSON data cannot be mapped to a numeric key,
+        Create a Claims object from a CBOR-like(Dict[int, Any]) claim object.
+
+
+        Args:
+            claims (Dict[str, Any]): A CBOR-like(Dict[int, Any]) claim object.
+
+        Returns:
+            Claims: A CWT claims object.
+
+        Raises:
+            ValueError: Invalid arguments.
+        """
+        return Claims(claims)
+
+    def from_json(self, claims: Union[str, bytes, Dict[str, Any]]) -> Claims:
+        """
+        Converts a JWT claims object into a CWT claims object which has numeric
+        keys. If a key string in JSON data cannot be mapped to a numeric key,
         it will be skipped.
+
+        Args:
+            claims (Union[str, bytes, Dict[str, Any]]): A JWT claims object
+                to be converted.
+
+        Returns:
+            Claims: A CWT claims object.
+
+        Raises:
+            ValueError: Invalid arguments.
         """
         json_claims: Dict[str, Any] = {}
         if isinstance(claims, str) or isinstance(claims, bytes):
@@ -68,7 +94,20 @@ class ClaimsBuilder:
         for i in [-259, -258, 7]:
             if i in cbor_claims and isinstance(cbor_claims[i], str):
                 cbor_claims[i] = cbor_claims[i].encode("utf-8")
-        return cbor_claims
+        return Claims(cbor_claims)
+
+    def validate(self, claims: Dict[int, Any]):
+        """
+        Validates a CWT claims object.
+
+        Args:
+            claims (Dict[int, Any]): A CWT claims object to be validated.
+
+        Raises:
+            ValueError: Failed to verify.
+        """
+        Claims(claims)
+        return
 
 
 # export
