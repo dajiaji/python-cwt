@@ -184,6 +184,19 @@ class TestHMACKey:
             pytest.fail("HMACKey should fail.")
         assert msg in str(err.value)
 
+    def test_hmac_key_sign_with_invalid_args(self):
+        key = HMACKey(
+            {
+                1: 4,
+                -1: b"mysecret",
+                3: 5,  # HMAC 256/256
+            }
+        )
+        with pytest.raises(EncodeError) as err:
+            key.sign(123)
+            pytest.fail("sign should fail.")
+        assert "Failed to sign." in str(err.value)
+
     def test_hmac_key_verify_with_invalid_signature(self):
         key = HMACKey(
             {
@@ -202,6 +215,7 @@ class TestHMACKey:
         sig = key.sign(b"Hello world!")
         with pytest.raises(VerifyError) as err:
             key.verify(b"Hello world!", sig + b"xxx")
+            pytest.fail("verify should fail.")
         assert "Failed to compare digest." in str(err.value)
 
 
