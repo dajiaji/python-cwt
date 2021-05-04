@@ -44,7 +44,6 @@ nitpick_ignore = [
     ("py:class", "cwt.exceptions.CWTError"),
     ("py:class", "cwt.recipient.Recipient"),
     ("py:class", "CBORTag"),
-    ("py:class", "Claims"),
     ("py:class", "cwt.claims.Claims"),
 ]
 

@@ -110,9 +110,19 @@ class TestClaimsBuilder:
     )
     def test_claims_builder_from_json_with_invalid_arg(self, ctx, invalid, msg):
         with pytest.raises(ValueError) as err:
-            res = ctx.from_json(invalid)
-            pytest.fail("from_json should fail: res=%s" % res)
+            ctx.from_json(invalid)
+            pytest.fail("from_json should fail.")
         assert msg in str(err.value)
+
+    def test_claims_builder_from_json_with_undefined_key(self, ctx):
+        ctx.set_private_claim_names({"ext": -70001})
+        claims = ctx.from_json(
+            {
+                "iss": "coap://as.example.com",
+                "ext1": "foo",
+            }
+        )
+        assert claims.get("ext1") is None
 
     def test_claims_builder_from_json_with_unknown_key(self, ctx):
         claims = ctx.from_json(
@@ -123,3 +133,21 @@ class TestClaimsBuilder:
         ).to_dict()
         assert len(claims) == 1
         assert claims[1] == "coap://as.example.com"
+
+    def test_claims_builder_set_private_claim_names(self, ctx):
+        ctx.set_private_claim_names({"ext": -70001})
+        claims = ctx.from_json(
+            {
+                "iss": "coap://as.example.com",
+                "ext": "foo",
+            }
+        ).to_dict()
+        assert len(claims) == 2
+        assert claims[1] == "coap://as.example.com"
+        assert claims[-70001] == "foo"
+
+    def test_claims_builder_set_private_claim_names_with_invalid_key(self, ctx):
+        with pytest.raises(ValueError) as err:
+            ctx.set_private_claim_names({"ext": -60001})
+            pytest.fail("set_private_claim_names should fail.")
+        assert "The claim key should be less than -65536." in str(err.value)

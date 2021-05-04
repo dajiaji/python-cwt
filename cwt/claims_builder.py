@@ -21,6 +21,8 @@ class ClaimsBuilder:
         """
         self._options = options
         self._key_builder = KeyBuilder()
+        self._private_claim_names: Dict[str, int] = {}
+        self._claim_names = dict(CWT_CLAIM_NAMES, **self._private_claim_names)
         return
 
     def from_dict(self, claims: Dict[int, Any]) -> Claims:
@@ -37,7 +39,7 @@ class ClaimsBuilder:
         Raises:
             ValueError: Invalid arguments.
         """
-        return Claims(claims)
+        return Claims(claims, self._claim_names)
 
     def from_json(self, claims: Union[str, bytes, Dict[str, Any]]) -> Claims:
         """
@@ -70,9 +72,9 @@ class ClaimsBuilder:
         cbor_claims: Dict[int, Any] = {}
         for k, v in json_claims.items():
             if k not in CWT_CLAIM_NAMES:
-                # TODO Support additional arguments.
-                continue
-            if k == "cnf":
+                if k in self._private_claim_names:
+                    cbor_claims[self._private_claim_names[k]] = v
+            elif k == "cnf":
                 if not isinstance(v, dict):
                     raise ValueError("cnf value should be dict.")
                 if "jwk" in v:
@@ -94,7 +96,26 @@ class ClaimsBuilder:
         for i in [-259, -258, 7]:
             if i in cbor_claims and isinstance(cbor_claims[i], str):
                 cbor_claims[i] = cbor_claims[i].encode("utf-8")
-        return Claims(cbor_claims)
+        return Claims(cbor_claims, self._claim_names)
+
+    def set_private_claim_names(self, claim_names: Dict[str, int]):
+        """
+        Sets private claim definitions. The definitions will be used
+        in :func:`from_json <cwt.ClaimsBuilder.from_json>`.
+
+        Args:
+            claims (Dict[str, int]): A set of private claim definitions which
+                consist of a readable claim name(str) and a claim key(int).
+                The claim key should be less than -65536.
+        Raises:
+            ValueError: Invalid arguments.
+        """
+        for v in claim_names.values():
+            if v >= -65536:
+                raise ValueError("The claim key should be less than -65536.")
+        self._private_claim_names = claim_names
+        self._claim_names = dict(CWT_CLAIM_NAMES, **self._private_claim_names)
+        return
 
     def validate(self, claims: Dict[int, Any]):
         """
