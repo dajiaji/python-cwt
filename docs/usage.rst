@@ -1,6 +1,35 @@
 Usage Examples
 ==============
 
+The following is the simplest sample code.
+
+.. code-block:: pycon
+
+    >>> import cwt
+    >>> from cwt import claims, cose_key
+    >>> key = cose_key.from_symmetric_key(alg="HS256")
+    >>> token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
+    >>> token.hex()
+    'd18443a10105a05835a60172636f6170733a2f2f61732e6578616d706c65026764616a69616a69'
+    '0743313233041a609097b7051a609089a7061a609089a758201fad9b0a76803194bd11ca9b9b3c'
+    'bbf1028005e15321665a768994f38c7127f7'
+    >>> decoded = cwt.decode(token, key)
+    >>> decoded
+    {1: 'coaps://as.example', 2: 'dajiaji', 7: b'123',
+     4: 1620088759, 5: 1620085159, 6: 1620085159}
+    >>> readable = claims.from_dict(decoded)
+    >>> readable.iss
+    'coaps://as.example'
+    >>> readable.sub
+    'dajiaji'
+    >>> readable.exp
+    1620088759
+
+This page shows various examples to use this library. Specific examples are as follows:
+
+.. contents::
+   :local:
+
 MACed CWT
 ---------
 
