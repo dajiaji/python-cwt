@@ -372,7 +372,7 @@ class TestKeyBuilder:
         assert msg in str(err.value)
 
     def test_key_builder_to_encrypted_cose_key_with_nonce(self, ctx):
-        nonce = token_bytes(16)
+        nonce = token_bytes(12)
         enc_key = cose_key.from_symmetric_key(alg="ChaCha20/Poly1305")
         pop_key = cose_key.from_symmetric_key(alg="HMAC 256/256")
         res = cose_key.to_encrypted_cose_key(pop_key, enc_key, nonce=nonce)
