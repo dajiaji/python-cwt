@@ -11,6 +11,7 @@ import cbor2
 import pytest
 from cbor2 import CBORTag
 
+import cwt
 from cwt import COSE, cose_key
 
 from .utils import key_path
@@ -177,9 +178,53 @@ class TestCOSE:
     )
     def test_cose_decode_with_invalid_data(self, ctx, invalid, msg):
         with open(key_path("public_key_es256.pem")) as key_file:
-            public_key = cose_key.from_pem(key_file.read(), kid="1")
+            public_key = cose_key.from_pem(key_file.read(), kid="01")
 
         with pytest.raises(ValueError) as err:
             ctx.decode(invalid, public_key)
             pytest.fail("decode should fail.")
         assert msg in str(err.value)
+
+    def test_cose_decode_mac0_with_invalid_multiple_keys(self, ctx):
+        key1 = cose_key.from_symmetric_key(alg="HS256")
+        key2 = cose_key.from_symmetric_key(alg="HS256")
+        encoded = cwt.encode({"iss": "coap://as.example"}, key1)
+        with pytest.raises(ValueError) as err:
+            ctx.decode(encoded, [key1, key2])
+            pytest.fail("decode should fail.")
+        assert "key is not specified." in str(err.value)
+
+    def test_cose_decode_encrypt0_with_invalid_multiple_keys(self, ctx):
+        key1 = cose_key.from_symmetric_key(alg="ChaCha20/Poly1305")
+        key2 = cose_key.from_symmetric_key(alg="ChaCha20/Poly1305")
+        encoded = cwt.encode({"iss": "coap://as.example"}, key1)
+        with pytest.raises(ValueError) as err:
+            ctx.decode(encoded, [key1, key2])
+            pytest.fail("decode should fail.")
+        assert "key is not specified." in str(err.value)
+
+    def test_cose_decode_signature1_with_invalid_multiple_keys(self, ctx):
+        with open(key_path("public_key_es256.pem")) as key_file:
+            key1 = cose_key.from_pem(key_file.read())
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            key2 = cose_key.from_pem(key_file.read())
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            private_key = cose_key.from_pem(key_file.read())
+        encoded = cwt.encode({"iss": "coap://as.example"}, private_key)
+        with pytest.raises(ValueError) as err:
+            ctx.decode(encoded, [key1, key2])
+            pytest.fail("decode should fail.")
+        assert "key is not specified." in str(err.value)
+
+    def test_cose_decode_with_key_not_found(self, ctx):
+        with open(key_path("public_key_es256.pem")) as key_file:
+            key1 = cose_key.from_pem(key_file.read(), kid="01")
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            key2 = cose_key.from_pem(key_file.read(), kid="02")
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            private_key = cose_key.from_pem(key_file.read(), kid="03")
+        encoded = cwt.encode({"iss": "coap://as.example"}, private_key)
+        with pytest.raises(ValueError) as err:
+            ctx.decode(encoded, [key1, key2])
+            pytest.fail("decode should fail.")
+        assert "key is not specified." in str(err.value)

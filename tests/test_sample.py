@@ -350,9 +350,9 @@ class TestSample:
 
     def test_sample_readme_nested_cwt_old(self):
         with open(key_path("private_key_es256.pem")) as key_file:
-            private_key = cose_key.from_pem(key_file.read())
+            private_key = cose_key.from_pem(key_file.read(), kid="01")
         with open(key_path("public_key_es256.pem")) as key_file:
-            public_key = cose_key.from_pem(key_file.read())
+            public_key = cose_key.from_pem(key_file.read(), kid="01")
 
         encoded = cwt.encode_and_sign(
             claims.from_json(
@@ -363,13 +363,31 @@ class TestSample:
 
         nonce = token_bytes(13)
         mysecret = token_bytes(32)
-        enc_key = cose_key.from_symmetric_key(mysecret, alg="AES-CCM-16-64-256")
+        enc_key = cose_key.from_symmetric_key(
+            mysecret, alg="AES-CCM-16-64-256", kid="02"
+        )
         nested = cwt.encode_and_encrypt(encoded, enc_key, nonce=nonce)
 
         decoded = cwt.decode(nested, [enc_key, public_key])
         assert 1 in decoded and decoded[1] == "coaps://as.example"
 
     def test_sample_readme_nested_cwt(self):
+        with open(key_path("private_key_es256.pem")) as key_file:
+            private_key = cose_key.from_pem(key_file.read(), kid="01")
+        with open(key_path("public_key_es256.pem")) as key_file:
+            public_key = cose_key.from_pem(key_file.read(), kid="01")
+
+        token = cwt.encode(
+            {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
+        )
+
+        enc_key = cose_key.from_symmetric_key(alg="ChaCha20/Poly1305", kid="02")
+        nested = cwt.encode(token, enc_key)
+
+        decoded = cwt.decode(nested, [enc_key, public_key])
+        assert 1 in decoded and decoded[1] == "coaps://as.example"
+
+    def test_sample_readme_nested_cwt_without_kid(self):
         with open(key_path("private_key_es256.pem")) as key_file:
             private_key = cose_key.from_pem(key_file.read())
         with open(key_path("public_key_es256.pem")) as key_file:
@@ -645,6 +663,24 @@ class TestSample:
         assert readable.get("ext_2")[0] == "bar"
         assert readable.get("ext_3")["baz"] == "qux"
         assert readable.get("ext_4") == 123
+
+    def test_sample_readme_decode_with_multiple_keys(self):
+        with open(key_path("public_key_es256.pem")) as key_file:
+            public_key_1 = cose_key.from_pem(key_file.read(), kid="01")
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            public_key_2 = cose_key.from_pem(key_file.read(), kid="02")
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            private_key = cose_key.from_pem(key_file.read(), kid="02")
+        token = cwt.encode(
+            {
+                "iss": "coaps://as.example",
+                "sub": "dajiaji",
+                "cti": b"123",
+            },
+            private_key,
+        )
+        decoded = cwt.decode(token, [public_key_1, public_key_2])
+        assert 1 in decoded and decoded[1] == "coaps://as.example"
 
     def test_sample_rfc8392_a3(self):
         key = cose_key.from_bytes(bytes.fromhex(SAMPLE_COSE_KEY_RFC8392_A2_3))
