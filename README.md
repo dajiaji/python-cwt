@@ -109,9 +109,9 @@ import cwt
 from cwt import cose_key
 
 with open("./private_key.pem") as key_file:
-    private_key = cose_key.from_pem(key_file.read())
+    private_key = cose_key.from_pem(key_file.read(), kid="01")
 with open("./public_key.pem") as key_file:
-    public_key = cose_key.from_pem(key_file.read())
+    public_key = cose_key.from_pem(key_file.read(), kid="01")
 
 
 token = cwt.encode(
@@ -179,9 +179,9 @@ import cwt
 from cwt import cose_key
 
 with open("./private_key.pem") as key_file:
-    private_key = cose_key.from_pem(key_file.read())
+    private_key = cose_key.from_pem(key_file.read(), kid="01")
 with open("./public_key.pem") as key_file:
-    public_key = cose_key.from_pem(key_file.read())
+    public_key = cose_key.from_pem(key_file.read(), kid="01")
 
 # Creates a CWT with ES256 signing.
 token = cwt.encode(
@@ -207,9 +207,9 @@ import cwt
 from cwt import cose_key
 
 with open("./private_key.pem") as key_file:
-    private_key = cose_key.from_pem(key_file.read())
+    private_key = cose_key.from_pem(key_file.read(), kid="01")
 with open("./public_key.pem") as key_file:
-    public_key = cose_key.from_pem(key_file.read())
+    public_key = cose_key.from_pem(key_file.read(), kid="01")
 token = cwt.encode(
     {
         1: "coaps://as.example",  # iss
@@ -241,9 +241,9 @@ import cwt
 from cwt import claims, cose_key
 
 with open("./private_key.pem") as key_file:
-    private_key = cose_key.from_pem(key_file.read())
+    private_key = cose_key.from_pem(key_file.read(), kid="01")
 with open("./public_key.pem") as key_file:
-    public_key = cose_key.from_pem(key_file.read())
+    public_key = cose_key.from_pem(key_file.read(), kid="01")
 
 cwt.set_private_claim_names(
     {
@@ -295,7 +295,7 @@ from cwt import cose_key
 
 # Prepares a signing key for CWT in advance.
 with open("./private_key_of_issuer.pem") as key_file:
-    private_key = cose_key.from_pem(key_file.read())
+    private_key = cose_key.from_pem(key_file.read(), kid="issuer-01")
 
 # Sets the PoP key to a CWT for the presenter.
 token = cwt.encode(
@@ -328,7 +328,7 @@ from cwt import cose_key
 
 # Prepares a private PoP key in advance.
 with open("./private_pop_key.pem") as key_file:
-    pop_key_private = cose_key.from_pem(key_file.read())
+    pop_key_private = cose_key.from_pem(key_file.read(), kid="01")
 
 # Receives a message (e.g., nonce)  from the recipient.
 msg = b"could-you-sign-this-message?"  # Provided by recipient.
@@ -347,7 +347,7 @@ from cwt import claims, cose_key
 
 # Prepares the public key of the issuer in advance.
 with open("./public_key_of_issuer.pem") as key_file:
-    public_key = cose_key.from_pem(key_file.read())
+    public_key = cose_key.from_pem(key_file.read(), kid="issuer-01")
 
 # Verifies and decodes the CWT received from the presenter.
 raw = cwt.decode(token, public_key)

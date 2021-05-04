@@ -34,7 +34,7 @@ class COSE(CBORProcessor):
         out: str = "",
     ) -> Union[bytes, CBORTag]:
         """
-        Encode data and add MAC to it.
+        Encodes data with MAC.
 
         Args:
             protected (Dict[int, Any]): Parameters that are to be cryptographically
@@ -91,7 +91,7 @@ class COSE(CBORProcessor):
         out: str = "",
     ) -> Union[bytes, CBORTag]:
         """
-        Encode data and sign it.
+        Encodes data with signing.
 
         Args:
             protected (Dict[int, Any]): Parameters that are to be cryptographically
@@ -149,7 +149,7 @@ class COSE(CBORProcessor):
         out: str = "",
     ) -> bytes:
         """
-        Encode data and encrypt it.
+        Encodes data with encryption.
 
         Args:
             protected (Dict[int, Any]): Parameters that are to be cryptographically
@@ -197,9 +197,11 @@ class COSE(CBORProcessor):
         res = CBORTag(96, cose_enc)
         return res if out == "cbor2/CBORTag" else self._dumps(res)
 
-    def decode(self, data: Union[bytes, CBORTag], key: COSEKey) -> Dict[int, Any]:
+    def decode(
+        self, data: Union[bytes, CBORTag], key: Union[COSEKey, List[COSEKey]]
+    ) -> Dict[int, Any]:
         """
-        Verify and decode COSE data.
+        Verifies and decodes COSE data.
 
         Args:
             data (Union[bytes, CBORTag]): A byte string or cbor2.CBORTag of an
@@ -218,8 +220,11 @@ class COSE(CBORProcessor):
         if not isinstance(data, CBORTag):
             raise ValueError("Invalid COSE format.")
 
+        keys: List[COSEKey] = key if isinstance(key, list) else [key]
+
         # Encrypt0
         if data.tag == 16:
+            keys = self._filter_by_key_ops(keys, 4)
             if not isinstance(data.value, list) or len(data.value) != 3:
                 raise ValueError("Invalid Encrypt0 format.")
 
@@ -228,11 +233,15 @@ class COSE(CBORProcessor):
             if not isinstance(unprotected, dict):
                 raise ValueError("unprotected header should be dict.")
             nonce = unprotected.get(5, None)
-            payload = key.decrypt(data.value[2], nonce, aad)
+            k = self._get_key(keys, unprotected)
+            if not k:
+                raise ValueError("key is not specified.")
+            payload = k.decrypt(data.value[2], nonce, aad)
             return self._loads(payload)
 
         # Encrypt
         if data.tag == 96:
+            keys = self._filter_by_key_ops(keys, 4)
             if not isinstance(data.value, list) or len(data.value) != 4:
                 raise ValueError("Invalid Encrypt format.")
 
@@ -242,42 +251,52 @@ class COSE(CBORProcessor):
                 raise ValueError("unprotected header should be dict.")
             nonce = unprotected.get(5, None)
             recipients = self._recipients_builder.from_list(data.value[3])
-            enc_key = recipients.derive_key([key])
+            enc_key = recipients.derive_key(keys)
             payload = enc_key.decrypt(data.value[2], nonce, aad)
             return self._loads(payload)
 
         # MAC0
         if data.tag == 17:
+            keys = self._filter_by_key_ops(keys, 10)
             if not isinstance(data.value, list) or len(data.value) != 4:
                 raise ValueError("Invalid MAC0 format.")
 
             msg = self._dumps(["MAC0", data.value[0], b"", data.value[2]])
-            key.verify(msg, data.value[3])
+            k = self._get_key(keys, data.value[1])
+            if not k:
+                raise ValueError("key is not specified.")
+            k.verify(msg, data.value[3])
             return self._loads(data.value[2])
 
         # MAC
         if data.tag == 97:
+            keys = self._filter_by_key_ops(keys, 10)
             if not isinstance(data.value, list) or len(data.value) != 5:
                 raise ValueError("Invalid MAC format.")
             to_be_maced = self._dumps(["MAC", data.value[0], b"", data.value[2]])
             recipients = self._recipients_builder.from_list(data.value[4])
-            mac_auth_key = recipients.derive_key([key])
+            mac_auth_key = recipients.derive_key(keys)
             mac_auth_key.verify(to_be_maced, data.value[3])
             return self._loads(data.value[2])
 
         # Signature1
         if data.tag == 18:
+            keys = self._filter_by_key_ops(keys, 2)
             if not isinstance(data.value, list) or len(data.value) != 4:
                 raise ValueError("Invalid Signature1 format.")
 
             to_be_signed = self._dumps(
                 ["Signature1", data.value[0], b"", data.value[2]]
             )
-            key.verify(to_be_signed, data.value[3])
+            k = self._get_key(keys, data.value[1])
+            if not k:
+                raise ValueError("key is not specified.")
+            k.verify(to_be_signed, data.value[3])
             return self._loads(data.value[2])
 
         # Signature
         if data.tag == 98:
+            keys = self._filter_by_key_ops(keys, 2)
             if not isinstance(data.value, list) or len(data.value) != 4:
                 raise ValueError("Invalid Signature format.")
             sigs = data.value[3]
@@ -286,13 +305,37 @@ class COSE(CBORProcessor):
             for sig in sigs:
                 if not isinstance(sig, list) or len(sig) != 3:
                     raise ValueError("Invalid Signature format.")
-                uh = sig[1]
-                if uh[4] != key.kid:
+                k = self._get_key(keys, sig[1])
+                if not k:
                     continue
                 to_be_signed = self._dumps(
                     ["Signature", data.value[0], sig[0], b"", data.value[2]]
                 )
-                key.verify(to_be_signed, sig[2])
+                k.verify(to_be_signed, sig[2])
                 return self._loads(data.value[2])
             raise ValueError("Verification key not found.")
         raise ValueError(f"Unsupported or unknown CBOR tag({data.tag}).")
+
+    def _get_key(
+        self, keys: List[COSEKey], unprotected: Dict[int, Any]
+    ) -> Union[COSEKey, None]:
+        if len(keys) == 1:
+            if 4 in unprotected and keys[0].kid:
+                if unprotected[4] != keys[0].kid:
+                    return None
+            return keys[0]
+        if 4 not in unprotected:
+            return None
+        for k in keys:
+            if k.kid == unprotected[4]:
+                return k
+        return None
+
+    def _filter_by_key_ops(self, keys: List[COSEKey], op: int) -> List[COSEKey]:
+        res: List[COSEKey] = []
+        for k in keys:
+            if op in k.key_ops:
+                res.append(k)
+        if len(res) == 0:
+            res = keys
+        return res

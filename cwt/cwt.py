@@ -284,8 +284,8 @@ class CWT(CBORProcessor):
         if isinstance(cwt, CBORTag) and cwt.tag == CWT.CBOR_TAG:
             cwt = cwt.value
         keys: List[COSEKey] = [key] if isinstance(key, COSEKey) else key
-        for k in keys:
-            cwt = self._cose.decode(cwt, k)
+        while isinstance(cwt, CBORTag) or isinstance(cwt, bytes):
+            cwt = self._cose.decode(cwt, keys)
         if not no_verify:
             self._verify(cwt)
         return cwt

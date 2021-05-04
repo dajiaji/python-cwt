@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Make decode accept multiple keys. `#61 <https://github.com/dajiaji/python-cwt/pull/61>`__
 - Add set_private_claim_names to ClaimsBuilder and CWT. `#60 <https://github.com/dajiaji/python-cwt/pull/60>`__
 - Add sample of CWT with user-defined claims to docs. `#60 <https://github.com/dajiaji/python-cwt/pull/60>`__
 
