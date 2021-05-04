@@ -1,12 +1,18 @@
 from typing import Any, Dict, List, Union
 
+from .const import CWT_CLAIM_NAMES
+
 
 class Claims:
     """
     A class for handling CWT Claims like JWT claims.
     """
 
-    def __init__(self, claims: Dict[int, Any]):
+    def __init__(
+        self,
+        claims: Dict[int, Any],
+        claim_names: Dict[str, int] = CWT_CLAIM_NAMES,
+    ):
         if -260 in claims and not isinstance(claims[-260], dict):
             raise ValueError("hcert(-260) should be map.")
         if -259 in claims and not isinstance(claims[-259], bytes):
@@ -52,6 +58,7 @@ class Claims:
                     "cnf(8) should include COSE_Key, Encrypted_COSE_Key, or kid."
                 )
         self._claims = claims
+        self._claim_names = claim_names
         return
 
     @property
@@ -96,6 +103,22 @@ class Claims:
             return eck
         kid: bytes = self._claims[8][3]
         return kid.decode("utf-8")
+
+    def get(self, key: Union[str, int]) -> Any:
+        """
+        Gets a claim value with a claim key.
+
+        Args:
+            key (Union[str, int]): A claim key.
+        Returns:
+            Any: The value of the claim.
+        """
+        int_key = 0
+        if isinstance(key, str):
+            int_key = self._claim_names.get(key, 0)
+        else:
+            int_key = key
+        return self._claims.get(int_key, None) if int_key != 0 else None
 
     def to_dict(self) -> Dict[int, Any]:
         return self._claims

@@ -61,6 +61,7 @@ Followings are typical and basic examples which create CWT, verify and decode it
 - [Signed CWT](#signed-cwt)
 - [Encrypted CWT](#encrypted-cwt)
 - [Nested CWT](#nested-cwt)
+- [CWT with user-defined claims](#cwt-with-user-defined-claims)
 - [CWT with PoP key](#cwt-with-pop-key)
 
 See [Usage Examples](https://python-cwt.readthedocs.io/en/stable/usage.html) for details.
@@ -194,6 +195,92 @@ nested = cwt.encode(token, enc_key)
 # Decrypts and verifies the nested CWT.
 decoded = cwt.decode(nested, [enc_key, public_key])
 ```
+
+### CWT with User-Defined Claims
+
+You can use your own claims as follows:
+
+Note that such user-defined claim's key should be less than -65536.
+
+```py
+import cwt
+from cwt import cose_key
+
+with open("./private_key.pem") as key_file:
+    private_key = cose_key.from_pem(key_file.read())
+with open("./public_key.pem") as key_file:
+    public_key = cose_key.from_pem(key_file.read())
+token = cwt.encode(
+    {
+        1: "coaps://as.example",  # iss
+        2: "dajiaji",  # sub
+        7: b"123",  # cti
+        -70001: "foo",
+        -70002: ["bar"],
+        -70003: {"baz": "qux"},
+        -70004: 123,
+    },
+    private_key,
+)
+raw = cwt.decode(token, public_key)
+# raw[-70001] == "foo"
+# raw[-70002][0] == "bar"
+# raw[-70003]["baz"] == "qux"
+# raw[-70004] == 123
+readable = claims.from_dict(raw)
+# readable.get(-70001) == "foo"
+# readable.get(-70002)[0] == "bar"
+# readable.get(-70003)["baz"] == "qux"
+# readable.get(-70004) == 123
+```
+
+User-defined claims can also be used with JSON-based claims as follows:
+
+```py
+import cwt
+from cwt import claims, cose_key
+
+with open("./private_key.pem") as key_file:
+    private_key = cose_key.from_pem(key_file.read())
+with open("./public_key.pem") as key_file:
+    public_key = cose_key.from_pem(key_file.read())
+
+cwt.set_private_claim_names(
+    {
+        "ext_1": -70001,
+        "ext_2": -70002,
+        "ext_3": -70003,
+        "ext_4": -70004,
+    }
+)
+token = cwt.encode(
+    {
+        "iss": "coaps://as.example",
+        "sub": "dajiaji",
+        "cti": b"123",
+        "ext_1": "foo",
+        "ext_2": ["bar"],
+        "ext_3": {"baz": "qux"},
+        "ext_4": 123,
+    },
+    private_key,
+)
+claims.set_private_claim_names(
+    {
+        "ext_1": -70001,
+        "ext_2": -70002,
+        "ext_3": -70003,
+        "ext_4": -70004,
+    }
+)
+raw = cwt.decode(token, public_key)
+readable = claims.from_dict(raw)
+# readable.get("ext_1") == "foo"
+# readable.get("ext_2")[0] == "bar"
+# readable.get("ext_3")["baz"] == "qux"
+# readable.get("ext_4") == 123
+```
+
 
 ### CWT with PoP key
 

@@ -576,6 +576,76 @@ class TestSample:
         assert 8 in decoded and isinstance(decoded[8], dict)
         assert 3 in decoded[8] and decoded[8][3] == b"pop-key-id-of-cwt-presenter"
 
+    def test_sample_readme_cwt_with_user_defined_claims(self):
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            private_key = cose_key.from_pem(key_file.read())
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            public_key = cose_key.from_pem(key_file.read())
+        token = cwt.encode(
+            {
+                1: "coaps://as.example",  # iss
+                2: "dajiaji",  # sub
+                7: b"123",  # cti
+                -70001: "foo",
+                -70002: ["bar"],
+                -70003: {"baz": "qux"},
+                -70004: 123,
+            },
+            private_key,
+        )
+        raw = cwt.decode(token, public_key)
+        assert raw[-70001] == "foo"
+        assert isinstance(raw[-70002], list)
+        assert raw[-70002][0] == "bar"
+        assert isinstance(raw[-70003], dict)
+        assert raw[-70003]["baz"] == "qux"
+        assert raw[-70004] == 123
+        readable = claims.from_dict(raw)
+        assert readable.get(-70001) == "foo"
+        assert readable.get(-70002)[0] == "bar"
+        assert readable.get(-70003)["baz"] == "qux"
+        assert readable.get(-70004) == 123
+
+    def test_sample_readme_cwt_with_user_defined_claims_readable(self):
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            private_key = cose_key.from_pem(key_file.read())
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            public_key = cose_key.from_pem(key_file.read())
+        cwt.set_private_claim_names(
+            {
+                "ext_1": -70001,
+                "ext_2": -70002,
+                "ext_3": -70003,
+                "ext_4": -70004,
+            }
+        )
+        token = cwt.encode(
+            {
+                "iss": "coaps://as.example",
+                "sub": "dajiaji",
+                "cti": b"123",
+                "ext_1": "foo",
+                "ext_2": ["bar"],
+                "ext_3": {"baz": "qux"},
+                "ext_4": 123,
+            },
+            private_key,
+        )
+        claims.set_private_claim_names(
+            {
+                "ext_1": -70001,
+                "ext_2": -70002,
+                "ext_3": -70003,
+                "ext_4": -70004,
+            }
+        )
+        raw = cwt.decode(token, public_key)
+        readable = claims.from_dict(raw)
+        assert readable.get("ext_1") == "foo"
+        assert readable.get("ext_2")[0] == "bar"
+        assert readable.get("ext_3")["baz"] == "qux"
+        assert readable.get("ext_4") == 123
+
     def test_sample_rfc8392_a3(self):
         key = cose_key.from_bytes(bytes.fromhex(SAMPLE_COSE_KEY_RFC8392_A2_3))
         encoded = bytes.fromhex(SAMPLE_CWT_RFC8392_A3)

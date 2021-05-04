@@ -148,7 +148,7 @@ class CWT(CBORProcessor):
         recipients: Optional[List[Recipient]] = None,
     ) -> bytes:
         """
-        Encode CWT claims and add MAC to it.
+        Encodes with MAC.
 
         Args:
             claims (Union[Claims, Dict[int, Any], bytes]): A CWT claims object or byte
@@ -184,7 +184,7 @@ class CWT(CBORProcessor):
         tagged: bool = False,
     ) -> bytes:
         """
-        Encode CWT claims and sign it.
+        Encodes CWT with signing.
 
         Args:
             claims (Claims, Union[Dict[int, Any], bytes]): A CWT claims object or byte
@@ -222,7 +222,7 @@ class CWT(CBORProcessor):
         recipients: Optional[List[Recipient]] = None,
     ) -> bytes:
         """
-        Encode CWT claims and encrypt it.
+        Encodes CWT with encryption.
 
         Args:
             claims (Claims, Union[Dict[int, Any], bytes]): A CWT claims object or byte
@@ -265,7 +265,7 @@ class CWT(CBORProcessor):
         self, data: bytes, key: Union[COSEKey, List[COSEKey]], no_verify: bool = False
     ) -> Dict[int, Any]:
         """
-        Verify and decode CWT.
+        Verifies and decodes CWT.
 
         Args:
             data (bytes): A byte string of an encoded CWT.
@@ -289,6 +289,23 @@ class CWT(CBORProcessor):
         if not no_verify:
             self._verify(cwt)
         return cwt
+
+    def set_private_claim_names(self, claim_names: Dict[str, int]):
+        """
+        Sets private claim definitions. This function call is redirected to the
+        internal :class:`ClaimsBuilder <cwt.ClaimsBuilder>`'s
+        :func:`set_private_claim_names <cwt.ClaimsBuilder.set_private_claim_names>`
+        directly. The definitions will be used in :func:`encode <cwt.CWT.encode>`
+        when it is called with JSON-based claims.
+
+        Args:
+            claims (Dict[str, int]): A set of private claim definitions which
+                consist of a readable claim name(str) and a claim key(int).
+                The claim key should be less than -65536.
+        Raises:
+            ValueError: Invalid arguments.
+        """
+        return self._claims.set_private_claim_names(claim_names)
 
     def _encode(
         self,
@@ -361,3 +378,4 @@ encode_and_mac = _cwt.encode_and_mac
 encode_and_sign = _cwt.encode_and_sign
 encode_and_encrypt = _cwt.encode_and_encrypt
 decode = _cwt.decode
+set_private_claim_names = _cwt.set_private_claim_names

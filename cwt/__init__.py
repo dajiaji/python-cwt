@@ -1,3 +1,4 @@
+from .claims import Claims
 from .claims_builder import ClaimsBuilder, claims
 from .cose import COSE
 from .cose_key import COSEKey
@@ -8,6 +9,7 @@ from .cwt import (
     encode_and_encrypt,
     encode_and_mac,
     encode_and_sign,
+    set_private_claim_names,
 )
 from .exceptions import CWTError, DecodeError, EncodeError, VerifyError
 from .key_builder import KeyBuilder, cose_key
@@ -29,8 +31,10 @@ __all__ = [
     "encode_and_sign",
     "encode_and_encrypt",
     "decode",
+    "set_private_claim_names",
     "CWT",
     "COSE",
+    "Claims",
     "ClaimsBuilder",
     "COSEKey",
     "KeyBuilder",
