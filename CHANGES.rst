@@ -4,6 +4,11 @@ Changes
 Unreleased
 ----------
 
+Version 0.5.0
+-------------
+
+Released 2021-05-04
+
 - Make ClaimsBuilder return Claims. `#56 <https://github.com/dajiaji/python-cwt/pull/56>`__
 - Add support for JWK keyword of alg and key_ops. `#55 <https://github.com/dajiaji/python-cwt/pull/55>`__
 - Add from_jwk. `#53 <https://github.com/dajiaji/python-cwt/pull/53>`__
