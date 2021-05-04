@@ -33,7 +33,7 @@ If you already know about [JSON Web Token (JWT)](https://tools.ietf.org/html/rfc
 little knowledge of [CBOR](https://tools.ietf.org/html/rfc7049), [COSE](https://tools.ietf.org/html/rfc8152)
 and [CWT](https://tools.ietf.org/html/rfc8392) is required to use this library.
 
-```pycon
+```py
 >>> import cwt
 >>> from cwt import claims, cose_key
 >>> key = cose_key.from_symmetric_key(alg="HS256")
