@@ -184,6 +184,19 @@ class TestHMACKey:
             pytest.fail("HMACKey should fail.")
         assert msg in str(err.value)
 
+    def test_hmac_key_sign_with_invalid_args(self):
+        key = HMACKey(
+            {
+                1: 4,
+                -1: b"mysecret",
+                3: 5,  # HMAC 256/256
+            }
+        )
+        with pytest.raises(EncodeError) as err:
+            key.sign(123)
+            pytest.fail("sign should fail.")
+        assert "Failed to sign." in str(err.value)
+
     def test_hmac_key_verify_with_invalid_signature(self):
         key = HMACKey(
             {
@@ -202,6 +215,7 @@ class TestHMACKey:
         sig = key.sign(b"Hello world!")
         with pytest.raises(VerifyError) as err:
             key.verify(b"Hello world!", sig + b"xxx")
+            pytest.fail("verify should fail.")
         assert "Failed to compare digest." in str(err.value)
 
 
@@ -593,7 +607,7 @@ class TestChaCha20Key:
         assert 5 in key.key_ops
         assert 6 in key.key_ops
         assert key.base_iv is None
-        nonce = token_bytes(16)
+        nonce = token_bytes(12)
         try:
             encrypted = key.encrypt(b"Hello world!", nonce=nonce)
             assert key.decrypt(encrypted, nonce) == b"Hello world!"
@@ -616,7 +630,7 @@ class TestChaCha20Key:
         assert 5 in key.key_ops
         assert 6 in key.key_ops
         assert key.base_iv is None
-        nonce = token_bytes(16)
+        nonce = token_bytes(12)
         try:
             encrypted = key.encrypt(b"Hello world!", nonce=nonce)
             assert key.decrypt(encrypted, nonce) == b"Hello world!"
@@ -674,10 +688,34 @@ class TestChaCha20Key:
                 3: 24,  # ChaCha20/Poly1305
             }
         )
-        nonce = token_bytes(16)
+        nonce = token_bytes(12)
         encrypted = key.encrypt(b"Hello world!", nonce=nonce)
-        decrypted = key.decrypt(encrypted, nonce=token_bytes(16))
-        assert b"Hello world!" != decrypted
+        with pytest.raises(DecodeError) as err:
+            key.decrypt(encrypted, nonce=token_bytes(12))
+            pytest.fail("decrypt should fail.")
+        assert "Failed to decrypt." in str(err.value)
+
+    def test_chacha20_key_decrypt_with_different_key(self):
+        key = ChaCha20Key(
+            {
+                1: 4,
+                -1: token_bytes(32),
+                3: 24,  # ChaCha20/Poly1305
+            }
+        )
+        key2 = ChaCha20Key(
+            {
+                1: 4,
+                -1: token_bytes(32),
+                3: 24,  # ChaCha20/Poly1305
+            }
+        )
+        nonce = token_bytes(12)
+        encrypted = key.encrypt(b"Hello world!", nonce=nonce)
+        with pytest.raises(DecodeError) as err:
+            key2.decrypt(encrypted, nonce=nonce)
+            pytest.fail("decrypt should fail.")
+        assert "Failed to decrypt." in str(err.value)
 
     def test_chacha20_key_decrypt_with_invalid_nonce(self):
         key = ChaCha20Key(
@@ -687,7 +725,7 @@ class TestChaCha20Key:
                 3: 24,  # ChaCha20/Poly1305
             }
         )
-        nonce = token_bytes(16)
+        nonce = token_bytes(12)
         encrypted = key.encrypt(b"Hello world!", nonce=nonce)
         with pytest.raises(DecodeError) as err:
             key.decrypt(encrypted, nonce=token_bytes(8))
