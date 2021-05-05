@@ -15,6 +15,8 @@
 # sys.path.insert(0, os.path.abspath('.'))
 import sphinx_rtd_theme
 
+from cwt import __version__ as python_cwt_version
+
 # -- Project information -----------------------------------------------------
 
 project = "Python CWT"
@@ -22,7 +24,7 @@ copyright = "2021, AJITOMI Daisuke"
 author = "AJITOMI Daisuke"
 
 # The full version, including alpha/beta/rc tags
-release = "v0.2.0"
+release = python_cwt_version
 
 
 # -- General configuration ---------------------------------------------------
