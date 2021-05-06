@@ -25,8 +25,13 @@ class Claims:
             raise ValueError("iss(1) should be str.")
         if 2 in claims and not isinstance(claims[2], str):
             raise ValueError("sub(2) should be str.")
-        if 3 in claims and not isinstance(claims[3], str):
-            raise ValueError("aud(3) should be str.")
+        if 3 in claims:
+            if not isinstance(claims[3], str) and not isinstance(claims[3], list):
+                raise ValueError("aud(3) should be str or list[str].")
+            if isinstance(claims[3], list):
+                for c in claims[3]:
+                    if not isinstance(c, str):
+                        raise ValueError("aud(3) should be str or list[str].")
         if 4 in claims and not (
             isinstance(claims[4], int) or isinstance(claims[4], float)
         ):

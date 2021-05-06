@@ -192,13 +192,21 @@ class TestSample:
 
         encoded = cwt.encode_and_sign(
             claims.from_json(
-                {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}
+                {
+                    "iss": "coaps://as.example",
+                    "sub": "dajiaji",
+                    "aud": ["coaps://rs1.example", "coaps://rs2.example"],
+                    "cti": "123",
+                }
             ),
             private_key,
         )
 
         decoded = cwt.decode(encoded, public_key)
         assert 1 in decoded and decoded[1] == "coaps://as.example"
+        assert 3 in decoded and isinstance(decoded[3], list)
+        assert 3 in decoded and decoded[3][0] == "coaps://rs1.example"
+        assert 3 in decoded and decoded[3][1] == "coaps://rs2.example"
 
     def test_sample_readme_signed_cwt_es384(self):
         with open(key_path("private_key_es384.pem")) as key_file:
