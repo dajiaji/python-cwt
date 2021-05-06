@@ -106,13 +106,16 @@ class ClaimsBuilder:
         Args:
             claims (Dict[str, int]): A set of private claim definitions which
                 consist of a readable claim name(str) and a claim key(int).
-                The claim key should be less than -65536.
+                The claim key should be less than -65536 but the key other
+                than the key numbers registered in IANA registry can be accepted.
         Raises:
             ValueError: Invalid arguments.
         """
         for v in claim_names.values():
-            if v >= -65536:
-                raise ValueError("The claim key should be less than -65536.")
+            if v in CWT_CLAIM_NAMES.values():
+                raise ValueError(
+                    "The claim key should be other than the values listed in https://python-cwt.readthedocs.io/en/stable/claims.html."
+                )
         self._private_claim_names = claim_names
         self._claim_names = dict(CWT_CLAIM_NAMES, **self._private_claim_names)
         return
