@@ -180,6 +180,8 @@ class TestCWT:
             {1: 123},
             {2: 123},
             {3: 123},
+            {3: [123, 456]},
+            {3: ["coaps://rs1.example", 456]},
             {4: "wrong_type"},
             {5: "wrong_type"},
             {6: "wrong_type"},

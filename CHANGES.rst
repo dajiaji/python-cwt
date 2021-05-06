@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Add support for multiple aud. `#65 <https://github.com/dajiaji/python-cwt/pull/65>`__
 - Relax the condition of the acceptable private claim value. `#64 <https://github.com/dajiaji/python-cwt/pull/64>`__
 - Fix doc version. `#63 <https://github.com/dajiaji/python-cwt/pull/63>`__
 
