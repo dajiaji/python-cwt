@@ -4,6 +4,9 @@ Changes
 Unreleased
 ----------
 
+- Relax the condition of the acceptable private claim value. `#64 <https://github.com/dajiaji/python-cwt/pull/64>`__
+- Fix doc version. `#63 <https://github.com/dajiaji/python-cwt/pull/63>`__
+
 Version 0.6.0
 -------------
 

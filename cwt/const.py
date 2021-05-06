@@ -12,6 +12,27 @@ CWT_CLAIM_NAMES = {
     "iat": 6,  # integer or floating-point number
     "cti": 7,  # byte string
     "cnf": 8,  # map
+    "nonce": 10,  # bstr or list[bstr]
+    "ueid": 11,  # bstr
+    "oemid": 13,  # bstr
+    "seclevel": 14,  # integer(1, 2, 3, 4)
+    "secboot": 15,  # bool
+    "dbgstat": 16,  # integer(0, 1, 2, 3, 4)
+    "location": 17,  # map
+    "eat_profile": 18,  # uri / oid
+    "submods": 20,  # map
+    # "origination": 30,  # tstr(string-or-uri)
+    # "uptime": 31,  # uint
+    # "chip-version": 32,
+    # "board-version": 33,
+    # "device-version": 34,
+    # "chip-version-scheme": 35,
+    # "board-version-scheme": 36,
+    # "device-version-scheme": 37,
+    # "ean-chip-version": 38,
+    # "ean-board-version": 39,
+    # "ean-device-version": 40,
+    # "intuse": 41,  # integer(1, 2, 3, 4, 5)
 }
 
 # COSE key types

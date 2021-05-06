@@ -148,6 +148,9 @@ class TestClaimsBuilder:
 
     def test_claims_builder_set_private_claim_names_with_invalid_key(self, ctx):
         with pytest.raises(ValueError) as err:
-            ctx.set_private_claim_names({"ext": -60001})
+            ctx.set_private_claim_names({"ext": 1})
             pytest.fail("set_private_claim_names should fail.")
-        assert "The claim key should be less than -65536." in str(err.value)
+        assert (
+            "The claim key should be other than the values listed in https://python-cwt.readthedocs.io/en/stable/claims.html."
+            in str(err.value)
+        )
