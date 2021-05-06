@@ -61,8 +61,8 @@ Followings are typical and basic examples which create CWT, verify and decode it
 - [Signed CWT](#signed-cwt)
 - [Encrypted CWT](#encrypted-cwt)
 - [Nested CWT](#nested-cwt)
-- [CWT with user-defined claims](#cwt-with-user-defined-claims)
-- [CWT with PoP key](#cwt-with-pop-key)
+- [CWT with User-Defined Claims](#cwt-with-user-defined-claims)
+- [CWT with PoP Key](#cwt-with-pop-key)
 
 See [Usage Examples](https://python-cwt.readthedocs.io/en/stable/usage.html) for details.
 
@@ -95,7 +95,7 @@ MAC algorithms other than `HS256` are listed in
 
 ### Signed CWT
 
-Create an `Ed25519` (Ed25519 for use w/ EdDSA only) key pair:
+Create an `Ed25519` key pair:
 
 ```sh
 $ openssl genpkey -algorithm ed25519 -out private_key.pem
@@ -150,13 +150,12 @@ token = cwt.encode(
 decoded = cwt.decode(token, public_key)
 ```
 
-Algorithms other than `Ed25519` are listed in
+Signature algorithms other than `Ed25519` are listed in
 [Supported COSE Algorithms](https://python-cwt.readthedocs.io/en/stable/algorithms.html).
 
 ### Encrypted CWT
 
-Create an encrypted CWT with `ChaCha20/Poly1305` (ChaCha20/Poly1305 w/ 256-bit key, 128-bit tag),
-and decrypt it as follows:
+Create an encrypted CWT with `ChaCha20/Poly1305` and decrypt it as follows:
 
 ```py
 import cwt
@@ -167,7 +166,7 @@ token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}
 decoded = cwt.decode(token, enc_key)
 ```
 
-Algorithms other than `ChaCha20/Poly1305` are listed in
+Encryption algorithms other than `ChaCha20/Poly1305` are listed in
 [Supported COSE Algorithms](https://python-cwt.readthedocs.io/en/stable/algorithms.html).
 
 ### Nested CWT
@@ -282,7 +281,7 @@ readable = claims.from_dict(raw)
 ```
 
 
-### CWT with PoP key
+### CWT with PoP Key
 
 This library supports [Proof-of-Possession Key Semantics for CBOR Web Tokens (CWTs)](https://tools.ietf.org/html/rfc8747).
 A CWT can include a PoP key as follows:
