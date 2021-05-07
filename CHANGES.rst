@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 
+- Simplify samples on docs. `#69 <https://github.com/dajiaji/python-cwt/pull/69>`__
+
 Version 0.6.1
 -------------
 

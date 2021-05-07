@@ -33,28 +33,6 @@ If you already know about [JSON Web Token (JWT)](https://tools.ietf.org/html/rfc
 little knowledge of [CBOR](https://tools.ietf.org/html/rfc7049), [COSE](https://tools.ietf.org/html/rfc8152)
 and [CWT](https://tools.ietf.org/html/rfc8392) is required to use this library.
 
-```py
->>> import cwt
->>> from cwt import claims, cose_key
->>> key = cose_key.from_symmetric_key(alg="HS256")
->>> token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
->>> token.hex()
-'d18443a10105a05835a60172636f6170733a2f2f61732e6578616d706c65026764616a69616a69'
-'0743313233041a609097b7051a609089a7061a609089a758201fad9b0a76803194bd11ca9b9b3c'
-'bbf1028005e15321665a768994f38c7127f7'
->>> decoded = cwt.decode(token, key)
->>> decoded
-{1: 'coaps://as.example', 2: 'dajiaji', 7: b'123',
- 4: 1620088759, 5: 1620085159, 6: 1620085159}
->>> readable = claims.from_dict(decoded)
->>> readable.iss
-'coaps://as.example'
->>> readable.sub
-'dajiaji'
->>> readable.exp
-1620088759
-```
-
 Followings are typical and basic examples which create CWT, verify and decode it:
 
 - [MACed CWT](#maced-cwt)
@@ -74,9 +52,29 @@ Create a MACed CWT with `HS256`, verify and decode it as follows:
 import cwt
 from cwt import cose_key
 
-key = cose_key.from_symmetric_key(alg="HS256")
+key = cose_key.from_symmetric_key(alg="HS256")  # == "HMAC 256/256"
 token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
+
 decoded = cwt.decode(token, key)
+
+# decoded == {
+#     1: 'coaps://as.example',
+#     2: 'dajiaji',
+#     7: b'123',
+#     4: 1620088759,
+#     5: 1620085159,
+#     6: 1620085159,
+# }
+
+# If you want to treat the result like a JWT;
+readable = claims.from_dict(decoded)
+
+# readable.iss == 'coaps://as.example'
+# readable.sub == 'dajiaji'
+# readable.cti == '123'
+# readable.exp == 1620088759
+# readable.nbf == 1620085159
+# readable.iat == 1620085159
 ```
 
 CBOR-like structure (Dict[int, Any]) can also be used as follows:
@@ -87,6 +85,7 @@ from cwt import cose_key
 
 key = cose_key.from_symmetric_key(alg="HS256")
 token = cwt.encode({1: "coaps://as.example", 2: "dajiaji", 7: b"123"}, key)
+
 decoded = cwt.decode(token, key)
 ```
 
@@ -147,6 +146,7 @@ public_key = cose_key.from_jwk({
 token = cwt.encode(
     {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
 )
+
 decoded = cwt.decode(token, public_key)
 ```
 
@@ -163,6 +163,7 @@ from cwt import cose_key
 
 enc_key = cose_key.from_symmetric_key(alg="ChaCha20/Poly1305")
 token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, enc_key)
+
 decoded = cwt.decode(token, enc_key)
 ```
 
