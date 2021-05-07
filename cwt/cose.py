@@ -4,7 +4,6 @@ from cbor2 import CBORTag
 
 from .cbor_processor import CBORProcessor
 from .cose_key import COSEKey
-from .exceptions import DecodeError
 from .recipient import Recipient, RecipientsBuilder
 
 
