@@ -50,7 +50,7 @@ Create a MACed CWT with `HS256`, verify and decode it as follows:
 
 ```py
 import cwt
-from cwt import cose_key
+from cwt import claims, cose_key
 
 key = cose_key.from_symmetric_key(alg="HS256")  # == "HMAC 256/256"
 token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
