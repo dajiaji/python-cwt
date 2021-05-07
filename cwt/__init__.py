@@ -15,7 +15,7 @@ from .exceptions import CWTError, DecodeError, EncodeError, VerifyError
 from .key_builder import KeyBuilder, cose_key
 from .recipient import Recipient
 
-__version__ = "0.6.0"
+__version__ = "0.6.1"
 __title__ = "cwt"
 __description__ = "A Python implementation of CWT/COSE"
 __url__ = "https://python-cwt.readthedocs.io"
