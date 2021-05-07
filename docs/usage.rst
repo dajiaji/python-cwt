@@ -1,7 +1,7 @@
 Usage Examples
 ==============
 
-The following is the simplest sample code.
+The following is a simple sample code for command line console.
 
 .. code-block:: pycon
 
