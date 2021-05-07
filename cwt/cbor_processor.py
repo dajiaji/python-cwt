@@ -10,10 +10,10 @@ class CBORProcessor:
         try:
             return dumps(obj)
         except Exception as err:
-            raise DecodeError("Failed to decode.") from err
+            raise EncodeError("Failed to encode.") from err
 
     def _loads(self, s: bytes) -> Dict[int, Any]:
         try:
             return loads(s)
         except Exception as err:
-            raise EncodeError("Failed to encode.") from err
+            raise DecodeError("Failed to decode.") from err

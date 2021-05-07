@@ -4,6 +4,7 @@ from cbor2 import CBORTag
 
 from .cbor_processor import CBORProcessor
 from .cose_key import COSEKey
+from .exceptions import DecodeError
 from .recipient import Recipient, RecipientsBuilder
 
 
@@ -214,7 +215,6 @@ class COSE(CBORProcessor):
             DecodeError: Failed to decode data.
             VerifyError: Failed to verify data.
         """
-
         if isinstance(data, bytes):
             data = self._loads(data)
         if not isinstance(data, CBORTag):

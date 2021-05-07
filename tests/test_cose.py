@@ -7,12 +7,14 @@
 Tests for COSE.
 """
 
+import datetime
+
 import cbor2
 import pytest
 from cbor2 import CBORTag
 
 import cwt
-from cwt import COSE, cose_key
+from cwt import COSE, EncodeError, cose_key
 
 from .utils import key_path
 
@@ -26,6 +28,13 @@ class TestCOSE:
     """
     Tests for COSE.
     """
+
+    def test_cose_encode_and_mac_with_invalid_payload(self, ctx):
+        key = cose_key.from_symmetric_key(alg="HS256")
+        with pytest.raises(EncodeError) as err:
+            ctx.encode_and_mac(b"", {}, datetime.datetime.now(), key, [{}, {}])
+            pytest.fail("encode_and_mac should fail.")
+        assert "Failed to encode." in str(err.value)
 
     @pytest.mark.parametrize(
         "invalid, msg",
