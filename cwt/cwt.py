@@ -10,7 +10,7 @@ from .claims_builder import ClaimsBuilder
 from .const import COSE_KEY_OPERATION_VALUES
 from .cose import COSE
 from .cose_key import COSEKey
-from .exceptions import VerifyError
+from .exceptions import DecodeError, VerifyError
 from .recipient import Recipient
 
 _CWT_DEFAULT_EXPIRES_IN = 3600  # 1 hour
@@ -331,7 +331,10 @@ class CWT(CBORProcessor):
 
     def _validate(self, claims: Union[Dict[int, Any], bytes]):
         if isinstance(claims, bytes):
-            nested = self._loads(claims)
+            try:
+                nested = self._loads(claims)
+            except Exception:
+                raise ValueError("Invalid claim format.")
             if not isinstance(nested, CBORTag):
                 raise ValueError("A bytes-formatted claims needs CBOR(COSE) Tag.")
             if nested.tag not in [16, 96, 17, 97, 18, 98]:
@@ -341,8 +344,10 @@ class CWT(CBORProcessor):
         return
 
     def _verify(self, claims: Dict[int, Any]):
-        now = timegm(datetime.utcnow().utctimetuple())
+        if not isinstance(claims, dict):
+            raise DecodeError("Failed to decode.")
 
+        now = timegm(datetime.utcnow().utctimetuple())
         if 4 in claims:  # exp
             if isinstance(claims[4], int) or isinstance(claims[4], float):
                 if claims[4] < (now - self._leeway):

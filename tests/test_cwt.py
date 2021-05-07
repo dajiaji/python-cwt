@@ -12,16 +12,7 @@ import cbor2
 import pytest
 from cbor2 import CBORTag
 
-from cwt import (
-    CWT,
-    COSEKey,
-    DecodeError,
-    EncodeError,
-    Recipient,
-    VerifyError,
-    claims,
-    cose_key,
-)
+from cwt import CWT, COSEKey, DecodeError, Recipient, VerifyError, claims, cose_key
 
 from .utils import key_path, now
 
@@ -218,13 +209,13 @@ class TestCWT:
 
     def test_cwt_encode_and_mac_with_invalid_cbor_format(self, ctx):
         key = cose_key.from_symmetric_key("mysecret", alg="HMAC 256/64")
-        with pytest.raises(EncodeError) as err:
+        with pytest.raises(ValueError) as err:
             ctx.encode_and_mac(
                 b'{1: "https://as.example", 2: "someone", 7: "123"',
                 key,
             )
             pytest.fail("encode_and_mac should fail.")
-        assert "Failed to encode." in str(err.value)
+        assert "Invalid claim format." in str(err.value)
 
     def test_cwt_encode_and_mac_with_untagged_cbor_bytes(self, ctx):
         key = cose_key.from_symmetric_key("mysecret", alg="HMAC 256/64")
@@ -496,6 +487,21 @@ class TestCWT:
             res = ctx.decode(token, wrong_key)
             pytest.fail("decode should fail: res=%s" % vars(res))
         assert "Failed to compare digest" in str(err.value)
+
+    @pytest.mark.parametrize(
+        "invalid",
+        [
+            b"Invalid data.",
+            b"x",
+            b"\x07\xf6o,n\x83\xc0r\x07A\xb6\xde.\xf7>A\xdf\xc7\xee\t",
+        ],
+    )
+    def test_cwt_decode_with_invalid_cwt(self, ctx, invalid):
+        key = cose_key.from_symmetric_key(alg="AES-CCM-16-64-128")
+        with pytest.raises(DecodeError) as err:
+            ctx.decode(invalid, key)
+            pytest.fail("decode should fail.")
+        assert "Failed to decode." in str(err.value)
 
     def test_cwt_decode_with_invalid_enc_key(self, ctx):
         enc_key = cose_key.from_symmetric_key(token_bytes(16), alg="AES-CCM-16-64-128")
