@@ -28,7 +28,7 @@ class COSE(CBORProcessor):
         self,
         protected: Dict[int, Any],
         unprotected: Dict[int, Any],
-        payload: Union[Dict[int, Any], bytes],
+        payload: bytes,
         key: COSEKey,
         recipients: Optional[List[Recipient]] = None,
         out: str = "",
@@ -41,7 +41,7 @@ class COSE(CBORProcessor):
                 protected.
             unprotected (Dict[int, Any]): Parameters that are not cryptographically
                 protected.
-            payload (Union[Dict[int, Any], bytes]): A content to be MACed.
+            payload (bytes): A content to be MACed.
             key (COSEKey): A COSE key as a MAC Authentication key.
             recipients (Optional[List[Recipient]]): A list of recipient information structures.
             out(str): An output format. Only ``"cbor2/CBORTag"`` can be used. If ``"cbor2/CBORTag"``
@@ -63,18 +63,16 @@ class COSE(CBORProcessor):
             if key.kid:
                 unprotected[4] = key.kid
             b_protected = self._dumps(protected)
-            b_payload = self._dumps(payload)
-            mac_structure = [ctx, b_protected, b"", b_payload]
+            mac_structure = [ctx, b_protected, b"", payload]
             tag = key.sign(self._dumps(mac_structure))
-            res = CBORTag(17, [b_protected, unprotected, b_payload, tag])
+            res = CBORTag(17, [b_protected, unprotected, payload, tag])
             return res if out == "cbor2/CBORTag" else self._dumps(res)
 
         # MAC
         b_protected = self._dumps(protected) if protected else b""
-        b_payload = self._dumps(payload)
-        mac_structure = [ctx, b_protected, b"", b_payload]
+        mac_structure = [ctx, b_protected, b"", payload]
         tag = key.sign(self._dumps(mac_structure))
-        cose_mac: List[Any] = [b_protected, unprotected, b_payload, tag]
+        cose_mac: List[Any] = [b_protected, unprotected, payload, tag]
         recs = []
         for rec in recipients:
             recs.append(rec.to_list())
@@ -86,7 +84,7 @@ class COSE(CBORProcessor):
         self,
         protected: Dict[int, Any],
         unprotected: Dict[int, Any],
-        payload: Union[Dict[int, Any], bytes],
+        payload: bytes,
         key: Union[COSEKey, List[COSEKey]],
         out: str = "",
     ) -> Union[bytes, CBORTag]:
@@ -98,7 +96,7 @@ class COSE(CBORProcessor):
                 protected.
             unprotected (Dict[int, Any]): Parameters that are not cryptographically
                 protected.
-            payload (Union[Dict[int, Any], bytes]): A content to be signed.
+            payload (bytes): A content to be signed.
             key (Union[COSEKey, List[COSEKey]]): One or more COSE keys as signing keys.
             out(str): An output format. Only ``"cbor2/CBORTag"`` can be used. If ``"cbor2/CBORTag"``
                 is specified. This function will return encoded data as
@@ -118,13 +116,12 @@ class COSE(CBORProcessor):
                 unprotected[4] = key.kid
 
         b_protected = self._dumps(protected) if protected else b""
-        b_payload = self._dumps(payload)
 
         # Signature1
         if isinstance(key, COSEKey):
-            sig_structure = [ctx, b_protected, b"", b_payload]
+            sig_structure = [ctx, b_protected, b"", payload]
             sig = key.sign(self._dumps(sig_structure))
-            res = CBORTag(18, [b_protected, unprotected, b_payload, sig])
+            res = CBORTag(18, [b_protected, unprotected, payload, sig])
             return res if out == "cbor2/CBORTag" else self._dumps(res)
 
         # Signature
@@ -132,17 +129,17 @@ class COSE(CBORProcessor):
         for k in key:
             p_header = self._dumps({1: k.alg})
             u_header = {4: k.kid} if k.kid else {}
-            sig_structure = [ctx, b_protected, p_header, b"", b_payload]
+            sig_structure = [ctx, b_protected, p_header, b"", payload]
             sig = k.sign(self._dumps(sig_structure))
             sigs.append([p_header, u_header, sig])
-        res = CBORTag(98, [b_protected, unprotected, b_payload, sigs])
+        res = CBORTag(98, [b_protected, unprotected, payload, sigs])
         return res if out == "cbor2/CBORTag" else self._dumps(res)
 
     def encode_and_encrypt(
         self,
         protected: Dict[int, Any],
         unprotected: Dict[int, Any],
-        payload: Union[Dict[int, Any], bytes],
+        payload: bytes,
         key: COSEKey,
         nonce: bytes = b"",
         recipients: Optional[List[Recipient]] = None,
@@ -156,7 +153,7 @@ class COSE(CBORProcessor):
                 protected.
             unprotected (Dict[int, Any]): Parameters that are not cryptographically
                 protected.
-            payload (Union[Dict[int, Any], bytes]): A content to be encrypted.
+            payload (bytes): A content to be encrypted.
             key (COSEKey): A COSE key as an encryption key.
             nonce (bytes): A nonce for encryption.
             recipients (Optional[List[Recipient]]): A list of recipient information structures.
@@ -176,19 +173,17 @@ class COSE(CBORProcessor):
         # Encrypt0
         if not recipients:
             b_protected = self._dumps(protected) if protected else b""
-            b_payload = self._dumps(payload)
             enc_structure = [ctx, b_protected, b""]
             aad = self._dumps(enc_structure)
-            ciphertext = key.encrypt(b_payload, nonce, aad)
+            ciphertext = key.encrypt(payload, nonce, aad)
             res = CBORTag(16, [b_protected, unprotected, ciphertext])
             return res if out == "cbor2/CBORTag" else self._dumps(res)
 
         # Encrypt
         b_protected = self._dumps(protected) if protected else b""
-        b_payload = self._dumps(payload)
         enc_structure = [ctx, b_protected, b""]
         aad = self._dumps(enc_structure)
-        ciphertext = key.encrypt(b_payload, nonce, aad)
+        ciphertext = key.encrypt(payload, nonce, aad)
         cose_enc: List[Any] = [b_protected, unprotected, ciphertext]
         recs = []
         for rec in recipients:
@@ -199,7 +194,7 @@ class COSE(CBORProcessor):
 
     def decode(
         self, data: Union[bytes, CBORTag], key: Union[COSEKey, List[COSEKey]]
-    ) -> Dict[int, Any]:
+    ) -> bytes:
         """
         Verifies and decodes COSE data.
 
@@ -208,7 +203,7 @@ class COSE(CBORProcessor):
                 encoded data.
             key (COSEKey): A COSE key to verify and decrypt the encoded data.
         Returns:
-            Dict[int, Any]: A decoded CBOR-like object.
+            bytes: A byte string of decoded payload.
         Raises:
             ValueError: Invalid arguments.
             DecodeError: Failed to decode data.
@@ -235,8 +230,7 @@ class COSE(CBORProcessor):
             k = self._get_key(keys, unprotected)
             if not k:
                 raise ValueError("key is not specified.")
-            payload = k.decrypt(data.value[2], nonce, aad)
-            return self._loads(payload)
+            return k.decrypt(data.value[2], nonce, aad)
 
         # Encrypt
         if data.tag == 96:
@@ -251,8 +245,7 @@ class COSE(CBORProcessor):
             nonce = unprotected.get(5, None)
             recipients = self._recipients_builder.from_list(data.value[3])
             enc_key = recipients.derive_key(keys)
-            payload = enc_key.decrypt(data.value[2], nonce, aad)
-            return self._loads(payload)
+            return enc_key.decrypt(data.value[2], nonce, aad)
 
         # MAC0
         if data.tag == 17:
@@ -265,7 +258,7 @@ class COSE(CBORProcessor):
             if not k:
                 raise ValueError("key is not specified.")
             k.verify(msg, data.value[3])
-            return self._loads(data.value[2])
+            return data.value[2]
 
         # MAC
         if data.tag == 97:
@@ -276,7 +269,7 @@ class COSE(CBORProcessor):
             recipients = self._recipients_builder.from_list(data.value[4])
             mac_auth_key = recipients.derive_key(keys)
             mac_auth_key.verify(to_be_maced, data.value[3])
-            return self._loads(data.value[2])
+            return data.value[2]
 
         # Signature1
         if data.tag == 18:
@@ -291,7 +284,7 @@ class COSE(CBORProcessor):
             if not k:
                 raise ValueError("key is not specified.")
             k.verify(to_be_signed, data.value[3])
-            return self._loads(data.value[2])
+            return data.value[2]
 
         # Signature
         if data.tag == 98:
@@ -311,7 +304,7 @@ class COSE(CBORProcessor):
                     ["Signature", data.value[0], sig[0], b"", data.value[2]]
                 )
                 k.verify(to_be_signed, sig[2])
-                return self._loads(data.value[2])
+                return data.value[2]
             raise ValueError("Verification key not found.")
         raise ValueError(f"Unsupported or unknown CBOR tag({data.tag}).")
 

@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Refine COSE API to make the type of payload parameter be bytes only. `#71 <https://github.com/dajiaji/python-cwt/pull/71>`__
 - Simplify samples on docs. `#69 <https://github.com/dajiaji/python-cwt/pull/69>`__
 
 Version 0.6.1

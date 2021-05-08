@@ -473,7 +473,7 @@ class KeyBuilder(CBORProcessor):
             DecodeError: Failed to decode the COSE key.
             VerifyError: Failed to verify the COSE key.
         """
-        res = self._cose.decode(CBORTag(16, key), encryption_key)
+        res = self._loads(self._cose.decode(CBORTag(16, key), encryption_key))
         return self.from_dict(res)
 
     def to_encrypted_cose_key(
@@ -508,10 +508,11 @@ class KeyBuilder(CBORProcessor):
                     "Nonce generation is not supported for the key. Set a nonce explicitly."
                 )
         unprotected[5] = nonce
+        b_payload = self._dumps(key.to_dict())
         res: CBORTag = self._cose.encode_and_encrypt(
             protected,
             unprotected,
-            key.to_dict(),
+            b_payload,
             encryption_key,
             nonce,
             out="cbor2/CBORTag",

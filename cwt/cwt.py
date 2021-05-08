@@ -170,8 +170,9 @@ class CWT(CBORProcessor):
         self._set_default_value(claims)
         protected: Dict[int, Any] = {1: key.alg}
         unprotected: Dict[int, Any] = {4: key.kid} if key.kid else {}
+        b_claims = self._dumps(claims)
         res = self._cose.encode_and_mac(
-            protected, unprotected, claims, key, recipients, out="cbor2/CBORTag"
+            protected, unprotected, b_claims, key, recipients, out="cbor2/CBORTag"
         )
         if tagged:
             return self._dumps(CBORTag(CWT.CBOR_TAG, res))
@@ -206,8 +207,9 @@ class CWT(CBORProcessor):
         self._set_default_value(claims)
         protected: Dict[int, Any] = {}
         unprotected: Dict[int, Any] = {}
+        b_claims = self._dumps(claims)
         res = self._cose.encode_and_sign(
-            protected, unprotected, claims, key, out="cbor2/CBORTag"
+            protected, unprotected, b_claims, key, out="cbor2/CBORTag"
         )
         if tagged:
             return self._dumps(CBORTag(CWT.CBOR_TAG, res))
@@ -254,8 +256,19 @@ class CWT(CBORProcessor):
                 )
 
         unprotected[5] = nonce
+        b_claims: bytes = b""
+        if isinstance(claims, dict):
+            b_claims = self._dumps(claims)
+        else:
+            b_claims = claims
         res = self._cose.encode_and_encrypt(
-            protected, unprotected, claims, key, nonce, recipients, out="cbor2/CBORTag"
+            protected,
+            unprotected,
+            b_claims,
+            key,
+            nonce,
+            recipients,
+            out="cbor2/CBORTag",
         )
         if tagged:
             return self._dumps(CBORTag(CWT.CBOR_TAG, res))
@@ -263,7 +276,7 @@ class CWT(CBORProcessor):
 
     def decode(
         self, data: bytes, key: Union[COSEKey, List[COSEKey]], no_verify: bool = False
-    ) -> Dict[int, Any]:
+    ) -> Union[Dict[int, Any], bytes]:
         """
         Verifies and decodes CWT.
 
@@ -274,18 +287,19 @@ class CWT(CBORProcessor):
             no_verify (bool): An indicator whether token verification is skiped
                 or not.
         Returns:
-            bytes: A byte string of the decoded CWT.
+            Union[Dict[int, Any], bytes]: A byte string of the decoded CWT.
         Raises:
             ValueError: Invalid arguments.
             DecodeError: Failed to decode the CWT.
             VerifyError: Failed to verify the CWT.
         """
-        cwt = self._loads(data)
+        cwt: Union[bytes, CBORTag, Dict[int, Any]] = self._loads(data)
         if isinstance(cwt, CBORTag) and cwt.tag == CWT.CBOR_TAG:
             cwt = cwt.value
         keys: List[COSEKey] = [key] if isinstance(key, COSEKey) else key
-        while isinstance(cwt, CBORTag) or isinstance(cwt, bytes):
+        while isinstance(cwt, CBORTag):
             cwt = self._cose.decode(cwt, keys)
+            cwt = self._loads(cwt)
         if not no_verify:
             self._verify(cwt)
         return cwt
@@ -343,7 +357,7 @@ class CWT(CBORProcessor):
         self._claims.validate(claims)
         return
 
-    def _verify(self, claims: Dict[int, Any]):
+    def _verify(self, claims: Union[Dict[int, Any], bytes]):
         if not isinstance(claims, dict):
             raise DecodeError("Failed to decode.")
 
