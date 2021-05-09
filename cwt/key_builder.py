@@ -36,7 +36,7 @@ from .const import (
     COSE_ALGORITHMS_SYMMETRIC,
     COSE_KEY_OPERATION_VALUES,
     COSE_KEY_TYPES,
-    JOSE_ALGORITHMS_SUPPORTED,
+    COSE_NAMED_ALGORITHMS_SUPPORTED,
     JWK_ELLIPTIC_CURVES,
     JWK_OPERATIONS,
     JWK_PARAMS_EC,
@@ -221,9 +221,9 @@ class KeyBuilder(CBORProcessor):
         if "alg" in jwk:
             if not isinstance(jwk["alg"], str):
                 raise ValueError("alg should be str.")
-            if jwk["alg"] not in JOSE_ALGORITHMS_SUPPORTED:
+            if jwk["alg"] not in COSE_NAMED_ALGORITHMS_SUPPORTED:
                 raise ValueError(f"Unsupported or unknown alg: {jwk['alg']}.")
-            cose_key[3] = JOSE_ALGORITHMS_SUPPORTED[jwk["alg"]]
+            cose_key[3] = COSE_NAMED_ALGORITHMS_SUPPORTED[jwk["alg"]]
 
         # key operation dependent conversion
         is_public = False
