@@ -150,7 +150,7 @@ token = cwt.encode(
 decoded = cwt.decode(token, public_key)
 ```
 
-Signature algorithms other than `Ed25519` are listed in
+Signing algorithms other than `Ed25519` are listed in
 [Supported COSE Algorithms](https://python-cwt.readthedocs.io/en/stable/algorithms.html).
 
 ### Encrypted CWT

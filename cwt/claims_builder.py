@@ -106,8 +106,9 @@ class ClaimsBuilder:
         Args:
             claims (Dict[str, int]): A set of private claim definitions which
                 consist of a readable claim name(str) and a claim key(int).
-                The claim key should be less than -65536 but the key other
-                than the key numbers registered in IANA registry can be accepted.
+                The claim key should be less than -65536 but you  can use the
+                numbers other than pre-registered numbers listed in
+                `IANA Registry <https://www.iana.org/assignments/cose/cose.xhtml>`_.
         Raises:
             ValueError: Invalid arguments.
         """

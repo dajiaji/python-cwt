@@ -22,7 +22,7 @@ class COSE(CBORProcessor):
         Args:
             options (Optional[Dict[str, Any]]): Options for the initial configuration
                 of COSE. At this time, ``kid_auto_inclusion`` (default value: ``True``)
-                and ``alg_auto_inclusion`` are supported.
+                and ``alg_auto_inclusion`` (default value: ``True``) are supported.
         """
         self._recipients_builder = RecipientsBuilder()
         self._kid_auto_inclusion = True
@@ -55,8 +55,7 @@ class COSE(CBORProcessor):
             key (COSEKey): A COSE key as a MAC Authentication key.
             protected (Union[Dict[int, Any], bytes]): Parameters that are to be cryptographically
                 protected.
-            unprotected (Dict[int, Any]): Parameters that are not cryptographically
-                protected.
+            unprotected (Dict[int, Any]): Parameters that are not cryptographically protected.
             recipients (Optional[List[Recipient]]): A list of recipient information structures.
             out(str): An output format. Only ``"cbor2/CBORTag"`` can be used. If ``"cbor2/CBORTag"``
                 is specified. This function will return encoded data as
