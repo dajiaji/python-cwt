@@ -168,8 +168,8 @@ class CWT(CBORProcessor):
         else:
             claims = claims.to_dict()
         self._set_default_value(claims)
-        protected: Dict[int, Any] = {1: key.alg}
-        unprotected: Dict[int, Any] = {4: key.kid} if key.kid else {}
+        protected: Dict[int, Any] = {}
+        unprotected: Dict[int, Any] = {}
         b_claims = self._dumps(claims)
         res = self._cose.encode_and_mac(
             protected, unprotected, b_claims, key, recipients, out="cbor2/CBORTag"
@@ -245,8 +245,8 @@ class CWT(CBORProcessor):
         else:
             claims = claims.to_dict()
         self._set_default_value(claims)
-        protected: Dict[int, Any] = {1: key.alg}
-        unprotected: Dict[int, Any] = {4: key.kid} if key.kid else {}
+        protected: Dict[int, Any] = {}
+        unprotected: Dict[int, Any] = {}
         if not nonce:
             try:
                 nonce = key.generate_nonce()
@@ -255,7 +255,6 @@ class CWT(CBORProcessor):
                     "Nonce generation is not supported for the key. Set a nonce explicitly."
                 )
 
-        unprotected[5] = nonce
         b_claims: bytes = b""
         if isinstance(claims, dict):
             b_claims = self._dumps(claims)
