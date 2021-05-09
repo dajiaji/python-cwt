@@ -29,11 +29,109 @@ class TestCOSE:
     Tests for COSE.
     """
 
-    def test_cose_constructor_with_invalid_args(self):
+    def test_cose_constructor_with_options(self):
+        ctx = COSE(options={"kid_auto_inclusion": False, "alg_auto_inclusion": False})
+        assert isinstance(ctx, COSE)
+
+    def test_cose_encode_and_decode_with_options(self):
+        ctx = COSE(options={"kid_auto_inclusion": False, "alg_auto_inclusion": False})
+
+        # MAC0
+        mac_key = cose_key.from_symmetric_key(alg="HS256", kid="01")
+        token = ctx.encode_and_mac(b"Hello world!", mac_key)
+        assert b"Hello world!" == ctx.decode(token, mac_key)
+
+        # MAC
+        token = ctx.encode_and_mac(
+            b"Hello world!",
+            mac_key,
+            recipients=[Recipient(unprotected={1: -6, 4: b"01"})],
+        )
+        assert b"Hello world!" == ctx.decode(token, mac_key)
+
+        # Encrypt0
+        enc_key = cose_key.from_symmetric_key(alg="ChaCha20/Poly1305", kid="02")
+        token = ctx.encode_and_encrypt(b"Hello world!", enc_key)
+        assert b"Hello world!" == ctx.decode(token, enc_key)
+
+        # Encrypt
+        token = ctx.encode_and_encrypt(
+            b"Hello world!",
+            enc_key,
+            recipients=[Recipient(unprotected={1: -6, 4: b"02"})],
+        )
+        assert b"Hello world!" == ctx.decode(token, enc_key)
+
+        # Signature1
+        sig_key = cose_key.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "03",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        )
+        token = ctx.encode_and_sign(b"Hello world!", sig_key)
+        assert b"Hello world!" == ctx.decode(token, sig_key)
+
+    def test_cose_encode_and_decode_with_protected_bytes(self):
+        ctx = COSE(options={"kid_auto_inclusion": False, "alg_auto_inclusion": False})
+
+        # MAC0
+        mac_key = cose_key.from_symmetric_key(alg="HS256", kid="01")
+        token = ctx.encode_and_mac(b"Hello world!", mac_key, protected=b"a0")
+        assert b"Hello world!" == ctx.decode(token, mac_key)
+
+        # MAC
+        token = ctx.encode_and_mac(
+            b"Hello world!",
+            mac_key,
+            protected=b"a0",
+            recipients=[Recipient(unprotected={1: -6, 4: b"01"})],
+        )
+        assert b"Hello world!" == ctx.decode(token, mac_key)
+
+        # Encrypt0
+        enc_key = cose_key.from_symmetric_key(alg="ChaCha20/Poly1305", kid="02")
+        token = ctx.encode_and_encrypt(b"Hello world!", enc_key, protected=b"a0")
+        assert b"Hello world!" == ctx.decode(token, enc_key)
+
+        # Encrypt
+        token = ctx.encode_and_encrypt(
+            b"Hello world!",
+            enc_key,
+            protected=b"a0",
+            recipients=[Recipient(unprotected={1: -6, 4: b"02"})],
+        )
+        assert b"Hello world!" == ctx.decode(token, enc_key)
+
+        # Signature1
+        sig_key = cose_key.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "03",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        )
+        token = ctx.encode_and_sign(b"Hello world!", sig_key, protected=b"a0")
+        assert b"Hello world!" == ctx.decode(token, sig_key)
+
+    def test_cose_constructor_with_invalid_kid_auto_inclusion(self):
         with pytest.raises(ValueError) as err:
             COSE(options={"kid_auto_inclusion": "xxx"})
             pytest.fail("COSE should fail.")
-        assert "kid_auto_inclusion should be bool" in str(err.value)
+        assert "kid_auto_inclusion should be bool." in str(err.value)
+
+    def test_cose_constructor_with_invalid_alg_auto_inclusion(self):
+        with pytest.raises(ValueError) as err:
+            COSE(options={"alg_auto_inclusion": "xxx"})
+            pytest.fail("COSE should fail.")
+        assert "alg_auto_inclusion should be bool." in str(err.value)
 
     def test_cose_sample_cose_wg_examples_hmac_01(self, ctx):
         cwt_str = "D8618543A10105A054546869732069732074686520636F6E74656E742E58202BDCC89F058216B8A208DDC6D8B54AA91F48BD63484986565105C9AD5A6682F6818340A20125044A6F75722D73656372657440"
@@ -47,13 +145,51 @@ class TestCOSE:
             }
         )
         token = ctx.encode_and_mac(
-            {},
-            {},
             b"This is the content.",
             key=key,
             recipients=[Recipient(unprotected={1: -6, 4: b"our-secret"})],
         )
         assert token == bytes.fromhex(cwt_str)
+        assert ctx.decode(token, key) == b"This is the content."
+
+    def test_cose_sample_cose_wg_examples_sign1_pass_01(self):
+        key = cose_key.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "11",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        )
+        ctx = COSE(options={"kid_auto_inclusion": False, "alg_auto_inclusion": False})
+        token = ctx.encode_and_sign(
+            b"This is the content.",
+            key,
+            protected=bytes.fromhex("a0"),
+            unprotected={1: -7, 4: b"11"},
+        )
+        assert ctx.decode(token, key) == b"This is the content."
+
+    def test_cose_sample_cose_wg_examples_sign_pass_01(self):
+        key = cose_key.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "11",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        )
+        ctx = COSE(options={"kid_auto_inclusion": False, "alg_auto_inclusion": False})
+        token = ctx.encode_and_sign(
+            b"This is the content.",
+            [key],
+            protected=bytes.fromhex("a0"),
+            unprotected={},
+        )
         assert ctx.decode(token, key) == b"This is the content."
 
     def test_cose_sample_cose_wg_examples_aes_ccm_01(self, ctx):
@@ -68,10 +204,8 @@ class TestCOSE:
             }
         )
         token = ctx.encode_and_encrypt(
-            {1: 10},
-            {5: bytes.fromhex("89F52F65A1C580933B5261A72F")},
             b"This is the content.",
-            key=key,
+            key,
             nonce=bytes.fromhex("89F52F65A1C580933B5261A72F"),
             recipients=[Recipient(unprotected={1: -6, 4: b"our-secret"})],
         )
@@ -90,10 +224,8 @@ class TestCOSE:
             }
         )
         token = ctx.encode_and_encrypt(
-            {1: 1},
-            {5: bytes.fromhex("02D1F7E6F26C43D4868D87CE")},
             b"This is the content.",
-            key=key,
+            key,
             nonce=bytes.fromhex("02D1F7E6F26C43D4868D87CE"),
             recipients=[Recipient(unprotected={1: -6, 4: b"our-secret"})],
         )
@@ -112,10 +244,8 @@ class TestCOSE:
             }
         )
         token = ctx.encode_and_encrypt(
-            {},
-            {},
             b"This is the content.",
-            key=key,
+            key,
             nonce=bytes.fromhex("26682306D4FB28CA01B43B80"),
             recipients=[Recipient(unprotected={1: -6, 4: b"sec-256"})],
         )
@@ -134,10 +264,8 @@ class TestCOSE:
             }
         )
         token = ctx.encode_and_encrypt(
-            {},
-            {},
-            payload=b"This is the content.",
-            key=key,
+            b"This is the content.",
+            key,
             nonce=bytes.fromhex("5C3A9950BD2852F66E6C8D4F"),
         )
         # assert token == bytes.fromhex(cwt_str)
@@ -147,10 +275,8 @@ class TestCOSE:
         key = cose_key.from_symmetric_key(alg="HS256")
         with pytest.raises(NotImplementedError) as err:
             ctx.encode_and_mac(
-                {},
-                {},
                 b"This is the content.",
-                key=key,
+                key,
                 recipients=[Recipient(unprotected={1: 0, 4: b"our-secret"})],
             )
             pytest.fail("encode_and_mac should fail.")
@@ -170,10 +296,8 @@ class TestCOSE:
         )
         with pytest.raises(NotImplementedError) as err:
             ctx.encode_and_encrypt(
-                {1: 10},
-                {5: bytes.fromhex("89F52F65A1C580933B5261A72F")},
                 b"This is the content.",
-                key=key,
+                key,
                 nonce=bytes.fromhex("89F52F65A1C580933B5261A72F"),
                 recipients=[Recipient(unprotected={1: 0, 4: b"our-secret"})],
             )
@@ -185,7 +309,7 @@ class TestCOSE:
     def test_cose_encode_and_mac_with_invalid_payload(self, ctx):
         key = cose_key.from_symmetric_key(alg="HS256")
         with pytest.raises(EncodeError) as err:
-            ctx.encode_and_mac({}, {}, datetime.datetime.now(), key)
+            ctx.encode_and_mac(datetime.datetime.now(), key, {}, {})
             pytest.fail("encode_and_mac should fail.")
         assert "Failed to encode." in str(err.value)
 
