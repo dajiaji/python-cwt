@@ -188,6 +188,14 @@ class COSE(CBORProcessor):
 
         ctx = "Encrypt0" if not recipients else "Encrypt"
 
+        if not nonce:
+            try:
+                nonce = key.generate_nonce()
+            except NotImplementedError:
+                raise ValueError(
+                    "Nonce generation is not supported for the key. Set a nonce explicitly."
+                )
+
         # Encrypt0
         if not recipients:
             protected[1] = key.alg

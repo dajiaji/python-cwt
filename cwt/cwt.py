@@ -239,15 +239,7 @@ class CWT(CBORProcessor):
         else:
             claims = claims.to_dict()
         self._set_default_value(claims)
-        if not nonce:
-            try:
-                nonce = key.generate_nonce()
-            except NotImplementedError:
-                raise ValueError(
-                    "Nonce generation is not supported for the key. Set a nonce explicitly."
-                )
-
-        b_claims: bytes = b""
+        b_claims = b""
         if isinstance(claims, dict):
             b_claims = self._dumps(claims)
         else:
