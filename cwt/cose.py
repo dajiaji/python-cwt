@@ -21,18 +21,22 @@ class COSE(CBORProcessor):
 
         Args:
             options (Optional[Dict[str, Any]]): Options for the initial configuration
-                of COSE. At this time, ``kid_auto_inclusion`` (default value: ``True`` )
-                is only supported. If it is ``True`` and a ``kid`` can be identified,
-                ``kid`` parameter is automatically set to the unprotected header.
+                of COSE. At this time, ``kid_auto_inclusion`` (default value: ``True``)
+                and ``alg_auto_inclusion`` are supported.
         """
         self._recipients_builder = RecipientsBuilder()
         self._kid_auto_inclusion = True
+        self._alg_auto_inclusion = True
         if not options:
             return
         if "kid_auto_inclusion" in options:
             if not isinstance(options["kid_auto_inclusion"], bool):
                 raise ValueError("kid_auto_inclusion should be bool.")
             self._kid_auto_inclusion = options["kid_auto_inclusion"]
+        if "alg_auto_inclusion" in options:
+            if not isinstance(options["alg_auto_inclusion"], bool):
+                raise ValueError("alg_auto_inclusion should be bool.")
+            self._alg_auto_inclusion = options["alg_auto_inclusion"]
 
     def encode_and_mac(
         self,
@@ -69,7 +73,8 @@ class COSE(CBORProcessor):
 
         # MAC0
         if not recipients:
-            protected[1] = key.alg
+            if self._alg_auto_inclusion:
+                protected[1] = key.alg
             if self._kid_auto_inclusion and key.kid:
                 unprotected[4] = key.kid
             b_protected = self._dumps(protected)
@@ -83,7 +88,8 @@ class COSE(CBORProcessor):
         for rec in recipients:
             recs.append(rec.to_list())
         if recipients[0].alg == -6:
-            protected[1] = key.alg
+            if self._alg_auto_inclusion:
+                protected[1] = key.alg
             if self._kid_auto_inclusion and key.kid:
                 unprotected[4] = key.kid
         else:
@@ -102,7 +108,7 @@ class COSE(CBORProcessor):
         self,
         payload: bytes,
         key: Union[COSEKey, List[COSEKey]],
-        protected: Dict[int, Any] = {},
+        protected: Union[Dict[int, Any]] = {},
         unprotected: Dict[int, Any] = {},
         out: str = "",
     ) -> Union[bytes, CBORTag]:
@@ -128,8 +134,9 @@ class COSE(CBORProcessor):
         """
 
         ctx = "Signature" if not isinstance(key, COSEKey) else "Signature1"
-        if isinstance(key, COSEKey):
-            protected[1] = key.alg
+        if isinstance(key, COSEKey) and isinstance(protected, dict):
+            if self._alg_auto_inclusion:
+                protected[1] = key.alg
             if self._kid_auto_inclusion and key.kid:
                 unprotected[4] = key.kid
 
@@ -198,13 +205,15 @@ class COSE(CBORProcessor):
 
         # Encrypt0
         if not recipients:
-            protected[1] = key.alg
+            if self._alg_auto_inclusion:
+                protected[1] = key.alg
             if self._kid_auto_inclusion and key.kid:
                 unprotected[4] = key.kid
             unprotected[5] = nonce
             b_protected = self._dumps(protected) if protected else b""
             enc_structure = [ctx, b_protected, b""]
             aad = self._dumps(enc_structure)
+            print(aad)
             ciphertext = key.encrypt(payload, nonce, aad)
             res = CBORTag(16, [b_protected, unprotected, ciphertext])
             return res if out == "cbor2/CBORTag" else self._dumps(res)
@@ -214,7 +223,8 @@ class COSE(CBORProcessor):
         for rec in recipients:
             recs.append(rec.to_list())
         if recipients[0].alg == -6:
-            protected[1] = key.alg
+            if self._alg_auto_inclusion:
+                protected[1] = key.alg
             if self._kid_auto_inclusion and key.kid:
                 unprotected[4] = key.kid
             unprotected[5] = nonce

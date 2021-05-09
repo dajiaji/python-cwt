@@ -29,11 +29,64 @@ class TestCOSE:
     Tests for COSE.
     """
 
-    def test_cose_constructor_with_invalid_args(self):
+    def test_cose_constructor_with_options(self):
+        ctx = COSE(options={"kid_auto_inclusion": False, "alg_auto_inclusion": False})
+        assert isinstance(ctx, COSE)
+
+    def test_cose_encode_and_decode_with_options(self):
+        ctx = COSE(options={"kid_auto_inclusion": False, "alg_auto_inclusion": False})
+
+        # MAC0
+        mac_key = cose_key.from_symmetric_key(alg="HS256", kid="01")
+        token = ctx.encode_and_mac(b"Hello world!", mac_key)
+        assert b"Hello world!" == ctx.decode(token, mac_key)
+
+        # MAC
+        token = ctx.encode_and_mac(
+            b"Hello world!",
+            mac_key,
+            recipients=[Recipient(unprotected={1: -6, 4: b"01"})],
+        )
+        assert b"Hello world!" == ctx.decode(token, mac_key)
+
+        # Encrypt0
+        enc_key = cose_key.from_symmetric_key(alg="ChaCha20/Poly1305", kid="02")
+        token = ctx.encode_and_encrypt(b"Hello world!", enc_key)
+        assert b"Hello world!" == ctx.decode(token, enc_key)
+
+        # Encrypt
+        token = ctx.encode_and_encrypt(
+            b"Hello world!",
+            enc_key,
+            recipients=[Recipient(unprotected={1: -6, 4: b"02"})],
+        )
+        assert b"Hello world!" == ctx.decode(token, enc_key)
+
+        # Signature1
+        sig_key = cose_key.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "03",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        )
+        token = ctx.encode_and_sign(b"Hello world!", sig_key)
+        assert b"Hello world!" == ctx.decode(token, sig_key)
+
+    def test_cose_constructor_with_invalid_kid_auto_inclusion(self):
         with pytest.raises(ValueError) as err:
             COSE(options={"kid_auto_inclusion": "xxx"})
             pytest.fail("COSE should fail.")
-        assert "kid_auto_inclusion should be bool" in str(err.value)
+        assert "kid_auto_inclusion should be bool." in str(err.value)
+
+    def test_cose_constructor_with_invalid_alg_auto_inclusion(self):
+        with pytest.raises(ValueError) as err:
+            COSE(options={"alg_auto_inclusion": "xxx"})
+            pytest.fail("COSE should fail.")
+        assert "alg_auto_inclusion should be bool." in str(err.value)
 
     def test_cose_sample_cose_wg_examples_hmac_01(self, ctx):
         cwt_str = "D8618543A10105A054546869732069732074686520636F6E74656E742E58202BDCC89F058216B8A208DDC6D8B54AA91F48BD63484986565105C9AD5A6682F6818340A20125044A6F75722D73656372657440"
