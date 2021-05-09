@@ -42,7 +42,7 @@ class COSE(CBORProcessor):
         self,
         payload: bytes,
         key: COSEKey,
-        protected: Dict[int, Any] = {},
+        protected: Union[Dict[int, Any], bytes] = {},
         unprotected: Dict[int, Any] = {},
         recipients: Optional[List[Recipient]] = None,
         out: str = "",
@@ -53,7 +53,7 @@ class COSE(CBORProcessor):
         Args:
             payload (bytes): A content to be MACed.
             key (COSEKey): A COSE key as a MAC Authentication key.
-            protected (Dict[int, Any]): Parameters that are to be cryptographically
+            protected (Union[Dict[int, Any], bytes]): Parameters that are to be cryptographically
                 protected.
             unprotected (Dict[int, Any]): Parameters that are not cryptographically
                 protected.
@@ -70,14 +70,18 @@ class COSE(CBORProcessor):
         """
 
         ctx = "MAC0" if not recipients else "MAC"
+        b_protected = b""
 
         # MAC0
         if not recipients:
-            if self._alg_auto_inclusion:
-                protected[1] = key.alg
-            if self._kid_auto_inclusion and key.kid:
-                unprotected[4] = key.kid
-            b_protected = self._dumps(protected)
+            if isinstance(protected, bytes):
+                b_protected = protected
+            else:
+                if self._alg_auto_inclusion:
+                    protected[1] = key.alg
+                if self._kid_auto_inclusion and key.kid:
+                    unprotected[4] = key.kid
+                b_protected = self._dumps(protected)
             mac_structure = [ctx, b_protected, b"", payload]
             tag = key.sign(self._dumps(mac_structure))
             res = CBORTag(17, [b_protected, unprotected, payload, tag])
@@ -88,15 +92,20 @@ class COSE(CBORProcessor):
         for rec in recipients:
             recs.append(rec.to_list())
         if recipients[0].alg == -6:
-            if self._alg_auto_inclusion:
-                protected[1] = key.alg
-            if self._kid_auto_inclusion and key.kid:
-                unprotected[4] = key.kid
+            if not isinstance(protected, bytes):
+                if self._alg_auto_inclusion:
+                    protected[1] = key.alg
+                if self._kid_auto_inclusion and key.kid:
+                    unprotected[4] = key.kid
         else:
             raise NotImplementedError(
                 "Algorithms other than direct are not supported for recipients."
             )
-        b_protected = self._dumps(protected) if protected else b""
+
+        if isinstance(protected, bytes):
+            b_protected = protected
+        else:
+            b_protected = self._dumps(protected) if protected else b""
         mac_structure = [ctx, b_protected, b"", payload]
         tag = key.sign(self._dumps(mac_structure))
         cose_mac: List[Any] = [b_protected, unprotected, payload, tag]
@@ -108,7 +117,7 @@ class COSE(CBORProcessor):
         self,
         payload: bytes,
         key: Union[COSEKey, List[COSEKey]],
-        protected: Union[Dict[int, Any]] = {},
+        protected: Union[Dict[int, Any], bytes] = {},
         unprotected: Dict[int, Any] = {},
         out: str = "",
     ) -> Union[bytes, CBORTag]:
@@ -118,7 +127,7 @@ class COSE(CBORProcessor):
         Args:
             payload (bytes): A content to be signed.
             key (Union[COSEKey, List[COSEKey]]): One or more COSE keys as signing keys.
-            protected (Dict[int, Any]): Parameters that are to be cryptographically
+            protected (Union[Dict[int, Any], bytes]): Parameters that are to be cryptographically
                 protected.
             unprotected (Dict[int, Any]): Parameters that are not cryptographically
                 protected.
@@ -140,7 +149,11 @@ class COSE(CBORProcessor):
             if self._kid_auto_inclusion and key.kid:
                 unprotected[4] = key.kid
 
-        b_protected = self._dumps(protected) if protected else b""
+        b_protected = b""
+        if isinstance(protected, bytes):
+            b_protected = protected
+        else:
+            b_protected = self._dumps(protected) if protected else b""
 
         # Signature1
         if isinstance(key, COSEKey):
@@ -152,6 +165,7 @@ class COSE(CBORProcessor):
         # Signature
         sigs = []
         for k in key:
+            print(f"alg={k.alg}")
             p_header = self._dumps({1: k.alg})
             u_header = {4: k.kid} if k.kid else {}
             sig_structure = [ctx, b_protected, p_header, b"", payload]
@@ -164,7 +178,7 @@ class COSE(CBORProcessor):
         self,
         payload: bytes,
         key: COSEKey,
-        protected: Dict[int, Any] = {},
+        protected: Union[Dict[int, Any], bytes] = {},
         unprotected: Dict[int, Any] = {},
         nonce: bytes = b"",
         recipients: Optional[List[Recipient]] = None,
@@ -176,7 +190,7 @@ class COSE(CBORProcessor):
         Args:
             payload (bytes): A content to be encrypted.
             key (COSEKey): A COSE key as an encryption key.
-            protected (Dict[int, Any]): Parameters that are to be cryptographically
+            protected (Union[Dict[int, Any], bytes]): Parameters that are to be cryptographically
                 protected.
             unprotected (Dict[int, Any]): Parameters that are not cryptographically
                 protected.
@@ -205,15 +219,17 @@ class COSE(CBORProcessor):
 
         # Encrypt0
         if not recipients:
-            if self._alg_auto_inclusion:
-                protected[1] = key.alg
+            if isinstance(protected, bytes):
+                b_protected = protected
+            else:
+                if self._alg_auto_inclusion:
+                    protected[1] = key.alg
+                b_protected = self._dumps(protected) if protected else b""
             if self._kid_auto_inclusion and key.kid:
                 unprotected[4] = key.kid
             unprotected[5] = nonce
-            b_protected = self._dumps(protected) if protected else b""
             enc_structure = [ctx, b_protected, b""]
             aad = self._dumps(enc_structure)
-            print(aad)
             ciphertext = key.encrypt(payload, nonce, aad)
             res = CBORTag(16, [b_protected, unprotected, ciphertext])
             return res if out == "cbor2/CBORTag" else self._dumps(res)
@@ -223,7 +239,7 @@ class COSE(CBORProcessor):
         for rec in recipients:
             recs.append(rec.to_list())
         if recipients[0].alg == -6:
-            if self._alg_auto_inclusion:
+            if not isinstance(protected, bytes) and self._alg_auto_inclusion:
                 protected[1] = key.alg
             if self._kid_auto_inclusion and key.kid:
                 unprotected[4] = key.kid
@@ -232,7 +248,10 @@ class COSE(CBORProcessor):
             raise NotImplementedError(
                 "Algorithms other than direct are not supported for recipients."
             )
-        b_protected = self._dumps(protected) if protected else b""
+        if isinstance(protected, bytes):
+            b_protected = protected
+        else:
+            b_protected = self._dumps(protected) if protected else b""
         enc_structure = [ctx, b_protected, b""]
         aad = self._dumps(enc_structure)
         ciphertext = key.encrypt(payload, nonce, aad)
