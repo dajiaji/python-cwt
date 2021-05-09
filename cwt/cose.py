@@ -19,10 +19,20 @@ class COSE(CBORProcessor):
         """
         Constructor.
 
-        At the current implementation, any ``options`` will be ignored.
+        Args:
+            options (Optional[Dict[str, Any]]): Options for the initial configuration
+                of COSE. At this time, ``kid_auto_inclusion`` (default value: ``True`` )
+                is only supported. If it is ``True`` and a ``kid`` can be identified,
+                ``kid`` parameter is automatically set to the unprotected header.
         """
-        self._options = options
         self._recipients_builder = RecipientsBuilder()
+        self._kid_auto_inclusion = True
+        if not options:
+            return
+        if "kid_auto_inclusion" in options:
+            if not isinstance(options["kid_auto_inclusion"], bool):
+                raise ValueError("kid_auto_inclusion should be bool.")
+            self._kid_auto_inclusion = options["kid_auto_inclusion"]
 
     def encode_and_mac(
         self,
@@ -60,7 +70,7 @@ class COSE(CBORProcessor):
         # MAC0
         if not recipients:
             protected[1] = key.alg
-            if key.kid:
+            if self._kid_auto_inclusion and key.kid:
                 unprotected[4] = key.kid
             b_protected = self._dumps(protected)
             mac_structure = [ctx, b_protected, b"", payload]
@@ -69,13 +79,21 @@ class COSE(CBORProcessor):
             return res if out == "cbor2/CBORTag" else self._dumps(res)
 
         # MAC
+        recs = []
+        for rec in recipients:
+            recs.append(rec.to_list())
+        if recipients[0].alg == -6:
+            protected[1] = key.alg
+            if self._kid_auto_inclusion and key.kid:
+                unprotected[4] = key.kid
+        else:
+            raise NotImplementedError(
+                "Algorithms other than direct are not supported for recipients."
+            )
         b_protected = self._dumps(protected) if protected else b""
         mac_structure = [ctx, b_protected, b"", payload]
         tag = key.sign(self._dumps(mac_structure))
         cose_mac: List[Any] = [b_protected, unprotected, payload, tag]
-        recs = []
-        for rec in recipients:
-            recs.append(rec.to_list())
         cose_mac.append(recs)
         res = CBORTag(97, cose_mac)
         return res if out == "cbor2/CBORTag" else self._dumps(res)
@@ -112,7 +130,7 @@ class COSE(CBORProcessor):
         ctx = "Signature" if not isinstance(key, COSEKey) else "Signature1"
         if isinstance(key, COSEKey):
             protected[1] = key.alg
-            if key.kid:
+            if self._kid_auto_inclusion and key.kid:
                 unprotected[4] = key.kid
 
         b_protected = self._dumps(protected) if protected else b""
@@ -172,6 +190,10 @@ class COSE(CBORProcessor):
 
         # Encrypt0
         if not recipients:
+            protected[1] = key.alg
+            if self._kid_auto_inclusion and key.kid:
+                unprotected[4] = key.kid
+            unprotected[5] = nonce
             b_protected = self._dumps(protected) if protected else b""
             enc_structure = [ctx, b_protected, b""]
             aad = self._dumps(enc_structure)
@@ -180,14 +202,23 @@ class COSE(CBORProcessor):
             return res if out == "cbor2/CBORTag" else self._dumps(res)
 
         # Encrypt
+        recs = []
+        for rec in recipients:
+            recs.append(rec.to_list())
+        if recipients[0].alg == -6:
+            protected[1] = key.alg
+            if self._kid_auto_inclusion and key.kid:
+                unprotected[4] = key.kid
+            unprotected[5] = nonce
+        else:
+            raise NotImplementedError(
+                "Algorithms other than direct are not supported for recipients."
+            )
         b_protected = self._dumps(protected) if protected else b""
         enc_structure = [ctx, b_protected, b""]
         aad = self._dumps(enc_structure)
         ciphertext = key.encrypt(payload, nonce, aad)
         cose_enc: List[Any] = [b_protected, unprotected, ciphertext]
-        recs = []
-        for rec in recipients:
-            recs.append(rec.to_list())
         cose_enc.append(recs)
         res = CBORTag(96, cose_enc)
         return res if out == "cbor2/CBORTag" else self._dumps(res)
