@@ -168,11 +168,9 @@ class CWT(CBORProcessor):
         else:
             claims = claims.to_dict()
         self._set_default_value(claims)
-        protected: Dict[int, Any] = {}
-        unprotected: Dict[int, Any] = {}
         b_claims = self._dumps(claims)
         res = self._cose.encode_and_mac(
-            protected, unprotected, b_claims, key, recipients, out="cbor2/CBORTag"
+            b_claims, key, {}, {}, recipients, out="cbor2/CBORTag"
         )
         if tagged:
             return self._dumps(CBORTag(CWT.CBOR_TAG, res))
@@ -205,12 +203,8 @@ class CWT(CBORProcessor):
         else:
             claims = claims.to_dict()
         self._set_default_value(claims)
-        protected: Dict[int, Any] = {}
-        unprotected: Dict[int, Any] = {}
         b_claims = self._dumps(claims)
-        res = self._cose.encode_and_sign(
-            protected, unprotected, b_claims, key, out="cbor2/CBORTag"
-        )
+        res = self._cose.encode_and_sign(b_claims, key, {}, {}, out="cbor2/CBORTag")
         if tagged:
             return self._dumps(CBORTag(CWT.CBOR_TAG, res))
         return self._dumps(res)
@@ -245,8 +239,6 @@ class CWT(CBORProcessor):
         else:
             claims = claims.to_dict()
         self._set_default_value(claims)
-        protected: Dict[int, Any] = {}
-        unprotected: Dict[int, Any] = {}
         if not nonce:
             try:
                 nonce = key.generate_nonce()
@@ -261,10 +253,10 @@ class CWT(CBORProcessor):
         else:
             b_claims = claims
         res = self._cose.encode_and_encrypt(
-            protected,
-            unprotected,
             b_claims,
             key,
+            {},
+            {},
             nonce,
             recipients,
             out="cbor2/CBORTag",

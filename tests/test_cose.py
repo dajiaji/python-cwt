@@ -47,8 +47,6 @@ class TestCOSE:
             }
         )
         token = ctx.encode_and_mac(
-            {},
-            {},
             b"This is the content.",
             key=key,
             recipients=[Recipient(unprotected={1: -6, 4: b"our-secret"})],
@@ -68,10 +66,10 @@ class TestCOSE:
             }
         )
         token = ctx.encode_and_encrypt(
-            {1: 10},
-            {5: bytes.fromhex("89F52F65A1C580933B5261A72F")},
+            # {1: 10},
+            # {5: bytes.fromhex("89F52F65A1C580933B5261A72F")},
             b"This is the content.",
-            key=key,
+            key,
             nonce=bytes.fromhex("89F52F65A1C580933B5261A72F"),
             recipients=[Recipient(unprotected={1: -6, 4: b"our-secret"})],
         )
@@ -90,10 +88,10 @@ class TestCOSE:
             }
         )
         token = ctx.encode_and_encrypt(
-            {1: 1},
-            {5: bytes.fromhex("02D1F7E6F26C43D4868D87CE")},
+            # {1: 1},
+            # {5: bytes.fromhex("02D1F7E6F26C43D4868D87CE")},
             b"This is the content.",
-            key=key,
+            key,
             nonce=bytes.fromhex("02D1F7E6F26C43D4868D87CE"),
             recipients=[Recipient(unprotected={1: -6, 4: b"our-secret"})],
         )
@@ -112,10 +110,8 @@ class TestCOSE:
             }
         )
         token = ctx.encode_and_encrypt(
-            {},
-            {},
             b"This is the content.",
-            key=key,
+            key,
             nonce=bytes.fromhex("26682306D4FB28CA01B43B80"),
             recipients=[Recipient(unprotected={1: -6, 4: b"sec-256"})],
         )
@@ -134,10 +130,8 @@ class TestCOSE:
             }
         )
         token = ctx.encode_and_encrypt(
-            {},
-            {},
-            payload=b"This is the content.",
-            key=key,
+            b"This is the content.",
+            key,
             nonce=bytes.fromhex("5C3A9950BD2852F66E6C8D4F"),
         )
         # assert token == bytes.fromhex(cwt_str)
@@ -147,10 +141,8 @@ class TestCOSE:
         key = cose_key.from_symmetric_key(alg="HS256")
         with pytest.raises(NotImplementedError) as err:
             ctx.encode_and_mac(
-                {},
-                {},
                 b"This is the content.",
-                key=key,
+                key,
                 recipients=[Recipient(unprotected={1: 0, 4: b"our-secret"})],
             )
             pytest.fail("encode_and_mac should fail.")
@@ -170,10 +162,10 @@ class TestCOSE:
         )
         with pytest.raises(NotImplementedError) as err:
             ctx.encode_and_encrypt(
-                {1: 10},
-                {5: bytes.fromhex("89F52F65A1C580933B5261A72F")},
+                # {1: 10},
+                # {5: bytes.fromhex("89F52F65A1C580933B5261A72F")},
                 b"This is the content.",
-                key=key,
+                key,
                 nonce=bytes.fromhex("89F52F65A1C580933B5261A72F"),
                 recipients=[Recipient(unprotected={1: 0, 4: b"our-secret"})],
             )
@@ -185,7 +177,7 @@ class TestCOSE:
     def test_cose_encode_and_mac_with_invalid_payload(self, ctx):
         key = cose_key.from_symmetric_key(alg="HS256")
         with pytest.raises(EncodeError) as err:
-            ctx.encode_and_mac({}, {}, datetime.datetime.now(), key)
+            ctx.encode_and_mac(datetime.datetime.now(), key, {}, {})
             pytest.fail("encode_and_mac should fail.")
         assert "Failed to encode." in str(err.value)
 

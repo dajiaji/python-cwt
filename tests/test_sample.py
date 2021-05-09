@@ -8,7 +8,7 @@ Tests for samples on README and RFCs related to CWT/COSE.
 """
 from secrets import token_bytes
 
-# import cbor2
+import cbor2
 import pytest
 
 import cwt
@@ -808,6 +808,8 @@ class TestSample:
             key=key,
             nonce=nonce,
         )
+        print(cbor2.loads(encoded))
+        print(cbor2.loads(bytes.fromhex(SAMPLE_CWT_RFC8392_A5)))
         assert encoded == bytes.fromhex(SAMPLE_CWT_RFC8392_A5)
         decoded = cwt.decode(encoded, key=key, no_verify=True)
         assert 1 in decoded and decoded[1] == "coap://as.example.com"

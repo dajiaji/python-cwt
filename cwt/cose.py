@@ -36,10 +36,10 @@ class COSE(CBORProcessor):
 
     def encode_and_mac(
         self,
-        protected: Dict[int, Any],
-        unprotected: Dict[int, Any],
         payload: bytes,
         key: COSEKey,
+        protected: Dict[int, Any] = {},
+        unprotected: Dict[int, Any] = {},
         recipients: Optional[List[Recipient]] = None,
         out: str = "",
     ) -> Union[bytes, CBORTag]:
@@ -47,12 +47,12 @@ class COSE(CBORProcessor):
         Encodes data with MAC.
 
         Args:
+            payload (bytes): A content to be MACed.
+            key (COSEKey): A COSE key as a MAC Authentication key.
             protected (Dict[int, Any]): Parameters that are to be cryptographically
                 protected.
             unprotected (Dict[int, Any]): Parameters that are not cryptographically
                 protected.
-            payload (bytes): A content to be MACed.
-            key (COSEKey): A COSE key as a MAC Authentication key.
             recipients (Optional[List[Recipient]]): A list of recipient information structures.
             out(str): An output format. Only ``"cbor2/CBORTag"`` can be used. If ``"cbor2/CBORTag"``
                 is specified. This function will return encoded data as
@@ -100,22 +100,22 @@ class COSE(CBORProcessor):
 
     def encode_and_sign(
         self,
-        protected: Dict[int, Any],
-        unprotected: Dict[int, Any],
         payload: bytes,
         key: Union[COSEKey, List[COSEKey]],
+        protected: Dict[int, Any] = {},
+        unprotected: Dict[int, Any] = {},
         out: str = "",
     ) -> Union[bytes, CBORTag]:
         """
         Encodes data with signing.
 
         Args:
+            payload (bytes): A content to be signed.
+            key (Union[COSEKey, List[COSEKey]]): One or more COSE keys as signing keys.
             protected (Dict[int, Any]): Parameters that are to be cryptographically
                 protected.
             unprotected (Dict[int, Any]): Parameters that are not cryptographically
                 protected.
-            payload (bytes): A content to be signed.
-            key (Union[COSEKey, List[COSEKey]]): One or more COSE keys as signing keys.
             out(str): An output format. Only ``"cbor2/CBORTag"`` can be used. If ``"cbor2/CBORTag"``
                 is specified. This function will return encoded data as
                 `cbor2 <https://cbor2.readthedocs.io/en/stable/>`_'s ``CBORTag`` object.
@@ -155,10 +155,10 @@ class COSE(CBORProcessor):
 
     def encode_and_encrypt(
         self,
-        protected: Dict[int, Any],
-        unprotected: Dict[int, Any],
         payload: bytes,
         key: COSEKey,
+        protected: Dict[int, Any] = {},
+        unprotected: Dict[int, Any] = {},
         nonce: bytes = b"",
         recipients: Optional[List[Recipient]] = None,
         out: str = "",
@@ -167,12 +167,12 @@ class COSE(CBORProcessor):
         Encodes data with encryption.
 
         Args:
+            payload (bytes): A content to be encrypted.
+            key (COSEKey): A COSE key as an encryption key.
             protected (Dict[int, Any]): Parameters that are to be cryptographically
                 protected.
             unprotected (Dict[int, Any]): Parameters that are not cryptographically
                 protected.
-            payload (bytes): A content to be encrypted.
-            key (COSEKey): A COSE key as an encryption key.
             nonce (bytes): A nonce for encryption.
             recipients (Optional[List[Recipient]]): A list of recipient information structures.
             out(str): An output format. Only ``"cbor2/CBORTag"`` can be used. If ``"cbor2/CBORTag"``

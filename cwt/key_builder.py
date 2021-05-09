@@ -510,11 +510,11 @@ class KeyBuilder(CBORProcessor):
         unprotected[5] = nonce
         b_payload = self._dumps(key.to_dict())
         res: CBORTag = self._cose.encode_and_encrypt(
-            protected,
-            unprotected,
             b_payload,
             encryption_key,
-            nonce,
+            protected,
+            unprotected,
+            nonce=nonce,
             out="cbor2/CBORTag",
         )
         return res.value
