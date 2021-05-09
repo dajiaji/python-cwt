@@ -42,9 +42,9 @@ class CWT(CBORProcessor):
 
             >>> from cwt import CWT, claims, cose_key
             >>> ctx = CWT({"expires_in": 3600*24, "leeway": 10})
-            >>> key = cose_key.from_symmetric_key("mysecret")
-            >>> token = ctx.encode_and_mac(
-            ...     claims.from_json({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}),
+            >>> key = cose_key.from_symmetric_key(alg="HS255")
+            >>> token = ctx.encode(
+            ...     {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"},
             ...     key,
             ... )
         """
@@ -222,7 +222,7 @@ class CWT(CBORProcessor):
 
         Args:
             claims (Claims, Union[Dict[int, Any], bytes]): A CWT claims object or byte
-            string.
+                string.
             key (COSEKey): A COSE key used to encrypt the claims.
             nonce (bytes): A nonce for encryption.
             recipients (List[Recipient]): A list of recipient information structures.
@@ -298,7 +298,9 @@ class CWT(CBORProcessor):
         Args:
             claims (Dict[str, int]): A set of private claim definitions which
                 consist of a readable claim name(str) and a claim key(int).
-                The claim key should be less than -65536.
+                The claim key should be less than -65536 but you  can use the
+                numbers other than pre-registered numbers listed in
+                `IANA Registry <https://www.iana.org/assignments/cose/cose.xhtml>`_.
         Raises:
             ValueError: Invalid arguments.
         """
