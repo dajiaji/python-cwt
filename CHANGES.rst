@@ -4,6 +4,11 @@ Changes
 Unreleased
 ----------
 
+Version 0.7.0
+-------------
+
+Released 2021-05-09
+
 - Add support for bytes-formatted protected header. `#73 <https://github.com/dajiaji/python-cwt/pull/73>`__
 - Derive alg from kty and crv on from_jwk. `#73 <https://github.com/dajiaji/python-cwt/pull/73>`__
 - Add alg_auto_inclusion. `#73 <https://github.com/dajiaji/python-cwt/pull/73>`__
