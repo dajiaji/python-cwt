@@ -42,8 +42,8 @@ class COSE(CBORProcessor):
         self,
         payload: bytes,
         key: COSEKey,
-        protected: Union[Dict[int, Any], bytes] = {},
-        unprotected: Dict[int, Any] = {},
+        protected: Optional[Union[Dict[int, Any], bytes]] = None,
+        unprotected: Optional[Dict[int, Any]] = None,
         recipients: Optional[List[Recipient]] = None,
         out: str = "",
     ) -> Union[bytes, CBORTag]:
@@ -67,6 +67,8 @@ class COSE(CBORProcessor):
             ValueError: Invalid arguments.
             EncodeError: Failed to encode data.
         """
+        protected = {} if protected is None else protected
+        unprotected = {} if unprotected is None else unprotected
 
         ctx = "MAC0" if not recipients else "MAC"
         b_protected = b""
@@ -116,8 +118,8 @@ class COSE(CBORProcessor):
         self,
         payload: bytes,
         key: Union[COSEKey, List[COSEKey]],
-        protected: Union[Dict[int, Any], bytes] = {},
-        unprotected: Dict[int, Any] = {},
+        protected: Optional[Union[Dict[int, Any], bytes]] = None,
+        unprotected: Optional[Dict[int, Any]] = None,
         out: str = "",
     ) -> Union[bytes, CBORTag]:
         """
@@ -140,6 +142,8 @@ class COSE(CBORProcessor):
             ValueError: Invalid arguments.
             EncodeError: Failed to encode data.
         """
+        protected = {} if protected is None else protected
+        unprotected = {} if unprotected is None else unprotected
 
         ctx = "Signature" if not isinstance(key, COSEKey) else "Signature1"
         if isinstance(key, COSEKey) and isinstance(protected, dict):
@@ -164,7 +168,6 @@ class COSE(CBORProcessor):
         # Signature
         sigs = []
         for k in key:
-            print(f"alg={k.alg}")
             p_header = self._dumps({1: k.alg})
             u_header = {4: k.kid} if k.kid else {}
             sig_structure = [ctx, b_protected, p_header, b"", payload]
@@ -177,8 +180,8 @@ class COSE(CBORProcessor):
         self,
         payload: bytes,
         key: COSEKey,
-        protected: Union[Dict[int, Any], bytes] = {},
-        unprotected: Dict[int, Any] = {},
+        protected: Optional[Union[Dict[int, Any], bytes]] = None,
+        unprotected: Optional[Dict[int, Any]] = None,
         nonce: bytes = b"",
         recipients: Optional[List[Recipient]] = None,
         out: str = "",
@@ -205,6 +208,8 @@ class COSE(CBORProcessor):
             ValueError: Invalid arguments.
             EncodeError: Failed to encode data.
         """
+        protected = {} if protected is None else protected
+        unprotected = {} if unprotected is None else unprotected
 
         ctx = "Encrypt0" if not recipients else "Encrypt"
 
