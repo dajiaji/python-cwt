@@ -7,6 +7,7 @@
 Tests for COSE.
 """
 
+import base64
 import datetime
 
 import cbor2
@@ -188,8 +189,133 @@ class TestCOSE:
             b"This is the content.",
             [key],
             protected=bytes.fromhex("a0"),
-            unprotected={},
         )
+        assert ctx.decode(token, key) == b"This is the content."
+
+    def test_cose_sample_cose_wg_examples_eddsa_01(self):
+        cwt_str = "D8628443A10300A054546869732069732074686520636F6E74656E742E818343A10127A104423131584077F3EACD11852C4BF9CB1D72FABE6B26FBA1D76092B2B5B7EC83B83557652264E69690DBC1172DDC0BF88411C0D25A507FDB247A20C40D5E245FABD3FC9EC106"
+        key = cose_key.from_jwk(
+            {
+                "kty": "OKP",
+                "kid": "11",
+                "crv": "Ed25519",
+                "x": base64.urlsafe_b64encode(
+                    bytes.fromhex(
+                        "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
+                    )
+                )
+                .replace(b"=", b"")
+                .decode("ascii"),
+                "d": base64.urlsafe_b64encode(
+                    bytes.fromhex(
+                        "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60"
+                    )
+                )
+                .replace(b"=", b"")
+                .decode("ascii"),
+            }
+        )
+        ctx = COSE(options={"kid_auto_inclusion": False, "alg_auto_inclusion": False})
+        token = ctx.encode_and_sign(
+            b"This is the content.",
+            [key],
+            protected={3: 0},
+        )
+        assert token == bytes.fromhex(cwt_str)
+        assert ctx.decode(token, key) == b"This is the content."
+
+    def test_cose_sample_cose_wg_examples_eddsa_02(self):
+        cwt_str = "D8628440A054546869732069732074686520636F6E74656E742E818343A10127A1044565643434385872ABF04F4BC7DFACF70C20C34A3CFBD27719911DC8518B2D67BF6AF62895D0FA1E6A1CB8B47AD1297C0E9C34BEB34E50DFFEF14350EBD57842807D54914111150F698543B0A5E1DA1DB79632C6415CE18EF74EDAEA680B0C8881439D869171481D78E2F7D26340C293C2ECDED8DE1425851900"
+        key = cose_key.from_jwk(
+            {
+                "kty": "OKP",
+                "kid": "ed448",
+                "crv": "Ed448",
+                "x": base64.urlsafe_b64encode(
+                    bytes.fromhex(
+                        "5fd7449b59b461fd2ce787ec616ad46a1da1342485a70e1f8a0ea75d80e96778edf124769b46c7061bd6783df1e50f6cd1fa1abeafe8256180"
+                    )
+                )
+                .replace(b"=", b"")
+                .decode("ascii"),
+                "d": base64.urlsafe_b64encode(
+                    bytes.fromhex(
+                        "6c82a562cb808d10d632be89c8513ebf6c929f34ddfa8c9f63c9960ef6e348a3528c8a3fcc2f044e39a3fc5b94492f8f032e7549a20098f95b"
+                    )
+                )
+                .replace(b"=", b"")
+                .decode("ascii"),
+            }
+        )
+        ctx = COSE(options={"kid_auto_inclusion": False, "alg_auto_inclusion": False})
+        token = ctx.encode_and_sign(
+            b"This is the content.",
+            [key],
+        )
+        assert token == bytes.fromhex(cwt_str)
+        assert ctx.decode(token, key) == b"This is the content."
+
+    def test_cose_sample_cose_wg_examples_eddsa_sig_01(self):
+        cwt_str = "D28445A201270300A10442313154546869732069732074686520636F6E74656E742E58407142FD2FF96D56DB85BEE905A76BA1D0B7321A95C8C4D3607C5781932B7AFB8711497DFA751BF40B58B3BCC32300B1487F3DB34085EEF013BF08F4A44D6FEF0D"
+        key = cose_key.from_jwk(
+            {
+                "kty": "OKP",
+                "kid": "11",
+                "crv": "Ed25519",
+                "x": base64.urlsafe_b64encode(
+                    bytes.fromhex(
+                        "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
+                    )
+                )
+                .replace(b"=", b"")
+                .decode("ascii"),
+                "d": base64.urlsafe_b64encode(
+                    bytes.fromhex(
+                        "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60"
+                    )
+                )
+                .replace(b"=", b"")
+                .decode("ascii"),
+            }
+        )
+        ctx = COSE(options={"alg_auto_inclusion": False})
+        token = ctx.encode_and_sign(
+            b"This is the content.",
+            key,
+            protected={1: -8, 3: 0},
+        )
+        assert token == bytes.fromhex(cwt_str)
+        assert ctx.decode(token, key) == b"This is the content."
+
+    def test_cose_sample_cose_wg_examples_eddsa_sig_02(self):
+        cwt_str = "D28443A10127A10445656434343854546869732069732074686520636F6E74656E742E5872988240A3A2F189BD486DE14AA77F54686C576A09F2E7ED9BAE910DF9139C2AC3BE7C27B7E10A20FA17C9D57D3510A2CF1F634BC0345AB9BE00849842171D1E9E98B2674C0E38BFCF6C557A1692B01B71015A47AC9F7748840CAD1DA80CBB5B349309FEBB912672B377C8B2072AF1598B3700"
+        key = cose_key.from_jwk(
+            {
+                "kty": "OKP",
+                "kid": "ed448",
+                "crv": "Ed448",
+                "x": base64.urlsafe_b64encode(
+                    bytes.fromhex(
+                        "5fd7449b59b461fd2ce787ec616ad46a1da1342485a70e1f8a0ea75d80e96778edf124769b46c7061bd6783df1e50f6cd1fa1abeafe8256180"
+                    )
+                )
+                .replace(b"=", b"")
+                .decode("ascii"),
+                "d": base64.urlsafe_b64encode(
+                    bytes.fromhex(
+                        "6c82a562cb808d10d632be89c8513ebf6c929f34ddfa8c9f63c9960ef6e348a3528c8a3fcc2f044e39a3fc5b94492f8f032e7549a20098f95b"
+                    )
+                )
+                .replace(b"=", b"")
+                .decode("ascii"),
+            }
+        )
+        ctx = COSE()
+        token = ctx.encode_and_sign(
+            b"This is the content.",
+            key,
+        )
+        assert token == bytes.fromhex(cwt_str)
         assert ctx.decode(token, key) == b"This is the content."
 
     def test_cose_sample_cose_wg_examples_aes_ccm_01(self, ctx):
