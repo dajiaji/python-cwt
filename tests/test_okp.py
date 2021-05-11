@@ -90,6 +90,14 @@ class TestOKPKey:
                 {
                     1: 1,
                     -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    3: -1,
+                },
+                "OKP algorithm mismatch: -1.",
+            ),
+            (
+                {
+                    1: 1,
+                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                 },
                 "crv(-1) not found.",
             ),

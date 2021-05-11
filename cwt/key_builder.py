@@ -248,24 +248,12 @@ class KeyBuilder(CBORProcessor):
             cose_key[-1] = JWK_ELLIPTIC_CURVES[jwk["crv"]]
 
             if cose_key[1] == 1:  # OKP
-                if 3 not in cose_key:
-                    cose_key[3] = -8  # EdDSA
                 for k, v in jwk.items():
                     if k not in JWK_PARAMS_OKP:
                         continue
                     cose_key[JWK_PARAMS_OKP[k]] = base64url_decode(v)
 
             else:  # EC2
-                if 3 not in cose_key:
-                    if cose_key[-1] == 1:  # P-256
-                        cose_key[3] = -7
-                    elif cose_key[-1] == 2:  # P-384
-                        cose_key[3] = -35
-                    elif cose_key[-1] == 3:  # P-521
-                        cose_key[3] = -36
-                    else:
-                        # cose_key[-1] == 8  # secp256k1
-                        cose_key[3] = -47
                 for k, v in jwk.items():
                     if k not in JWK_PARAMS_EC:
                         continue
@@ -389,15 +377,15 @@ class KeyBuilder(CBORProcessor):
             key_len: int = 32
             cose_key[1] = COSE_KEY_TYPES["EC2"]
             if k.curve.name == "secp256r1":
-                cose_key[3] = cose_key[-1] = 1
+                cose_key[-1] = 1
             elif k.curve.name == "secp384r1":
-                cose_key[3] = cose_key[-1] = 2
+                cose_key[-1] = 2
                 key_len = 48
             elif k.curve.name == "secp521r1":
-                cose_key[3] = cose_key[-1] = 3
+                cose_key[-1] = 3
                 key_len = 66
             elif k.curve.name == "secp256k1":
-                cose_key[3] = cose_key[-1] = 8
+                cose_key[-1] = 8
             else:
                 raise ValueError(f"Unsupported or unknown alg: {k.curve.name}.")
             if isinstance(k, EllipticCurvePublicKey):

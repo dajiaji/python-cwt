@@ -36,7 +36,7 @@ class EC2Key(SignatureKey):
         x = cose_key[-2]
         y = cose_key[-3]
 
-        # Validate crv.
+        # Validate crv and alg.
         if -1 not in cose_key:
             raise ValueError("crv(-1) not found.")
         if not isinstance(cose_key[-1], int) and not isinstance(cose_key[-1], str):
@@ -44,31 +44,51 @@ class EC2Key(SignatureKey):
         crv = cose_key[-1]
         crv_obj: Any
         if crv == 1:  # P-256
+            if 3 not in cose_key:
+                cose_key[3] = -7
+            else:
+                if cose_key[3] != -7:
+                    raise ValueError(f"EC2 algorithm mismatch: {cose_key[3]}.")
             if len(x) == len(y) == 32:
                 crv_obj = ec.SECP256R1()
                 self._hash_alg = hashes.SHA256
             else:
-                raise ValueError("Coords should be 32 bytes for crv P-256")
+                raise ValueError("Coords should be 32 bytes for crv P-256.")
         elif crv == 2:  # P-384
+            if 3 not in cose_key:
+                cose_key[3] = -35
+            else:
+                if cose_key[3] != -35:
+                    raise ValueError(f"EC2 algorithm mismatch: {cose_key[3]}.")
             if len(x) == len(y) == 48:
                 crv_obj = ec.SECP384R1()
                 self._hash_alg = hashes.SHA384
             else:
-                raise ValueError("Coords should be 48 bytes for crv P-384")
+                raise ValueError("Coords should be 48 bytes for crv P-384.")
         elif crv == 3:  # P-521
+            if 3 not in cose_key:
+                cose_key[3] = -36
+            else:
+                if cose_key[3] != -36:
+                    raise ValueError(f"EC2 algorithm mismatch: {cose_key[3]}.")
             if len(x) == len(y) == 66:
                 crv_obj = ec.SECP521R1()
                 self._hash_alg = hashes.SHA512
             else:
-                raise ValueError("Coords should be 66 bytes for crv P-521")
+                raise ValueError("Coords should be 66 bytes for crv P-521.")
         elif crv == 8:  # secp256k1
+            if 3 not in cose_key:
+                cose_key[3] = -47
+            else:
+                if cose_key[3] != -47:
+                    raise ValueError(f"EC2 algorithm mismatch: {cose_key[3]}.")
             if len(x) == len(y) == 32:
                 crv_obj = ec.SECP256K1()
                 self._hash_alg = hashes.SHA256
             else:
-                raise ValueError("Coords should be 32 bytes for crv secp256k1")
+                raise ValueError("Coords should be 32 bytes for crv secp256k1.")
         else:
-            raise ValueError(f"Unsupported or unknown crv: {crv}")
+            raise ValueError(f"Unsupported or unknown crv: {crv}.")
 
         public_numbers = ec.EllipticCurvePublicNumbers(
             x=int.from_bytes(x, byteorder="big"),
