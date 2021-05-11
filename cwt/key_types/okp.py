@@ -36,6 +36,13 @@ class OKPKey(SignatureKey):
             raise ValueError("x(-2) should be bytes(bstr).")
         x = cose_key[-2]
 
+        # Validate or Complement alg.
+        if 3 not in cose_key:
+            cose_key[3] = -8  # EdDSA
+        else:
+            if cose_key[3] != -8:
+                raise ValueError(f"OKP algorithm mismatch: {cose_key[3]}.")
+
         # Validate crv.
         if -1 not in cose_key:
             raise ValueError("crv(-1) not found.")

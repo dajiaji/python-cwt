@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Add alg validation and fix related bug. `#77 <https://github.com/dajiaji/python-cwt/pull/77>`__
 - Update protected/unprotected default value from {} to None. `#76 <https://github.com/dajiaji/python-cwt/pull/76>`__
 
 Version 0.7.0
