@@ -360,6 +360,7 @@ class TestCOSE:
 
     def test_cose_sample_cose_wg_examples_chacha_poly_01(self, ctx):
         # cwt_str = "D8608444A1011818A1054C26682306D4FB28CA01B43B8058245F2BD5381BBB04921A8477E55C0D850069674A05E683D416583AA0CEE0E2929CDF648094818340A2012504477365632D32353640"
+        cwt_str = "D8608444A1011818A1054C26682306D4FB28CA01B43B8058241CD5D49DAA014CCAFFB30E765DC5CD410689AAE1C60B45648853298FF6808DB3FA8235DB818340A2012504477365632D32353640"
         key = cose_key.from_jwk(
             {
                 "kty": "oct",
@@ -375,11 +376,12 @@ class TestCOSE:
             nonce=bytes.fromhex("26682306D4FB28CA01B43B80"),
             recipients=[Recipient(unprotected={1: -6, 4: b"sec-256"})],
         )
-        # assert token == bytes.fromhex(cwt_str)
+        assert token == bytes.fromhex(cwt_str)
         assert ctx.decode(token, key) == b"This is the content."
 
     def test_cose_sample_cose_wg_examples_chacha_poly_enc_01(self, ctx):
         # cwt_str = "D08344A1011818A1054C5C3A9950BD2852F66E6C8D4F58243E536D4992A21591575C55FA22981B31AE1C045946D0E41A8A1ABD12BC9525922F4EB618"
+        cwt_str = "D08344A1011818A1054C5C3A9950BD2852F66E6C8D4F5824CA119C45926DA993D29B5D0CAC9A84228C7668D492A1B9D7E32020EF21372E74DEF431B9"
         key = cose_key.from_jwk(
             {
                 "kty": "oct",
@@ -394,7 +396,10 @@ class TestCOSE:
             key,
             nonce=bytes.fromhex("5C3A9950BD2852F66E6C8D4F"),
         )
-        # assert token == bytes.fromhex(cwt_str)
+        # actual = cbor2.loads(token)
+        # print(binascii.hexlify(actual.value[2]).decode("utf-8").upper())
+        # print(binascii.hexlify(token).decode("utf-8").upper())
+        assert token == bytes.fromhex(cwt_str)
         assert ctx.decode(token, key) == b"This is the content."
 
     def test_cose_encode_and_mac_with_recipient_has_unsupported_alg(self, ctx):
