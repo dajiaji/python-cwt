@@ -15,10 +15,10 @@ _CWT_CHACHA20_POLY1305_NONCE_SIZE = 12  # bytes
 
 
 class SymmetricKey(COSEKey):
-    """"""
+    """ """
 
     def __init__(self, cose_key: Dict[int, Any]):
-        """"""
+        """ """
         super().__init__(cose_key)
 
         self._key: bytes = b""
@@ -93,10 +93,10 @@ class ContentEncryptionKey(SymmetricKey):
 
 
 class HMACKey(MACAuthenticationKey):
-    """"""
+    """ """
 
     def __init__(self, cose_key: Dict[int, Any]):
-        """"""
+        """ """
         super().__init__(cose_key)
 
         self._hash_alg = None
@@ -121,24 +121,24 @@ class HMACKey(MACAuthenticationKey):
             raise ValueError(f"Unsupported or unknown alg({self._alg}) for HMAC.")
 
     def sign(self, msg: bytes) -> bytes:
-        """"""
+        """ """
         try:
             return hmac.new(self._key, msg, self._hash_alg).digest()[0 : self._trunc]
         except Exception as err:
             raise EncodeError("Failed to sign.") from err
 
     def verify(self, msg: bytes, sig: bytes):
-        """"""
+        """ """
         if hmac.compare_digest(sig, self.sign(msg)):
             return
         raise VerifyError("Failed to compare digest.")
 
 
 class AESCCMKey(ContentEncryptionKey):
-    """"""
+    """ """
 
     def __init__(self, cose_key: Dict[int, Any]):
-        """"""
+        """ """
         super().__init__(cose_key)
 
         self._cipher: AESCCM
@@ -224,7 +224,7 @@ class AESCCMKey(ContentEncryptionKey):
         return token_bytes(self._nonce_len)
 
     def encrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
-        """"""
+        """ """
         if len(nonce) != self._nonce_len:
             raise ValueError(
                 "The length of nonce should be %d bytes." % self._nonce_len
@@ -235,7 +235,7 @@ class AESCCMKey(ContentEncryptionKey):
             raise EncodeError("Failed to encrypt.") from err
 
     def decrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
-        """"""
+        """ """
         if len(nonce) != self._nonce_len:
             raise ValueError(
                 "The length of nonce should be %d bytes." % self._nonce_len
@@ -247,10 +247,10 @@ class AESCCMKey(ContentEncryptionKey):
 
 
 class AESGCMKey(ContentEncryptionKey):
-    """"""
+    """ """
 
     def __init__(self, cose_key: Dict[int, Any]):
-        """"""
+        """ """
         super().__init__(cose_key)
 
         self._cipher: AESGCM
@@ -281,14 +281,14 @@ class AESGCMKey(ContentEncryptionKey):
         return token_bytes(_CWT_DEFAULT_AESGCM_NONCE_SIZE)
 
     def encrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
-        """"""
+        """ """
         try:
             return self._cipher.encrypt(nonce, msg, aad)
         except Exception as err:
             raise EncodeError("Failed to encrypt.") from err
 
     def decrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
-        """"""
+        """ """
         try:
             return self._cipher.decrypt(nonce, msg, aad)
         except Exception as err:
