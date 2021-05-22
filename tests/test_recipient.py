@@ -10,7 +10,8 @@ import cbor2
 import pytest
 
 from cwt import Recipient, cose_key
-from cwt.recipient import Recipients, RecipientsBuilder
+from cwt.recipients import Recipients
+from cwt.recipients_builder import RecipientsBuilder
 
 
 @pytest.fixture(scope="session", autouse=True)

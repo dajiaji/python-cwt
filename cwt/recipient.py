@@ -1,6 +1,5 @@
 from typing import Any, Dict, List, Optional, Union
 
-from .cose_key import COSEKey
 from .cose_key_common import COSEKeyCommon
 
 
@@ -104,63 +103,3 @@ class Recipient(COSEKeyCommon):
             children.append(recipient.to_list())
         res.append(children)
         return res
-
-
-class Recipients:
-    """
-    A Set of COSE Recipients.
-    """
-
-    def __init__(self, recipients: List[Recipient]):
-        self._recipients = recipients
-        return
-
-    def derive_key(self, keys: List[COSEKey]) -> COSEKey:
-        """
-        Derive an appropriate key from recipients or keys privided as a parameter ``keys``.
-        """
-        for recipient in self._recipients:
-            if recipient.alg == -6:
-                for k in keys:
-                    if k.kid == recipient.kid:
-                        return k
-        raise ValueError("Failed to derive a key.")
-
-
-class RecipientsBuilder:
-    """
-    A Recipients Builder.
-    """
-
-    def __init__(self, options: Optional[Dict[str, Any]] = None):
-        self._options = options
-        return
-
-    def from_list(self, recipients: List[Any]) -> Recipients:
-        """
-        Create Recipient from a CBOR-like list.
-        """
-        res: List[Recipient] = []
-        for r in recipients:
-            res.append(self._create_recipient(r))
-        return Recipients(res)
-
-    def _create_recipient(self, recipient: List[Any]) -> Recipient:
-        if not isinstance(recipient, list) or (
-            len(recipient) != 3 and len(recipient) != 4
-        ):
-            raise ValueError("Invalid recipient format.")
-        if not isinstance(recipient[0], bytes):
-            raise ValueError("protected header should be bytes.")
-        if not isinstance(recipient[1], dict):
-            raise ValueError("unprotected header should be dict.")
-        if not isinstance(recipient[2], bytes):
-            raise ValueError("ciphertext should be bytes.")
-        if len(recipient) == 3:
-            return Recipient(recipient[0], recipient[1], recipient[2])
-        if not isinstance(recipient[3], list):
-            raise ValueError("recipients should be list.")
-        recipients: List[Recipient] = []
-        for r in recipient[3]:
-            recipients.append(self._create_recipient(r))
-        return Recipient(recipient[0], recipient[1], recipient[2], recipients)

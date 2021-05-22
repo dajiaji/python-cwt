@@ -4,7 +4,8 @@ from cbor2 import CBORTag
 
 from .cbor_processor import CBORProcessor
 from .cose_key import COSEKey
-from .recipient import Recipient, RecipientsBuilder
+from .recipient import Recipient
+from .recipients_builder import RecipientsBuilder
 
 
 class COSE(CBORProcessor):
