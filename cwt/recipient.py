@@ -11,11 +11,14 @@ class Recipient(CBORProcessor):
 
     def __init__(
         self,
-        protected: Union[bytes, Dict[int, Any]] = {},
-        unprotected: Dict[int, Any] = {},
+        protected: Optional[Union[bytes, Dict[int, Any]]] = None,
+        unprotected: Optional[Dict[int, Any]] = None,
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
     ):
+
+        protected = {} if protected is None else protected
+        unprotected = {} if unprotected is None else unprotected
 
         # Validate unprotected
         if 1 in unprotected:

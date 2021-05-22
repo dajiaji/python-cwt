@@ -134,6 +134,24 @@ class TestCOSE:
             pytest.fail("COSE should fail.")
         assert "alg_auto_inclusion should be bool." in str(err.value)
 
+    def test_cose_sample_cose_wg_examples_mac0_hmac_01(self, ctx):
+        cwt_str = "D18443A10105A054546869732069732074686520636F6E74656E742E5820A1A848D3471F9D61EE49018D244C824772F223AD4F935293F1789FC3A08D8C58"
+        key = cose_key.from_jwk(
+            {
+                "kty": "oct",
+                "alg": "HS256",
+                "kid": "our-secret",
+                "use": "sig",
+                "k": "hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
+            }
+        )
+        token = ctx.encode_and_mac(
+            b"This is the content.",
+            key=key,
+        )
+        assert token == bytes.fromhex(cwt_str)
+        assert ctx.decode(token, key) == b"This is the content."
+
     def test_cose_sample_cose_wg_examples_hmac_01(self, ctx):
         cwt_str = "D8618543A10105A054546869732069732074686520636F6E74656E742E58202BDCC89F058216B8A208DDC6D8B54AA91F48BD63484986565105C9AD5A6682F6818340A20125044A6F75722D73656372657440"
         key = cose_key.from_jwk(
@@ -154,6 +172,7 @@ class TestCOSE:
         assert ctx.decode(token, key) == b"This is the content."
 
     def test_cose_sample_cose_wg_examples_sign1_pass_01(self):
+        # cwt_str = "D28441A0A201260442313154546869732069732074686520636F6E74656E742E584087DB0D2E5571843B78AC33ECB2830DF7B6E0A4D5B7376DE336B23C591C90C425317E56127FBE04370097CE347087B233BF722B64072BEB4486BDA4031D27244F"
         key = cose_key.from_jwk(
             {
                 "kty": "EC",
@@ -171,9 +190,11 @@ class TestCOSE:
             protected=bytes.fromhex("a0"),
             unprotected={1: -7, 4: b"11"},
         )
+        # assert token == bytes.fromhex(cwt_str)
         assert ctx.decode(token, key) == b"This is the content."
 
     def test_cose_sample_cose_wg_examples_sign_pass_01(self):
+        # cwt_str = "D8628441A0A054546869732069732074686520636F6E74656E742E818343A10126A1044231315840E2AEAFD40D69D19DFE6E52077C5D7FF4E408282CBEFB5D06CBF414AF2E19D982AC45AC98B8544C908B4507DE1E90B717C3D34816FE926A2B98F53AFD2FA0F30A"
         key = cose_key.from_jwk(
             {
                 "kty": "EC",
@@ -190,6 +211,28 @@ class TestCOSE:
             [key],
             protected=bytes.fromhex("a0"),
         )
+        # assert token == bytes.fromhex(cwt_str)
+        assert ctx.decode(token, key) == b"This is the content."
+
+    def test_cose_sample_cose_wg_examples_ecdsa_01(self):
+        # cwt_str = "D8628443A10300A054546869732069732074686520636F6E74656E742E818343A10126A1044231315840D71C05DB52C9CE7F1BF5AAC01334BBEACAC1D86A2303E6EEAA89266F45C01ED602CA649EAF790D8BC99D2458457CA6A872061940E7AFBE48E289DFAC146AE258"
+        key = cose_key.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "11",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        )
+        ctx = COSE(options={"kid_auto_inclusion": False, "alg_auto_inclusion": False})
+        token = ctx.encode_and_sign(
+            b"This is the content.",
+            [key],
+            protected={3: 0},
+        )
+        # assert token == bytes.fromhex(cwt_str)
         assert ctx.decode(token, key) == b"This is the content."
 
     def test_cose_sample_cose_wg_examples_eddsa_01(self):
@@ -360,6 +403,7 @@ class TestCOSE:
 
     def test_cose_sample_cose_wg_examples_chacha_poly_01(self, ctx):
         # cwt_str = "D8608444A1011818A1054C26682306D4FB28CA01B43B8058245F2BD5381BBB04921A8477E55C0D850069674A05E683D416583AA0CEE0E2929CDF648094818340A2012504477365632D32353640"
+        cwt_str = "D8608444A1011818A1054C26682306D4FB28CA01B43B8058241CD5D49DAA014CCAFFB30E765DC5CD410689AAE1C60B45648853298FF6808DB3FA8235DB818340A2012504477365632D32353640"
         key = cose_key.from_jwk(
             {
                 "kty": "oct",
@@ -375,11 +419,12 @@ class TestCOSE:
             nonce=bytes.fromhex("26682306D4FB28CA01B43B80"),
             recipients=[Recipient(unprotected={1: -6, 4: b"sec-256"})],
         )
-        # assert token == bytes.fromhex(cwt_str)
+        assert token == bytes.fromhex(cwt_str)
         assert ctx.decode(token, key) == b"This is the content."
 
     def test_cose_sample_cose_wg_examples_chacha_poly_enc_01(self, ctx):
         # cwt_str = "D08344A1011818A1054C5C3A9950BD2852F66E6C8D4F58243E536D4992A21591575C55FA22981B31AE1C045946D0E41A8A1ABD12BC9525922F4EB618"
+        cwt_str = "D08344A1011818A1054C5C3A9950BD2852F66E6C8D4F5824CA119C45926DA993D29B5D0CAC9A84228C7668D492A1B9D7E32020EF21372E74DEF431B9"
         key = cose_key.from_jwk(
             {
                 "kty": "oct",
@@ -394,7 +439,10 @@ class TestCOSE:
             key,
             nonce=bytes.fromhex("5C3A9950BD2852F66E6C8D4F"),
         )
-        # assert token == bytes.fromhex(cwt_str)
+        # actual = cbor2.loads(token)
+        # print(binascii.hexlify(actual.value[2]).decode("utf-8").upper())
+        # print(binascii.hexlify(token).decode("utf-8").upper())
+        assert token == bytes.fromhex(cwt_str)
         assert ctx.decode(token, key) == b"This is the content."
 
     def test_cose_encode_and_mac_with_recipient_has_unsupported_alg(self, ctx):
