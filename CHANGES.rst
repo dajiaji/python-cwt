@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 
+- Introduce COSEKeyCommon as the base class of COSEKey and Recipient. `#82 <https://github.com/dajiaji/python-cwt/pull/82>`__
+
 Version 0.7.1
 -------------
 
