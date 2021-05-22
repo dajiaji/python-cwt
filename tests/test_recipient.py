@@ -76,9 +76,24 @@ class TestRecipient:
         assert len(res) == 3
 
     def test_recipient_constructor_with_alg_a128kw(self):
-        r = Recipient(unprotected={1: -3, 4: b"our-secret"})
+        r = Recipient(protected={1: -3}, unprotected={4: b"our-secret"})
         assert isinstance(r, Recipient)
-        assert r.protected == {}
+        assert r.alg == -3
+        assert isinstance(r.protected, dict)
+        assert isinstance(r.unprotected, dict)
+        assert r.ciphertext == b""
+        assert len(r.recipients) == 0
+        res = r.to_list()
+        assert len(res) == 3
+
+    def test_recipient_constructor_with_alg_a128kw_with_iv(self):
+        r = Recipient(
+            protected={1: -3}, unprotected={4: b"our-secret", 5: b"aabbccddee"}
+        )
+        assert isinstance(r, Recipient)
+        assert r.alg == -3
+        assert r.base_iv == b"aabbccddee"
+        assert isinstance(r.protected, dict)
         assert isinstance(r.unprotected, dict)
         assert r.ciphertext == b""
         assert len(r.recipients) == 0
@@ -108,6 +123,34 @@ class TestRecipient:
                 b"",
                 [Recipient()],
                 "recipients should be absent.",
+            ),
+            (
+                {},
+                {4: "our-secret"},
+                b"",
+                [Recipient()],
+                "unprotected[4](kid) should be bytes.",
+            ),
+            (
+                {1: "alg-a"},
+                {4: b"our-secret"},
+                b"",
+                [Recipient()],
+                "protected[1](alg) should be int.",
+            ),
+            (
+                {},
+                {1: "alg-a", 4: b"our-secret"},
+                b"",
+                [Recipient()],
+                "unprotected[1](alg) should be int.",
+            ),
+            (
+                {},
+                {4: b"our-secret", 5: "xxx"},
+                b"",
+                [Recipient()],
+                "unprotected[5](iv) should be bytes.",
             ),
         ],
     )
