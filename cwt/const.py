@@ -122,6 +122,11 @@ COSE_ALGORITHMS_CEK = {
     # etc.
 }
 
+COSE_ALGORITHMS_CKDM = {
+    "direct": -6,  # direct
+    # etc.
+}
+
 # COSE Algorithms for MAC.
 COSE_ALGORITHMS_MAC = {
     "HMAC 256/64": 4,  # HMAC w/ SHA-256 truncated to 64 bits

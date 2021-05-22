@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional, Union
 from cbor2 import CBORTag
 
 from .cbor_processor import CBORProcessor
+from .const import COSE_ALGORITHMS_CKDM
 from .cose_key import COSEKey
 from .recipient import Recipient
 from .recipients_builder import RecipientsBuilder
@@ -93,7 +94,7 @@ class COSE(CBORProcessor):
         recs = []
         for rec in recipients:
             recs.append(rec.to_list())
-        if recipients[0].alg == -6:
+        if recipients[0].alg in COSE_ALGORITHMS_CKDM.values():
             if not isinstance(protected, bytes):
                 if self._alg_auto_inclusion:
                     protected[1] = key.alg
@@ -243,7 +244,7 @@ class COSE(CBORProcessor):
         recs = []
         for rec in recipients:
             recs.append(rec.to_list())
-        if recipients[0].alg == -6:
+        if recipients[0].alg in COSE_ALGORITHMS_CKDM.values():
             if not isinstance(protected, bytes) and self._alg_auto_inclusion:
                 protected[1] = key.alg
             if self._kid_auto_inclusion and key.kid:
@@ -274,7 +275,7 @@ class COSE(CBORProcessor):
         Args:
             data (Union[bytes, CBORTag]): A byte string or cbor2.CBORTag of an
                 encoded data.
-            key (COSEKey): A COSE key to verify and decrypt the encoded data.
+            key (Union[COSEKey, List[COSEKey]]): A COSE key to verify and decrypt the encoded data.
         Returns:
             bytes: A byte string of decoded payload.
         Raises:

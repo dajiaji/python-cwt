@@ -15,7 +15,7 @@ import pytest
 from cbor2 import CBORTag
 
 import cwt
-from cwt import COSE, EncodeError, Recipient, cose_key
+from cwt import COSE, EncodeError, Recipient, cose_key, recipient_builder
 
 from .utils import key_path
 
@@ -121,6 +121,23 @@ class TestCOSE:
         )
         token = ctx.encode_and_sign(b"Hello world!", sig_key, protected=b"a0")
         assert b"Hello world!" == ctx.decode(token, sig_key)
+
+    def test_cose_encode_and_decode_with_recipient_builder(self):
+        ctx = COSE(options={"kid_auto_inclusion": False, "alg_auto_inclusion": False})
+
+        mac_key = cose_key.from_symmetric_key(alg="HS256", kid="01")
+        recipient = recipient_builder.from_json(
+            {
+                "alg": "direct",
+                "kid": "01",
+            }
+        )
+        token = ctx.encode_and_mac(
+            b"Hello world!",
+            mac_key,
+            recipients=[recipient],
+        )
+        assert b"Hello world!" == ctx.decode(token, mac_key)
 
     def test_cose_constructor_with_invalid_kid_auto_inclusion(self):
         with pytest.raises(ValueError) as err:
