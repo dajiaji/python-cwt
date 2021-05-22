@@ -1,10 +1,10 @@
 from typing import Any, Dict, List, Optional, Union
 
-from .cbor_processor import CBORProcessor
 from .cose_key import COSEKey
+from .cose_key_common import COSEKeyCommon
 
 
-class Recipient(CBORProcessor):
+class Recipient(COSEKeyCommon):
     """
     A COSE Recipient.
     """
@@ -20,16 +20,43 @@ class Recipient(CBORProcessor):
         protected = {} if protected is None else protected
         unprotected = {} if unprotected is None else unprotected
 
-        # Validate unprotected
-        if 1 in unprotected:
-            alg = unprotected[1]
-            if alg == -6:  # direct
+        params: Dict[int, Any] = {1: 4}  # Support only Symmetric key.
+
+        # kid
+        if 4 in unprotected:
+            if not isinstance(unprotected[4], bytes):
+                raise ValueError("unprotected[4](kid) should be bytes.")
+            params[2] = unprotected[4]
+        else:
+            params[2] = b""
+
+        # alg
+        if 1 in protected:
+            if not isinstance(protected[1], int):
+                raise ValueError("protected[1](alg) should be int.")
+            params[3] = protected[1]
+        elif 1 in unprotected:
+            if not isinstance(unprotected[1], int):
+                raise ValueError("unprotected[1](alg) should be int.")
+            params[3] = unprotected[1]
+            if params[3] == -6:  # direct
                 if len(protected) != 0:
                     raise ValueError("protected header should be empty.")
                 if len(ciphertext) != 0:
                     raise ValueError("ciphertext should be zero-length bytes.")
                 if len(recipients) != 0:
                     raise ValueError("recipients should be absent.")
+        else:
+            params[3] = 0
+
+        # iv
+        if 5 in unprotected:
+            if not isinstance(unprotected[5], bytes):
+                raise ValueError("unprotected[5](iv) should be bytes.")
+            params[5] = unprotected[5]
+
+        super().__init__(params)
+
         if protected == b"":
             self._protected = {}
         elif isinstance(protected, bytes):
@@ -56,14 +83,6 @@ class Recipient(CBORProcessor):
     @property
     def unprotected(self) -> Dict[int, Any]:
         return self._unprotected
-
-    @property
-    def alg(self) -> int:
-        return self._unprotected.get(1, 0)
-
-    @property
-    def kid(self) -> bytes:
-        return self._unprotected.get(4, b"")
 
     @property
     def ciphertext(self) -> bytes:
