@@ -5,14 +5,8 @@ from secrets import token_bytes
 
 import pytest
 
+from cwt.algs.symmetric import AESCCMKey, AESGCMKey, ChaCha20Key, HMACKey, SymmetricKey
 from cwt.exceptions import DecodeError, EncodeError, VerifyError
-from cwt.key_types.symmetric import (
-    AESCCMKey,
-    AESGCMKey,
-    ChaCha20Key,
-    HMACKey,
-    SymmetricKey,
-)
 
 
 class TestSymmetricKey:

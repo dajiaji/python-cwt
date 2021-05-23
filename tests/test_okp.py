@@ -3,8 +3,8 @@ Tests for OKPKey.
 """
 import pytest
 
+from cwt.algs.okp import OKPKey
 from cwt.exceptions import VerifyError
-from cwt.key_types.okp import OKPKey
 
 
 class TestOKPKey:
