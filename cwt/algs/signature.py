@@ -19,12 +19,12 @@ class SignatureKey(COSEKey):
 
         # Validate key_opt.
         if -4 not in cose_key:
-            if 4 not in self._object or not self._object[4]:
-                self._object[4] = SignatureKey._ACCEPTABLE_PUBLIC_KEY_OPS
+            if not self._key_ops:
+                self._key_ops = SignatureKey._ACCEPTABLE_PUBLIC_KEY_OPS
                 return
             not_acceptable = [
                 ops
-                for ops in self._object[4]
+                for ops in self._key_ops
                 if ops not in SignatureKey._ACCEPTABLE_PUBLIC_KEY_OPS
             ]
             if not_acceptable:
@@ -32,12 +32,12 @@ class SignatureKey(COSEKey):
                     f"Unknown or not permissible key_ops(4) for SignatureKey: {not_acceptable[0]}."
                 )
             return
-        if 4 not in self._object or not self._object[4]:
-            self._object[4] = SignatureKey._ACCEPTABLE_PRIVATE_KEY_OPS
+        if not self._key_ops:
+            self._key_ops = SignatureKey._ACCEPTABLE_PRIVATE_KEY_OPS
             return
         not_acceptable = [
             ops
-            for ops in self._object[4]
+            for ops in self._key_ops
             if ops not in SignatureKey._ACCEPTABLE_PRIVATE_KEY_OPS
         ]
         if not_acceptable:

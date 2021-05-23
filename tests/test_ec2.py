@@ -47,6 +47,16 @@ class TestEC2Key:
         assert len(public_key.key_ops) == 1
         assert 2 in public_key.key_ops
         assert public_key.base_iv is None
+        private_key_obj = private_key.to_dict()
+        assert (
+            private_key_obj[-4]
+            == b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh'
+        )
+        public_key_obj = public_key.to_dict()
+        assert (
+            public_key_obj[-2]
+            == b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9"
+        )
         try:
             sig = private_key.sign(b"Hello world!")
             public_key.verify(b"Hello world!", sig)

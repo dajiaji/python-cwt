@@ -45,6 +45,16 @@ class TestOKPKey:
         assert len(public_key.key_ops) == 1
         assert 2 in public_key.key_ops
         assert public_key.base_iv is None
+        private_key_obj = private_key.to_dict()
+        assert (
+            private_key_obj[-4]
+            == b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9"
+        )
+        public_key_obj = public_key.to_dict()
+        assert (
+            public_key_obj[-2]
+            == b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9"
+        )
         try:
             sig = private_key.sign(b"Hello world!")
             public_key.verify(b"Hello world!", sig)

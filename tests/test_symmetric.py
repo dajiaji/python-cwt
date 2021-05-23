@@ -26,7 +26,7 @@ class TestSymmetricKey:
         assert key.kty == 4
         assert key.kid is None
         assert key.alg == 5
-        assert key.key_ops is None
+        assert key.key_ops == []
         assert key.base_iv is None
 
     @pytest.mark.parametrize(
