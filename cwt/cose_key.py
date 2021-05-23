@@ -1,5 +1,6 @@
-from typing import Any, Dict
+from typing import Any, Dict, List
 
+from .const import COSE_KEY_TYPES
 from .cose_key_common import COSEKeyCommon
 
 
@@ -15,22 +16,59 @@ class COSEKey(COSEKeyCommon):
         Args:
             params (Dict[int, Any]): A COSE key common parameters object formatted to a CBOR-like dictionary.
         """
+
         super().__init__(params)
+
+        # kty
+        if 1 not in params:
+            raise ValueError("kty(1) not found.")
+        if not isinstance(params[1], int) and not isinstance(params[1], str):
+            raise ValueError("kty(1) should be int or str(tstr).")
+        if isinstance(params[1], int) and params[1] not in [1, 2, 3, 4, 5, 6]:
+            raise ValueError(f"Unknown kty: {params[1]}")
+        if isinstance(params[1], str) and params[1] not in COSE_KEY_TYPES:
+            raise ValueError(f"Unknown kty: {params[1]}")
+        self._kty: int = (
+            params[1] if isinstance(params[1], int) else COSE_KEY_TYPES[params[1]]
+        )
+
+        # key_ops
+        if 4 in params and not isinstance(params[4], list):
+            raise ValueError("key_ops(4) should be list.")
+        self._key_ops: List[int] = params[4] if 4 in params else []
         return
 
     @property
-    def key(self) -> bytes:
+    def kty(self) -> int:
         """
-        A body of the symmetric key.
+        Identification of the key type.
         """
-        raise NotImplementedError("Symmetric key only supports 'key' property.")
+        return self._kty
 
     @property
-    def crv(self) -> int:
+    def key_ops(self) -> List[int]:
         """
-        A curve of the key type.
+        Restrict set of permissible operations.
         """
-        raise NotImplementedError("OKP and EC2 key support 'crv' property.")
+        return self._key_ops
+
+    def to_dict(self) -> Dict[int, Any]:
+        """
+        Returns a CBOR-like structure (Dict[int, Any]) of the COSE key.
+
+        Returns:
+            Dict[int, Any]: A CBOR-like structure of the COSE key.
+        """
+        res: Dict[int, Any] = {1: self._kty}
+        if self._kid:
+            res[2] = self._kid
+        if self._alg:
+            res[3] = self._alg
+        if self._key_ops:
+            res[4] = self._key_ops
+        if self._base_iv:
+            res[5] = self._base_iv
+        return res
 
     def generate_nonce(self) -> bytes:
         """

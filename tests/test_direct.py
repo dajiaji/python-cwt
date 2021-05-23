@@ -15,7 +15,6 @@ class TestDirect:
         ctx = Direct({1: -6}, {})
         assert isinstance(ctx, Direct)
         assert ctx.alg == -6
-        assert ctx.kty == 4
 
     @pytest.mark.parametrize(
         "protected, unprotected, msg",
