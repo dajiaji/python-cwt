@@ -122,6 +122,21 @@ COSE_ALGORITHMS_CEK = {
     # etc.
 }
 
+COSE_KEY_LEN = {
+    1: 128,  # AES-GCM mode w/ 128-bit key, 128-bit tag
+    2: 192,  # AES-GCM mode w/ 192-bit key, 128-bit tag
+    3: 256,  # AES-GCM mode w/ 256-bit key, 128-bit tag
+    10: 128,  # AES-CCM mode 128-bit key, 64-bit tag, 13-byte nonce
+    11: 256,  # AES-CCM mode 256-bit key, 64-bit tag, 13-byte nonce
+    12: 128,  # AES-CCM mode 128-bit key, 64-bit tag, 7-byte nonce
+    13: 256,  # AES-CCM mode 256-bit key, 64-bit tag, 7-byte nonce
+    24: 256,  # ChaCha20/Poly1305 w/ 256-bit key, 128-bit tag
+    30: 128,  # AES-CCM mode 128-bit key, 128-bit tag, 13-byte nonce
+    31: 256,  # AES-CCM mode 256-bit key, 128-bit tag, 13-byte nonce
+    32: 128,  # AES-CCM mode 128-bit key, 128-bit tag, 7-byte nonce
+    33: 256,  # AES-CCM mode 256-bit key, 128-bit tag, 7-byte nonce
+}
+
 COSE_ALGORITHMS_CKDM = {
     "direct+HKDF-SHA-512": -11,  # Shared secret w/ HKDF and SHA-512
     "direct+HKDF-SHA-256": -10,  # Shared secret w/ HKDF and SHA-256

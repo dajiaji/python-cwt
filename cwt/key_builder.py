@@ -2,7 +2,6 @@ import json
 from typing import Any, Dict, List, Optional, Union
 
 import cbor2
-from cbor2 import CBORTag
 from cryptography.hazmat.primitives.asymmetric.ec import (
     EllipticCurvePrivateKey,
     EllipticCurvePublicKey,
@@ -48,7 +47,6 @@ from .const import (
     JWK_PARAMS_RSA,
     JWK_TYPES,
 )
-from .cose import COSE
 from .cose_key import COSEKey
 from .utils import base64url_decode, uint_to_bytes
 
@@ -74,7 +72,6 @@ class KeyBuilder(CBORProcessor):
         At the current implementation, any ``options`` will be ignored.
         """
         self._options = options
-        self._cose = COSE()
         return
 
     def from_symmetric_key(
@@ -456,68 +453,6 @@ class KeyBuilder(CBORProcessor):
         else:
             raise ValueError(f"Unsupported or unknown key: {type(k)}.")
         return self.from_dict(cose_key)
-
-    def from_encrypted_cose_key(
-        self, key: List[Any], encryption_key: COSEKey
-    ) -> COSEKey:
-        """
-        Returns an encrypted COSE key formatted to COSE_Encrypt0 structure.
-
-        Args:
-            key: COSEKey: A key formatted to COSE_Encrypt0 structure to be decrypted.
-            encryption_key: COSEKey: An encryption key to decrypt the target COSE key.
-        Returns:
-            COSEKey: A COSE_Encrypt0 structure of the target COSE key.
-        Raises:
-            ValueError: Invalid arguments.
-            DecodeError: Failed to decode the COSE key.
-            VerifyError: Failed to verify the COSE key.
-        """
-        res = self._loads(self._cose.decode(CBORTag(16, key), encryption_key))
-        return self.from_dict(res)
-
-    def to_encrypted_cose_key(
-        self,
-        key: COSEKey,
-        encryption_key: COSEKey,
-        nonce: bytes = b"",
-        tagged: bool = False,
-    ) -> Union[List[Any], bytes]:
-        """
-        Returns an encrypted COSE key formatted to COSE_Encrypt0 structure.
-
-        Args:
-            key: COSEKey: A key to be encrypted.
-            encryption_key: COSEKey: An encryption key to encrypt the target COSE key.
-            nonce (bytes): A nonce for encryption.
-        Returns:
-            List[Any]: A COSE_Encrypt0 structure of the target COSE key.
-        Raises:
-            ValueError: Invalid arguments.
-            EncodeError: Failed to encrypt the COSE key.
-        """
-        protected: Dict[int, Any] = {1: encryption_key.alg}
-        unprotected: Dict[int, Any] = (
-            {4: encryption_key.kid} if encryption_key.kid else {}
-        )
-        if not nonce:
-            try:
-                nonce = encryption_key.generate_nonce()
-            except NotImplementedError:
-                raise ValueError(
-                    "Nonce generation is not supported for the key. Set a nonce explicitly."
-                )
-        unprotected[5] = nonce
-        b_payload = self._dumps(key.to_dict())
-        res: CBORTag = self._cose.encode_and_encrypt(
-            b_payload,
-            encryption_key,
-            protected,
-            unprotected,
-            nonce=nonce,
-            out="cbor2/CBORTag",
-        )
-        return res.value
 
 
 # export

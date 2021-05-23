@@ -11,6 +11,7 @@ from .cwt import (
     encode_and_sign,
     set_private_claim_names,
 )
+from .encrypted_cose_key import encrypted_cose_key
 from .exceptions import CWTError, DecodeError, EncodeError, VerifyError
 from .key_builder import KeyBuilder, cose_key
 from .recipient import Recipient
@@ -41,6 +42,7 @@ __all__ = [
     "COSEKey",
     "KeyBuilder",
     "cose_key",
+    "encrypted_cose_key",
     "Recipient",
     "RecipientBuilder",
     "recipient_builder",

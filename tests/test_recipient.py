@@ -9,7 +9,7 @@ Tests for Recipient.
 import cbor2
 import pytest
 
-from cwt import Recipient, cose_key
+from cwt import Recipient, cose_key, recipient_builder
 from cwt.recipient_builder import RecipientBuilder
 from cwt.recipients import Recipients
 from cwt.recipients_builder import RecipientsBuilder
@@ -18,6 +18,32 @@ from cwt.recipients_builder import RecipientsBuilder
 @pytest.fixture(scope="session", autouse=True)
 def ctx():
     return Recipient()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def material():
+    return {
+        "kid": "02",
+        "value": "hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
+        "context": {
+            "alg": "AES-CCM-16-64-128",
+            "party_v": {
+                "identity": "lighting-client",
+                "nonce": "aabbccddeeff",
+                "other": "other PartyV info",
+            },
+            "party_u": {
+                "identity": "lighting-server",
+                "nonce": "112233445566",
+                "other": "other PartyV info",
+            },
+            "supp_pub": {
+                "key_data_length": 128,
+                "protected": {"alg": "direct+HKDF-SHA-256"},
+                "other": "Encryption Example 02",
+            },
+        },
+    }
 
 
 class TestRecipient:
@@ -35,6 +61,12 @@ class TestRecipient:
         assert r.kid == b""
         assert r.alg == 0
         assert len(r.recipients) == 0
+        with pytest.raises(NotImplementedError):
+            r.derive_key(b"", [])
+            pytest.fail("derive_key should fail.")
+        with pytest.raises(NotImplementedError):
+            r.verify_key(b"", b"", [])
+            pytest.fail("verify_key should fail.")
         res = r.to_list()
         assert len(res) == 3
         assert res[0] == b""
@@ -61,11 +93,6 @@ class TestRecipient:
         assert len(res[3]) == 1
         assert isinstance(res[3][0], list)
         assert len(res[3][0]) == 3
-
-    def test_recipient_constructor_with_protected_bytes(self):
-        r = Recipient(protected=cbor2.dumps({"foo": "bar"}))
-        assert isinstance(r.protected, dict)
-        assert r.protected["foo"] == "bar"
 
     def test_recipient_constructor_with_empty_recipients(self):
         r = Recipient(unprotected={1: -6, 4: b"our-secret"}, recipients=[])
@@ -219,16 +246,16 @@ class TestRecipientBuilder:
                 "Unsupported or unknown alg: xxx.",
             ),
             (
-                {"alg": "direct+HKDF-SHA-256"},
-                "Unsupported or unknown alg(1): -10.",
-            ),
-            (
                 {"alg": 123},
                 "alg should be str.",
             ),
             (
                 {"kid": 123},
                 "kid should be str.",
+            ),
+            (
+                {"salt": 123},
+                "salt should be str.",
             ),
         ],
     )
@@ -276,6 +303,39 @@ class TestRecipients:
             pytest.fail("derive_key() should fail.")
         assert "Failed to derive a key." in str(err.value)
 
+    def test_recipients_derive_key_without_args(self):
+        r = Recipients([Recipient(unprotected={1: -6, 4: b"our-secret"})])
+        with pytest.raises(ValueError) as err:
+            r.derive_key()
+            pytest.fail("derive_key() should fail.")
+        assert "Either keys or materials should be specified." in str(err.value)
+
+    def test_recipients_derive_key_with_empty_recipients(self, material):
+        r = Recipients([])
+        with pytest.raises(ValueError) as err:
+            r.derive_key(materials=[material])
+            pytest.fail("derive_key() should fail.")
+        assert "Failed to derive a key." in str(err.value)
+
+    def test_recipients_derive_key_with_multiple_recipients(self, material):
+        r1 = recipient_builder.from_json(
+            {
+                "alg": "direct",
+                "kid": "01",
+            }
+        )
+        r2 = recipient_builder.from_json(
+            {
+                "alg": "direct+HKDF-SHA-256",
+                "kid": "02",
+                "salt": "aabbccddeeffgghh",
+            }
+        )
+        rs = Recipients([r1, r2])
+        key = rs.derive_key(materials=[material])
+        assert key.alg == 10
+        assert key.kid == b"02"
+
     def test_recipients_derive_key_with_different_kid(self):
         key = cose_key.from_symmetric_key(
             "mysecret", alg="HMAC 256/64", kid="our-secret"
@@ -299,21 +359,30 @@ class TestRecipientsBuilder:
     def test_recipients_builder_from_list(self):
         rb = RecipientsBuilder()
         try:
-            rb.from_list([[b"", {}, b""]])
+            rb.from_list([[cbor2.dumps({1: -10}), {-20: b"aabbccddeefff"}, b""]])
         except Exception:
             pytest.fail("from_list() should not fail.")
 
     def test_recipients_builder_from_list_with_empty_recipients(self):
         rb = RecipientsBuilder()
         try:
-            rb.from_list([[b"", {}, b"", []]])
+            rb.from_list([[cbor2.dumps({1: -10}), {-20: b"aabbccddeefff"}, b"", []]])
         except Exception:
             pytest.fail("from_list() should not fail.")
 
     def test_recipients_builder_from_list_with_recipients(self):
         rb = RecipientsBuilder()
         try:
-            rb.from_list([[b"", {}, b"", [[b"", {1: -6, 4: b"our-secret"}, b""]]]])
+            rb.from_list(
+                [
+                    [
+                        cbor2.dumps({1: -10}),
+                        {-20: b"aabbccddeefff"},
+                        b"",
+                        [[b"", {1: -6, 4: b"our-secret"}, b""]],
+                    ]
+                ]
+            )
         except Exception:
             pytest.fail("from_list() should not fail.")
 

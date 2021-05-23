@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional, Union
 
+from .cose_key import COSEKey
 from .cose_key_common import COSEKeyCommon
 
 
@@ -10,7 +11,7 @@ class Recipient(COSEKeyCommon):
 
     def __init__(
         self,
-        protected: Optional[Union[bytes, Dict[int, Any]]] = None,
+        protected: Optional[Dict[int, Any]] = None,
         unprotected: Optional[Dict[int, Any]] = None,
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
@@ -56,12 +57,7 @@ class Recipient(COSEKeyCommon):
 
         super().__init__(params)
 
-        if protected == b"":
-            self._protected = {}
-        elif isinstance(protected, bytes):
-            self._protected = self._loads(protected)
-        else:
-            self._protected = protected
+        self._protected = protected
         self._unprotected = unprotected
         self._ciphertext = ciphertext
 
@@ -103,3 +99,41 @@ class Recipient(COSEKeyCommon):
             children.append(recipient.to_list())
         res.append(children)
         return res
+
+    def derive_key(
+        self, material: bytes, context: Union[List[Any], Dict[str, Any]]
+    ) -> COSEKey:
+        """
+        Derives a key from a key material.
+
+        Args:
+            material (bytes): A key material.
+            context (Union[List[Any], Dict[str, Any]]): Context information structure.
+        Returns:
+            COSEKey: A COSE key derived.
+        Raises:
+            NotImplementedError: Not implemented.
+            ValueError: Invalid arguments.
+            EncodeError: Failed to derive key.
+        """
+        raise NotImplementedError
+
+    def verify_key(
+        self,
+        material: bytes,
+        expected_key: bytes,
+        context: Union[List[Any], Dict[str, Any]],
+    ):
+        """
+        Verifies a key with a key material and an expected key.
+
+        Args:
+            material (bytes): A key material.
+            expected_key (bytes): A byte string of the expected key.
+            context (Union[List[Any], Dict[str, Any]]): Context information structure.
+        Raises:
+            NotImplementedError: Not implemented.
+            ValueError: Invalid arguments.
+            VerifyError: Failed to verify the key.
+        """
+        raise NotImplementedError
