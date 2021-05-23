@@ -6,7 +6,7 @@ from secrets import token_bytes
 import pytest
 
 from cwt.exceptions import DecodeError, EncodeError, VerifyError
-from cwt.key_types.symmetric import (
+from cwt.algs.symmetric import (
     AESCCMKey,
     AESGCMKey,
     ChaCha20Key,

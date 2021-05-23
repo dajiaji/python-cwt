@@ -4,7 +4,7 @@ Tests for OKPKey.
 import pytest
 
 from cwt.exceptions import VerifyError
-from cwt.key_types.okp import OKPKey
+from cwt.algs.okp import OKPKey
 
 
 class TestOKPKey:

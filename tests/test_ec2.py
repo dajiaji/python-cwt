@@ -4,7 +4,7 @@ Tests for EC2Key.
 import pytest
 
 from cwt.exceptions import VerifyError
-from cwt.key_types.ec2 import EC2Key
+from cwt.algs.ec2 import EC2Key
 
 
 class TestEC2Key:

@@ -46,10 +46,10 @@ from .const import (
 )
 from .cose import COSE
 from .cose_key import COSEKey
-from .key_types.ec2 import EC2Key
-from .key_types.okp import OKPKey
-from .key_types.rsa import RSAKey
-from .key_types.symmetric import AESCCMKey, AESGCMKey, ChaCha20Key, HMACKey
+from .algs.ec2 import EC2Key
+from .algs.okp import OKPKey
+from .algs.rsa import RSAKey
+from .algs.symmetric import AESCCMKey, AESGCMKey, ChaCha20Key, HMACKey
 from .utils import base64url_decode, uint_to_bytes
 
 
