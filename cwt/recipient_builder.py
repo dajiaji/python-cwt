@@ -46,7 +46,7 @@ class RecipientBuilder(CBORProcessor):
             return DirectKey(unprotected)
         # if alg in [-10, -11]:
         #     return DirectHKDF(protected, unprotected)
-        raise ValueError(f"Unsupported or unknown alg(3): {alg}.")
+        raise ValueError(f"Unsupported or unknown alg(1): {alg}.")
 
     def from_json(self, data: Union[str, bytes, Dict[str, Any]]) -> Recipient:
         """

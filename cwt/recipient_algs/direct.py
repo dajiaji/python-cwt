@@ -11,10 +11,8 @@ class Direct(Recipient):
     ):
         super().__init__(protected, unprotected)
 
-        if self._object[1] != 4:
-            raise ValueError("kty(1) shoud be Symmetric(4).")
-        if 3 not in self._object:
-            raise ValueError("alg(3) not found.")
+        if self._object[3] == 0:
+            raise ValueError("alg(1) not found.")
         return
 
 
@@ -23,5 +21,5 @@ class DirectKey(Direct):
         super().__init__(b"", unprotected)
 
         if self._object[3] != -6:
-            raise ValueError("alg(3) should be direct(-6).")
+            raise ValueError("alg(1) should be direct(-6).")
         return
