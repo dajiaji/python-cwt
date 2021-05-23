@@ -15,10 +15,7 @@ _CWT_CHACHA20_POLY1305_NONCE_SIZE = 12  # bytes
 
 
 class SymmetricKey(COSEKey):
-    """ """
-
     def __init__(self, cose_key: Dict[int, Any]):
-        """ """
         super().__init__(cose_key)
 
         self._key: bytes = b""
@@ -41,6 +38,11 @@ class SymmetricKey(COSEKey):
     def key(self) -> bytes:
         return self._key
 
+    def to_dict(self) -> Dict[int, Any]:
+        res = super().to_dict()
+        res[-1] = self._key
+        return res
+
 
 class MACAuthenticationKey(SymmetricKey):
     _ACCEPTABLE_KEY_OPS = [
@@ -52,12 +54,12 @@ class MACAuthenticationKey(SymmetricKey):
         super().__init__(cose_key)
 
         # Validate key_opt.
-        if 4 not in self._object or not self._object[4]:
-            self._object[4] = MACAuthenticationKey._ACCEPTABLE_KEY_OPS
+        if not self._key_ops:
+            self._key_ops = MACAuthenticationKey._ACCEPTABLE_KEY_OPS
             return
         not_acceptable = [
             ops
-            for ops in self._object[4]
+            for ops in self._key_ops
             if ops not in MACAuthenticationKey._ACCEPTABLE_KEY_OPS
         ]
         if not_acceptable:
@@ -78,12 +80,12 @@ class ContentEncryptionKey(SymmetricKey):
         super().__init__(cose_key)
 
         # Validate key_opt.
-        if 4 not in self._object or not self._object[4]:
-            self._object[4] = ContentEncryptionKey._ACCEPTABLE_KEY_OPS
+        if not self._key_ops:
+            self._key_ops = ContentEncryptionKey._ACCEPTABLE_KEY_OPS
             return
         not_acceptable = [
             ops
-            for ops in self._object[4]
+            for ops in self._key_ops
             if ops not in ContentEncryptionKey._ACCEPTABLE_KEY_OPS
         ]
         if not_acceptable:

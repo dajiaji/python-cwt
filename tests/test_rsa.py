@@ -58,6 +58,10 @@ class TestRSAKey:
         assert len(public_key.key_ops) == 1
         assert 2 in public_key.key_ops
         assert public_key.base_iv is None
+        private_key_obj = private_key.to_dict()
+        assert private_key_obj[1] == 3
+        public_key_obj = public_key.to_dict()
+        assert public_key_obj[1] == 3
         try:
             sig = private_key.sign(b"Hello world!")
             public_key.verify(b"Hello world!", sig)
@@ -77,7 +81,7 @@ class TestRSAKey:
             ),
             (
                 {1: 3, 3: "xxx"},
-                "Unsupported or unknown alg(3) for RSA: xxx.",
+                "Unsupported or unknown alg(3): xxx.",
             ),
             (
                 {1: 3, 3: 0},
