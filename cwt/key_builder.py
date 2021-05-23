@@ -30,6 +30,10 @@ from cryptography.hazmat.primitives.serialization import (
     load_pem_public_key,
 )
 
+from .algs.ec2 import EC2Key
+from .algs.okp import OKPKey
+from .algs.rsa import RSAKey
+from .algs.symmetric import AESCCMKey, AESGCMKey, ChaCha20Key, HMACKey
 from .cbor_processor import CBORProcessor
 from .const import (
     COSE_ALGORITHMS_RSA,
@@ -46,10 +50,6 @@ from .const import (
 )
 from .cose import COSE
 from .cose_key import COSEKey
-from .algs.ec2 import EC2Key
-from .algs.okp import OKPKey
-from .algs.rsa import RSAKey
-from .algs.symmetric import AESCCMKey, AESGCMKey, ChaCha20Key, HMACKey
 from .utils import base64url_decode, uint_to_bytes
 
 

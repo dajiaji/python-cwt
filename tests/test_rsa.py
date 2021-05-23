@@ -3,8 +3,8 @@ Tests for RSAKey.
 """
 import pytest
 
-from cwt.exceptions import EncodeError, VerifyError
 from cwt.algs.rsa import RSAKey
+from cwt.exceptions import EncodeError, VerifyError
 
 
 @pytest.fixture(scope="session", autouse=True)

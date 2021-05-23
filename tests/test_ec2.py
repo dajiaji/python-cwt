@@ -3,8 +3,8 @@ Tests for EC2Key.
 """
 import pytest
 
-from cwt.exceptions import VerifyError
 from cwt.algs.ec2 import EC2Key
+from cwt.exceptions import VerifyError
 
 
 class TestEC2Key:
