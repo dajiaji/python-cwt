@@ -122,6 +122,13 @@ COSE_ALGORITHMS_CEK = {
     # etc.
 }
 
+COSE_ALGORITHMS_CKDM = {
+    "direct+HKDF-SHA-512": -11,  # Shared secret w/ HKDF and SHA-512
+    "direct+HKDF-SHA-256": -10,  # Shared secret w/ HKDF and SHA-256
+    "direct": -6,  # direct
+    # etc.
+}
+
 # COSE Algorithms for MAC.
 COSE_ALGORITHMS_MAC = {
     "HMAC 256/64": 4,  # HMAC w/ SHA-256 truncated to 64 bits

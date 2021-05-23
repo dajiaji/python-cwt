@@ -10,6 +10,7 @@ import cbor2
 import pytest
 
 from cwt import Recipient, cose_key
+from cwt.recipient_builder import RecipientBuilder
 from cwt.recipients import Recipients
 from cwt.recipients_builder import RecipientsBuilder
 
@@ -169,6 +170,74 @@ class TestRecipient:
             Recipient(unprotected={1: 0, 4: b"our-secret"}, recipients=[child])
             pytest.fail("Recipient() should fail.")
         assert "Invalid child recipient." in str(err.value)
+
+
+class TestRecipientBuilder:
+    """
+    Tests for RecipientBuilder.
+    """
+
+    @pytest.mark.parametrize(
+        "protected, unprotected, msg",
+        [
+            (
+                {},
+                {},
+                "alg should be specified.",
+            ),
+            (
+                {1: -65535},
+                {},
+                "Unsupported or unknown alg(1): -65535.",
+            ),
+        ],
+    )
+    def test_recipient_builder_from_dict_with_invalid_arg(
+        self, protected, unprotected, msg
+    ):
+        ctx = RecipientBuilder()
+        with pytest.raises(ValueError) as err:
+            ctx.from_dict(protected, unprotected)
+            pytest.fail("Recipient() should fail.")
+        assert msg in str(err.value)
+
+    def test_recipient_builder_from_json_with_str(self):
+        ctx = RecipientBuilder()
+        recipient = ctx.from_json('{"alg": "direct"}')
+        assert isinstance(recipient, Recipient)
+        assert recipient.alg == -6
+
+    @pytest.mark.parametrize(
+        "data, msg",
+        [
+            (
+                {"foo": "bar"},
+                "alg should be specified.",
+            ),
+            (
+                {"alg": "xxx"},
+                "Unsupported or unknown alg: xxx.",
+            ),
+            (
+                {"alg": "direct+HKDF-SHA-256"},
+                "Unsupported or unknown alg(1): -10.",
+            ),
+            (
+                {"alg": 123},
+                "alg should be str.",
+            ),
+            (
+                {"kid": 123},
+                "kid should be str.",
+            ),
+        ],
+    )
+    def test_recipient_builder_from_json_with_invalid_arg(self, data, msg):
+        ctx = RecipientBuilder()
+        with pytest.raises(ValueError) as err:
+            ctx.from_json(data)
+            pytest.fail("Recipient() should fail.")
+        assert msg in str(err.value)
 
 
 class TestRecipients:

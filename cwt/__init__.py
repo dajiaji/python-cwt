@@ -14,6 +14,7 @@ from .cwt import (
 from .exceptions import CWTError, DecodeError, EncodeError, VerifyError
 from .key_builder import KeyBuilder, cose_key
 from .recipient import Recipient
+from .recipient_builder import recipient_builder
 
 __version__ = "0.7.1"
 __title__ = "cwt"
@@ -36,11 +37,13 @@ __all__ = [
     "COSE",
     "Claims",
     "ClaimsBuilder",
+    "claims",
     "COSEKey",
     "KeyBuilder",
     "cose_key",
     "Recipient",
-    "claims",
+    "RecipientBuilder",
+    "recipient_builder",
     "CWTError",
     "EncodeError",
     "DecodeError",
