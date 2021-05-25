@@ -56,7 +56,8 @@ class DirectHKDF(Direct):
     ) -> COSEKey:
 
         if isinstance(context, dict):
-            context = to_cis(context, recipient_alg=self._alg)
+            alg = self._alg if isinstance(self._alg, int) else 0
+            context = to_cis(context, recipient_alg=alg)
         else:
             self._validate_context(context)
 
@@ -83,7 +84,8 @@ class DirectHKDF(Direct):
     ):
 
         if isinstance(context, dict):
-            context = to_cis(context, recipient_alg=self._alg)
+            alg = self._alg if isinstance(self._alg, int) else 0
+            context = to_cis(context, recipient_alg=alg)
         else:
             self._validate_context(context)
 
