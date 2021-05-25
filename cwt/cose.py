@@ -267,7 +267,10 @@ class COSE(CBORProcessor):
         return res if out == "cbor2/CBORTag" else self._dumps(res)
 
     def decode(
-        self, data: Union[bytes, CBORTag], key: Union[COSEKey, List[COSEKey]]
+        self,
+        data: Union[bytes, CBORTag],
+        key: Optional[Union[COSEKey, List[COSEKey]]] = None,
+        materials: Optional[List[dict]] = None,
     ) -> bytes:
         """
         Verifies and decodes COSE data.
@@ -275,7 +278,8 @@ class COSE(CBORProcessor):
         Args:
             data (Union[bytes, CBORTag]): A byte string or cbor2.CBORTag of an
                 encoded data.
-            key (Union[COSEKey, List[COSEKey]]): A COSE key to verify and decrypt the encoded data.
+            key (Optional[Union[COSEKey, List[COSEKey]]]): A COSE key to verify and decrypt the encoded data.
+            materials (Optional[List[dict]]): A list of key materials to be used to derive an encryption key.
         Returns:
             bytes: A byte string of decoded payload.
         Raises:
@@ -283,12 +287,16 @@ class COSE(CBORProcessor):
             DecodeError: Failed to decode data.
             VerifyError: Failed to verify data.
         """
+        if key is None and materials is None:
+            raise ValueError("Either key or materials should be specified.")
         if isinstance(data, bytes):
             data = self._loads(data)
         if not isinstance(data, CBORTag):
             raise ValueError("Invalid COSE format.")
 
-        keys: List[COSEKey] = key if isinstance(key, list) else [key]
+        keys: List[COSEKey] = []
+        if key:
+            keys = key if isinstance(key, list) else [key]
 
         # Encrypt0
         if data.tag == 16:
@@ -308,17 +316,30 @@ class COSE(CBORProcessor):
 
         # Encrypt
         if data.tag == 96:
-            keys = self._filter_by_key_ops(keys, 4)
-            if not isinstance(data.value, list) or len(data.value) != 4:
-                raise ValueError("Invalid Encrypt format.")
+            if keys:
+                keys = self._filter_by_key_ops(keys, 4)
+                if not isinstance(data.value, list) or len(data.value) != 4:
+                    raise ValueError("Invalid Encrypt format.")
 
             aad = self._dumps(["Encrypt", data.value[0], b""])
+            alg_hint = 0
+            if data.value[0]:
+                protected = self._loads(data.value[0])
+                alg_hint = (
+                    protected[1]
+                    if isinstance(protected, dict) and 1 in protected
+                    else 0
+                )
             unprotected = data.value[1]
             if not isinstance(unprotected, dict):
                 raise ValueError("unprotected header should be dict.")
             nonce = unprotected.get(5, None)
             recipients = self._recipients_builder.from_list(data.value[3])
-            enc_key = recipients.derive_key(keys)
+            enc_key = (
+                recipients.derive_key(keys=keys)
+                if key is not None
+                else recipients.derive_key(materials=materials, alg_hint=alg_hint)
+            )
             return enc_key.decrypt(data.value[2], nonce, aad)
 
         # MAC0

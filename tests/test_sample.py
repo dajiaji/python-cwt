@@ -12,7 +12,7 @@ import cbor2
 import pytest
 
 import cwt
-from cwt import claims, cose_key
+from cwt import claims, cose_key, encrypted_cose_key
 
 from .utils import key_path, now
 
@@ -481,7 +481,7 @@ class TestSample:
                 "cti": "123",
                 "cnf": {
                     # 'eck'(Encrypted Cose Key) is a keyword defined by this library.
-                    "eck": cose_key.to_encrypted_cose_key(pop_key, enc_key),
+                    "eck": encrypted_cose_key.encode(pop_key, enc_key),
                 },
             },
             private_key,
@@ -493,7 +493,7 @@ class TestSample:
         assert 8 in decoded and isinstance(decoded[8], dict)
         assert 2 in decoded[8] and isinstance(decoded[8][2], list)
         c = claims.from_dict(decoded)
-        extracted = cose_key.from_encrypted_cose_key(c.cnf, enc_key)
+        extracted = encrypted_cose_key.decode(c.cnf, enc_key)
         assert extracted.kty == 4  # Symmetric
         assert extracted.alg == 5  # HMAC 256/256
         assert extracted.key == b"a-client-secret-of-cwt-presenter"
@@ -565,7 +565,7 @@ class TestSample:
                 2: "dajiaji",  # sub
                 7: b"123",  # cti
                 8: {  # cnf
-                    2: cose_key.to_encrypted_cose_key(pop_key, enc_key),
+                    2: encrypted_cose_key.encode(pop_key, enc_key),
                 },
             },
             private_key,
@@ -576,7 +576,7 @@ class TestSample:
         decoded = cwt.decode(token, public_key)
         assert 8 in decoded and isinstance(decoded[8], dict)
         assert 2 in decoded[8] and isinstance(decoded[8][2], list)
-        extracted = cose_key.from_encrypted_cose_key(decoded[8][2], enc_key)
+        extracted = encrypted_cose_key.decode(decoded[8][2], enc_key)
         assert extracted.kty == 4  # Symmetric
         assert extracted.alg == 5  # HMAC 256/256
         assert extracted.key == b"a-client-secret-of-cwt-presenter"

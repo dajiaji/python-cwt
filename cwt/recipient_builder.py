@@ -1,10 +1,11 @@
 import json
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from .cbor_processor import CBORProcessor
 from .const import COSE_ALGORITHMS_CKDM
 from .recipient import Recipient
-from .recipient_algs.direct import DirectKey
+from .recipient_algs.direct_hkdf import DirectHKDF
+from .recipient_algs.direct_key import DirectKey
 
 
 class RecipientBuilder(CBORProcessor):
@@ -25,6 +26,8 @@ class RecipientBuilder(CBORProcessor):
         self,
         protected: Dict[int, Any],
         unprotected: Dict[int, Any],
+        ciphertext: bytes = b"",
+        recipients: List[Any] = [],
     ) -> Recipient:
         """
         Create a recipient from a CBOR-like dictionary with numeric keys.
@@ -43,9 +46,9 @@ class RecipientBuilder(CBORProcessor):
         if alg == 0:
             raise ValueError("alg should be specified.")
         if alg == -6:
-            return DirectKey(unprotected)
-        # if alg in [-10, -11]:
-        #     return DirectHKDF(protected, unprotected)
+            return DirectKey(unprotected, ciphertext, recipients)
+        if alg in [-10, -11]:
+            return DirectHKDF(protected, unprotected, ciphertext, recipients)
         raise ValueError(f"Unsupported or unknown alg(1): {alg}.")
 
     def from_json(self, data: Union[str, bytes, Dict[str, Any]]) -> Recipient:
@@ -67,6 +70,12 @@ class RecipientBuilder(CBORProcessor):
             recipient = json.loads(data)
         else:
             recipient = data
+
+        # salt
+        if "salt" in recipient:
+            if not isinstance(recipient["salt"], str):
+                raise ValueError("salt should be str.")
+            unprotected[-20] = recipient["salt"].encode("utf-8")
 
         # alg
         if "alg" in recipient:
