@@ -9,9 +9,11 @@ from ..const import COSE_KEY_OPERATION_VALUES
 from ..cose_key import COSEKey
 from ..exceptions import DecodeError, EncodeError, VerifyError
 
-_CWT_DEFAULT_HMAC_KEY_SIZE = 32  # bytes
-_CWT_DEFAULT_AESGCM_NONCE_SIZE = 12  # bytes
-_CWT_CHACHA20_POLY1305_NONCE_SIZE = 12  # bytes
+_CWT_DEFAULT_KEY_SIZE_HMAC256 = 32  # bytes
+_CWT_DEFAULT_KEY_SIZE_HMAC384 = 48
+_CWT_DEFAULT_KEY_SIZE_HMAC512 = 64
+_CWT_NONCE_SIZE_AESGCM = 12
+_CWT_NONCE_SIZE_CHACHA20_POLY1305 = 12
 
 
 class SymmetricKey(COSEKey):
@@ -103,22 +105,28 @@ class HMACKey(MACAuthenticationKey):
 
         self._hash_alg = None
         self._trunc = 0
-        if not self._key:
-            self._key = token_bytes(_CWT_DEFAULT_HMAC_KEY_SIZE)
 
         # Validate alg.
         if self._alg == 4:  # HMAC 256/64
             self._hash_alg = hashlib.sha256
             self._trunc = 8
+            if not self._key:
+                self._key = token_bytes(_CWT_DEFAULT_KEY_SIZE_HMAC256)
         elif self._alg == 5:  # HMAC 256/256
             self._hash_alg = hashlib.sha256
             self._trunc = 32
+            if not self._key:
+                self._key = token_bytes(_CWT_DEFAULT_KEY_SIZE_HMAC256)
         elif self._alg == 6:  # HMAC 384/384
             self._hash_alg = hashlib.sha384
             self._trunc = 48
+            if not self._key:
+                self._key = token_bytes(_CWT_DEFAULT_KEY_SIZE_HMAC384)
         elif self._alg == 7:  # HMAC 512/512
             self._hash_alg = hashlib.sha512
             self._trunc = 64
+            if not self._key:
+                self._key = token_bytes(_CWT_DEFAULT_KEY_SIZE_HMAC512)
         else:
             raise ValueError(f"Unsupported or unknown alg({self._alg}) for HMAC.")
 
@@ -280,7 +288,7 @@ class AESGCMKey(ContentEncryptionKey):
         return
 
     def generate_nonce(self):
-        return token_bytes(_CWT_DEFAULT_AESGCM_NONCE_SIZE)
+        return token_bytes(_CWT_NONCE_SIZE_AESGCM)
 
     def encrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
         """ """
@@ -315,7 +323,7 @@ class ChaCha20Key(ContentEncryptionKey):
         return
 
     def generate_nonce(self):
-        return token_bytes(_CWT_CHACHA20_POLY1305_NONCE_SIZE)
+        return token_bytes(_CWT_NONCE_SIZE_CHACHA20_POLY1305)
 
     def encrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
         try:

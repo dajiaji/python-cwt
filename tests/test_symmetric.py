@@ -99,20 +99,37 @@ class TestHMACKey:
         except Exception:
             pytest.fail("sign/verify should not fail.")
 
-    def test_hmac_key_constructor_with_hmac_256_256_without_key(self):
-        key = HMACKey(
-            {
-                1: 4,
-                3: 5,  # HMAC 256/256
-            }
-        )
+    @pytest.mark.parametrize(
+        "params, key_size",
+        [
+            (
+                {1: 4, 3: 4},  # HMAC 256/64
+                32,
+            ),
+            (
+                {1: 4, 3: 5},  # HMAC 256/256
+                32,
+            ),
+            (
+                {1: 4, 3: 6},  # HMAC 384/384
+                48,
+            ),
+            (
+                {1: 4, 3: 7},  # HMAC 512/512
+                64,
+            ),
+        ],
+    )
+    def test_hmac_key_constructor_without_key(self, params, key_size):
+        key = HMACKey(params)
         assert key.kty == 4
         assert key.kid is None
-        assert key.alg == 5
+        assert key.alg == params[3]
         assert len(key.key_ops) == 2
         assert 9 in key.key_ops
         assert 10 in key.key_ops
         assert key.base_iv is None
+        assert len(key.key) == key_size
         try:
             sig = key.sign(b"Hello world!")
             key.verify(b"Hello world!", sig)
