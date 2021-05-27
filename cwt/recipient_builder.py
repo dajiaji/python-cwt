@@ -2,10 +2,16 @@ import json
 from typing import Any, Dict, List, Optional, Union
 
 from .cbor_processor import CBORProcessor
-from .const import COSE_ALGORITHMS_CKDM
+from .const import (
+    COSE_ALGORITHMS_KEY_WRAP,
+    COSE_ALGORITHMS_RECIPIENT,
+    COSE_KEY_OPERATION_VALUES,
+)
 from .recipient import Recipient
+from .recipient_algs.aes_key_wrap import AESKeyWrap
 from .recipient_algs.direct_hkdf import DirectHKDF
 from .recipient_algs.direct_key import DirectKey
+from .utils import base64url_decode
 
 
 class RecipientBuilder(CBORProcessor):
@@ -28,6 +34,8 @@ class RecipientBuilder(CBORProcessor):
         unprotected: Dict[int, Any],
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
+        key_ops: List[int] = [],
+        key: bytes = b"",
     ) -> Recipient:
         """
         Create a recipient from a CBOR-like dictionary with numeric keys.
@@ -49,6 +57,10 @@ class RecipientBuilder(CBORProcessor):
             return DirectKey(unprotected, ciphertext, recipients)
         if alg in [-10, -11]:
             return DirectHKDF(protected, unprotected, ciphertext, recipients)
+        if alg in [-3, -4, -5]:
+            return AESKeyWrap(
+                protected, unprotected, ciphertext, recipients, key_ops, key
+            )
         raise ValueError(f"Unsupported or unknown alg(1): {alg}.")
 
     def from_json(self, data: Union[str, bytes, Dict[str, Any]]) -> Recipient:
@@ -66,6 +78,9 @@ class RecipientBuilder(CBORProcessor):
         protected: Dict[int, Any] = {}
         unprotected: Dict[int, Any] = {}
         recipient: Dict[str, Any]
+        key = b""
+        key_ops = []
+
         if not isinstance(data, dict):
             recipient = json.loads(data)
         else:
@@ -81,12 +96,14 @@ class RecipientBuilder(CBORProcessor):
         if "alg" in recipient:
             if not isinstance(recipient["alg"], str):
                 raise ValueError("alg should be str.")
-            if recipient["alg"] not in COSE_ALGORITHMS_CKDM:
+            if recipient["alg"] not in COSE_ALGORITHMS_RECIPIENT:
                 raise ValueError(f"Unsupported or unknown alg: {recipient['alg']}.")
             if recipient["alg"] == "direct":
-                unprotected[1] = COSE_ALGORITHMS_CKDM[recipient["alg"]]
+                unprotected[1] = COSE_ALGORITHMS_RECIPIENT[recipient["alg"]]
+            elif recipient["alg"] in COSE_ALGORITHMS_KEY_WRAP:
+                unprotected[1] = COSE_ALGORITHMS_RECIPIENT[recipient["alg"]]
             else:
-                protected[1] = COSE_ALGORITHMS_CKDM[recipient["alg"]]
+                protected[1] = COSE_ALGORITHMS_RECIPIENT[recipient["alg"]]
 
         # kid
         if "kid" in recipient:
@@ -94,7 +111,25 @@ class RecipientBuilder(CBORProcessor):
                 raise ValueError("kid should be str.")
             unprotected[4] = recipient["kid"].encode("utf-8")
 
-        return self.from_dict(protected, unprotected)
+        # key_ops
+        if "key_ops" in recipient:
+            if not isinstance(recipient["key_ops"], list):
+                raise ValueError("key_ops should be list.")
+            for ops in recipient["key_ops"]:
+                if not isinstance(ops, str):
+                    raise ValueError("Each value of key_ops should be str.")
+                try:
+                    key_ops.append(COSE_KEY_OPERATION_VALUES[ops])
+                except Exception:
+                    raise ValueError(f"Unknown key_ops: {ops}.")
+
+        # k
+        if "k" in recipient:
+            if not isinstance(recipient["k"], str):
+                raise ValueError("k should be str.")
+            key = base64url_decode(recipient["k"])
+
+        return self.from_dict(protected, unprotected, key_ops=key_ops, key=key)
 
 
 # export

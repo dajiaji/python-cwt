@@ -33,6 +33,9 @@ class TestCOSEKey:
         assert raw[2] == b"123"
         assert raw[3] == 1
         with pytest.raises(NotImplementedError):
+            key.key
+            pytest.fail("COSEKey.key should fail.")
+        with pytest.raises(NotImplementedError):
             key.generate_nonce()
             pytest.fail("COSEKey.generate_nonce() should fail.")
         with pytest.raises(NotImplementedError):

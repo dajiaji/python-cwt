@@ -15,6 +15,8 @@ class Recipient(COSEKeyCommon):
         unprotected: Optional[Dict[int, Any]] = None,
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
+        key_ops: List[int] = [],
+        key: bytes = b"",
     ):
 
         protected = {} if protected is None else protected
@@ -49,6 +51,10 @@ class Recipient(COSEKeyCommon):
         else:
             params[3] = 0
 
+        # key_ops
+        if key_ops:
+            params[4] = key_ops
+
         # iv
         if 5 in unprotected:
             if not isinstance(unprotected[5], bytes):
@@ -60,6 +66,7 @@ class Recipient(COSEKeyCommon):
         self._protected = protected
         self._unprotected = unprotected
         self._ciphertext = ciphertext
+        self._key = key
 
         # Validate recipients
         self._recipients: List[Recipient] = []
@@ -70,6 +77,10 @@ class Recipient(COSEKeyCommon):
                 raise ValueError("Invalid child recipient.")
             self._recipients.append(recipient)
         return
+
+    @property
+    def key(self) -> bytes:
+        return self._key
 
     @property
     def protected(self) -> Dict[int, Any]:
@@ -99,6 +110,16 @@ class Recipient(COSEKeyCommon):
             children.append(recipient.to_list())
         res.append(children)
         return res
+
+    def set_key(self, key: bytes):
+        """
+        Sets a key.
+
+        Args:
+            key (bytes): The key as bytes.
+        """
+        self._key = key
+        return
 
     def derive_key(
         self, material: bytes, context: Union[List[Any], Dict[str, Any]]
@@ -135,5 +156,31 @@ class Recipient(COSEKeyCommon):
             NotImplementedError: Not implemented.
             ValueError: Invalid arguments.
             VerifyError: Failed to verify the key.
+        """
+        raise NotImplementedError
+
+    def wrap_key(self, key_to_wrap: bytes):
+        """
+        Wraps a key and keeps it internally as the ciphertext.
+
+        Args:
+            key_to_wrap (bytes): A key to be wrapped.
+        Raises:
+            NotImplementedError: Not implemented.
+            ValueError: Invalid arguments.
+            EncodeError: Failed to encode(wrap) key.
+        """
+        raise NotImplementedError
+
+    def unwrap_key(self) -> bytes:
+        """
+        Unwraps the key stored as the ciphertext.
+
+        Returns:
+            bytes: An unwrapped key.
+        Raises:
+            NotImplementedError: Not implemented.
+            ValueError: Invalid arguments.
+            DecodeError: Failed to decode(unwrap) the key.
         """
         raise NotImplementedError

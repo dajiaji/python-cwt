@@ -123,6 +123,9 @@ COSE_ALGORITHMS_CEK = {
 }
 
 COSE_KEY_LEN = {
+    -5: 256,  # AES Key Wrap w/ 256-bit key
+    -4: 192,  # AES Key Wrap w/ 192-bit key
+    -3: 128,  # AES Key Wrap w/ 128-bit key
     1: 128,  # AES-GCM mode w/ 128-bit key, 128-bit tag
     2: 192,  # AES-GCM mode w/ 192-bit key, 128-bit tag
     3: 256,  # AES-GCM mode w/ 256-bit key, 128-bit tag
@@ -141,6 +144,13 @@ COSE_ALGORITHMS_CKDM = {
     "direct+HKDF-SHA-512": -11,  # Shared secret w/ HKDF and SHA-512
     "direct+HKDF-SHA-256": -10,  # Shared secret w/ HKDF and SHA-256
     "direct": -6,  # direct
+    # etc.
+}
+
+COSE_ALGORITHMS_KEY_WRAP = {
+    "A256KW": -5,  # AES Key Wrap w/ 256-bit key
+    "A192KW": -4,  # AES Key Wrap w/ 192-bit key
+    "A128KW": -3,  # AES Key Wrap w/ 128-bit key
     # etc.
 }
 
@@ -222,6 +232,9 @@ JWK_ELLIPTIC_CURVES = {
     "Ed448": 7,
     "secp256k1": 8,
 }
+
+# COSE Algorithms for recipients.
+COSE_ALGORITHMS_RECIPIENT = dict(COSE_ALGORITHMS_CKDM, **COSE_ALGORITHMS_KEY_WRAP)
 
 # COSE Algorithms for Symmetric Keys.
 COSE_ALGORITHMS_SYMMETRIC = dict(COSE_ALGORITHMS_MAC, **COSE_ALGORITHMS_CEK)

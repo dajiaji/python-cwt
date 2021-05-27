@@ -67,6 +67,12 @@ class TestRecipient:
         with pytest.raises(NotImplementedError):
             r.verify_key(b"", b"", [])
             pytest.fail("verify_key should fail.")
+        with pytest.raises(NotImplementedError):
+            r.wrap_key(b"")
+            pytest.fail("wrap_key should fail.")
+        with pytest.raises(NotImplementedError):
+            r.unwrap_key()
+            pytest.fail("unwrap_key should fail.")
         res = r.to_list()
         assert len(res) == 3
         assert res[0] == b""
@@ -79,6 +85,7 @@ class TestRecipient:
             protected={"foo": "bar"},
             unprotected={1: -1, 4: b"our-secret"},
             recipients=[child],
+            key_ops=["wrapKey"],
         )
         assert isinstance(r.protected, dict)
         assert r.protected["foo"] == "bar"
@@ -87,6 +94,7 @@ class TestRecipient:
         assert r.alg == -1
         assert r.ciphertext == b""
         assert len(r.recipients) == 1
+        assert len(r.key_ops) == 1
         res = r.to_list()
         assert len(res) == 4
         assert isinstance(res[3], list)
@@ -234,6 +242,13 @@ class TestRecipientBuilder:
         assert isinstance(recipient, Recipient)
         assert recipient.alg == -6
 
+    def test_recipient_builder_from_json_with_dict(self):
+        ctx = RecipientBuilder()
+        recipient = ctx.from_json({"alg": "A128KW", "key_ops": ["wrapKey"]})
+        assert isinstance(recipient, Recipient)
+        assert recipient.alg == -3
+        assert len(recipient.key_ops) == 1
+
     @pytest.mark.parametrize(
         "data, msg",
         [
@@ -256,6 +271,22 @@ class TestRecipientBuilder:
             (
                 {"salt": 123},
                 "salt should be str.",
+            ),
+            (
+                {"key_ops": 123},
+                "key_ops should be list.",
+            ),
+            (
+                {"key_ops": [123]},
+                "Each value of key_ops should be str.",
+            ),
+            (
+                {"key_ops": ["xxx"]},
+                "Unknown key_ops: xxx.",
+            ),
+            (
+                {"k": 123},
+                "k should be str.",
             ),
         ],
     )
@@ -317,7 +348,7 @@ class TestRecipients:
             pytest.fail("derive_key() should fail.")
         assert "Failed to derive a key." in str(err.value)
 
-    def test_recipients_derive_key_with_multiple_recipients(self, material):
+    def test_recipients_derive_key_with_multiple_materials(self, material):
         r1 = recipient_builder.from_json(
             {
                 "alg": "direct",
@@ -334,6 +365,39 @@ class TestRecipients:
         rs = Recipients([r1, r2])
         key = rs.derive_key(materials=[material])
         assert key.alg == 10
+        assert key.kid == b"02"
+
+    def test_recipients_derive_key_with_multiple_keys(self, material):
+        mac_key = cose_key.from_symmetric_key(
+            bytes.fromhex(
+                "DDDC08972DF9BE62855291A17A1B4CF767C2DC762CB551911893BF7754988B0A286127BFF5D60C4CBC877CAC4BF3BA02C07AD544C951C3CA2FC46B70219BC3DC"
+            ),
+            alg="HS512",
+        )
+        r1 = recipient_builder.from_json(
+            {
+                "alg": "A128KW",
+                "kid": "01",
+            }
+        )
+        r2 = recipient_builder.from_json(
+            {
+                "alg": "direct+HKDF-SHA-256",
+                "kid": "02",
+                "salt": "aabbccddeeffgghh",
+            },
+        )
+        r3 = recipient_builder.from_json(
+            {
+                "alg": "A128KW",
+                "kid": "02",
+                "k": "hJtXIZ2uSN5kbQfbtTNWbg",
+            },
+        )
+        r3.wrap_key(mac_key.key)
+        rs = Recipients([r1, r2, r3])
+        key = rs.derive_key(keys=[r3], alg_hint=7)
+        assert key.alg == 7
         assert key.kid == b"02"
 
     def test_recipients_derive_key_with_different_kid(self):

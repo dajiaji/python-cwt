@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Add support for AES key wrap. `#89 <https://github.com/dajiaji/python-cwt/pull/89>`__
 - Add support for direct+HKDF-SHA256 and SHA512. `#87 <https://github.com/dajiaji/python-cwt/pull/87>`__
 - Introduce COSEKeyCommon as the base class of COSEKey and Recipient. `#82 <https://github.com/dajiaji/python-cwt/pull/82>`__
 

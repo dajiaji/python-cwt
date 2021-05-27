@@ -556,6 +556,33 @@ class TestCOSE:
         res = ctx.decode(token, materials=[material])
         assert res == b"This is the content."
 
+    def test_cose_sample_cose_wg_aes_wrap_128_03(self):
+        cwt_str = "D8618543A10107A054546869732069732074686520636F6E74656E742E58400021C21B2A7FADB677DAB64389B3FDA4AAC892D5C81B786A459E4182104A1501462FFD471422AF4D48BEEB864951D5947A55E3155E670DFC4A96017B0FD0E725818340A20122044A6F75722D7365637265745848792C46CE0BC689747133FA0DB1F5E2BC4DAAE22F906E93DFCA2DF44F0DF6C2CEF16EA8FC91D52AD662C4B49DD0D689E1086EC754347957F80F95C92C887521641B8F637D91C6E258"
+        mac_key = cose_key.from_symmetric_key(
+            bytes.fromhex(
+                "DDDC08972DF9BE62855291A17A1B4CF767C2DC762CB551911893BF7754988B0A286127BFF5D60C4CBC877CAC4BF3BA02C07AD544C951C3CA2FC46B70219BC3DC"
+            ),
+            alg="HS512",
+        )
+        recipient = recipient_builder.from_json(
+            {
+                "alg": "A128KW",
+                "kid": "our-secret",
+                "k": "hJtXIZ2uSN5kbQfbtTNWbg",
+            },
+        )
+        recipient.wrap_key(mac_key.key)
+        ctx = COSE(options={"kid_auto_inclusion": False, "alg_auto_inclusion": False})
+        token = ctx.encode_and_mac(
+            b"This is the content.",
+            key=mac_key,
+            protected={1: 7},
+            recipients=[recipient],
+        )
+        assert token == bytes.fromhex(cwt_str)
+        res = ctx.decode(token, key=[recipient])
+        assert res == b"This is the content."
+
     def test_cose_encode_and_mac_with_recipient_has_unsupported_alg(self, ctx):
         key = cose_key.from_symmetric_key(alg="HS256")
         with pytest.raises(NotImplementedError) as err:

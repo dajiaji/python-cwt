@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Union
 from cbor2 import CBORTag
 
 from .cbor_processor import CBORProcessor
-from .const import COSE_ALGORITHMS_CKDM
+from .const import COSE_ALGORITHMS_RECIPIENT
 from .cose_key import COSEKey
 from .recipient import Recipient
 from .recipients_builder import RecipientsBuilder
@@ -94,7 +94,7 @@ class COSE(CBORProcessor):
         recs = []
         for rec in recipients:
             recs.append(rec.to_list())
-        if recipients[0].alg in COSE_ALGORITHMS_CKDM.values():
+        if recipients[0].alg in COSE_ALGORITHMS_RECIPIENT.values():
             if not isinstance(protected, bytes):
                 if self._alg_auto_inclusion:
                     protected[1] = key.alg
@@ -244,7 +244,7 @@ class COSE(CBORProcessor):
         recs = []
         for rec in recipients:
             recs.append(rec.to_list())
-        if recipients[0].alg in COSE_ALGORITHMS_CKDM.values():
+        if recipients[0].alg in COSE_ALGORITHMS_RECIPIENT.values():
             if not isinstance(protected, bytes) and self._alg_auto_inclusion:
                 protected[1] = key.alg
             if self._kid_auto_inclusion and key.kid:
@@ -336,7 +336,7 @@ class COSE(CBORProcessor):
             nonce = unprotected.get(5, None)
             recipients = self._recipients_builder.from_list(data.value[3])
             enc_key = (
-                recipients.derive_key(keys=keys)
+                recipients.derive_key(keys=keys, alg_hint=alg_hint)
                 if key is not None
                 else recipients.derive_key(materials=materials, alg_hint=alg_hint)
             )
@@ -361,8 +361,16 @@ class COSE(CBORProcessor):
             if not isinstance(data.value, list) or len(data.value) != 5:
                 raise ValueError("Invalid MAC format.")
             to_be_maced = self._dumps(["MAC", data.value[0], b"", data.value[2]])
+            alg_hint = 0
+            if data.value[0]:
+                protected = self._loads(data.value[0])
+                alg_hint = (
+                    protected[1]
+                    if isinstance(protected, dict) and 1 in protected
+                    else 0
+                )
             recipients = self._recipients_builder.from_list(data.value[4])
-            mac_auth_key = recipients.derive_key(keys)
+            mac_auth_key = recipients.derive_key(keys=keys, alg_hint=alg_hint)
             mac_auth_key.verify(to_be_maced, data.value[3])
             return data.value[2]
 

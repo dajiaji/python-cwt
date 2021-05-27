@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from .const import COSE_KEY_TYPES
 from .cose_key_common import COSEKeyCommon
@@ -31,11 +31,6 @@ class COSEKey(COSEKeyCommon):
         self._kty: int = (
             params[1] if isinstance(params[1], int) else COSE_KEY_TYPES[params[1]]
         )
-
-        # key_ops
-        if 4 in params and not isinstance(params[4], list):
-            raise ValueError("key_ops(4) should be list.")
-        self._key_ops: List[int] = params[4] if 4 in params else []
         return
 
     @property
@@ -44,13 +39,6 @@ class COSEKey(COSEKeyCommon):
         Identification of the key type.
         """
         return self._kty
-
-    @property
-    def key_ops(self) -> List[int]:
-        """
-        Restrict set of permissible operations.
-        """
-        return self._key_ops
 
     def to_dict(self) -> Dict[int, Any]:
         """
