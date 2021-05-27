@@ -5,7 +5,7 @@ from .const import COSE_ALGORITHMS_KEY_WRAP
 from .cose_key import COSEKey
 from .key_builder import KeyBuilder
 from .recipient import Recipient
-from .utils import to_cis
+from .utils import base64url_decode, to_cis
 
 
 class Recipients(CBORProcessor):
@@ -57,5 +57,5 @@ class Recipients(CBORProcessor):
                 if m["kid"].encode("utf-8") != r.kid:
                     continue
                 ctx = to_cis(m["context"], alg, recipient_alg)
-                return r.derive_key(m["value"].encode("utf-8"), context=ctx)
+                return r.derive_key(base64url_decode(m["value"]), context=ctx)
         raise ValueError("Failed to derive a key.")

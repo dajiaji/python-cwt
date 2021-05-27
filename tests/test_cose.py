@@ -16,6 +16,7 @@ from cbor2 import CBORTag
 
 import cwt
 from cwt import COSE, EncodeError, Recipient, cose_key, recipient_builder
+from cwt.utils import base64url_decode
 
 from .utils import key_path
 
@@ -461,7 +462,7 @@ class TestCOSE:
         assert ctx.decode(token, key) == b"This is the content."
 
     def test_cose_sample_cose_wg_rfc8152_c_3_2(self):
-        # cwt_str = "D8608443A1010AA1054D89F52F65A1C580933B5261A76C581C753548A19B1307084CA7B2056924ED95F2E3B17006DFE931B687B847818343A10129A2335061616262636364646565666667676868044A6F75722D73656372657440"
+        cwt_str = "D8608443A1010AA1054D89F52F65A1C580933B5261A76C581C753548A19B1307084CA7B2056924ED95F2E3B17006DFE931B687B847818343A10129A2335061616262636364646565666667676868044A6F75722D73656372657440"
         recipient = recipient_builder.from_json(
             {
                 "alg": "direct+HKDF-SHA-256",
@@ -476,7 +477,7 @@ class TestCOSE:
             [128, cbor2.dumps({1: -10}), b"Encryption Example 02"],
         ]
         enc_key = recipient.derive_key(
-            b"hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
+            base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
             context=context,
         )
         ctx = COSE(options={"kid_auto_inclusion": False, "alg_auto_inclusion": False})
@@ -487,6 +488,7 @@ class TestCOSE:
             protected={1: 10},
             recipients=[recipient],
         )
+        assert token == bytes.fromhex(cwt_str)
         material = {
             "kid": "our-secret",
             "value": "hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
@@ -506,7 +508,7 @@ class TestCOSE:
         assert res == b"This is the content."
 
     def test_cose_sample_cose_wg_rfc8152_c_3_2_with_json(self):
-        # cwt_str = "D8608443A1010AA1054D89F52F65A1C580933B5261A76C581C753548A19B1307084CA7B2056924ED95F2E3B17006DFE931B687B847818343A10129A2335061616262636364646565666667676868044A6F75722D73656372657440"
+        cwt_str = "D8608443A1010AA1054D89F52F65A1C580933B5261A76C581C753548A19B1307084CA7B2056924ED95F2E3B17006DFE931B687B847818343A10129A2335061616262636364646565666667676868044A6F75722D73656372657440"
         recipient = recipient_builder.from_json(
             {
                 "alg": "direct+HKDF-SHA-256",
@@ -527,7 +529,7 @@ class TestCOSE:
             },
         }
         enc_key = recipient.derive_key(
-            b"hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
+            base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
             context=context,
         )
         ctx = COSE(options={"kid_auto_inclusion": False, "alg_auto_inclusion": False})
@@ -538,6 +540,7 @@ class TestCOSE:
             protected={1: 10},
             recipients=[recipient],
         )
+        assert token == bytes.fromhex(cwt_str)
         material = {
             "kid": "our-secret",
             "value": "hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
