@@ -1,10 +1,9 @@
 from typing import Any, Dict, List, Optional, Union
 
 from .cose_key import COSEKey
-from .cose_key_common import COSEKeyCommon
 
 
-class Recipient(COSEKeyCommon):
+class Recipient(COSEKey):
     """
     A COSE Recipient.
     """
