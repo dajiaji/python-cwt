@@ -71,7 +71,7 @@ class TestRecipient:
             r.wrap_key(b"")
             pytest.fail("wrap_key should fail.")
         with pytest.raises(NotImplementedError):
-            r.unwrap_key()
+            r.unwrap_key(10)
             pytest.fail("unwrap_key should fail.")
         res = r.to_list()
         assert len(res) == 3

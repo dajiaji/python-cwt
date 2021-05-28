@@ -3,7 +3,6 @@ from typing import List, Optional
 from .cbor_processor import CBORProcessor
 from .const import COSE_ALGORITHMS_KEY_WRAP
 from .cose_key import COSEKey
-from .key_builder import KeyBuilder
 from .recipient import Recipient
 from .utils import base64url_decode, to_cis
 
@@ -15,7 +14,6 @@ class Recipients(CBORProcessor):
 
     def __init__(self, recipients: List[Recipient]):
         self._recipients = recipients
-        self._key_builder = KeyBuilder()
         return
 
     def derive_key(
@@ -43,9 +41,7 @@ class Recipients(CBORProcessor):
                     return k
                 elif r.alg in COSE_ALGORITHMS_KEY_WRAP.values():
                     r.set_key(k.key)
-                    key = r.unwrap_key()
-                    kid = r.kid if isinstance(r.kid, bytes) else b""
-                    return self._key_builder.from_symmetric_key(key, alg=alg, kid=kid)
+                    return r.unwrap_key(alg)
         raise ValueError("Failed to derive a key.")
 
     def _derive_key_from_key_materials(
