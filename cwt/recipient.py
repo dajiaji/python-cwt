@@ -171,12 +171,14 @@ class Recipient(COSEKey):
         """
         raise NotImplementedError
 
-    def unwrap_key(self) -> bytes:
+    def unwrap_key(self, alg: int) -> COSEKey:
         """
         Unwraps the key stored as the ciphertext.
 
+        Args:
+            alg (int): The algorithm of the wrapped key.
         Returns:
-            bytes: An unwrapped key.
+            COSEKey: An unwrapped key.
         Raises:
             NotImplementedError: Not implemented.
             ValueError: Invalid arguments.

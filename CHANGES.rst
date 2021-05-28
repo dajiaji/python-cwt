@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Make unwrap_key return COSEKey. `#93 <https://github.com/dajiaji/python-cwt/pull/93>`__
 - Fix default HMAC key size. `#91 <https://github.com/dajiaji/python-cwt/pull/91>`__
 - Add support for AES key wrap. `#89 <https://github.com/dajiaji/python-cwt/pull/89>`__
 - Add support for direct+HKDF-SHA256 and SHA512. `#87 <https://github.com/dajiaji/python-cwt/pull/87>`__

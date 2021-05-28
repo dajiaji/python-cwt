@@ -3,7 +3,9 @@ from typing import Any, Dict, List
 from cryptography.hazmat.primitives.keywrap import aes_key_unwrap, aes_key_wrap
 
 from ..const import COSE_KEY_OPERATION_VALUES
+from ..cose_key import COSEKey
 from ..exceptions import DecodeError, EncodeError
+from ..key_builder import KeyBuilder
 from ..recipient import Recipient
 
 
@@ -35,6 +37,7 @@ class AESKeyWrap(Recipient):
                 raise ValueError(f"Invalid key length: {len(self._key)}.")
         else:
             raise ValueError(f"Unknown alg(3) for AES key wrap: {self._alg}.")
+        self._key_builder = KeyBuilder()
 
     def wrap_key(self, key_to_wrap: bytes):
         try:
@@ -42,8 +45,9 @@ class AESKeyWrap(Recipient):
         except Exception as err:
             raise EncodeError("Failed to wrap key.") from err
 
-    def unwrap_key(self) -> bytes:
+    def unwrap_key(self, alg: int) -> COSEKey:
         try:
-            return aes_key_unwrap(self._key, self._ciphertext)
+            key = aes_key_unwrap(self._key, self._ciphertext)
+            return self._key_builder.from_symmetric_key(key, alg=alg, kid=self._kid)
         except Exception as err:
             raise DecodeError("Failed to unwrap key.") from err
