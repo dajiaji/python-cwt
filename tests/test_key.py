@@ -8,7 +8,7 @@ Tests for Key.
 """
 import pytest
 
-from cwt import Key
+from cwt.key import Key
 
 # from secrets import token_bytes
 
