@@ -13,7 +13,7 @@ import cbor2
 import pytest
 
 import cwt
-from cwt import COSEKey, Key, claims, encrypted_cose_key
+from cwt import Claims, COSEKey, Key, encrypted_cose_key
 
 from .utils import key_path
 
@@ -459,7 +459,7 @@ class TestCOSEKey:
         with open(key_path(public_key_path)) as key_file:
             public_key = ctx.from_jwk(key_file.read())
         token = cwt.encode_and_sign(
-            claims.from_json(
+            Claims.from_json(
                 {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}
             ),
             private_key,

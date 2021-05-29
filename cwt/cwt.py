@@ -6,7 +6,6 @@ from cbor2 import CBORTag
 
 from .cbor_processor import CBORProcessor
 from .claims import Claims
-from .claims_builder import ClaimsBuilder
 from .const import COSE_KEY_OPERATION_VALUES
 from .cose import COSE
 from .exceptions import DecodeError, VerifyError
@@ -51,7 +50,7 @@ class CWT(CBORProcessor):
         self._expires_in = _CWT_DEFAULT_EXPIRES_IN
         self._leeway = _CWT_DEFAULT_LEEWAY
         self._cose = COSE(options)
-        self._claims = ClaimsBuilder()
+        self._claim_names: Dict[str, int] = {}
         if not options:
             return
 
@@ -122,14 +121,14 @@ class CWT(CBORProcessor):
             claims = claims.encode("utf-8")
         if isinstance(claims, bytes):
             try:
-                claims = self._claims.from_json(claims)
+                claims = Claims.from_json(claims, self._claim_names)
             except ValueError:
                 return self._encode(claims, key, nonce, tagged, recipients)
         else:
             # Following code causes mypy error:
             # for k, v in claims.items():
             #     if isinstance(k, str):
-            #         claims = self._claims.from_json(claims)
+            #         claims = Claims.from_json(claims)
             #     break
             # To avoid the error:
             json_claims: Dict[str, Any] = {}
@@ -137,7 +136,7 @@ class CWT(CBORProcessor):
                 if isinstance(k, str):
                     json_claims[k] = v
             if json_claims:
-                claims = self._claims.from_json(json_claims)
+                claims = Claims.from_json(json_claims, self._claim_names)
         return self._encode(claims, key, nonce, tagged, recipients)
 
     def encode_and_mac(
@@ -289,11 +288,8 @@ class CWT(CBORProcessor):
 
     def set_private_claim_names(self, claim_names: Dict[str, int]):
         """
-        Sets private claim definitions. This function call is redirected to the
-        internal :class:`ClaimsBuilder <cwt.ClaimsBuilder>`'s
-        :func:`set_private_claim_names <cwt.ClaimsBuilder.set_private_claim_names>`
-        directly. The definitions will be used in :func:`encode <cwt.CWT.encode>`
-        when it is called with JSON-based claims.
+        Sets private claim definitions. The definitions will be used in
+        :func:`encode <cwt.CWT.encode>` when it is called with JSON-based claims.
 
         Args:
             claims (Dict[str, int]): A set of private claim definitions which
@@ -304,7 +300,8 @@ class CWT(CBORProcessor):
         Raises:
             ValueError: Invalid arguments.
         """
-        return self._claims.set_private_claim_names(claim_names)
+        self._claim_names = claim_names
+        return
 
     def _encode(
         self,
@@ -339,7 +336,7 @@ class CWT(CBORProcessor):
             if nested.tag not in [16, 96, 17, 97, 18, 98]:
                 raise ValueError(f"Unsupported or unknown CBOR tag({nested.tag}).")
             return
-        self._claims.validate(claims)
+        Claims.validate(claims)
         return
 
     def _verify(self, claims: Union[Dict[int, Any], bytes]):
