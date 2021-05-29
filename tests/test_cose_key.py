@@ -13,7 +13,8 @@ import cbor2
 import pytest
 
 import cwt
-from cwt import Claims, COSEKey, Key, encrypted_cose_key
+from cwt import Claims, COSEKey, encrypted_cose_key
+from cwt.key import Key
 
 from .utils import key_path
 
