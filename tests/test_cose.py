@@ -15,7 +15,8 @@ import pytest
 from cbor2 import CBORTag
 
 import cwt
-from cwt import COSE, COSEKey, EncodeError, Recipient, RecipientBuilder
+from cwt import COSE, COSEKey, COSERecipient, EncodeError
+from cwt.recipient import Recipient
 from cwt.utils import base64url_decode
 
 from .utils import key_path
@@ -57,7 +58,7 @@ class TestCOSE:
         assert b"Hello world!" == ctx.decode(token, enc_key)
 
         # Encrypt
-        rec = RecipientBuilder.from_json({"alg": "direct", "kid": "02"})
+        rec = COSERecipient.from_json({"alg": "direct", "kid": "02"})
         token = ctx.encode_and_encrypt(
             b"Hello world!",
             enc_key,
@@ -128,7 +129,7 @@ class TestCOSE:
         ctx = COSE(options={"kid_auto_inclusion": False, "alg_auto_inclusion": False})
 
         mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
-        recipient = RecipientBuilder.from_json(
+        recipient = COSERecipient.from_json(
             {
                 "alg": "direct",
                 "kid": "01",
@@ -531,7 +532,7 @@ class TestCOSE:
 
     def test_cose_sample_cose_wg_rfc8152_c_3_2(self):
         cwt_str = "D8608443A1010AA1054D89F52F65A1C580933B5261A76C581C753548A19B1307084CA7B2056924ED95F2E3B17006DFE931B687B847818343A10129A2335061616262636364646565666667676868044A6F75722D73656372657440"
-        recipient = RecipientBuilder.from_json(
+        recipient = COSERecipient.from_json(
             {
                 "alg": "direct+HKDF-SHA-256",
                 "kid": "our-secret",
@@ -577,7 +578,7 @@ class TestCOSE:
 
     def test_cose_sample_cose_wg_rfc8152_c_3_2_with_json(self):
         cwt_str = "D8608443A1010AA1054D89F52F65A1C580933B5261A76C581C753548A19B1307084CA7B2056924ED95F2E3B17006DFE931B687B847818343A10129A2335061616262636364646565666667676868044A6F75722D73656372657440"
-        recipient = RecipientBuilder.from_json(
+        recipient = COSERecipient.from_json(
             {
                 "alg": "direct+HKDF-SHA-256",
                 "kid": "our-secret",
@@ -635,7 +636,7 @@ class TestCOSE:
             ),
             alg="HS512",
         )
-        recipient = RecipientBuilder.from_json(
+        recipient = COSERecipient.from_json(
             {
                 "alg": "A128KW",
                 "kid": "our-secret",

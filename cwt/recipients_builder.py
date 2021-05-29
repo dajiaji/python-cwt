@@ -1,8 +1,8 @@
 from typing import Any, Dict, List, Optional
 
 from .cbor_processor import CBORProcessor
+from .cose_recipient import COSERecipient
 from .recipient import Recipient
-from .recipient_builder import RecipientBuilder
 from .recipients import Recipients
 
 
@@ -13,7 +13,6 @@ class RecipientsBuilder(CBORProcessor):
 
     def __init__(self, options: Optional[Dict[str, Any]] = None):
         self._options = options
-        self._builder = RecipientBuilder()
         return
 
     def from_list(self, recipients: List[Any]) -> Recipients:
@@ -38,12 +37,12 @@ class RecipientsBuilder(CBORProcessor):
         if not isinstance(recipient[2], bytes):
             raise ValueError("ciphertext should be bytes.")
         if len(recipient) == 3:
-            return self._builder.from_dict(protected, recipient[1], recipient[2])
+            return COSERecipient.from_dict(protected, recipient[1], recipient[2])
         if not isinstance(recipient[3], list):
             raise ValueError("recipients should be list.")
         recipients: List[Recipient] = []
         for r in recipient[3]:
             recipients.append(self._create_recipient(r))
-        return self._builder.from_dict(
+        return COSERecipient.from_dict(
             protected, recipient[1], recipient[2], recipients
         )

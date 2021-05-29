@@ -13,7 +13,7 @@ from .recipient_algs.direct_key import DirectKey
 from .utils import base64url_decode
 
 
-class RecipientBuilder:
+class COSERecipient:
     """
     A :class:`Recipient <cwt.Recipient>` Builder.
     """

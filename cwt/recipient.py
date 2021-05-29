@@ -5,7 +5,7 @@ from .key import Key
 
 class Recipient(Key):
     """
-    A COSE Recipient.
+    The interface class of COSE Recipient.
     """
 
     def __init__(
