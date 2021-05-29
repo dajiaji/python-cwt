@@ -6,7 +6,7 @@ The following is a simple sample code for command line console.
 .. code-block:: pycon
 
     >>> import cwt
-    >>> from cwt import claims, COSEKey
+    >>> from cwt import Claims, COSEKey
     >>> key = COSEKey.from_symmetric_key(alg="HS256")
     >>> token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
     >>> token.hex()
@@ -17,7 +17,7 @@ The following is a simple sample code for command line console.
     >>> decoded
     {1: 'coaps://as.example', 2: 'dajiaji', 7: b'123',
      4: 1620088759, 5: 1620085159, 6: 1620085159}
-    >>> readable = claims.from_dict(decoded)
+    >>> readable = Claims.from_dict(decoded)
     >>> readable.iss
     'coaps://as.example'
     >>> readable.sub
@@ -250,7 +250,7 @@ Note that such user-defined claim's key should be less than -65536.
     # raw[-70002][0] == "bar"
     # raw[-70003]["baz"] == "qux"
     # raw[-70004] == 123
-    readable = claims.from_dict(raw)
+    readable = Claims.from_dict(raw)
     # readable.get(-70001) == "foo"
     # readable.get(-70002)[0] == "bar"
     # readable.get(-70003)["baz"] == "qux"
@@ -261,7 +261,7 @@ User-defined claims can also be used with JSON-based claims as follows:
 .. code-block:: python
 
     import cwt
-    from cwt import claims, COSEKey
+    from cwt import Claims, COSEKey
 
     with open("./private_key.pem") as key_file:
         private_key = COSEKey.from_pem(key_file.read(), kid="01")
@@ -288,16 +288,17 @@ User-defined claims can also be used with JSON-based claims as follows:
         },
         private_key,
     )
-    claims.set_private_claim_names(
-        {
+    claims.set_private_claim_names()
+    raw = cwt.decode(token, public_key)
+    readable = Claims.from_dict(
+        raw,
+        private_claim_names={
             "ext_1": -70001,
             "ext_2": -70002,
             "ext_3": -70003,
             "ext_4": -70004,
-        }
+        },
     )
-    raw = cwt.decode(token, public_key)
-    readable = claims.from_dict(raw)
     # readable.get("ext_1") == "foo"
     # readable.get("ext_2")[0] == "bar"
     # readable.get("ext_3")["baz"] == "qux"
@@ -365,7 +366,7 @@ On the CWT recipient side:
 .. code-block:: python
 
     import cwt
-    from cwt import claims, COSEKey
+    from cwt import Claims, COSEKey
 
     # Prepares the public key of the issuer in advance.
     with open("./public_key_of_issuer.pem") as key_file:
@@ -373,7 +374,7 @@ On the CWT recipient side:
 
     # Verifies and decodes the CWT received from the presenter.
     raw = cwt.decode(token, public_key)
-    decoded = claims.from_dict(raw)
+    decoded = Claims.from_dict(raw)
 
     # Extracts the PoP key from the CWT.
     extracted_pop_key = COSEKey.from_dict(decoded.cnf)  #  = raw[8][1]
@@ -387,7 +388,7 @@ In case of another PoP confirmation method ``Encrypted_COSE_Key``:
 .. code-block:: python
 
     import cwt
-    from cwt import claims, COSEKey
+    from cwt import Claims, COSEKey
 
     with open("./private_key.pem") as key_file:
         private_key = COSEKey.from_pem(key_file.read(), kid="issuer-01")
@@ -417,7 +418,7 @@ In case of another PoP confirmation method ``Encrypted_COSE_Key``:
     with open("./public_key.pem") as key_file:
         public_key = COSEKey.from_pem(key_file.read(), kid="issuer-01")
     raw = cwt.decode(token, public_key)
-    decoded = claims.from_dict(raw)
+    decoded = Claims.from_dict(raw)
     extracted_pop_key = COSEKey.from_encrypted_COSEKey(decoded.cnf, enc_key)
     # extracted_pop_key.verify(message, signature)
 
@@ -426,7 +427,7 @@ In case of another PoP confirmation method ``kid``:
 .. code-block:: python
 
     import cwt
-    from cwt import claims, COSEKey
+    from cwt import Claims, COSEKey
 
     with open("./private_key.pem") as key_file:
         private_key = COSEKey.from_pem(key_file.read(), kid="issuer-01")
@@ -446,7 +447,7 @@ In case of another PoP confirmation method ``kid``:
     with open("./public_key.pem") as key_file:
         public_key = COSEKey.from_pem(key_file.read(), kid="issuer-01")
     raw = cwt.decode(token, public_key)
-    decoded = claims.from_dict(raw)
+    decoded = Claims.from_dict(raw)
     # decoded.cnf(=raw[8][3]) is kid.
 
 .. _`Supported COSE Algorithms`: ./algorithms.html

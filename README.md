@@ -50,7 +50,7 @@ Create a MACed CWT with `HS256`, verify and decode it as follows:
 
 ```py
 import cwt
-from cwt import claims, COSEKey
+from cwt import Claims, COSEKey
 
 key = COSEKey.from_symmetric_key(alg="HS256")  # == "HMAC 256/256"
 token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
@@ -67,7 +67,7 @@ decoded = cwt.decode(token, key)
 # }
 
 # If you want to treat the result like a JWT;
-readable = claims.from_dict(decoded)
+readable = Claims.from_dict(decoded)
 
 # readable.iss == 'coaps://as.example'
 # readable.sub == 'dajiaji'
@@ -227,7 +227,7 @@ raw = cwt.decode(token, public_key)
 # raw[-70002][0] == "bar"
 # raw[-70003]["baz"] == "qux"
 # raw[-70004] == 123
-readable = claims.from_dict(raw)
+readable = Claims.from_dict(raw)
 # readable.get(-70001) == "foo"
 # readable.get(-70002)[0] == "bar"
 # readable.get(-70003)["baz"] == "qux"
@@ -238,7 +238,7 @@ User-defined claims can also be used with JSON-based claims as follows:
 
 ```py
 import cwt
-from cwt import claims, COSEKey
+from cwt import Claims, COSEKey
 
 with open("./private_key.pem") as key_file:
     private_key = COSEKey.from_pem(key_file.read(), kid="01")
@@ -265,16 +265,16 @@ token = cwt.encode(
     },
     private_key,
 )
-claims.set_private_claim_names(
-    {
+raw = cwt.decode(token, public_key)
+readable = Claims.from_dict(
+    raw,
+    private_claims_names={
         "ext_1": -70001,
         "ext_2": -70002,
         "ext_3": -70003,
         "ext_4": -70004,
     }
 )
-raw = cwt.decode(token, public_key)
-readable = claims.from_dict(raw)
 # readable.get("ext_1") == "foo"
 # readable.get("ext_2")[0] == "bar"
 # readable.get("ext_3")["baz"] == "qux"
@@ -343,7 +343,7 @@ On the CWT recipient side:
 
 ```py
 import cwt
-from cwt import claims, COSEKey
+from cwt import Claims, COSEKey
 
 # Prepares the public key of the issuer in advance.
 with open("./public_key_of_issuer.pem") as key_file:
@@ -351,7 +351,7 @@ with open("./public_key_of_issuer.pem") as key_file:
 
 # Verifies and decodes the CWT received from the presenter.
 raw = cwt.decode(token, public_key)
-decoded = claims.from_dict(raw)
+decoded = Claims.from_dict(raw)
 
 # Extracts the PoP key from the CWT.
 extracted_pop_key = COSEKey.from_dict(decoded.cnf)  # = raw[8][1]

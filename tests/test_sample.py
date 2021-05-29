@@ -12,7 +12,7 @@ import cbor2
 import pytest
 
 import cwt
-from cwt import COSEKey, claims, encrypted_cose_key
+from cwt import Claims, COSEKey, encrypted_cose_key
 
 from .utils import key_path, now
 
@@ -82,7 +82,7 @@ class TestSample:
     def test_sample_readme_maced_cwt_with_json_dict_old(self):
         key = COSEKey.from_symmetric_key("mysecretpassword")
         encoded = cwt.encode_and_mac(
-            claims.from_json(
+            Claims.from_json(
                 {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}
             ),
             key,
@@ -106,7 +106,7 @@ class TestSample:
     def test_sample_readme_maced_cwt_with_json_str_old(self):
         key = COSEKey.from_symmetric_key("mysecretpassword")
         encoded = cwt.encode_and_mac(
-            claims.from_json(
+            Claims.from_json(
                 '{"iss":"coaps://as.example","sub":"dajiaji","cti":"123"}'
             ),
             key,
@@ -125,7 +125,7 @@ class TestSample:
     def test_sample_readme_maced_cwt_with_json_bytes_old(self):
         key = COSEKey.from_symmetric_key("mysecretpassword")
         encoded = cwt.encode_and_mac(
-            claims.from_json(
+            Claims.from_json(
                 b'{"iss":"coaps://as.example","sub":"dajiaji","cti":"123"}'
             ),
             key,
@@ -162,7 +162,7 @@ class TestSample:
             public_key = COSEKey.from_pem(key_file.read())
 
         encoded = cwt.encode_and_sign(
-            claims.from_json(
+            Claims.from_json(
                 {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}
             ),
             private_key,
@@ -191,7 +191,7 @@ class TestSample:
             public_key = COSEKey.from_pem(key_file.read())
 
         encoded = cwt.encode_and_sign(
-            claims.from_json(
+            Claims.from_json(
                 {
                     "iss": "coaps://as.example",
                     "sub": "dajiaji",
@@ -228,7 +228,7 @@ class TestSample:
             public_key = COSEKey.from_pem(key_file.read())
 
         encoded = cwt.encode_and_sign(
-            claims.from_json(
+            Claims.from_json(
                 {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}
             ),
             private_key,
@@ -257,7 +257,7 @@ class TestSample:
             public_key = COSEKey.from_pem(key_file.read())
 
         encoded = cwt.encode_and_sign(
-            claims.from_json(
+            Claims.from_json(
                 {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}
             ),
             private_key,
@@ -286,7 +286,7 @@ class TestSample:
             public_key = COSEKey.from_pem(key_file.read())
 
         encoded = cwt.encode_and_sign(
-            claims.from_json(
+            Claims.from_json(
                 {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}
             ),
             private_key,
@@ -339,7 +339,7 @@ class TestSample:
         mysecret = token_bytes(32)
         enc_key = COSEKey.from_symmetric_key(mysecret, alg="AES-CCM-16-64-256")
         encoded = cwt.encode_and_encrypt(
-            claims.from_json(
+            Claims.from_json(
                 {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}
             ),
             enc_key,
@@ -363,7 +363,7 @@ class TestSample:
             public_key = COSEKey.from_pem(key_file.read(), kid="01")
 
         encoded = cwt.encode_and_sign(
-            claims.from_json(
+            Claims.from_json(
                 {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}
             ),
             private_key,
@@ -456,7 +456,7 @@ class TestSample:
         decoded = cwt.decode(token, public_key)
         assert 8 in decoded and isinstance(decoded[8], dict)
         assert 1 in decoded[8] and isinstance(decoded[8][1], dict)
-        c = claims.from_dict(decoded)
+        c = Claims.from_dict(decoded)
         extracted = COSEKey.from_dict(c.cnf)
         try:
             extracted.verify(msg, sig)
@@ -492,7 +492,7 @@ class TestSample:
         decoded = cwt.decode(token, public_key)
         assert 8 in decoded and isinstance(decoded[8], dict)
         assert 2 in decoded[8] and isinstance(decoded[8][2], list)
-        c = claims.from_dict(decoded)
+        c = Claims.from_dict(decoded)
         extracted = encrypted_cose_key.decode(c.cnf, enc_key)
         assert extracted.kty == 4  # Symmetric
         assert extracted.alg == 5  # HMAC 256/256
@@ -519,7 +519,7 @@ class TestSample:
         decoded = cwt.decode(token, public_key)
         assert 8 in decoded and isinstance(decoded[8], dict)
         assert 3 in decoded[8] and decoded[8][3] == b"pop-key-id-of-cwt-presenter"
-        c = claims.from_dict(decoded)
+        c = Claims.from_dict(decoded)
         assert c.cnf == "pop-key-id-of-cwt-presenter"
 
     def test_sample_readme_cwt_with_pop_cose_key(self):
@@ -626,7 +626,7 @@ class TestSample:
         assert isinstance(raw[-70003], dict)
         assert raw[-70003]["baz"] == "qux"
         assert raw[-70004] == 123
-        readable = claims.from_dict(raw)
+        readable = Claims.from_dict(raw)
         assert readable.get(-70001) == "foo"
         assert readable.get(-70002)[0] == "bar"
         assert readable.get(-70003)["baz"] == "qux"
@@ -657,16 +657,16 @@ class TestSample:
             },
             private_key,
         )
-        claims.set_private_claim_names(
-            {
+        raw = cwt.decode(token, public_key)
+        readable = Claims.from_dict(
+            raw,
+            private_claim_names={
                 "ext_1": -70001,
                 "ext_2": -70002,
                 "ext_3": -70003,
                 "ext_4": -70004,
-            }
+            },
         )
-        raw = cwt.decode(token, public_key)
-        readable = claims.from_dict(raw)
         assert readable.get("ext_1") == "foo"
         assert readable.get("ext_2")[0] == "bar"
         assert readable.get("ext_3")["baz"] == "qux"

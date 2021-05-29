@@ -12,7 +12,7 @@ import cbor2
 import pytest
 from cbor2 import CBORTag
 
-from cwt import CWT, COSEKey, DecodeError, Key, Recipient, VerifyError, claims
+from cwt import CWT, Claims, COSEKey, DecodeError, Key, Recipient, VerifyError
 
 from .utils import key_path, now
 
@@ -61,7 +61,7 @@ class TestCWT:
     def test_cwt_encode_with_claims_object(self, ctx):
         key = COSEKey.from_symmetric_key(alg="HS256")
         token = ctx.encode(
-            claims.from_json(
+            Claims.from_json(
                 {"iss": "https://as.example", "sub": "someone", "cti": b"123"}
             ),
             key,

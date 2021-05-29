@@ -1,5 +1,4 @@
 from .claims import Claims
-from .claims_builder import ClaimsBuilder, claims
 from .cose import COSE
 from .cose_key import COSEKey
 from .cwt import (
@@ -37,8 +36,6 @@ __all__ = [
     "CWT",
     "COSE",
     "Claims",
-    "ClaimsBuilder",
-    "claims",
     "Key",
     "COSEKey",
     "encrypted_cose_key",
