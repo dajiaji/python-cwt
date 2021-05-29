@@ -368,7 +368,9 @@ class COSE(CBORProcessor):
             keys = self._filter_by_key_ops(keys, 10)
             if not isinstance(data.value, list) or len(data.value) != 5:
                 raise ValueError("Invalid MAC format.")
-            to_be_maced = self._dumps(["MAC", data.value[0], external_aad, data.value[2]])
+            to_be_maced = self._dumps(
+                ["MAC", data.value[0], external_aad, data.value[2]]
+            )
             alg_hint = 0
             if data.value[0]:
                 protected = self._loads(data.value[0])
