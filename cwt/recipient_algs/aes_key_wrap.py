@@ -6,10 +6,10 @@ from ..const import COSE_KEY_OPERATION_VALUES
 from ..cose_key import COSEKey
 from ..exceptions import DecodeError, EncodeError
 from ..key import Key
-from ..recipient import Recipient
+from ..recipient_interface import RecipientInterface
 
 
-class AESKeyWrap(Recipient):
+class AESKeyWrap(RecipientInterface):
     _ACCEPTABLE_KEY_OPS = [
         COSE_KEY_OPERATION_VALUES["wrapKey"],
         COSE_KEY_OPERATION_VALUES["unwrapKey"],

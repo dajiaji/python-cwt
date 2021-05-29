@@ -3,7 +3,7 @@ from typing import List, Optional
 from .cbor_processor import CBORProcessor
 from .const import COSE_ALGORITHMS_KEY_WRAP
 from .key import Key
-from .recipient import Recipient
+from .recipient_interface import RecipientInterface
 from .utils import base64url_decode, to_cis
 
 
@@ -12,7 +12,7 @@ class Recipients(CBORProcessor):
     A Set of COSE Recipients.
     """
 
-    def __init__(self, recipients: List[Recipient]):
+    def __init__(self, recipients: List[RecipientInterface]):
         self._recipients = recipients
         return
 

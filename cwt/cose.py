@@ -5,7 +5,7 @@ from cbor2 import CBORTag
 from .cbor_processor import CBORProcessor
 from .const import COSE_ALGORITHMS_RECIPIENT
 from .key import Key
-from .recipient import Recipient
+from .recipient_interface import RecipientInterface
 from .recipients_builder import RecipientsBuilder
 
 
@@ -46,7 +46,7 @@ class COSE(CBORProcessor):
         key: Key,
         protected: Optional[Union[Dict[int, Any], bytes]] = None,
         unprotected: Optional[Dict[int, Any]] = None,
-        recipients: Optional[List[Recipient]] = None,
+        recipients: Optional[List[RecipientInterface]] = None,
         external_aad: bytes = b"",
         out: str = "",
     ) -> Union[bytes, CBORTag]:
@@ -59,7 +59,7 @@ class COSE(CBORProcessor):
             protected (Union[Dict[int, Any], bytes]): Parameters that are to be cryptographically
                 protected.
             unprotected (Dict[int, Any]): Parameters that are not cryptographically protected.
-            recipients (Optional[List[Recipient]]): A list of recipient information structures.
+            recipients (Optional[List[RecipientInterface]]): A list of recipient information structures.
             external_aad(bytes): External additional authenticated data supplied by application.
             out(str): An output format. Only ``"cbor2/CBORTag"`` can be used. If ``"cbor2/CBORTag"``
                 is specified. This function will return encoded data as
@@ -189,7 +189,7 @@ class COSE(CBORProcessor):
         protected: Optional[Union[Dict[int, Any], bytes]] = None,
         unprotected: Optional[Dict[int, Any]] = None,
         nonce: bytes = b"",
-        recipients: Optional[List[Recipient]] = None,
+        recipients: Optional[List[RecipientInterface]] = None,
         external_aad: bytes = b"",
         out: str = "",
     ) -> bytes:
@@ -204,7 +204,7 @@ class COSE(CBORProcessor):
             unprotected (Dict[int, Any]): Parameters that are not cryptographically
                 protected.
             nonce (bytes): A nonce for encryption.
-            recipients (Optional[List[Recipient]]): A list of recipient information structures.
+            recipients (Optional[List[RecipientInterface]]): A list of recipient information structures.
             external_aad(bytes): External additional authenticated data supplied by application.
             out(str): An output format. Only ``"cbor2/CBORTag"`` can be used. If ``"cbor2/CBORTag"``
                 is specified. This function will return encoded data as

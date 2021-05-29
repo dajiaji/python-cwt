@@ -15,8 +15,8 @@ import pytest
 from cbor2 import CBORTag
 
 import cwt
-from cwt import COSE, COSEKey, COSERecipient, EncodeError
-from cwt.recipient import Recipient
+from cwt import COSE, COSEKey, EncodeError, Recipient
+from cwt.recipient_interface import RecipientInterface
 from cwt.utils import base64url_decode
 
 from .utils import key_path
@@ -48,7 +48,7 @@ class TestCOSE:
         token = ctx.encode_and_mac(
             b"Hello world!",
             mac_key,
-            recipients=[Recipient(unprotected={1: -6, 4: b"01"})],
+            recipients=[RecipientInterface(unprotected={1: -6, 4: b"01"})],
         )
         assert b"Hello world!" == ctx.decode(token, mac_key)
 
@@ -58,7 +58,7 @@ class TestCOSE:
         assert b"Hello world!" == ctx.decode(token, enc_key)
 
         # Encrypt
-        rec = COSERecipient.from_json({"alg": "direct", "kid": "02"})
+        rec = Recipient.from_json({"alg": "direct", "kid": "02"})
         token = ctx.encode_and_encrypt(
             b"Hello world!",
             enc_key,
@@ -93,7 +93,7 @@ class TestCOSE:
             b"Hello world!",
             mac_key,
             protected=b"a0",
-            recipients=[Recipient(unprotected={1: -6, 4: b"01"})],
+            recipients=[RecipientInterface(unprotected={1: -6, 4: b"01"})],
         )
         assert b"Hello world!" == ctx.decode(token, mac_key)
 
@@ -107,7 +107,7 @@ class TestCOSE:
             b"Hello world!",
             enc_key,
             protected=b"a0",
-            recipients=[Recipient(unprotected={1: -6, 4: b"02"})],
+            recipients=[RecipientInterface(unprotected={1: -6, 4: b"02"})],
         )
         assert b"Hello world!" == ctx.decode(token, enc_key)
 
@@ -129,7 +129,7 @@ class TestCOSE:
         ctx = COSE(options={"kid_auto_inclusion": False, "alg_auto_inclusion": False})
 
         mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
-        recipient = COSERecipient.from_json(
+        recipient = Recipient.from_json(
             {
                 "alg": "direct",
                 "kid": "01",
@@ -186,7 +186,7 @@ class TestCOSE:
         token = ctx.encode_and_mac(
             b"This is the content.",
             key=key,
-            recipients=[Recipient(unprotected={1: -6, 4: b"our-secret"})],
+            recipients=[RecipientInterface(unprotected={1: -6, 4: b"our-secret"})],
         )
         assert token == bytes.fromhex(cwt_str)
         assert ctx.decode(token, key) == b"This is the content."
@@ -464,7 +464,7 @@ class TestCOSE:
             b"This is the content.",
             key,
             nonce=bytes.fromhex("89F52F65A1C580933B5261A72F"),
-            recipients=[Recipient(unprotected={1: -6, 4: b"our-secret"})],
+            recipients=[RecipientInterface(unprotected={1: -6, 4: b"our-secret"})],
         )
         assert token == bytes.fromhex(cwt_str)
         assert ctx.decode(token, key) == b"This is the content."
@@ -484,7 +484,7 @@ class TestCOSE:
             b"This is the content.",
             key,
             nonce=bytes.fromhex("02D1F7E6F26C43D4868D87CE"),
-            recipients=[Recipient(unprotected={1: -6, 4: b"our-secret"})],
+            recipients=[RecipientInterface(unprotected={1: -6, 4: b"our-secret"})],
         )
         assert token == bytes.fromhex(cwt_str)
         assert ctx.decode(token, key) == b"This is the content."
@@ -505,7 +505,7 @@ class TestCOSE:
             b"This is the content.",
             key,
             nonce=bytes.fromhex("26682306D4FB28CA01B43B80"),
-            recipients=[Recipient(unprotected={1: -6, 4: b"sec-256"})],
+            recipients=[RecipientInterface(unprotected={1: -6, 4: b"sec-256"})],
         )
         assert token == bytes.fromhex(cwt_str)
         assert ctx.decode(token, key) == b"This is the content."
@@ -532,7 +532,7 @@ class TestCOSE:
 
     def test_cose_sample_cose_wg_rfc8152_c_3_2(self):
         cwt_str = "D8608443A1010AA1054D89F52F65A1C580933B5261A76C581C753548A19B1307084CA7B2056924ED95F2E3B17006DFE931B687B847818343A10129A2335061616262636364646565666667676868044A6F75722D73656372657440"
-        recipient = COSERecipient.from_json(
+        recipient = Recipient.from_json(
             {
                 "alg": "direct+HKDF-SHA-256",
                 "kid": "our-secret",
@@ -578,7 +578,7 @@ class TestCOSE:
 
     def test_cose_sample_cose_wg_rfc8152_c_3_2_with_json(self):
         cwt_str = "D8608443A1010AA1054D89F52F65A1C580933B5261A76C581C753548A19B1307084CA7B2056924ED95F2E3B17006DFE931B687B847818343A10129A2335061616262636364646565666667676868044A6F75722D73656372657440"
-        recipient = COSERecipient.from_json(
+        recipient = Recipient.from_json(
             {
                 "alg": "direct+HKDF-SHA-256",
                 "kid": "our-secret",
@@ -636,7 +636,7 @@ class TestCOSE:
             ),
             alg="HS512",
         )
-        recipient = COSERecipient.from_json(
+        recipient = Recipient.from_json(
             {
                 "alg": "A128KW",
                 "kid": "our-secret",
@@ -661,7 +661,7 @@ class TestCOSE:
             ctx.encode_and_mac(
                 b"This is the content.",
                 key,
-                recipients=[Recipient(unprotected={1: 0, 4: b"our-secret"})],
+                recipients=[RecipientInterface(unprotected={1: 0, 4: b"our-secret"})],
             )
             pytest.fail("encode_and_mac should fail.")
         assert "Algorithms other than direct are not supported for recipients." in str(
@@ -683,7 +683,7 @@ class TestCOSE:
                 b"This is the content.",
                 key,
                 nonce=bytes.fromhex("89F52F65A1C580933B5261A72F"),
-                recipients=[Recipient(unprotected={1: 0, 4: b"our-secret"})],
+                recipients=[RecipientInterface(unprotected={1: 0, 4: b"our-secret"})],
             )
             pytest.fail("encode_and_encrypt should fail.")
         assert "Algorithms other than direct are not supported for recipients." in str(

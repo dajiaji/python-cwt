@@ -9,15 +9,15 @@ Tests for Recipient.
 import cbor2
 import pytest
 
-from cwt import COSEKey, COSERecipient
-from cwt.recipient import Recipient
+from cwt import COSEKey, Recipient
+from cwt.recipient_interface import RecipientInterface
 from cwt.recipients import Recipients
 from cwt.recipients_builder import RecipientsBuilder
 
 
 @pytest.fixture(scope="session", autouse=True)
 def ctx():
-    return Recipient()
+    return RecipientInterface()
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -46,14 +46,14 @@ def material():
     }
 
 
-class TestRecipient:
+class TestRecipientInterface:
     """
-    Tests for Recipient.
+    Tests for RecipientInterface.
     """
 
     def test_recipient_constructor(self):
-        r = Recipient()
-        assert isinstance(r, Recipient)
+        r = RecipientInterface()
+        assert isinstance(r, RecipientInterface)
         assert r.protected == {}
         assert r.unprotected == {}
         assert r.ciphertext == b""
@@ -80,8 +80,8 @@ class TestRecipient:
         assert res[2] == b""
 
     def test_recipient_constructor_with_args(self):
-        child = Recipient(unprotected={1: -6, 4: b"our-secret"})
-        r = Recipient(
+        child = RecipientInterface(unprotected={1: -6, 4: b"our-secret"})
+        r = RecipientInterface(
             protected={"foo": "bar"},
             unprotected={1: -1, 4: b"our-secret"},
             recipients=[child],
@@ -103,8 +103,8 @@ class TestRecipient:
         assert len(res[3][0]) == 3
 
     def test_recipient_constructor_with_empty_recipients(self):
-        r = Recipient(unprotected={1: -6, 4: b"our-secret"}, recipients=[])
-        assert isinstance(r, Recipient)
+        r = RecipientInterface(unprotected={1: -6, 4: b"our-secret"}, recipients=[])
+        assert isinstance(r, RecipientInterface)
         assert r.protected == {}
         assert isinstance(r.unprotected, dict)
         assert r.ciphertext == b""
@@ -113,8 +113,8 @@ class TestRecipient:
         assert len(res) == 3
 
     def test_recipient_constructor_with_alg_a128kw(self):
-        r = Recipient(protected={1: -3}, unprotected={4: b"our-secret"})
-        assert isinstance(r, Recipient)
+        r = RecipientInterface(protected={1: -3}, unprotected={4: b"our-secret"})
+        assert isinstance(r, RecipientInterface)
         assert r.alg == -3
         assert isinstance(r.protected, dict)
         assert isinstance(r.unprotected, dict)
@@ -124,10 +124,10 @@ class TestRecipient:
         assert len(res) == 3
 
     def test_recipient_constructor_with_alg_a128kw_with_iv(self):
-        r = Recipient(
+        r = RecipientInterface(
             protected={1: -3}, unprotected={4: b"our-secret", 5: b"aabbccddee"}
         )
-        assert isinstance(r, Recipient)
+        assert isinstance(r, RecipientInterface)
         assert r.alg == -3
         assert r.base_iv == b"aabbccddee"
         assert isinstance(r.protected, dict)
@@ -158,35 +158,35 @@ class TestRecipient:
                 {},
                 {1: -6, 4: b"our-secret"},
                 b"",
-                [Recipient()],
+                [RecipientInterface()],
                 "recipients should be absent.",
             ),
             (
                 {},
                 {4: "our-secret"},
                 b"",
-                [Recipient()],
+                [RecipientInterface()],
                 "unprotected[4](kid) should be bytes.",
             ),
             (
                 {1: "alg-a"},
                 {4: b"our-secret"},
                 b"",
-                [Recipient()],
+                [RecipientInterface()],
                 "protected[1](alg) should be int.",
             ),
             (
                 {},
                 {1: "alg-a", 4: b"our-secret"},
                 b"",
-                [Recipient()],
+                [RecipientInterface()],
                 "unprotected[1](alg) should be int.",
             ),
             (
                 {},
                 {4: b"our-secret", 5: "xxx"},
                 b"",
-                [Recipient()],
+                [RecipientInterface()],
                 "unprotected[5](iv) should be bytes.",
             ),
         ],
@@ -195,21 +195,21 @@ class TestRecipient:
         self, protected, unprotected, ciphertext, recipients, msg
     ):
         with pytest.raises(ValueError) as err:
-            Recipient(protected, unprotected, ciphertext, recipients)
-            pytest.fail("Recipient() should fail.")
+            RecipientInterface(protected, unprotected, ciphertext, recipients)
+            pytest.fail("RecipientInterface() should fail.")
         assert msg in str(err.value)
 
     def test_recipient_constructor_with_invalid_recipients(self):
         child = {}
         with pytest.raises(ValueError) as err:
-            Recipient(unprotected={1: 0, 4: b"our-secret"}, recipients=[child])
-            pytest.fail("Recipient() should fail.")
+            RecipientInterface(unprotected={1: 0, 4: b"our-secret"}, recipients=[child])
+            pytest.fail("RecipientInterface() should fail.")
         assert "Invalid child recipient." in str(err.value)
 
 
-class TestCOSERecipient:
+class TestRecipient:
     """
-    Tests for COSERecipient.
+    Tests for Recipient.
     """
 
     @pytest.mark.parametrize(
@@ -227,22 +227,20 @@ class TestCOSERecipient:
             ),
         ],
     )
-    def test_cose_recipient_from_dict_with_invalid_arg(
-        self, protected, unprotected, msg
-    ):
+    def test_recipient_from_dict_with_invalid_arg(self, protected, unprotected, msg):
         with pytest.raises(ValueError) as err:
-            COSERecipient.from_dict(protected, unprotected)
+            Recipient.from_dict(protected, unprotected)
             pytest.fail("Recipient() should fail.")
         assert msg in str(err.value)
 
-    def test_cose_recipient_from_json_with_str(self):
-        recipient = COSERecipient.from_json('{"alg": "direct"}')
-        assert isinstance(recipient, Recipient)
+    def test_recipient_from_json_with_str(self):
+        recipient = Recipient.from_json('{"alg": "direct"}')
+        assert isinstance(recipient, RecipientInterface)
         assert recipient.alg == -6
 
-    def test_cose_recipient_from_json_with_dict(self):
-        recipient = COSERecipient.from_json({"alg": "A128KW", "key_ops": ["wrapKey"]})
-        assert isinstance(recipient, Recipient)
+    def test_recipient_from_json_with_dict(self):
+        recipient = Recipient.from_json({"alg": "A128KW", "key_ops": ["wrapKey"]})
+        assert isinstance(recipient, RecipientInterface)
         assert recipient.alg == -3
         assert len(recipient.key_ops) == 1
 
@@ -287,9 +285,9 @@ class TestCOSERecipient:
             ),
         ],
     )
-    def test_cose_recipient_from_json_with_invalid_arg(self, data, msg):
+    def test_recipient_from_json_with_invalid_arg(self, data, msg):
         with pytest.raises(ValueError) as err:
-            COSERecipient.from_json(data)
+            Recipient.from_json(data)
             pytest.fail("Recipient() should fail.")
         assert msg in str(err.value)
 
@@ -300,14 +298,14 @@ class TestRecipients:
     """
 
     def test_recipients_constructor(self):
-        r = Recipients([Recipient()])
+        r = Recipients([RecipientInterface()])
         assert isinstance(r, Recipients)
 
     def test_recipients_constructor_with_recipient_alg_direct(self):
         key = COSEKey.from_symmetric_key(
             "mysecret", alg="HMAC 256/64", kid="our-secret"
         )
-        r = Recipients([Recipient(unprotected={1: -6, 4: b"our-secret"})])
+        r = Recipients([RecipientInterface(unprotected={1: -6, 4: b"our-secret"})])
         key = r.derive_key([key])
         assert key.kty == 4
         assert key.alg == 4
@@ -317,21 +315,21 @@ class TestRecipients:
         key = COSEKey.from_symmetric_key(
             "mysecret", alg="HMAC 256/64", kid="our-secret"
         )
-        r = Recipients([Recipient()])
+        r = Recipients([RecipientInterface()])
         with pytest.raises(ValueError) as err:
             r.derive_key([key])
             pytest.fail("derive_key() should fail.")
         assert "Failed to derive a key." in str(err.value)
 
     def test_recipients_derive_key_without_key(self):
-        r = Recipients([Recipient(unprotected={1: -6, 4: b"our-secret"})])
+        r = Recipients([RecipientInterface(unprotected={1: -6, 4: b"our-secret"})])
         with pytest.raises(ValueError) as err:
             r.derive_key([])
             pytest.fail("derive_key() should fail.")
         assert "Failed to derive a key." in str(err.value)
 
     def test_recipients_derive_key_without_args(self):
-        r = Recipients([Recipient(unprotected={1: -6, 4: b"our-secret"})])
+        r = Recipients([RecipientInterface(unprotected={1: -6, 4: b"our-secret"})])
         with pytest.raises(ValueError) as err:
             r.derive_key()
             pytest.fail("derive_key() should fail.")
@@ -345,13 +343,13 @@ class TestRecipients:
         assert "Failed to derive a key." in str(err.value)
 
     def test_recipients_derive_key_with_multiple_materials(self, material):
-        r1 = COSERecipient.from_json(
+        r1 = Recipient.from_json(
             {
                 "alg": "direct",
                 "kid": "01",
             }
         )
-        r2 = COSERecipient.from_json(
+        r2 = Recipient.from_json(
             {
                 "alg": "direct+HKDF-SHA-256",
                 "kid": "02",
@@ -370,20 +368,20 @@ class TestRecipients:
             ),
             alg="HS512",
         )
-        r1 = COSERecipient.from_json(
+        r1 = Recipient.from_json(
             {
                 "alg": "A128KW",
                 "kid": "01",
             }
         )
-        r2 = COSERecipient.from_json(
+        r2 = Recipient.from_json(
             {
                 "alg": "direct+HKDF-SHA-256",
                 "kid": "02",
                 "salt": "aabbccddeeffgghh",
             },
         )
-        r3 = COSERecipient.from_json(
+        r3 = Recipient.from_json(
             {
                 "alg": "A128KW",
                 "kid": "02",
@@ -400,7 +398,7 @@ class TestRecipients:
         key = COSEKey.from_symmetric_key(
             "mysecret", alg="HMAC 256/64", kid="our-secret"
         )
-        r = Recipients([Recipient(unprotected={1: -6, 4: b"your-secret"})])
+        r = Recipients([RecipientInterface(unprotected={1: -6, 4: b"your-secret"})])
         with pytest.raises(ValueError) as err:
             r.derive_key([key])
             pytest.fail("derive_key() should fail.")

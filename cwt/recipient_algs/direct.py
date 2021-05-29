@@ -1,9 +1,9 @@
 from typing import Any, Dict, List
 
-from ..recipient import Recipient
+from ..recipient_interface import RecipientInterface
 
 
-class Direct(Recipient):
+class Direct(RecipientInterface):
     def __init__(
         self,
         protected: Dict[int, Any],

@@ -1,7 +1,6 @@
 from .claims import Claims
 from .cose import COSE
 from .cose_key import COSEKey
-from .cose_recipient import COSERecipient
 from .cwt import (
     CWT,
     decode,
@@ -13,6 +12,7 @@ from .cwt import (
 )
 from .encrypted_cose_key import encrypted_cose_key
 from .exceptions import CWTError, DecodeError, EncodeError, VerifyError
+from .recipient import Recipient
 
 __version__ = "0.7.1"
 __title__ = "cwt"
@@ -34,9 +34,9 @@ __all__ = [
     "CWT",
     "COSE",
     "COSEKey",
-    "COSERecipient",
     "Claims",
     "encrypted_cose_key",
+    "Recipient",
     "CWTError",
     "EncodeError",
     "DecodeError",
