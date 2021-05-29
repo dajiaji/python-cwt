@@ -5,7 +5,7 @@ from cbor2 import CBORTag
 from .cbor_processor import CBORProcessor
 from .cose import COSE
 from .cose_key import COSEKey
-from .key_builder import KeyBuilder
+from .key import Key
 
 
 class EncryptedCOSEKey(CBORProcessor):
@@ -21,30 +21,29 @@ class EncryptedCOSEKey(CBORProcessor):
         """
         self._options = options
         self._cose = COSE()
-        self._key_builder = KeyBuilder()
         return
 
-    def decode(self, key: List[Any], encryption_key: COSEKey) -> COSEKey:
+    def decode(self, key: List[Any], encryption_key: Key) -> Key:
         """
         Returns an decrypted COSE key.
 
         Args:
-            key: COSEKey: A key formatted to COSE_Encrypt0 structure to be decrypted.
-            encryption_key: COSEKey: An encryption key to decrypt the target COSE key.
+            key: Key: A key formatted to COSE_Encrypt0 structure to be decrypted.
+            encryption_key: Key: An encryption key to decrypt the target COSE key.
         Returns:
-            COSEKey: A COSEKey decrypted.
+            Key: A key decrypted.
         Raises:
             ValueError: Invalid arguments.
             DecodeError: Failed to decode the COSE key.
             VerifyError: Failed to verify the COSE key.
         """
         res = self._loads(self._cose.decode(CBORTag(16, key), encryption_key))
-        return self._key_builder.from_dict(res)
+        return COSEKey.from_dict(res)
 
     def encode(
         self,
-        key: COSEKey,
-        encryption_key: COSEKey,
+        key: Key,
+        encryption_key: Key,
         nonce: bytes = b"",
         tagged: bool = False,
     ) -> Union[List[Any], bytes]:
@@ -52,8 +51,8 @@ class EncryptedCOSEKey(CBORProcessor):
         Returns an encrypted COSE key formatted to COSE_Encrypt0 structure.
 
         Args:
-            key: COSEKey: A key to be encrypted.
-            encryption_key: COSEKey: An encryption key to encrypt the target COSE key.
+            key: Key: A key to be encrypted.
+            encryption_key: Key: An encryption key to encrypt the target COSE key.
             nonce (bytes): A nonce for encryption.
         Returns:
             List[Any]: A COSE_Encrypt0 structure of the target COSE key.

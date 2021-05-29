@@ -6,8 +6,8 @@ The following is a simple sample code for command line console.
 .. code-block:: pycon
 
     >>> import cwt
-    >>> from cwt import claims, cose_key
-    >>> key = cose_key.from_symmetric_key(alg="HS256")
+    >>> from cwt import claims, COSEKey
+    >>> key = COSEKey.from_symmetric_key(alg="HS256")
     >>> token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
     >>> token.hex()
     'd18443a10105a05835a60172636f6170733a2f2f61732e6578616d706c65026764616a69616a69'
@@ -38,10 +38,10 @@ Create a MACed CWT, verify and decode it as follows:
 .. code-block:: python
 
     import cwt
-    from cwt import cose_key
+    from cwt import COSEKey
 
     try:
-        key = cose_key.from_symmetric_key(alg="HS256")
+        key = COSEKey.from_symmetric_key(alg="HS256")
         token = cwt.encode(
             {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"},
             key,
@@ -62,9 +62,9 @@ CBOR-like structure (Dict[int, Any]) can also be used as follows:
 .. code-block:: python
 
     import cwt
-    from cwt import cose_key
+    from cwt import COSEKey
 
-    key = cose_key.from_symmetric_key(alg="HS256")
+    key = COSEKey.from_symmetric_key(alg="HS256")
     token = cwt.encode({1: "coaps://as.example", 2: "dajiaji", 7: b"123"}, key)
     decoded = cwt.decode(token, key)
 
@@ -85,12 +85,12 @@ Create a Signed CWT, verify and decode it with the key pair as follows:
 .. code-block:: python
 
     import cwt
-    from cwt import cose_key
+    from cwt import COSEKey
 
     with open("./private_key.pem") as key_file:
-        private_key = cose_key.from_pem(key_file.read(), kid="01")
+        private_key = COSEKey.from_pem(key_file.read(), kid="01")
     with open("./public_key.pem") as key_file:
-        public_key = cose_key.from_pem(key_file.read(), kid="01")
+        public_key = COSEKey.from_pem(key_file.read(), kid="01")
 
 
     token = cwt.encode(
@@ -104,9 +104,9 @@ JWKs can also be used instead of the PEM-formatted keys as follows:
 .. code-block:: python
 
     import cwt
-    from cwt import cose_key
+    from cwt import COSEKey
 
-    private_key = cose_key.from_jwk(
+    private_key = COSEKey.from_jwk(
         {
             "kty": "OKP",
             "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
@@ -117,7 +117,7 @@ JWKs can also be used instead of the PEM-formatted keys as follows:
             "alg": "EdDSA",
         }
     )
-    public_key = cose_key.from_jwk(
+    public_key = COSEKey.from_jwk(
         {
             "kty": "OKP",
             "use": "sig",
@@ -142,12 +142,12 @@ Algorithms other than ``Ed25519`` are also supported. The following is an exampl
 .. code-block:: python
 
     import cwt
-    from cwt import cose_key
+    from cwt import COSEKey
 
     with open("./private_key.pem") as key_file:
-        private_key = cose_key.from_pem(key_file.read(), kid="01")
+        private_key = COSEKey.from_pem(key_file.read(), kid="01")
     with open("./public_key.pem") as key_file:
-        public_key = cose_key.from_pem(key_file.read(), kid="01")
+        public_key = COSEKey.from_pem(key_file.read(), kid="01")
 
     token = cwt.encode(
         {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
@@ -166,9 +166,9 @@ and decrypt it as follows:
 .. code-block:: python
 
     import cwt
-    from cwt import cose_key
+    from cwt import COSEKey
 
-    enc_key = cose_key.from_symmetric_key(alg="ChaCha20/Poly1305")
+    enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
     token = cwt.encode(
         {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, enc_key
     )
@@ -180,9 +180,9 @@ Algorithms other than ``ChaCha20/Poly1305`` are also supported. The following is
 .. code-block:: python
 
     import cwt
-    from cwt import cose_key
+    from cwt import COSEKey
 
-    enc_key = cose_key.from_symmetric_key(alg="AES-CCM-16-64-256")
+    enc_key = COSEKey.from_symmetric_key(alg="AES-CCM-16-64-256")
     token = cwt.encode(
         {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, enc_key
     )
@@ -198,12 +198,12 @@ Create a signed CWT and encrypt it, and then decrypt and verify the nested CWT a
 .. code-block:: python
 
     import cwt
-    from cwt import cose_key
+    from cwt import COSEKey
 
     with open("./private_key.pem") as key_file:
-        private_key = cose_key.from_pem(key_file.read(), kid="01")
+        private_key = COSEKey.from_pem(key_file.read(), kid="01")
     with open("./public_key.pem") as key_file:
-        public_key = cose_key.from_pem(key_file.read(), kid="01")
+        public_key = COSEKey.from_pem(key_file.read(), kid="01")
 
     # Creates a CWT with ES256 signing.
     token = cwt.encode(
@@ -211,7 +211,7 @@ Create a signed CWT and encrypt it, and then decrypt and verify the nested CWT a
     )
 
     # Encrypts the signed CWT.
-    enc_key = cose_key.from_symmetric_key(alg="ChaCha20/Poly1305")
+    enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
     nested = cwt.encode(token, enc_key)
 
     # Decrypts and verifies the nested CWT.
@@ -227,12 +227,12 @@ Note that such user-defined claim's key should be less than -65536.
 .. code-block:: python
 
     import cwt
-    from cwt import cose_key
+    from cwt import COSEKey
 
     with open("./private_key.pem") as key_file:
-        private_key = cose_key.from_pem(key_file.read(), kid="01")
+        private_key = COSEKey.from_pem(key_file.read(), kid="01")
     with open("./public_key.pem") as key_file:
-        public_key = cose_key.from_pem(key_file.read(), kid="01")
+        public_key = COSEKey.from_pem(key_file.read(), kid="01")
     token = cwt.encode(
         {
             1: "coaps://as.example",  # iss
@@ -261,12 +261,12 @@ User-defined claims can also be used with JSON-based claims as follows:
 .. code-block:: python
 
     import cwt
-    from cwt import claims, cose_key
+    from cwt import claims, COSEKey
 
     with open("./private_key.pem") as key_file:
-        private_key = cose_key.from_pem(key_file.read(), kid="01")
+        private_key = COSEKey.from_pem(key_file.read(), kid="01")
     with open("./public_key.pem") as key_file:
-        public_key = cose_key.from_pem(key_file.read(), kid="01")
+        public_key = COSEKey.from_pem(key_file.read(), kid="01")
 
     cwt.set_private_claim_names(
         {
@@ -313,11 +313,11 @@ On the issuer side:
 .. code-block:: python
 
     import cwt
-    from cwt import cose_key
+    from cwt import COSEKey
 
     # Prepares a signing key for CWT in advance.
     with open("./private_key_of_issuer.pem") as key_file:
-        private_key = cose_key.from_pem(key_file.read(), kid="issuer-01")
+        private_key = COSEKey.from_pem(key_file.read(), kid="issuer-01")
 
     # Sets the PoP key to a CWT for the presenter.
     token = cwt.encode(
@@ -346,11 +346,11 @@ On the CWT presenter side:
 .. code-block:: python
 
     import cwt
-    from cwt import cose_key
+    from cwt import COSEKey
 
     # Prepares a private PoP key in advance.
     with open("./private_pop_key.pem") as key_file:
-        pop_key_private = cose_key.from_pem(key_file.read(), kid="01")
+        pop_key_private = COSEKey.from_pem(key_file.read(), kid="01")
 
     # Receives a message (e.g., nonce)  from the recipient.
     msg = b"could-you-sign-this-message?"  # Provided by recipient.
@@ -365,18 +365,18 @@ On the CWT recipient side:
 .. code-block:: python
 
     import cwt
-    from cwt import claims, cose_key
+    from cwt import claims, COSEKey
 
     # Prepares the public key of the issuer in advance.
     with open("./public_key_of_issuer.pem") as key_file:
-        public_key = cose_key.from_pem(key_file.read(), kid="issuer-01")
+        public_key = COSEKey.from_pem(key_file.read(), kid="issuer-01")
 
     # Verifies and decodes the CWT received from the presenter.
     raw = cwt.decode(token, public_key)
     decoded = claims.from_dict(raw)
 
     # Extracts the PoP key from the CWT.
-    extracted_pop_key = cose_key.from_dict(decoded.cnf)  #  = raw[8][1]
+    extracted_pop_key = COSEKey.from_dict(decoded.cnf)  #  = raw[8][1]
 
     # Then, verifies the message sent by the presenter
     # with the signature which is also sent by the presenter as follows:
@@ -387,16 +387,16 @@ In case of another PoP confirmation method ``Encrypted_COSE_Key``:
 .. code-block:: python
 
     import cwt
-    from cwt import claims, cose_key
+    from cwt import claims, COSEKey
 
     with open("./private_key.pem") as key_file:
-        private_key = cose_key.from_pem(key_file.read(), kid="issuer-01")
+        private_key = COSEKey.from_pem(key_file.read(), kid="issuer-01")
 
-    enc_key = cose_key.from_symmetric_key(
+    enc_key = COSEKey.from_symmetric_key(
         "a-client-secret-of-cwt-recipient",  # Just 32 bytes!
         alg="ChaCha20/Poly1305",
     )
-    pop_key = cose_key.from_symmetric_key(
+    pop_key = COSEKey.from_symmetric_key(
         "a-client-secret-of-cwt-presenter",
         alg="HMAC 256/256",
     )
@@ -408,17 +408,17 @@ In case of another PoP confirmation method ``Encrypted_COSE_Key``:
             "cti": "123",
             "cnf": {
                 # 'eck'(Encrypted Cose Key) is a keyword defined by this library.
-                "eck": cose_key.to_encrypted_cose_key(pop_key, enc_key),
+                "eck": COSEKey.to_encrypted_COSEKey(pop_key, enc_key),
             },
         },
         private_key,
     )
 
     with open("./public_key.pem") as key_file:
-        public_key = cose_key.from_pem(key_file.read(), kid="issuer-01")
+        public_key = COSEKey.from_pem(key_file.read(), kid="issuer-01")
     raw = cwt.decode(token, public_key)
     decoded = claims.from_dict(raw)
-    extracted_pop_key = cose_key.from_encrypted_cose_key(decoded.cnf, enc_key)
+    extracted_pop_key = COSEKey.from_encrypted_COSEKey(decoded.cnf, enc_key)
     # extracted_pop_key.verify(message, signature)
 
 In case of another PoP confirmation method ``kid``:
@@ -426,10 +426,10 @@ In case of another PoP confirmation method ``kid``:
 .. code-block:: python
 
     import cwt
-    from cwt import claims, cose_key
+    from cwt import claims, COSEKey
 
     with open("./private_key.pem") as key_file:
-        private_key = cose_key.from_pem(key_file.read(), kid="issuer-01")
+        private_key = COSEKey.from_pem(key_file.read(), kid="issuer-01")
 
     token = cwt.encode(
         {
@@ -444,7 +444,7 @@ In case of another PoP confirmation method ``kid``:
     )
 
     with open("./public_key.pem") as key_file:
-        public_key = cose_key.from_pem(key_file.read(), kid="issuer-01")
+        public_key = COSEKey.from_pem(key_file.read(), kid="issuer-01")
     raw = cwt.decode(token, public_key)
     decoded = claims.from_dict(raw)
     # decoded.cnf(=raw[8][3]) is kid.

@@ -9,11 +9,11 @@ from cryptography.hazmat.primitives.asymmetric.rsa import (
 )
 
 from ..const import COSE_ALGORITHMS_RSA, COSE_KEY_OPERATION_VALUES
-from ..cose_key import COSEKey
 from ..exceptions import EncodeError, VerifyError
+from ..key import Key
 
 
-class RSAKey(COSEKey):
+class RSAKey(Key):
 
     _ACCEPTABLE_PUBLIC_KEY_OPS = [
         COSE_KEY_OPERATION_VALUES["verify"],

@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional, Union
 
 from .claims import Claims
 from .const import CWT_CLAIM_NAMES
-from .key_builder import KeyBuilder
+from .cose_key import COSEKey
 
 
 class ClaimsBuilder:
@@ -20,7 +20,6 @@ class ClaimsBuilder:
         At the current implementation, any ``options`` will be ignored.
         """
         self._options = options
-        self._key_builder = KeyBuilder()
         self._private_claim_names: Dict[str, int] = {}
         self._claim_names = dict(CWT_CLAIM_NAMES, **self._private_claim_names)
         return
@@ -78,7 +77,7 @@ class ClaimsBuilder:
                 if not isinstance(v, dict):
                     raise ValueError("cnf value should be dict.")
                 if "jwk" in v:
-                    key = self._key_builder.from_jwk(v["jwk"])
+                    key = COSEKey.from_jwk(v["jwk"])
                     cbor_claims[CWT_CLAIM_NAMES[k]] = {1: key.to_dict()}
                 elif "eck" in v:
                     cbor_claims[CWT_CLAIM_NAMES[k]] = {2: v["eck"]}

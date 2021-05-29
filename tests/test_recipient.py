@@ -9,7 +9,7 @@ Tests for Recipient.
 import cbor2
 import pytest
 
-from cwt import Recipient, RecipientBuilder, cose_key
+from cwt import COSEKey, Recipient, RecipientBuilder
 from cwt.recipients import Recipients
 from cwt.recipients_builder import RecipientsBuilder
 
@@ -305,7 +305,7 @@ class TestRecipients:
         assert isinstance(r, Recipients)
 
     def test_recipients_constructor_with_recipient_alg_direct(self):
-        key = cose_key.from_symmetric_key(
+        key = COSEKey.from_symmetric_key(
             "mysecret", alg="HMAC 256/64", kid="our-secret"
         )
         r = Recipients([Recipient(unprotected={1: -6, 4: b"our-secret"})])
@@ -315,7 +315,7 @@ class TestRecipients:
         assert key.kid == b"our-secret"
 
     def test_recipients_derive_key_with_empty_recipient(self):
-        key = cose_key.from_symmetric_key(
+        key = COSEKey.from_symmetric_key(
             "mysecret", alg="HMAC 256/64", kid="our-secret"
         )
         r = Recipients([Recipient()])
@@ -365,7 +365,7 @@ class TestRecipients:
         assert key.kid == b"02"
 
     def test_recipients_derive_key_with_multiple_keys(self, material):
-        mac_key = cose_key.from_symmetric_key(
+        mac_key = COSEKey.from_symmetric_key(
             bytes.fromhex(
                 "DDDC08972DF9BE62855291A17A1B4CF767C2DC762CB551911893BF7754988B0A286127BFF5D60C4CBC877CAC4BF3BA02C07AD544C951C3CA2FC46B70219BC3DC"
             ),
@@ -398,7 +398,7 @@ class TestRecipients:
         assert key.kid == b"02"
 
     def test_recipients_derive_key_with_different_kid(self):
-        key = cose_key.from_symmetric_key(
+        key = COSEKey.from_symmetric_key(
             "mysecret", alg="HMAC 256/64", kid="our-secret"
         )
         r = Recipients([Recipient(unprotected={1: -6, 4: b"your-secret"})])

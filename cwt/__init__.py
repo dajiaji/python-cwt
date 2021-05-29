@@ -13,7 +13,7 @@ from .cwt import (
 )
 from .encrypted_cose_key import encrypted_cose_key
 from .exceptions import CWTError, DecodeError, EncodeError, VerifyError
-from .key_builder import KeyBuilder, cose_key
+from .key import Key
 from .recipient import Recipient
 from .recipient_builder import RecipientBuilder
 
@@ -39,9 +39,8 @@ __all__ = [
     "Claims",
     "ClaimsBuilder",
     "claims",
+    "Key",
     "COSEKey",
-    "KeyBuilder",
-    "cose_key",
     "encrypted_cose_key",
     "Recipient",
     "RecipientBuilder",

@@ -40,8 +40,7 @@ extensions = [
 ]
 
 nitpick_ignore = [
-    ("py:class", "cwt.cose_key_common.COSEKeyCommon"),
-    ("py:class", "cwt.cose_key.COSEKey"),
+    ("py:class", "cwt.key.Key"),
     ("py:class", "cwt.cbor_processor.CBORProcessor"),
     ("py:class", "_cbor2.CBORTag"),
     ("py:class", "cwt.exceptions.CWTError"),
