@@ -4,8 +4,8 @@ from cryptography.hazmat.primitives.keywrap import aes_key_unwrap, aes_key_wrap
 
 from ..const import COSE_KEY_OPERATION_VALUES
 from ..cose_key import COSEKey
+from ..cose_key_interface import COSEKeyInterface
 from ..exceptions import DecodeError, EncodeError
-from ..key import Key
 from ..recipient_interface import RecipientInterface
 
 
@@ -44,7 +44,7 @@ class AESKeyWrap(RecipientInterface):
         except Exception as err:
             raise EncodeError("Failed to wrap key.") from err
 
-    def unwrap_key(self, alg: int) -> Key:
+    def unwrap_key(self, alg: int) -> COSEKeyInterface:
         try:
             key = aes_key_unwrap(self._key, self._ciphertext)
             return COSEKey.from_symmetric_key(key, alg=alg, kid=self._kid)

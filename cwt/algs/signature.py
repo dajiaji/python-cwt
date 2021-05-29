@@ -1,10 +1,10 @@
 from typing import Any, Dict
 
 from ..const import COSE_KEY_OPERATION_VALUES
-from ..key import Key
+from ..cose_key_interface import COSEKeyInterface
 
 
-class SignatureKey(Key):
+class SignatureKey(COSEKeyInterface):
     _ACCEPTABLE_PUBLIC_KEY_OPS = [
         COSE_KEY_OPERATION_VALUES["verify"],
     ]

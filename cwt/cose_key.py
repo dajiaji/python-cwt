@@ -46,17 +46,17 @@ from .const import (
     JWK_PARAMS_RSA,
     JWK_TYPES,
 )
-from .key import Key
+from .cose_key_interface import COSEKeyInterface
 from .utils import base64url_decode, uint_to_bytes
 
 
 class COSEKey:
     """
-    A :class:`Key <cwt.Key>` Builder.
+    A :class:`COSEKeyInterface <cwt.COSEKeyInterface>` Builder.
     """
 
     @staticmethod
-    def from_dict(cose_key: Dict[int, Any]) -> Key:
+    def from_dict(cose_key: Dict[int, Any]) -> COSEKeyInterface:
         """
         Create a COSE key from a CBOR-like dictionary with numeric keys.
 
@@ -64,7 +64,7 @@ class COSEKey:
             cose_key (Dict[int, Any]): A CBOR-like dictionary with numeric keys
                 of a COSE key.
         Returns:
-            Key: A COSE key object.
+            COSEKeyInterface: A COSE key object.
         Raises:
             ValueError: Invalid arguments.
         """
@@ -103,7 +103,7 @@ class COSEKey:
         alg: Union[int, str] = "HMAC 256/256",
         kid: Union[bytes, str] = b"",
         key_ops: Optional[Union[List[int], List[str]]] = None,
-    ) -> Key:
+    ) -> COSEKeyInterface:
         """
         Create a COSE key from a symmetric key.
 
@@ -117,7 +117,7 @@ class COSEKey:
                 ``6("unwrap key")``, ``7("derive key")``, ``8("derive bits")``,
                 ``9("MAC create")``, ``10("MAC verify")``
         Returns:
-            Key: A COSE key object.
+            COSEKeyInterface: A COSE key object.
         Raises:
             ValueError: Invalid arguments.
         """
@@ -151,14 +151,14 @@ class COSEKey:
         return cls.from_dict(cose_key)
 
     @classmethod
-    def from_bytes(cls, key_data: bytes) -> Key:
+    def from_bytes(cls, key_data: bytes) -> COSEKeyInterface:
         """
         Create a COSE key from CBOR-formatted key data.
 
         Args:
             key_data (bytes): CBOR-formatted key data.
         Returns:
-            Key: A COSE key object.
+            COSEKeyInterface: A COSE key object.
         Raises:
             ValueError: Invalid arguments.
             DecodeError: Failed to decode the key data.
@@ -167,14 +167,14 @@ class COSEKey:
         return cls.from_dict(cose_key)
 
     @classmethod
-    def from_jwk(cls, data: Union[str, bytes, Dict[str, Any]]) -> Key:
+    def from_jwk(cls, data: Union[str, bytes, Dict[str, Any]]) -> COSEKeyInterface:
         """
         Create a COSE key from JWK (JSON Web Key).
 
         Args:
             jwk (Union[str, bytes, Dict[str, Any]]): JWK-formatted key data.
         Returns:
-            Key: A COSE key object.
+            COSEKeyInterface: A COSE key object.
         Raises:
             ValueError: Invalid arguments.
             DecodeError: Failed to decode the key data.
@@ -279,7 +279,7 @@ class COSEKey:
         alg: Union[int, str] = "",
         kid: Union[bytes, str] = b"",
         key_ops: Optional[Union[List[int], List[str]]] = None,
-    ) -> Key:
+    ) -> COSEKeyInterface:
         """
         Create a COSE key from PEM-formatted key data.
 
@@ -294,7 +294,7 @@ class COSEKey:
                 ``6("unwrap key")``, ``7("derive key")``, ``8("derive bits")``,
                 ``9("MAC create")``, ``10("MAC verify")``
         Returns:
-            Key: A COSE key object.
+            COSEKeyInterface: A COSE key object.
         Raises:
             ValueError: Invalid arguments.
             DecodeError: Failed to decode the key data.
