@@ -40,6 +40,8 @@ extensions = [
 ]
 
 nitpick_ignore = [
+    ("py:class", "Recipient"),
+    ("py:class", "cwt.Recipient"),
     ("py:class", "T"),
     ("py:class", "cwt.claims.T"),
     ("py:class", "cwt.key.Key"),

@@ -12,7 +12,8 @@ import cbor2
 import pytest
 from cbor2 import CBORTag
 
-from cwt import CWT, Claims, COSEKey, DecodeError, Key, Recipient, VerifyError
+from cwt import CWT, Claims, COSEKey, DecodeError, Key, VerifyError
+from cwt.recipient import Recipient
 
 from .utils import key_path, now
 

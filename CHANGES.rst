@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Rename RecipientBuilder to COSERecipient. `#99 <https://github.com/dajiaji/python-cwt/pull/99>`__
 - Merge ClaimsBuilder into Claims. `#98 <https://github.com/dajiaji/python-cwt/pull/98>`__
 - Rename KeyBuilder to COSEKey. `#97 <https://github.com/dajiaji/python-cwt/pull/97>`__
 - Add support for external AAD. `#94 <https://github.com/dajiaji/python-cwt/pull/94>`__

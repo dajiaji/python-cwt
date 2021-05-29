@@ -9,7 +9,8 @@ Tests for Recipient.
 import cbor2
 import pytest
 
-from cwt import COSEKey, Recipient, RecipientBuilder
+from cwt import COSEKey, COSERecipient
+from cwt.recipient import Recipient
 from cwt.recipients import Recipients
 from cwt.recipients_builder import RecipientsBuilder
 
@@ -206,9 +207,9 @@ class TestRecipient:
         assert "Invalid child recipient." in str(err.value)
 
 
-class TestRecipientBuilder:
+class TestCOSERecipient:
     """
-    Tests for RecipientBuilder.
+    Tests for COSERecipient.
     """
 
     @pytest.mark.parametrize(
@@ -226,23 +227,21 @@ class TestRecipientBuilder:
             ),
         ],
     )
-    def test_recipient_builder_from_dict_with_invalid_arg(
+    def test_cose_recipient_from_dict_with_invalid_arg(
         self, protected, unprotected, msg
     ):
         with pytest.raises(ValueError) as err:
-            RecipientBuilder.from_dict(protected, unprotected)
+            COSERecipient.from_dict(protected, unprotected)
             pytest.fail("Recipient() should fail.")
         assert msg in str(err.value)
 
-    def test_recipient_builder_from_json_with_str(self):
-        recipient = RecipientBuilder.from_json('{"alg": "direct"}')
+    def test_cose_recipient_from_json_with_str(self):
+        recipient = COSERecipient.from_json('{"alg": "direct"}')
         assert isinstance(recipient, Recipient)
         assert recipient.alg == -6
 
-    def test_recipient_builder_from_json_with_dict(self):
-        recipient = RecipientBuilder.from_json(
-            {"alg": "A128KW", "key_ops": ["wrapKey"]}
-        )
+    def test_cose_recipient_from_json_with_dict(self):
+        recipient = COSERecipient.from_json({"alg": "A128KW", "key_ops": ["wrapKey"]})
         assert isinstance(recipient, Recipient)
         assert recipient.alg == -3
         assert len(recipient.key_ops) == 1
@@ -288,9 +287,9 @@ class TestRecipientBuilder:
             ),
         ],
     )
-    def test_recipient_builder_from_json_with_invalid_arg(self, data, msg):
+    def test_cose_recipient_from_json_with_invalid_arg(self, data, msg):
         with pytest.raises(ValueError) as err:
-            RecipientBuilder.from_json(data)
+            COSERecipient.from_json(data)
             pytest.fail("Recipient() should fail.")
         assert msg in str(err.value)
 
@@ -346,13 +345,13 @@ class TestRecipients:
         assert "Failed to derive a key." in str(err.value)
 
     def test_recipients_derive_key_with_multiple_materials(self, material):
-        r1 = RecipientBuilder.from_json(
+        r1 = COSERecipient.from_json(
             {
                 "alg": "direct",
                 "kid": "01",
             }
         )
-        r2 = RecipientBuilder.from_json(
+        r2 = COSERecipient.from_json(
             {
                 "alg": "direct+HKDF-SHA-256",
                 "kid": "02",
@@ -371,20 +370,20 @@ class TestRecipients:
             ),
             alg="HS512",
         )
-        r1 = RecipientBuilder.from_json(
+        r1 = COSERecipient.from_json(
             {
                 "alg": "A128KW",
                 "kid": "01",
             }
         )
-        r2 = RecipientBuilder.from_json(
+        r2 = COSERecipient.from_json(
             {
                 "alg": "direct+HKDF-SHA-256",
                 "kid": "02",
                 "salt": "aabbccddeeffgghh",
             },
         )
-        r3 = RecipientBuilder.from_json(
+        r3 = COSERecipient.from_json(
             {
                 "alg": "A128KW",
                 "kid": "02",
