@@ -9,8 +9,7 @@ Tests for Recipient.
 import cbor2
 import pytest
 
-from cwt import Recipient, cose_key, recipient_builder
-from cwt.recipient_builder import RecipientBuilder
+from cwt import Recipient, RecipientBuilder, cose_key
 from cwt.recipients import Recipients
 from cwt.recipients_builder import RecipientsBuilder
 
@@ -230,21 +229,20 @@ class TestRecipientBuilder:
     def test_recipient_builder_from_dict_with_invalid_arg(
         self, protected, unprotected, msg
     ):
-        ctx = RecipientBuilder()
         with pytest.raises(ValueError) as err:
-            ctx.from_dict(protected, unprotected)
+            RecipientBuilder.from_dict(protected, unprotected)
             pytest.fail("Recipient() should fail.")
         assert msg in str(err.value)
 
     def test_recipient_builder_from_json_with_str(self):
-        ctx = RecipientBuilder()
-        recipient = ctx.from_json('{"alg": "direct"}')
+        recipient = RecipientBuilder.from_json('{"alg": "direct"}')
         assert isinstance(recipient, Recipient)
         assert recipient.alg == -6
 
     def test_recipient_builder_from_json_with_dict(self):
-        ctx = RecipientBuilder()
-        recipient = ctx.from_json({"alg": "A128KW", "key_ops": ["wrapKey"]})
+        recipient = RecipientBuilder.from_json(
+            {"alg": "A128KW", "key_ops": ["wrapKey"]}
+        )
         assert isinstance(recipient, Recipient)
         assert recipient.alg == -3
         assert len(recipient.key_ops) == 1
@@ -291,9 +289,8 @@ class TestRecipientBuilder:
         ],
     )
     def test_recipient_builder_from_json_with_invalid_arg(self, data, msg):
-        ctx = RecipientBuilder()
         with pytest.raises(ValueError) as err:
-            ctx.from_json(data)
+            RecipientBuilder.from_json(data)
             pytest.fail("Recipient() should fail.")
         assert msg in str(err.value)
 
@@ -349,13 +346,13 @@ class TestRecipients:
         assert "Failed to derive a key." in str(err.value)
 
     def test_recipients_derive_key_with_multiple_materials(self, material):
-        r1 = recipient_builder.from_json(
+        r1 = RecipientBuilder.from_json(
             {
                 "alg": "direct",
                 "kid": "01",
             }
         )
-        r2 = recipient_builder.from_json(
+        r2 = RecipientBuilder.from_json(
             {
                 "alg": "direct+HKDF-SHA-256",
                 "kid": "02",
@@ -374,20 +371,20 @@ class TestRecipients:
             ),
             alg="HS512",
         )
-        r1 = recipient_builder.from_json(
+        r1 = RecipientBuilder.from_json(
             {
                 "alg": "A128KW",
                 "kid": "01",
             }
         )
-        r2 = recipient_builder.from_json(
+        r2 = RecipientBuilder.from_json(
             {
                 "alg": "direct+HKDF-SHA-256",
                 "kid": "02",
                 "salt": "aabbccddeeffgghh",
             },
         )
-        r3 = recipient_builder.from_json(
+        r3 = RecipientBuilder.from_json(
             {
                 "alg": "A128KW",
                 "kid": "02",
