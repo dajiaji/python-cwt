@@ -14,7 +14,7 @@ from cbor2 import CBORTag
 
 from cwt import CWT, Claims, COSEKey, DecodeError, VerifyError
 from cwt.key import Key
-from cwt.recipient import Recipient
+from cwt.recipient_interface import RecipientInterface
 
 from .utils import key_path, now
 
@@ -135,7 +135,7 @@ class TestCWT:
         assert 7 in decoded and decoded[7] == b"123"
 
     def test_cwt_encode_and_mac_with_recipient(self, ctx):
-        recipient = Recipient(unprotected={1: -6, 4: b"our-secret"})
+        recipient = RecipientInterface(unprotected={1: -6, 4: b"our-secret"})
         key = COSEKey.from_symmetric_key(
             "mysecret", alg="HMAC 256/64", kid="our-secret"
         )
@@ -345,7 +345,7 @@ class TestCWT:
         enc_key = COSEKey.from_symmetric_key(
             token_bytes(16), alg="AES-CCM-16-64-128", kid="our-secret"
         )
-        recipient = Recipient(unprotected={1: -6, 4: b"our-secret"})
+        recipient = RecipientInterface(unprotected={1: -6, 4: b"our-secret"})
         token = ctx.encode_and_encrypt(
             {1: "https://as.example", 2: "someone", 7: b"123"},
             enc_key,

@@ -10,7 +10,7 @@ from .const import COSE_KEY_OPERATION_VALUES
 from .cose import COSE
 from .exceptions import DecodeError, VerifyError
 from .key import Key
-from .recipient import Recipient
+from .recipient_interface import RecipientInterface
 
 _CWT_DEFAULT_EXPIRES_IN = 3600  # 1 hour
 _CWT_DEFAULT_LEEWAY = 60  # 1 min
@@ -88,7 +88,7 @@ class CWT(CBORProcessor):
         key: Key,
         nonce: bytes = b"",
         tagged: bool = False,
-        recipients: Optional[List[Recipient]] = None,
+        recipients: Optional[List[RecipientInterface]] = None,
     ) -> bytes:
         """
         Encodes CWT with MAC, signing or encryption.
@@ -106,7 +106,7 @@ class CWT(CBORProcessor):
             claims (Union[Claims, Dict[str, Any], Dict[int, Any], bytes, str]): A CWT
                 claims object, or a JWT claims object, text string or byte string.
             key (Key): A COSE key used to generate a MAC for the claims.
-            recipients (List[Recipient]): A list of recipient information structures.
+            recipients (List[RecipientInterface]): A list of recipient information structures.
             tagged (bool): An indicator whether the response is wrapped by CWT tag(61)
                 or not.
         Returns:
@@ -144,7 +144,7 @@ class CWT(CBORProcessor):
         claims: Union[Claims, Dict[int, Any], bytes],
         key: Key,
         tagged: bool = False,
-        recipients: Optional[List[Recipient]] = None,
+        recipients: Optional[List[RecipientInterface]] = None,
     ) -> bytes:
         """
         Encodes with MAC.
@@ -153,7 +153,7 @@ class CWT(CBORProcessor):
             claims (Union[Claims, Dict[int, Any], bytes]): A CWT claims object or byte
                 string.
             key (Key): A COSE key used to generate a MAC for the claims.
-            recipients (List[Recipient]): A list of recipient information structures.
+            recipients (List[RecipientInterface]): A list of recipient information structures.
             tagged (bool): An indicator whether the response is wrapped by CWT tag(61)
                 or not.
         Returns:
@@ -214,7 +214,7 @@ class CWT(CBORProcessor):
         key: Key,
         nonce: bytes = b"",
         tagged: bool = False,
-        recipients: Optional[List[Recipient]] = None,
+        recipients: Optional[List[RecipientInterface]] = None,
     ) -> bytes:
         """
         Encodes CWT with encryption.
@@ -224,7 +224,7 @@ class CWT(CBORProcessor):
                 string.
             key (Key): A COSE key used to encrypt the claims.
             nonce (bytes): A nonce for encryption.
-            recipients (List[Recipient]): A list of recipient information structures.
+            recipients (List[RecipientInterface]): A list of recipient information structures.
             tagged (bool): An indicator whether the response is wrapped by CWT tag(61)
                 or not.
         Returns:
@@ -309,7 +309,7 @@ class CWT(CBORProcessor):
         key: Key,
         nonce: bytes = b"",
         tagged: bool = False,
-        recipients: Optional[List[Recipient]] = None,
+        recipients: Optional[List[RecipientInterface]] = None,
     ) -> bytes:
         if COSE_KEY_OPERATION_VALUES["sign"] in key.key_ops:
             if [ops for ops in key.key_ops if ops in [3, 4, 9, 10]]:
