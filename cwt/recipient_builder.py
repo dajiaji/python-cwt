@@ -1,7 +1,6 @@
 import json
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union
 
-from .cbor_processor import CBORProcessor
 from .const import (
     COSE_ALGORITHMS_KEY_WRAP,
     COSE_ALGORITHMS_RECIPIENT,
@@ -14,22 +13,14 @@ from .recipient_algs.direct_key import DirectKey
 from .utils import base64url_decode
 
 
-class RecipientBuilder(CBORProcessor):
+class RecipientBuilder:
     """
     A :class:`Recipient <cwt.Recipient>` Builder.
     """
 
-    def __init__(self, options: Optional[Dict[str, Any]] = None):
-        """
-        Constructor.
-
-        At the current implementation, any ``options`` will be ignored.
-        """
-        self._options = options
-        return
-
+    @classmethod
     def from_dict(
-        self,
+        cls,
         protected: Dict[int, Any],
         unprotected: Dict[int, Any],
         ciphertext: bytes = b"",
@@ -41,10 +32,8 @@ class RecipientBuilder(CBORProcessor):
         Create a recipient from a CBOR-like dictionary with numeric keys.
 
         Args:
-            protected (Optional[Union[Dict[int, Any], bytes]]): Parameters that are to be
-                cryptographically protected.
-            unprotected (Optional[Dict[int, Any]]): Parameters that are not cryptographically
-                protected.
+            protected (Dict[int, Any]): Parameters that are to be cryptographically protected.
+            unprotected (Dict[int, Any]): Parameters that are not cryptographically protected.
         Returns:
             Recipient: A recipient object.
         Raises:
@@ -63,7 +52,8 @@ class RecipientBuilder(CBORProcessor):
             )
         raise ValueError(f"Unsupported or unknown alg(1): {alg}.")
 
-    def from_json(self, data: Union[str, bytes, Dict[str, Any]]) -> Recipient:
+    @classmethod
+    def from_json(cls, data: Union[str, bytes, Dict[str, Any]]) -> Recipient:
         """
         Create a recipient from JSON-formatted recipient data.
 
@@ -129,8 +119,4 @@ class RecipientBuilder(CBORProcessor):
                 raise ValueError("k should be str.")
             key = base64url_decode(recipient["k"])
 
-        return self.from_dict(protected, unprotected, key_ops=key_ops, key=key)
-
-
-# export
-recipient_builder = RecipientBuilder()
+        return cls.from_dict(protected, unprotected, key_ops=key_ops, key=key)

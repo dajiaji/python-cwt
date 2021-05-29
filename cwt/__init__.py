@@ -15,7 +15,7 @@ from .encrypted_cose_key import encrypted_cose_key
 from .exceptions import CWTError, DecodeError, EncodeError, VerifyError
 from .key_builder import KeyBuilder, cose_key
 from .recipient import Recipient
-from .recipient_builder import recipient_builder
+from .recipient_builder import RecipientBuilder
 
 __version__ = "0.7.1"
 __title__ = "cwt"
@@ -45,7 +45,6 @@ __all__ = [
     "encrypted_cose_key",
     "Recipient",
     "RecipientBuilder",
-    "recipient_builder",
     "CWTError",
     "EncodeError",
     "DecodeError",
