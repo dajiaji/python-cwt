@@ -14,7 +14,7 @@ import pytest
 
 import cwt
 from cwt import Claims, COSEKey, encrypted_cose_key
-from cwt.key import Key
+from cwt.cose_key_interface import COSEKeyInterface
 
 from .utils import key_path
 
@@ -46,7 +46,7 @@ class TestCOSEKey:
     )
     def test_key_builder_from_symmetric_key_hmac(self, ctx, alg, alg_label):
         k = ctx.from_symmetric_key("mysecret", alg=alg)
-        assert isinstance(k, Key)
+        assert isinstance(k, COSEKeyInterface)
         assert k.alg == alg_label
         assert 9 in k.key_ops
         assert 10 in k.key_ops

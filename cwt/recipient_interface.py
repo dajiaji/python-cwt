@@ -1,9 +1,9 @@
 from typing import Any, Dict, List, Optional, Union
 
-from .key import Key
+from .cose_key_interface import COSEKeyInterface
 
 
-class RecipientInterface(Key):
+class RecipientInterface(COSEKeyInterface):
     """
     The interface class of COSE Recipient.
     """
@@ -122,7 +122,7 @@ class RecipientInterface(Key):
 
     def derive_key(
         self, material: bytes, context: Union[List[Any], Dict[str, Any]]
-    ) -> Key:
+    ) -> COSEKeyInterface:
         """
         Derives a key from a key material.
 
@@ -130,7 +130,7 @@ class RecipientInterface(Key):
             material (bytes): A key material.
             context (Union[List[Any], Dict[str, Any]]): Context information structure.
         Returns:
-            Key: A COSE key derived.
+            COSEKeyInterface: A COSE key derived.
         Raises:
             NotImplementedError: Not implemented.
             ValueError: Invalid arguments.
@@ -171,14 +171,14 @@ class RecipientInterface(Key):
         """
         raise NotImplementedError
 
-    def unwrap_key(self, alg: int) -> Key:
+    def unwrap_key(self, alg: int) -> COSEKeyInterface:
         """
         Unwraps the key stored as the ciphertext.
 
         Args:
             alg (int): The algorithm of the wrapped key.
         Returns:
-            Key: An unwrapped key.
+            COSEKeyInterface: An unwrapped key.
         Raises:
             NotImplementedError: Not implemented.
             ValueError: Invalid arguments.

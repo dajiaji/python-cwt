@@ -4,7 +4,7 @@ from .cbor_processor import CBORProcessor
 from .const import COSE_KEY_TYPES, COSE_NAMED_ALGORITHMS_SUPPORTED
 
 
-class Key(CBORProcessor):
+class COSEKeyInterface(CBORProcessor):
     """
     The interface class for a COSE Key used for MAC, signing/verifying and encryption/decryption.
     """

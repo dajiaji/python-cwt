@@ -5,8 +5,8 @@ from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
 from ..const import COSE_ALGORITHMS_SYMMETRIC, COSE_KEY_LEN, COSE_KEY_OPERATION_VALUES
 from ..cose_key import COSEKey
+from ..cose_key_interface import COSEKeyInterface
 from ..exceptions import EncodeError, VerifyError
-from ..key import Key
 from ..utils import to_cis
 from .direct import Direct
 
@@ -52,7 +52,7 @@ class DirectHKDF(Direct):
 
     def derive_key(
         self, material: bytes, context: Union[List[Any], Dict[str, Any]]
-    ) -> Key:
+    ) -> COSEKeyInterface:
 
         if isinstance(context, dict):
             alg = self._alg if isinstance(self._alg, int) else 0

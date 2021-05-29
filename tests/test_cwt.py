@@ -13,7 +13,7 @@ import pytest
 from cbor2 import CBORTag
 
 from cwt import CWT, Claims, COSEKey, DecodeError, VerifyError
-from cwt.key import Key
+from cwt.cose_key_interface import COSEKeyInterface
 from cwt.recipient_interface import RecipientInterface
 
 from .utils import key_path, now
@@ -76,10 +76,10 @@ class TestCWT:
     @pytest.mark.parametrize(
         "invalid_key",
         [
-            Key({1: 4, 2: b"123", 3: 1, 4: []}),
-            Key({1: 4, 2: b"123", 3: 1, 4: [1, 3]}),
-            Key({1: 4, 2: b"123", 3: 1, 4: [3, 9]}),
-            Key({1: 4, 2: b"123", 3: 1, 4: [9, 4]}),
+            COSEKeyInterface({1: 4, 2: b"123", 3: 1, 4: []}),
+            COSEKeyInterface({1: 4, 2: b"123", 3: 1, 4: [1, 3]}),
+            COSEKeyInterface({1: 4, 2: b"123", 3: 1, 4: [3, 9]}),
+            COSEKeyInterface({1: 4, 2: b"123", 3: 1, 4: [9, 4]}),
         ],
     )
     def test_cwt_encode_with_invalid_key(self, ctx, invalid_key):

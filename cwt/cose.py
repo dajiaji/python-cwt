@@ -4,7 +4,7 @@ from cbor2 import CBORTag
 
 from .cbor_processor import CBORProcessor
 from .const import COSE_ALGORITHMS_RECIPIENT
-from .key import Key
+from .cose_key_interface import COSEKeyInterface
 from .recipient_interface import RecipientInterface
 from .recipients_builder import RecipientsBuilder
 
@@ -43,7 +43,7 @@ class COSE(CBORProcessor):
     def encode_and_mac(
         self,
         payload: bytes,
-        key: Key,
+        key: COSEKeyInterface,
         protected: Optional[Union[Dict[int, Any], bytes]] = None,
         unprotected: Optional[Dict[int, Any]] = None,
         recipients: Optional[List[RecipientInterface]] = None,
@@ -55,7 +55,7 @@ class COSE(CBORProcessor):
 
         Args:
             payload (bytes): A content to be MACed.
-            key (Key): A COSE key as a MAC Authentication key.
+            key (COSEKeyInterface): A COSE key as a MAC Authentication key.
             protected (Union[Dict[int, Any], bytes]): Parameters that are to be cryptographically
                 protected.
             unprotected (Dict[int, Any]): Parameters that are not cryptographically protected.
@@ -121,7 +121,7 @@ class COSE(CBORProcessor):
     def encode_and_sign(
         self,
         payload: bytes,
-        key: Union[Key, List[Key]],
+        key: Union[COSEKeyInterface, List[COSEKeyInterface]],
         protected: Optional[Union[Dict[int, Any], bytes]] = None,
         unprotected: Optional[Dict[int, Any]] = None,
         external_aad: bytes = b"",
@@ -132,7 +132,7 @@ class COSE(CBORProcessor):
 
         Args:
             payload (bytes): A content to be signed.
-            key (Union[Key, List[Key]]): One or more COSE keys as signing keys.
+            key (Union[COSEKeyInterface, List[COSEKeyInterface]]): One or more COSE keys as signing keys.
             protected (Union[Dict[int, Any], bytes]): Parameters that are to be cryptographically
                 protected.
             unprotected (Dict[int, Any]): Parameters that are not cryptographically
@@ -151,8 +151,8 @@ class COSE(CBORProcessor):
         protected = {} if protected is None else protected
         unprotected = {} if unprotected is None else unprotected
 
-        ctx = "Signature" if not isinstance(key, Key) else "Signature1"
-        if isinstance(key, Key) and isinstance(protected, dict):
+        ctx = "Signature" if not isinstance(key, COSEKeyInterface) else "Signature1"
+        if isinstance(key, COSEKeyInterface) and isinstance(protected, dict):
             if self._alg_auto_inclusion:
                 protected[1] = key.alg
             if self._kid_auto_inclusion and key.kid:
@@ -165,7 +165,7 @@ class COSE(CBORProcessor):
             b_protected = self._dumps(protected) if protected else b""
 
         # Signature1
-        if isinstance(key, Key):
+        if isinstance(key, COSEKeyInterface):
             sig_structure = [ctx, b_protected, external_aad, payload]
             sig = key.sign(self._dumps(sig_structure))
             res = CBORTag(18, [b_protected, unprotected, payload, sig])
@@ -185,7 +185,7 @@ class COSE(CBORProcessor):
     def encode_and_encrypt(
         self,
         payload: bytes,
-        key: Key,
+        key: COSEKeyInterface,
         protected: Optional[Union[Dict[int, Any], bytes]] = None,
         unprotected: Optional[Dict[int, Any]] = None,
         nonce: bytes = b"",
@@ -198,7 +198,7 @@ class COSE(CBORProcessor):
 
         Args:
             payload (bytes): A content to be encrypted.
-            key (Key): A COSE key as an encryption key.
+            key (COSEKeyInterface): A COSE key as an encryption key.
             protected (Union[Dict[int, Any], bytes]): Parameters that are to be cryptographically
                 protected.
             unprotected (Dict[int, Any]): Parameters that are not cryptographically
@@ -275,7 +275,7 @@ class COSE(CBORProcessor):
     def decode(
         self,
         data: Union[bytes, CBORTag],
-        key: Optional[Union[Key, List[Key]]] = None,
+        key: Optional[Union[COSEKeyInterface, List[COSEKeyInterface]]] = None,
         materials: Optional[List[dict]] = None,
         external_aad: bytes = b"",
     ) -> bytes:
@@ -285,7 +285,7 @@ class COSE(CBORProcessor):
         Args:
             data (Union[bytes, CBORTag]): A byte string or cbor2.CBORTag of an
                 encoded data.
-            key (Optional[Union[Key, List[Key]]]): A COSE key to verify and decrypt the encoded data.
+            key (Optional[Union[COSEKeyInterface, List[COSEKeyInterface]]]): A COSE key to verify and decrypt the encoded data.
             materials (Optional[List[dict]]): A list of key materials to be used to derive an encryption key.
             external_aad(bytes): External additional authenticated data supplied by application.
         Returns:
@@ -302,7 +302,7 @@ class COSE(CBORProcessor):
         if not isinstance(data, CBORTag):
             raise ValueError("Invalid COSE format.")
 
-        keys: List[Key] = []
+        keys: List[COSEKeyInterface] = []
         if key:
             keys = key if isinstance(key, list) else [key]
 
@@ -422,8 +422,8 @@ class COSE(CBORProcessor):
         raise ValueError(f"Unsupported or unknown CBOR tag({data.tag}).")
 
     def _get_key(
-        self, keys: List[Key], unprotected: Dict[int, Any]
-    ) -> Union[Key, None]:
+        self, keys: List[COSEKeyInterface], unprotected: Dict[int, Any]
+    ) -> Union[COSEKeyInterface, None]:
         if len(keys) == 1:
             if 4 in unprotected and keys[0].kid:
                 if unprotected[4] != keys[0].kid:
@@ -436,8 +436,10 @@ class COSE(CBORProcessor):
                 return k
         return None
 
-    def _filter_by_key_ops(self, keys: List[Key], op: int) -> List[Key]:
-        res: List[Key] = []
+    def _filter_by_key_ops(
+        self, keys: List[COSEKeyInterface], op: int
+    ) -> List[COSEKeyInterface]:
+        res: List[COSEKeyInterface] = []
         for k in keys:
             if op in k.key_ops:
                 res.append(k)

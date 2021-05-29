@@ -5,7 +5,7 @@ from cbor2 import CBORTag
 from .cbor_processor import CBORProcessor
 from .cose import COSE
 from .cose_key import COSEKey
-from .key import Key
+from .cose_key_interface import COSEKeyInterface
 
 
 class EncryptedCOSEKey(CBORProcessor):
@@ -23,15 +23,17 @@ class EncryptedCOSEKey(CBORProcessor):
         self._cose = COSE()
         return
 
-    def decode(self, key: List[Any], encryption_key: Key) -> Key:
+    def decode(
+        self, key: List[Any], encryption_key: COSEKeyInterface
+    ) -> COSEKeyInterface:
         """
         Returns an decrypted COSE key.
 
         Args:
-            key: Key: A key formatted to COSE_Encrypt0 structure to be decrypted.
-            encryption_key: Key: An encryption key to decrypt the target COSE key.
+            key: COSEKeyInterface: A key formatted to COSE_Encrypt0 structure to be decrypted.
+            encryption_key: COSEKeyInterface: An encryption key to decrypt the target COSE key.
         Returns:
-            Key: A key decrypted.
+            COSEKeyInterface: A key decrypted.
         Raises:
             ValueError: Invalid arguments.
             DecodeError: Failed to decode the COSE key.
@@ -42,8 +44,8 @@ class EncryptedCOSEKey(CBORProcessor):
 
     def encode(
         self,
-        key: Key,
-        encryption_key: Key,
+        key: COSEKeyInterface,
+        encryption_key: COSEKeyInterface,
         nonce: bytes = b"",
         tagged: bool = False,
     ) -> Union[List[Any], bytes]:
@@ -51,8 +53,8 @@ class EncryptedCOSEKey(CBORProcessor):
         Returns an encrypted COSE key formatted to COSE_Encrypt0 structure.
 
         Args:
-            key: Key: A key to be encrypted.
-            encryption_key: Key: An encryption key to encrypt the target COSE key.
+            key: COSEKeyInterface: A key to be encrypted.
+            encryption_key: COSEKeyInterface: An encryption key to encrypt the target COSE key.
             nonce (bytes): A nonce for encryption.
         Returns:
             List[Any]: A COSE_Encrypt0 structure of the target COSE key.
