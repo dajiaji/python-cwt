@@ -6,8 +6,8 @@ from typing import Any, Dict, Optional
 from cryptography.hazmat.primitives.ciphers.aead import AESCCM, AESGCM, ChaCha20Poly1305
 
 from ..const import COSE_KEY_OPERATION_VALUES
-from ..cose_key import COSEKey
 from ..exceptions import DecodeError, EncodeError, VerifyError
+from ..key import Key
 
 _CWT_DEFAULT_KEY_SIZE_HMAC256 = 32  # bytes
 _CWT_DEFAULT_KEY_SIZE_HMAC384 = 48
@@ -16,7 +16,7 @@ _CWT_NONCE_SIZE_AESGCM = 12
 _CWT_NONCE_SIZE_CHACHA20_POLY1305 = 12
 
 
-class SymmetricKey(COSEKey):
+class SymmetricKey(Key):
     def __init__(self, cose_key: Dict[int, Any]):
         super().__init__(cose_key)
 

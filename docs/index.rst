@@ -28,9 +28,9 @@ And then, you can use it as follows:
 .. code-block:: python
 
    import cwt
-   from cwt import cose_key
+   from cwt import COSEKey
 
-   key = cose_key.from_symmetric_key(alg="HMAC 256/256")
+   key = COSEKey.from_symmetric_key(alg="HMAC 256/256")
    token = cwt.encode({"iss": "https://as.example", "sub": "dajiaji", "cti": "123"}, key)
    decoded = cwt.decode(token, key)
 

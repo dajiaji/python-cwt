@@ -6,7 +6,7 @@ from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from ..const import COSE_ALGORITHMS_SYMMETRIC, COSE_KEY_LEN, COSE_KEY_OPERATION_VALUES
 from ..cose_key import COSEKey
 from ..exceptions import EncodeError, VerifyError
-from ..key_builder import KeyBuilder
+from ..key import Key
 from ..utils import to_cis
 from .direct import Direct
 
@@ -27,7 +27,6 @@ class DirectHKDF(Direct):
         super().__init__(protected, unprotected, ciphertext, recipients)
         self._hash_alg: Any = None
         self._salt = None
-        self._key_builder = KeyBuilder()
 
         if -20 not in unprotected and -22 not in unprotected:
             raise ValueError("salt(-20) or PartyU nonce(-22) should be set.")
@@ -53,7 +52,7 @@ class DirectHKDF(Direct):
 
     def derive_key(
         self, material: bytes, context: Union[List[Any], Dict[str, Any]]
-    ) -> COSEKey:
+    ) -> Key:
 
         if isinstance(context, dict):
             alg = self._alg if isinstance(self._alg, int) else 0
@@ -70,9 +69,7 @@ class DirectHKDF(Direct):
         )
         try:
             key = hkdf.derive(material)
-            return self._key_builder.from_symmetric_key(
-                key, alg=context[0], kid=self._kid
-            )
+            return COSEKey.from_symmetric_key(key, alg=context[0], kid=self._kid)
         except Exception as err:
             raise EncodeError("Failed to derive key.") from err
 

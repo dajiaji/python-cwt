@@ -9,8 +9,8 @@ from .claims import Claims
 from .claims_builder import ClaimsBuilder
 from .const import COSE_KEY_OPERATION_VALUES
 from .cose import COSE
-from .cose_key import COSEKey
 from .exceptions import DecodeError, VerifyError
+from .key import Key
 from .recipient import Recipient
 
 _CWT_DEFAULT_EXPIRES_IN = 3600  # 1 hour
@@ -86,7 +86,7 @@ class CWT(CBORProcessor):
     def encode(
         self,
         claims: Union[Claims, Dict[str, Any], Dict[int, Any], bytes, str],
-        key: COSEKey,
+        key: Key,
         nonce: bytes = b"",
         tagged: bool = False,
         recipients: Optional[List[Recipient]] = None,
@@ -106,7 +106,7 @@ class CWT(CBORProcessor):
         Args:
             claims (Union[Claims, Dict[str, Any], Dict[int, Any], bytes, str]): A CWT
                 claims object, or a JWT claims object, text string or byte string.
-            key (COSEKey): A COSE key used to generate a MAC for the claims.
+            key (Key): A COSE key used to generate a MAC for the claims.
             recipients (List[Recipient]): A list of recipient information structures.
             tagged (bool): An indicator whether the response is wrapped by CWT tag(61)
                 or not.
@@ -143,7 +143,7 @@ class CWT(CBORProcessor):
     def encode_and_mac(
         self,
         claims: Union[Claims, Dict[int, Any], bytes],
-        key: COSEKey,
+        key: Key,
         tagged: bool = False,
         recipients: Optional[List[Recipient]] = None,
     ) -> bytes:
@@ -153,7 +153,7 @@ class CWT(CBORProcessor):
         Args:
             claims (Union[Claims, Dict[int, Any], bytes]): A CWT claims object or byte
                 string.
-            key (COSEKey): A COSE key used to generate a MAC for the claims.
+            key (Key): A COSE key used to generate a MAC for the claims.
             recipients (List[Recipient]): A list of recipient information structures.
             tagged (bool): An indicator whether the response is wrapped by CWT tag(61)
                 or not.
@@ -179,7 +179,7 @@ class CWT(CBORProcessor):
     def encode_and_sign(
         self,
         claims: Union[Claims, Dict[int, Any], bytes],
-        key: Union[COSEKey, List[COSEKey]],
+        key: Union[Key, List[Key]],
         tagged: bool = False,
     ) -> bytes:
         """
@@ -188,7 +188,7 @@ class CWT(CBORProcessor):
         Args:
             claims (Claims, Union[Dict[int, Any], bytes]): A CWT claims object or byte
                 string.
-            key (Union[COSEKey, List[COSEKey]]): A COSE key or a list of the keys used
+            key (Union[Key, List[Key]]): A COSE key or a list of the keys used
                 to sign claims.
             tagged (bool): An indicator whether the response is wrapped by CWT tag(61)
                 or not.
@@ -212,7 +212,7 @@ class CWT(CBORProcessor):
     def encode_and_encrypt(
         self,
         claims: Union[Claims, Dict[int, Any], bytes],
-        key: COSEKey,
+        key: Key,
         nonce: bytes = b"",
         tagged: bool = False,
         recipients: Optional[List[Recipient]] = None,
@@ -223,7 +223,7 @@ class CWT(CBORProcessor):
         Args:
             claims (Claims, Union[Dict[int, Any], bytes]): A CWT claims object or byte
                 string.
-            key (COSEKey): A COSE key used to encrypt the claims.
+            key (Key): A COSE key used to encrypt the claims.
             nonce (bytes): A nonce for encryption.
             recipients (List[Recipient]): A list of recipient information structures.
             tagged (bool): An indicator whether the response is wrapped by CWT tag(61)
@@ -258,14 +258,14 @@ class CWT(CBORProcessor):
         return self._dumps(res)
 
     def decode(
-        self, data: bytes, key: Union[COSEKey, List[COSEKey]], no_verify: bool = False
+        self, data: bytes, key: Union[Key, List[Key]], no_verify: bool = False
     ) -> Union[Dict[int, Any], bytes]:
         """
         Verifies and decodes CWT.
 
         Args:
             data (bytes): A byte string of an encoded CWT.
-            key (Union[COSEKey, List[COSEKey]]): A COSE key or a list of the keys
+            key (Union[Key, List[Key]]): A COSE key or a list of the keys
                 used to verify and decrypt the encoded CWT.
             no_verify (bool): An indicator whether token verification is skiped
                 or not.
@@ -279,7 +279,7 @@ class CWT(CBORProcessor):
         cwt: Union[bytes, CBORTag, Dict[int, Any]] = self._loads(data)
         if isinstance(cwt, CBORTag) and cwt.tag == CWT.CBOR_TAG:
             cwt = cwt.value
-        keys: List[COSEKey] = [key] if isinstance(key, COSEKey) else key
+        keys: List[Key] = [key] if isinstance(key, Key) else key
         while isinstance(cwt, CBORTag):
             cwt = self._cose.decode(cwt, keys)
             cwt = self._loads(cwt)
@@ -309,7 +309,7 @@ class CWT(CBORProcessor):
     def _encode(
         self,
         claims: Union[Claims, Dict[Any, Any], bytes],
-        key: COSEKey,
+        key: Key,
         nonce: bytes = b"",
         tagged: bool = False,
         recipients: Optional[List[Recipient]] = None,

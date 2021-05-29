@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from .cbor_processor import CBORProcessor
 from .const import COSE_ALGORITHMS_KEY_WRAP
-from .cose_key import COSEKey
+from .key import Key
 from .recipient import Recipient
 from .utils import base64url_decode, to_cis
 
@@ -18,10 +18,10 @@ class Recipients(CBORProcessor):
 
     def derive_key(
         self,
-        keys: Optional[List[COSEKey]] = None,
+        keys: Optional[List[Key]] = None,
         materials: Optional[List[dict]] = None,
         alg_hint: int = 0,
-    ) -> COSEKey:
+    ) -> Key:
         """
         Derive an appropriate key from recipients, keys privided as a parameter ``keys``
         or key materials as a parameter ``materials``.
@@ -32,7 +32,7 @@ class Recipients(CBORProcessor):
             raise ValueError("Either keys or materials should be specified.")
         return self._derive_key_from_key_materials(materials, alg_hint)
 
-    def _derive_key_from_cose_keys(self, keys: List[COSEKey], alg: int) -> COSEKey:
+    def _derive_key_from_cose_keys(self, keys: List[Key], alg: int) -> Key:
         for r in self._recipients:
             for k in keys:
                 if k.kid != r.kid:
@@ -44,9 +44,7 @@ class Recipients(CBORProcessor):
                     return r.unwrap_key(alg)
         raise ValueError("Failed to derive a key.")
 
-    def _derive_key_from_key_materials(
-        self, materials: List[dict], alg: int
-    ) -> COSEKey:
+    def _derive_key_from_key_materials(self, materials: List[dict], alg: int) -> Key:
         for r in self._recipients:
             recipient_alg = r.alg if isinstance(r.alg, int) else 0
             for m in materials:
