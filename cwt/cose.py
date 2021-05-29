@@ -47,6 +47,7 @@ class COSE(CBORProcessor):
         protected: Optional[Union[Dict[int, Any], bytes]] = None,
         unprotected: Optional[Dict[int, Any]] = None,
         recipients: Optional[List[Recipient]] = None,
+        external_aad: bytes = b"",
         out: str = "",
     ) -> Union[bytes, CBORTag]:
         """
@@ -59,6 +60,7 @@ class COSE(CBORProcessor):
                 protected.
             unprotected (Dict[int, Any]): Parameters that are not cryptographically protected.
             recipients (Optional[List[Recipient]]): A list of recipient information structures.
+            external_aad(bytes): External additional authenticated data supplied by application.
             out(str): An output format. Only ``"cbor2/CBORTag"`` can be used. If ``"cbor2/CBORTag"``
                 is specified. This function will return encoded data as
                 `cbor2 <https://cbor2.readthedocs.io/en/stable/>`_'s ``CBORTag`` object.
@@ -85,7 +87,7 @@ class COSE(CBORProcessor):
                 if self._kid_auto_inclusion and key.kid:
                     unprotected[4] = key.kid
                 b_protected = self._dumps(protected)
-            mac_structure = [ctx, b_protected, b"", payload]
+            mac_structure = [ctx, b_protected, external_aad, payload]
             tag = key.sign(self._dumps(mac_structure))
             res = CBORTag(17, [b_protected, unprotected, payload, tag])
             return res if out == "cbor2/CBORTag" else self._dumps(res)
@@ -109,7 +111,7 @@ class COSE(CBORProcessor):
             b_protected = protected
         else:
             b_protected = self._dumps(protected) if protected else b""
-        mac_structure = [ctx, b_protected, b"", payload]
+        mac_structure = [ctx, b_protected, external_aad, payload]
         tag = key.sign(self._dumps(mac_structure))
         cose_mac: List[Any] = [b_protected, unprotected, payload, tag]
         cose_mac.append(recs)
@@ -122,6 +124,7 @@ class COSE(CBORProcessor):
         key: Union[COSEKey, List[COSEKey]],
         protected: Optional[Union[Dict[int, Any], bytes]] = None,
         unprotected: Optional[Dict[int, Any]] = None,
+        external_aad: bytes = b"",
         out: str = "",
     ) -> Union[bytes, CBORTag]:
         """
@@ -134,6 +137,7 @@ class COSE(CBORProcessor):
                 protected.
             unprotected (Dict[int, Any]): Parameters that are not cryptographically
                 protected.
+            external_aad(bytes): External additional authenticated data supplied by application.
             out(str): An output format. Only ``"cbor2/CBORTag"`` can be used. If ``"cbor2/CBORTag"``
                 is specified. This function will return encoded data as
                 `cbor2 <https://cbor2.readthedocs.io/en/stable/>`_'s ``CBORTag`` object.
@@ -162,7 +166,7 @@ class COSE(CBORProcessor):
 
         # Signature1
         if isinstance(key, COSEKey):
-            sig_structure = [ctx, b_protected, b"", payload]
+            sig_structure = [ctx, b_protected, external_aad, payload]
             sig = key.sign(self._dumps(sig_structure))
             res = CBORTag(18, [b_protected, unprotected, payload, sig])
             return res if out == "cbor2/CBORTag" else self._dumps(res)
@@ -172,7 +176,7 @@ class COSE(CBORProcessor):
         for k in key:
             p_header = self._dumps({1: k.alg})
             u_header = {4: k.kid} if k.kid else {}
-            sig_structure = [ctx, b_protected, p_header, b"", payload]
+            sig_structure = [ctx, b_protected, p_header, external_aad, payload]
             sig = k.sign(self._dumps(sig_structure))
             sigs.append([p_header, u_header, sig])
         res = CBORTag(98, [b_protected, unprotected, payload, sigs])
@@ -186,6 +190,7 @@ class COSE(CBORProcessor):
         unprotected: Optional[Dict[int, Any]] = None,
         nonce: bytes = b"",
         recipients: Optional[List[Recipient]] = None,
+        external_aad: bytes = b"",
         out: str = "",
     ) -> bytes:
         """
@@ -200,6 +205,7 @@ class COSE(CBORProcessor):
                 protected.
             nonce (bytes): A nonce for encryption.
             recipients (Optional[List[Recipient]]): A list of recipient information structures.
+            external_aad(bytes): External additional authenticated data supplied by application.
             out(str): An output format. Only ``"cbor2/CBORTag"`` can be used. If ``"cbor2/CBORTag"``
                 is specified. This function will return encoded data as
                 `cbor2 <https://cbor2.readthedocs.io/en/stable/>`_'s ``CBORTag`` object.
@@ -234,7 +240,7 @@ class COSE(CBORProcessor):
             if self._kid_auto_inclusion and key.kid:
                 unprotected[4] = key.kid
             unprotected[5] = nonce
-            enc_structure = [ctx, b_protected, b""]
+            enc_structure = [ctx, b_protected, external_aad]
             aad = self._dumps(enc_structure)
             ciphertext = key.encrypt(payload, nonce, aad)
             res = CBORTag(16, [b_protected, unprotected, ciphertext])
@@ -258,7 +264,7 @@ class COSE(CBORProcessor):
             b_protected = protected
         else:
             b_protected = self._dumps(protected) if protected else b""
-        enc_structure = [ctx, b_protected, b""]
+        enc_structure = [ctx, b_protected, external_aad]
         aad = self._dumps(enc_structure)
         ciphertext = key.encrypt(payload, nonce, aad)
         cose_enc: List[Any] = [b_protected, unprotected, ciphertext]
@@ -271,6 +277,7 @@ class COSE(CBORProcessor):
         data: Union[bytes, CBORTag],
         key: Optional[Union[COSEKey, List[COSEKey]]] = None,
         materials: Optional[List[dict]] = None,
+        external_aad: bytes = b"",
     ) -> bytes:
         """
         Verifies and decodes COSE data.
@@ -280,6 +287,7 @@ class COSE(CBORProcessor):
                 encoded data.
             key (Optional[Union[COSEKey, List[COSEKey]]]): A COSE key to verify and decrypt the encoded data.
             materials (Optional[List[dict]]): A list of key materials to be used to derive an encryption key.
+            external_aad(bytes): External additional authenticated data supplied by application.
         Returns:
             bytes: A byte string of decoded payload.
         Raises:
@@ -304,7 +312,7 @@ class COSE(CBORProcessor):
             if not isinstance(data.value, list) or len(data.value) != 3:
                 raise ValueError("Invalid Encrypt0 format.")
 
-            aad = self._dumps(["Encrypt0", data.value[0], b""])
+            aad = self._dumps(["Encrypt0", data.value[0], external_aad])
             unprotected = data.value[1]
             if not isinstance(unprotected, dict):
                 raise ValueError("unprotected header should be dict.")
@@ -321,7 +329,7 @@ class COSE(CBORProcessor):
                 if not isinstance(data.value, list) or len(data.value) != 4:
                     raise ValueError("Invalid Encrypt format.")
 
-            aad = self._dumps(["Encrypt", data.value[0], b""])
+            aad = self._dumps(["Encrypt", data.value[0], external_aad])
             alg_hint = 0
             if data.value[0]:
                 protected = self._loads(data.value[0])
@@ -348,7 +356,7 @@ class COSE(CBORProcessor):
             if not isinstance(data.value, list) or len(data.value) != 4:
                 raise ValueError("Invalid MAC0 format.")
 
-            msg = self._dumps(["MAC0", data.value[0], b"", data.value[2]])
+            msg = self._dumps(["MAC0", data.value[0], external_aad, data.value[2]])
             k = self._get_key(keys, data.value[1])
             if not k:
                 raise ValueError("key is not specified.")
@@ -360,7 +368,7 @@ class COSE(CBORProcessor):
             keys = self._filter_by_key_ops(keys, 10)
             if not isinstance(data.value, list) or len(data.value) != 5:
                 raise ValueError("Invalid MAC format.")
-            to_be_maced = self._dumps(["MAC", data.value[0], b"", data.value[2]])
+            to_be_maced = self._dumps(["MAC", data.value[0], external_aad, data.value[2]])
             alg_hint = 0
             if data.value[0]:
                 protected = self._loads(data.value[0])
@@ -381,7 +389,7 @@ class COSE(CBORProcessor):
                 raise ValueError("Invalid Signature1 format.")
 
             to_be_signed = self._dumps(
-                ["Signature1", data.value[0], b"", data.value[2]]
+                ["Signature1", data.value[0], external_aad, data.value[2]]
             )
             k = self._get_key(keys, data.value[1])
             if not k:
@@ -404,7 +412,7 @@ class COSE(CBORProcessor):
                 if not k:
                     continue
                 to_be_signed = self._dumps(
-                    ["Signature", data.value[0], sig[0], b"", data.value[2]]
+                    ["Signature", data.value[0], sig[0], external_aad, data.value[2]]
                 )
                 k.verify(to_be_signed, sig[2])
                 return data.value[2]
