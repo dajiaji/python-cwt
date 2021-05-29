@@ -22,16 +22,14 @@ class TestCOSEKey:
     """
 
     def test_cose_key_constructor(self):
-        key = COSEKey({1: 1, 2: b"123", 3: 1})
+        key = COSEKey({1: 1, 2: b"123"})
         assert key.kty == 1
         assert key.kid == b"123"
-        assert key.alg == 1
         assert key.key_ops == []
         assert key.base_iv is None
         raw = key.to_dict()
         assert raw[1] == 1
         assert raw[2] == b"123"
-        assert raw[3] == 1
         with pytest.raises(NotImplementedError):
             key.key
             pytest.fail("COSEKey.key should fail.")
@@ -51,7 +49,7 @@ class TestCOSEKey:
             key.decrypt(b"message", nonce=b"123", aad=None)
             pytest.fail("COSEKey.decrypt() should fail.")
 
-    def test_cose_key_constructor_with_iv(self):
+    def test_cose_key_constructor_with_alg_and_iv(self):
         key = COSEKey({1: 1, 2: b"123", 3: 1, 5: b"aabbccddee"})
         assert key.base_iv == b"aabbccddee"
         raw = key.to_dict()

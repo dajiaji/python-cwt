@@ -50,10 +50,10 @@ class EC2Key(SignatureKey):
         )
         crv_obj: Any
         if self._crv == 1:  # P-256
-            if 3 not in params:
-                params[3] = -7
+            if not self._alg:
+                self._alg = -7
             else:
-                if params[3] != -7:
+                if self._alg != -7:
                     raise ValueError(f"EC2 algorithm mismatch: {params[3]}.")
             if len(self._x) == len(self._y) == 32:
                 crv_obj = ec.SECP256R1()
@@ -61,10 +61,10 @@ class EC2Key(SignatureKey):
             else:
                 raise ValueError("Coords should be 32 bytes for crv P-256.")
         elif self._crv == 2:  # P-384
-            if 3 not in params:
-                params[3] = -35
+            if not self._alg:
+                self._alg = -35
             else:
-                if params[3] != -35:
+                if self._alg != -35:
                     raise ValueError(f"EC2 algorithm mismatch: {params[3]}.")
             if len(self._x) == len(self._y) == 48:
                 crv_obj = ec.SECP384R1()
@@ -72,10 +72,10 @@ class EC2Key(SignatureKey):
             else:
                 raise ValueError("Coords should be 48 bytes for crv P-384.")
         elif self._crv == 3:  # P-521
-            if 3 not in params:
-                params[3] = -36
+            if not self._alg:
+                self._alg = -36
             else:
-                if params[3] != -36:
+                if self._alg != -36:
                     raise ValueError(f"EC2 algorithm mismatch: {params[3]}.")
             if len(self._x) == len(self._y) == 66:
                 crv_obj = ec.SECP521R1()
@@ -83,10 +83,10 @@ class EC2Key(SignatureKey):
             else:
                 raise ValueError("Coords should be 66 bytes for crv P-521.")
         elif self._crv == 8:  # secp256k1
-            if 3 not in params:
-                params[3] = -47
+            if not self._alg:
+                self._alg = -47
             else:
-                if params[3] != -47:
+                if self._alg != -47:
                     raise ValueError(f"EC2 algorithm mismatch: {params[3]}.")
             if len(self._x) == len(self._y) == 32:
                 crv_obj = ec.SECP256K1()

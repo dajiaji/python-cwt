@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Add support for external AAD. `#94 <https://github.com/dajiaji/python-cwt/pull/94>`__
 - Make unwrap_key return COSEKey. `#93 <https://github.com/dajiaji/python-cwt/pull/93>`__
 - Fix default HMAC key size. `#91 <https://github.com/dajiaji/python-cwt/pull/91>`__
 - Add support for AES key wrap. `#89 <https://github.com/dajiaji/python-cwt/pull/89>`__
