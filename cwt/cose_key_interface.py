@@ -14,7 +14,8 @@ class COSEKeyInterface(CBORProcessor):
         Constructor.
 
         Args:
-            params (Dict[int, Any]): A COSE key common parameters object formatted to a CBOR-like dictionary.
+            params (Dict[int, Any]): A COSE key common parameter object formatted to CBOR-like
+                structure ((Dict[int, Any])).
         """
 
         # kty
@@ -65,28 +66,28 @@ class COSEKeyInterface(CBORProcessor):
     @property
     def kty(self) -> int:
         """
-        Identification of the key type.
+        The identifier of the key type.
         """
         return self._kty
 
     @property
     def kid(self) -> Union[bytes, None]:
         """
-        A key identification value.
+        The key identifier.
         """
         return self._kid
 
     @property
     def alg(self) -> Union[int, None]:
         """
-        An algorithm that is used with the key.
+        The algorithm that is used with the key.
         """
         return self._alg
 
     @property
     def key_ops(self) -> List[int]:
         """
-        Restrict set of permissible operations.
+        A set of permissible operations that the key is to be used for.
         """
         return self._key_ops
 
@@ -100,16 +101,16 @@ class COSEKeyInterface(CBORProcessor):
     @property
     def key(self) -> bytes:
         """
-        A key as bytes.
+        The body of the key as bytes.
         """
         raise NotImplementedError
 
     def to_dict(self) -> Dict[int, Any]:
         """
-        Returns a CBOR-like structure (Dict[int, Any]) of the COSE key.
+        Returns the CBOR-like structure (Dict[int, Any]) of the COSE key.
 
         Returns:
-            Dict[int, Any]: A CBOR-like structure of the COSE key.
+            Dict[int, Any]: The CBOR-like structure of the COSE key.
         """
         res: Dict[int, Any] = {1: self._kty}
         if self._kid:
@@ -124,7 +125,7 @@ class COSEKeyInterface(CBORProcessor):
 
     def generate_nonce(self) -> bytes:
         """
-        Returns a nonce with a size suitable for the algorithm.
+        Returns a nonce with the size suitable for the algorithm.
         This function will be called internally in :class:`CWT <cwt.CWT>`
         when no nonce is specified by the application.
         This function adopts ``secrets.token_bytes()`` to generate a nonce.
@@ -133,7 +134,7 @@ class COSEKeyInterface(CBORProcessor):
         (e.g., :func:`encode_and_encrypt <cwt.CWT.encode_and_encrypt>`).
 
         Returns:
-            bytes: A byte string of a generated nonce.
+            bytes: A byte string of the generated nonce.
         Raises:
             NotImplementedError: Not implemented.
         """
@@ -147,7 +148,7 @@ class COSEKeyInterface(CBORProcessor):
         Args:
             msg (bytes): A message to be signed.
         Returns:
-            bytes: A byte string of the encoded CWT.
+            bytes: The byte string of the encoded CWT.
         Raises:
             NotImplementedError: Not implemented.
             ValueError: Invalid arguments.
@@ -164,7 +165,7 @@ class COSEKeyInterface(CBORProcessor):
             msg (bytes): A message to be verified.
             sig (bytes): A digital signature of the message.
         Returns:
-            bytes: A byte string of the encoded CWT.
+            bytes: The byte string of the encoded CWT.
         Raises:
             NotImplementedError: Not implemented.
             ValueError: Invalid arguments.
@@ -181,7 +182,7 @@ class COSEKeyInterface(CBORProcessor):
             nonce (bytes): A nonce for encryption.
             aad (bytes): Additional authenticated data.
         Returns:
-            bytes: A byte string of encrypted data.
+            bytes: The byte string of encrypted data.
         Raises:
             NotImplementedError: Not implemented.
             ValueError: Invalid arguments.
@@ -198,7 +199,7 @@ class COSEKeyInterface(CBORProcessor):
             nonce (bytes): A nonce for encryption.
             aad (bytes): Additional authenticated data.
         Returns:
-            bytes: A byte string of the decrypted data.
+            bytes: The byte string of the decrypted data.
         Raises:
             NotImplementedError: Not implemented.
             ValueError: Invalid arguments.

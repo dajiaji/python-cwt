@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 
+- Make interface docstring public. `#106 <https://github.com/dajiaji/python-cwt/pull/106>`__
+
 Version 0.8.0
 -------------
 
