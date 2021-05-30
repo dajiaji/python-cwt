@@ -1,5 +1,5 @@
-Usage Examples
-==============
+CWT Usage Examples
+==================
 
 The following is a simple sample code for command line console.
 
