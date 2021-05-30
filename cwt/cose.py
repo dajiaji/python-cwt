@@ -13,31 +13,27 @@ class COSE(CBORProcessor):
     """
     A COSE (CBOR Object Signing and Encryption) Implementaion built on top of
     `cbor2 <https://cbor2.readthedocs.io/en/stable/>`_.
-
-    ``cwt.cose_key`` is a global object of this class initialized with default settings.
     """
 
-    def __init__(self, options: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self, alg_auto_inclusion: int = False, kid_auto_inclusion: int = False
+    ):
         """
         Constructor.
 
         Args:
-            options (Optional[Dict[str, Any]]): Options for the initial configuration
-                of COSE. At this time, ``kid_auto_inclusion`` (default value: ``False``)
-                and ``alg_auto_inclusion`` (default value: ``False``) are supported.
+            alg_auto_inclusion(bool): The indicator whether ``alg`` parameter is included
+                in a proper header bucket automatically or not.
+            kid_auto_inclusion(bool): The indicator whether ``kid`` parameter is included
+                in a proper header bucket automatically or not.
         """
-        self._kid_auto_inclusion = False
-        self._alg_auto_inclusion = False
-        if not options:
-            return
-        if "kid_auto_inclusion" in options:
-            if not isinstance(options["kid_auto_inclusion"], bool):
-                raise ValueError("kid_auto_inclusion should be bool.")
-            self._kid_auto_inclusion = options["kid_auto_inclusion"]
-        if "alg_auto_inclusion" in options:
-            if not isinstance(options["alg_auto_inclusion"], bool):
-                raise ValueError("alg_auto_inclusion should be bool.")
-            self._alg_auto_inclusion = options["alg_auto_inclusion"]
+        if not isinstance(alg_auto_inclusion, bool):
+            raise ValueError("alg_auto_inclusion should be bool.")
+        self._alg_auto_inclusion = alg_auto_inclusion
+
+        if not isinstance(kid_auto_inclusion, bool):
+            raise ValueError("kid_auto_inclusion should be bool.")
+        self._kid_auto_inclusion = kid_auto_inclusion
 
     def encode_and_mac(
         self,
