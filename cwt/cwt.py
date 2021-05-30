@@ -313,8 +313,8 @@ class CWT(CBORProcessor):
         claims: Union[Claims, Dict[Any, Any], bytes],
         key: COSEKeyInterface,
         nonce: bytes = b"",
-        tagged: bool = False,
         recipients: Optional[List[RecipientInterface]] = None,
+        tagged: bool = False,
     ) -> bytes:
         if COSE_KEY_OPERATION_VALUES["sign"] in key.key_ops:
             if [ops for ops in key.key_ops if ops in [3, 4, 9, 10]]:
@@ -323,11 +323,11 @@ class CWT(CBORProcessor):
         if COSE_KEY_OPERATION_VALUES["encrypt"] in key.key_ops:
             if [ops for ops in key.key_ops if ops in [1, 2, 9, 10]]:
                 raise ValueError("The key operation could not be specified.")
-            return self.encode_and_encrypt(claims, key, nonce, tagged, recipients)
+            return self.encode_and_encrypt(claims, key, nonce, recipients, tagged)
         if COSE_KEY_OPERATION_VALUES["MAC create"] in key.key_ops:
             if [ops for ops in key.key_ops if ops in [1, 2, 3, 4]]:
                 raise ValueError("The key operation could not be specified.")
-            return self.encode_and_mac(claims, key, tagged, recipients)
+            return self.encode_and_mac(claims, key, recipients, tagged)
         raise ValueError("The key operation could not be specified.")
 
     def _validate(self, claims: Union[Dict[int, Any], bytes]):
