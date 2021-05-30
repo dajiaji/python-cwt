@@ -4,9 +4,13 @@ Changes
 Unreleased
 ----------
 
-- Rename RecipientBuilder to COSERecipient. `#99 <https://github.com/dajiaji/python-cwt/pull/99>`__
+- Merge RecipientsBuilder into Recipients. `#103 <https://github.com/dajiaji/python-cwt/pull/103>`__
+- Rename Key to COSEKeyInterface. `#102 <https://github.com/dajiaji/python-cwt/pull/102>`__
+- Rename RecipientBuilder to Recipient. `#101 <https://github.com/dajiaji/python-cwt/pull/101>`__
+- Make Key private. `#100 <https://github.com/dajiaji/python-cwt/pull/100>`__
 - Merge ClaimsBuilder into Claims. `#98 <https://github.com/dajiaji/python-cwt/pull/98>`__
 - Rename KeyBuilder to COSEKey. `#97 <https://github.com/dajiaji/python-cwt/pull/97>`__
+- Rename COSEKey to Key. `#97 <https://github.com/dajiaji/python-cwt/pull/97>`__
 - Add support for external AAD. `#94 <https://github.com/dajiaji/python-cwt/pull/94>`__
 - Make unwrap_key return COSEKey. `#93 <https://github.com/dajiaji/python-cwt/pull/93>`__
 - Fix default HMAC key size. `#91 <https://github.com/dajiaji/python-cwt/pull/91>`__
