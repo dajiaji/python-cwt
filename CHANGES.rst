@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 
+- Refine the order of parameters for CWT functions. `#107 <https://github.com/dajiaji/python-cwt/pull/107>`__
+- Fix example in docstring. `#107 <https://github.com/dajiaji/python-cwt/pull/107>`__
 - Make interface docstring public. `#106 <https://github.com/dajiaji/python-cwt/pull/106>`__
 
 Version 0.8.0
