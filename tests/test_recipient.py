@@ -12,7 +12,6 @@ import pytest
 from cwt import COSEKey, Recipient
 from cwt.recipient_interface import RecipientInterface
 from cwt.recipients import Recipients
-from cwt.recipients_builder import RecipientsBuilder
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -404,34 +403,25 @@ class TestRecipients:
             pytest.fail("derive_key() should fail.")
         assert "Failed to derive a key." in str(err.value)
 
-
-class TestRecipientsBuilder:
-    """
-    Tests for RecipientsBuilder.
-    """
-
-    def test_recipients_builder_constructor(self):
-        rb = RecipientsBuilder()
-        assert isinstance(rb, RecipientsBuilder)
-
-    def test_recipients_builder_from_list(self):
-        rb = RecipientsBuilder()
+    def test_recipients_from_list(self):
         try:
-            rb.from_list([[cbor2.dumps({1: -10}), {-20: b"aabbccddeefff"}, b""]])
+            Recipients.from_list(
+                [[cbor2.dumps({1: -10}), {-20: b"aabbccddeefff"}, b""]]
+            )
         except Exception:
             pytest.fail("from_list() should not fail.")
 
-    def test_recipients_builder_from_list_with_empty_recipients(self):
-        rb = RecipientsBuilder()
+    def test_recipients_from_list_with_empty_recipients(self):
         try:
-            rb.from_list([[cbor2.dumps({1: -10}), {-20: b"aabbccddeefff"}, b"", []]])
+            Recipients.from_list(
+                [[cbor2.dumps({1: -10}), {-20: b"aabbccddeefff"}, b"", []]]
+            )
         except Exception:
             pytest.fail("from_list() should not fail.")
 
-    def test_recipients_builder_from_list_with_recipients(self):
-        rb = RecipientsBuilder()
+    def test_recipients_from_list_with_recipients(self):
         try:
-            rb.from_list(
+            Recipients.from_list(
                 [
                     [
                         cbor2.dumps({1: -10}),
@@ -455,6 +445,7 @@ class TestRecipientsBuilder:
             ([["", {}, b""]], "protected header should be bytes."),
             ([[{}, {}, b""]], "protected header should be bytes."),
             ([[[], {}, b""]], "protected header should be bytes."),
+            ([[[], {}, b""]], "protected header should be bytes."),
             ([[123, {}, b""]], "protected header should be bytes."),
             ([[b"", [], b""]], "unprotected header should be dict."),
             ([[b"", "", b""]], "unprotected header should be dict."),
@@ -470,9 +461,8 @@ class TestRecipientsBuilder:
             ([[b"", {}, b"", 123]], "recipients should be list."),
         ],
     )
-    def test_recipients_builder_from_list_with_invalid_args(self, invalid, msg):
-        rb = RecipientsBuilder()
+    def test_recipients_from_list_with_invalid_args(self, invalid, msg):
         with pytest.raises(ValueError) as err:
-            rb.from_list(invalid)
+            Recipients.from_list(invalid)
             pytest.fail("derive_key() should fail.")
         assert msg in str(err.value)

@@ -6,7 +6,7 @@ from .cbor_processor import CBORProcessor
 from .const import COSE_ALGORITHMS_RECIPIENT
 from .cose_key_interface import COSEKeyInterface
 from .recipient_interface import RecipientInterface
-from .recipients_builder import RecipientsBuilder
+from .recipients import Recipients
 
 
 class COSE(CBORProcessor):
@@ -26,7 +26,6 @@ class COSE(CBORProcessor):
                 of COSE. At this time, ``kid_auto_inclusion`` (default value: ``True``)
                 and ``alg_auto_inclusion`` (default value: ``True``) are supported.
         """
-        self._recipients_builder = RecipientsBuilder()
         self._kid_auto_inclusion = True
         self._alg_auto_inclusion = True
         if not options:
@@ -342,7 +341,7 @@ class COSE(CBORProcessor):
             if not isinstance(unprotected, dict):
                 raise ValueError("unprotected header should be dict.")
             nonce = unprotected.get(5, None)
-            recipients = self._recipients_builder.from_list(data.value[3])
+            recipients = Recipients.from_list(data.value[3])
             enc_key = (
                 recipients.derive_key(keys=keys, alg_hint=alg_hint)
                 if key is not None
@@ -379,7 +378,7 @@ class COSE(CBORProcessor):
                     if isinstance(protected, dict) and 1 in protected
                     else 0
                 )
-            recipients = self._recipients_builder.from_list(data.value[4])
+            recipients = Recipients.from_list(data.value[4])
             mac_auth_key = recipients.derive_key(keys=keys, alg_hint=alg_hint)
             mac_auth_key.verify(to_be_maced, data.value[3])
             return data.value[2]
