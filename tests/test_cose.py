@@ -24,7 +24,7 @@ from .utils import key_path
 
 @pytest.fixture(scope="session", autouse=True)
 def ctx():
-    return COSE(options={"kid_auto_inclusion": False})
+    return COSE(options={"alg_auto_inclusion": True})
 
 
 class TestCOSE:
@@ -33,11 +33,11 @@ class TestCOSE:
     """
 
     def test_cose_constructor_with_options(self):
-        ctx = COSE(options={"kid_auto_inclusion": False, "alg_auto_inclusion": False})
+        ctx = COSE()
         assert isinstance(ctx, COSE)
 
     def test_cose_encode_and_decode_with_options(self):
-        ctx = COSE(options={"kid_auto_inclusion": False, "alg_auto_inclusion": False})
+        ctx = COSE()
 
         # MAC0
         mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
@@ -81,7 +81,7 @@ class TestCOSE:
         assert b"Hello world!" == ctx.decode(token, sig_key)
 
     def test_cose_encode_and_decode_with_protected_bytes(self):
-        ctx = COSE(options={"kid_auto_inclusion": False, "alg_auto_inclusion": False})
+        ctx = COSE()
 
         # MAC0
         mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
@@ -126,7 +126,7 @@ class TestCOSE:
         assert b"Hello world!" == ctx.decode(token, sig_key)
 
     def test_cose_encode_and_decode_with_recipient_builder(self):
-        ctx = COSE(options={"kid_auto_inclusion": False, "alg_auto_inclusion": False})
+        ctx = COSE()
 
         mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
         recipient = Recipient.from_json(
@@ -203,7 +203,7 @@ class TestCOSE:
                 "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
             }
         )
-        ctx = COSE(options={"kid_auto_inclusion": False, "alg_auto_inclusion": False})
+        ctx = COSE()
         token = ctx.encode_and_sign(
             b"This is the content.",
             key,
@@ -225,7 +225,7 @@ class TestCOSE:
                 "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
             }
         )
-        ctx = COSE(options={"kid_auto_inclusion": False, "alg_auto_inclusion": False})
+        ctx = COSE()
         token = ctx.encode_and_sign(
             b"This is the content.",
             key,
@@ -409,7 +409,7 @@ class TestCOSE:
                 .decode("ascii"),
             }
         )
-        ctx = COSE(options={"alg_auto_inclusion": False})
+        ctx = COSE(options={"kid_auto_inclusion": True})
         token = ctx.encode_and_sign(
             b"This is the content.",
             key,
@@ -441,7 +441,7 @@ class TestCOSE:
                 .decode("ascii"),
             }
         )
-        ctx = COSE()
+        ctx = COSE(options={"alg_auto_inclusion": True, "kid_auto_inclusion": True})
         token = ctx.encode_and_sign(
             b"This is the content.",
             key,

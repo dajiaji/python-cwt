@@ -23,11 +23,11 @@ class COSE(CBORProcessor):
 
         Args:
             options (Optional[Dict[str, Any]]): Options for the initial configuration
-                of COSE. At this time, ``kid_auto_inclusion`` (default value: ``True``)
-                and ``alg_auto_inclusion`` (default value: ``True``) are supported.
+                of COSE. At this time, ``kid_auto_inclusion`` (default value: ``False``)
+                and ``alg_auto_inclusion`` (default value: ``False``) are supported.
         """
-        self._kid_auto_inclusion = True
-        self._alg_auto_inclusion = True
+        self._kid_auto_inclusion = False
+        self._alg_auto_inclusion = False
         if not options:
             return
         if "kid_auto_inclusion" in options:

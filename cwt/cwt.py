@@ -49,7 +49,12 @@ class CWT(CBORProcessor):
         """
         self._expires_in = _CWT_DEFAULT_EXPIRES_IN
         self._leeway = _CWT_DEFAULT_LEEWAY
-        self._cose = COSE(options)
+        self._cose = COSE(
+            options={
+                "kid_auto_inclusion": True,
+                "alg_auto_inclusion": True,
+            }
+        )
         self._claim_names: Dict[str, int] = {}
         if not options:
             return
