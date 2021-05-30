@@ -5,7 +5,7 @@ from .cose_key_interface import COSEKeyInterface
 
 class RecipientInterface(COSEKeyInterface):
     """
-    The interface class of COSE Recipient.
+    The interface class for a COSE Recipient.
     """
 
     def __init__(
@@ -18,6 +18,19 @@ class RecipientInterface(COSEKeyInterface):
         key: bytes = b"",
     ):
 
+        """
+        Constructor.
+
+        Args:
+            protected (Optional[Dict[int, Any]]): Parameters that are to be cryptographically
+                protected.
+            unprotected (Optional[Dict[int, Any]]): Parameters that are not cryptographically
+                protected.
+            ciphertext: A ciphertext encoded as bytes.
+            recipients: A list of recipient information structures.
+            key_ops: A list of operations that the key is to be used for.
+            key: A body of the key as bytes.
+        """
         protected = {} if protected is None else protected
         unprotected = {} if unprotected is None else unprotected
 
@@ -79,25 +92,46 @@ class RecipientInterface(COSEKeyInterface):
 
     @property
     def key(self) -> bytes:
+        """
+        The body of the key as bytes.
+        """
         return self._key
 
     @property
     def protected(self) -> Dict[int, Any]:
+        """
+        The parameters that are to be cryptographically protected.
+        """
         return self._protected
 
     @property
     def unprotected(self) -> Dict[int, Any]:
+        """
+        The parameters that are not cryptographically protected.
+        """
         return self._unprotected
 
     @property
     def ciphertext(self) -> bytes:
+        """
+        The ciphertext encoded as bytes
+        """
         return self._ciphertext
 
     @property
     def recipients(self) -> Union[List[Any], None]:
+        """
+        The list of recipient information structures.
+        """
         return self._recipients
 
     def to_list(self) -> List[Any]:
+        """
+        Returns the recipient information as a COSE recipient structure.
+
+        Returns:
+            List[Any]: The recipient structure.
+        """
         b_protected = self._dumps(self._protected) if self._protected else b""
         b_ciphertext = self._ciphertext if self._ciphertext else b""
         res: List[Any] = [b_protected, self._unprotected, b_ciphertext]
