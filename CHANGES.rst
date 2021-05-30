@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Refine EncryptedCOSEKey interface. `#104 <https://github.com/dajiaji/python-cwt/pull/104>`__
 - Merge RecipientsBuilder into Recipients. `#103 <https://github.com/dajiaji/python-cwt/pull/103>`__
 - Rename Key to COSEKeyInterface. `#102 <https://github.com/dajiaji/python-cwt/pull/102>`__
 - Rename RecipientBuilder to Recipient. `#101 <https://github.com/dajiaji/python-cwt/pull/101>`__

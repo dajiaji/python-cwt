@@ -1,5 +1,6 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union
 
+import cbor2
 from cbor2 import CBORTag
 
 from .cbor_processor import CBORProcessor
@@ -13,37 +14,8 @@ class EncryptedCOSEKey(CBORProcessor):
     An encrypted COSE key.
     """
 
-    def __init__(self, options: Optional[Dict[str, Any]] = None):
-        """
-        Constructor.
-
-        At the current implementation, any ``options`` will be ignored.
-        """
-        self._options = options
-        self._cose = COSE()
-        return
-
-    def decode(
-        self, key: List[Any], encryption_key: COSEKeyInterface
-    ) -> COSEKeyInterface:
-        """
-        Returns an decrypted COSE key.
-
-        Args:
-            key: COSEKeyInterface: A key formatted to COSE_Encrypt0 structure to be decrypted.
-            encryption_key: COSEKeyInterface: An encryption key to decrypt the target COSE key.
-        Returns:
-            COSEKeyInterface: A key decrypted.
-        Raises:
-            ValueError: Invalid arguments.
-            DecodeError: Failed to decode the COSE key.
-            VerifyError: Failed to verify the COSE key.
-        """
-        res = self._loads(self._cose.decode(CBORTag(16, key), encryption_key))
-        return COSEKey.from_dict(res)
-
-    def encode(
-        self,
+    @staticmethod
+    def from_cose_key(
         key: COSEKeyInterface,
         encryption_key: COSEKeyInterface,
         nonce: bytes = b"",
@@ -74,8 +46,8 @@ class EncryptedCOSEKey(CBORProcessor):
                     "Nonce generation is not supported for the key. Set a nonce explicitly."
                 )
         unprotected[5] = nonce
-        b_payload = self._dumps(key.to_dict())
-        res: CBORTag = self._cose.encode_and_encrypt(
+        b_payload = cbor2.dumps(key.to_dict())
+        res: CBORTag = COSE().encode_and_encrypt(
             b_payload,
             encryption_key,
             protected,
@@ -85,6 +57,22 @@ class EncryptedCOSEKey(CBORProcessor):
         )
         return res.value
 
+    @staticmethod
+    def to_cose_key(
+        key: List[Any], encryption_key: COSEKeyInterface
+    ) -> COSEKeyInterface:
+        """
+        Returns an decrypted COSE key.
 
-# export
-encrypted_cose_key = EncryptedCOSEKey()
+        Args:
+            key: COSEKeyInterface: A key formatted to COSE_Encrypt0 structure to be decrypted.
+            encryption_key: COSEKeyInterface: An encryption key to decrypt the target COSE key.
+        Returns:
+            COSEKeyInterface: A key decrypted.
+        Raises:
+            ValueError: Invalid arguments.
+            DecodeError: Failed to decode the COSE key.
+            VerifyError: Failed to verify the COSE key.
+        """
+        res = cbor2.loads(COSE().decode(CBORTag(16, key), encryption_key))
+        return COSEKey.from_dict(res)
