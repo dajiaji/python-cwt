@@ -10,7 +10,7 @@ from .cwt import (
     encode_and_sign,
     set_private_claim_names,
 )
-from .encrypted_cose_key import encrypted_cose_key
+from .encrypted_cose_key import EncryptedCOSEKey
 from .exceptions import CWTError, DecodeError, EncodeError, VerifyError
 from .recipient import Recipient
 
@@ -34,8 +34,8 @@ __all__ = [
     "CWT",
     "COSE",
     "COSEKey",
+    "EncryptedCOSEKey",
     "Claims",
-    "encrypted_cose_key",
     "Recipient",
     "CWTError",
     "EncodeError",

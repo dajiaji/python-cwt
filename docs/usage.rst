@@ -388,7 +388,7 @@ In case of another PoP confirmation method ``Encrypted_COSE_Key``:
 .. code-block:: python
 
     import cwt
-    from cwt import Claims, COSEKey
+    from cwt import Claims, COSEKey, EncryptedCOSEKey
 
     with open("./private_key.pem") as key_file:
         private_key = COSEKey.from_pem(key_file.read(), kid="issuer-01")
@@ -409,7 +409,7 @@ In case of another PoP confirmation method ``Encrypted_COSE_Key``:
             "cti": "123",
             "cnf": {
                 # 'eck'(Encrypted Cose Key) is a keyword defined by this library.
-                "eck": COSEKey.to_encrypted_COSEKey(pop_key, enc_key),
+                "eck": EncryptedCOSEKey.from_cose_key(pop_key, enc_key),
             },
         },
         private_key,
@@ -419,7 +419,7 @@ In case of another PoP confirmation method ``Encrypted_COSE_Key``:
         public_key = COSEKey.from_pem(key_file.read(), kid="issuer-01")
     raw = cwt.decode(token, public_key)
     decoded = Claims.from_dict(raw)
-    extracted_pop_key = COSEKey.from_encrypted_COSEKey(decoded.cnf, enc_key)
+    extracted_pop_key = EncryptedCOSEKey.to_cose_key(decoded.cnf, enc_key)
     # extracted_pop_key.verify(message, signature)
 
 In case of another PoP confirmation method ``kid``:
