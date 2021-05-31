@@ -12,7 +12,8 @@ and [CBOR Object Signing and Encryption (COSE)](https://tools.ietf.org/html/rfc8
 
 See [Document](https://python-cwt.readthedocs.io/en/stable/) for details:
 
-- [Usage Examples](https://python-cwt.readthedocs.io/en/stable/usage.html)
+- [CWT Usage Examples](https://python-cwt.readthedocs.io/en/stable/cwt_usage.html)
+- [COSE Usage Examples](https://python-cwt.readthedocs.io/en/stable/cose_usage.html)
 - [API Reference](https://python-cwt.readthedocs.io/en/stable/api.html)
 - [Supported CWT Claims](https://python-cwt.readthedocs.io/en/stable/claims.html)
 - [Supported COSE Algorithms](https://python-cwt.readthedocs.io/en/stable/algorithms.html)
