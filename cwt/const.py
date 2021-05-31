@@ -35,6 +35,28 @@ CWT_CLAIM_NAMES = {
     # "intuse": 41,  # integer(1, 2, 3, 4, 5)
 }
 
+# COSE Header Parameters
+COSE_HEADER_PARAMETERS = {
+    "alg": 1,
+    "crit": 2,
+    "cty": 3,
+    "content type": 3,
+    "kid": 4,
+    "iv": 5,
+    "IV": 5,
+    "Partial IV": 6,
+    "counter signature": 7,
+    "CounterSignature0": 9,
+    "kid context": 10,
+    "x5bag": 32,
+    "x5c": 33,
+    "x5chain": 33,
+    "x5t": 34,
+    "x5u": 35,
+    "CUPHNonce": 256,
+    "CUPHOwnerPubKey": 257,
+}
+
 # COSE key types
 COSE_KEY_TYPES = {
     "OKP": 1,  # OCtet Key Pair

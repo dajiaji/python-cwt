@@ -1,9 +1,9 @@
 import base64
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import cbor2
 
-from .const import COSE_KEY_LEN, COSE_NAMED_ALGORITHMS_SUPPORTED
+from .const import COSE_HEADER_PARAMETERS, COSE_KEY_LEN, COSE_NAMED_ALGORITHMS_SUPPORTED
 
 
 def i2osp(x: int, x_len: int) -> bytes:
@@ -136,4 +136,27 @@ def to_cis(context: Dict[str, Any], alg: int = 0, recipient_alg: int = 0) -> Lis
     res.append(supp_pub)
 
     # TODO SuppPrivInfo
+    return res
+
+
+def to_cose_header(
+    data: Optional[dict] = None, algs: Dict[str, int] = {}
+) -> Dict[int, Any]:
+    if data is None:
+        return {}
+    res: Dict[int, Any] = {}
+    if len(data) == 0 or not isinstance(list(data.keys())[0], str):
+        return data
+    if not algs:
+        algs = COSE_NAMED_ALGORITHMS_SUPPORTED
+    for k, v in data.items():
+        if k not in COSE_HEADER_PARAMETERS.keys():
+            raise ValueError(f"Unsupported or unknown COSE header parameter: {k}.")
+        if k == "alg":
+            if v not in algs.keys():
+                raise ValueError(f"Unsupported or unknown alg: {v}.")
+            v = algs[v]
+        else:
+            v = v.encode("utf-8") if isinstance(v, str) else v
+        res[COSE_HEADER_PARAMETERS[k]] = v
     return res

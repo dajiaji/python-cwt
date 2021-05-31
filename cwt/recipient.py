@@ -10,7 +10,7 @@ from .recipient_algs.aes_key_wrap import AESKeyWrap
 from .recipient_algs.direct_hkdf import DirectHKDF
 from .recipient_algs.direct_key import DirectKey
 from .recipient_interface import RecipientInterface
-from .utils import base64url_decode
+from .utils import base64url_decode, to_cose_header
 
 
 class Recipient:
@@ -21,8 +21,8 @@ class Recipient:
     @classmethod
     def from_dict(
         cls,
-        protected: Dict[int, Any],
-        unprotected: Dict[int, Any],
+        protected: dict = {},
+        unprotected: dict = {},
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
         key_ops: List[int] = [],
@@ -32,24 +32,25 @@ class Recipient:
         Create a recipient from a CBOR-like dictionary with numeric keys.
 
         Args:
-            protected (Dict[int, Any]): Parameters that are to be cryptographically protected.
-            unprotected (Dict[int, Any]): Parameters that are not cryptographically protected.
+            protected (dict): Parameters that are to be cryptographically protected.
+            unprotected (dict): Parameters that are not cryptographically protected.
         Returns:
             RecipientInterface: A recipient object.
         Raises:
             ValueError: Invalid arguments.
         """
-        alg = unprotected[1] if 1 in unprotected else protected.get(1, 0)
+        p = to_cose_header(protected, algs=COSE_ALGORITHMS_RECIPIENT)
+        u = to_cose_header(unprotected, algs=COSE_ALGORITHMS_RECIPIENT)
+
+        alg = u[1] if 1 in u else p.get(1, 0)
         if alg == 0:
             raise ValueError("alg should be specified.")
         if alg == -6:
-            return DirectKey(unprotected, ciphertext, recipients)
+            return DirectKey(u, ciphertext, recipients)
         if alg in [-10, -11]:
-            return DirectHKDF(protected, unprotected, ciphertext, recipients)
+            return DirectHKDF(p, u, ciphertext, recipients)
         if alg in [-3, -4, -5]:
-            return AESKeyWrap(
-                protected, unprotected, ciphertext, recipients, key_ops, key
-            )
+            return AESKeyWrap(p, u, ciphertext, recipients, key_ops, key)
         raise ValueError(f"Unsupported or unknown alg(1): {alg}.")
 
     @classmethod
