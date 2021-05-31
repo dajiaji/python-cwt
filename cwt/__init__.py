@@ -14,7 +14,7 @@ from .encrypted_cose_key import EncryptedCOSEKey
 from .exceptions import CWTError, DecodeError, EncodeError, VerifyError
 from .recipient import Recipient
 
-__version__ = "0.8.0"
+__version__ = "0.8.1"
 __title__ = "cwt"
 __description__ = "A Python implementation of CWT/COSE"
 __url__ = "https://python-cwt.readthedocs.io"

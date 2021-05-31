@@ -4,6 +4,11 @@ Changes
 Unreleased
 ----------
 
+Version 0.8.1
+-------------
+
+Released 2021-05-31
+
 - Add JSON support for COSE. `#109 <https://github.com/dajiaji/python-cwt/pull/109>`__
 - Devite a COSE options parameter into independent parameters. `#109 <https://github.com/dajiaji/python-cwt/pull/109>`__
 - Refine COSE default mode. `#108 <https://github.com/dajiaji/python-cwt/pull/108>`__
