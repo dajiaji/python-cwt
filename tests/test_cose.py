@@ -655,6 +655,27 @@ class TestCOSE:
         res = ctx.decode(encoded, key=[recipient])
         assert res == b"This is the content."
 
+    @pytest.mark.parametrize(
+        "invalid, msg",
+        [
+            (
+                {"xxx": "yyy"},
+                "Unsupported or unknown COSE header parameter: xxx.",
+            ),
+            (
+                {"alg": "xxx"},
+                "Unsupported or unknown alg: xxx.",
+            ),
+        ],
+    )
+    def test_cose_encode_and_mac_with_invalid_protected(self, ctx, invalid, msg):
+        # ???
+        key = COSEKey.from_symmetric_key(alg="HS256")
+        with pytest.raises(ValueError) as err:
+            ctx.encode_and_mac(b"This is the content.", key, protected=invalid)
+            pytest.fail("encode_and_mac should fail.")
+        assert msg in str(err.value)
+
     def test_cose_encode_and_mac_with_recipient_has_unsupported_alg(self, ctx):
         key = COSEKey.from_symmetric_key(alg="HS256")
         with pytest.raises(NotImplementedError) as err:
