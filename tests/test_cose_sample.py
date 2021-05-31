@@ -1,5 +1,3 @@
-import cbor2
-
 from cwt import COSE, COSEKey, Recipient
 
 
