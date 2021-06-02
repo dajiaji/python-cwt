@@ -26,7 +26,9 @@ class CWT(CBORProcessor):
 
     CBOR_TAG = 61
 
-    def __init__(self, expires_in: int = CWT_DEFAULT_EXPIRES_IN, leeway: int = CWT_DEFAULT_LEEWAY):
+    def __init__(
+        self, expires_in: int = CWT_DEFAULT_EXPIRES_IN, leeway: int = CWT_DEFAULT_LEEWAY
+    ):
         """
         Constructor.
 
