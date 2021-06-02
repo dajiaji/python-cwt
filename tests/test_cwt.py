@@ -36,27 +36,40 @@ class TestCWT:
         assert ctx.leeway == 60
 
     def test_cwt_constructor_with_expires_in(self):
-        ctx = CWT(options={"expires_in": 7200})
+        ctx = CWT(expires_in=7200)
         assert isinstance(ctx, CWT)
         assert ctx.expires_in == 7200
 
     def test_cwt_constructor_with_leeway(self):
-        ctx = CWT(options={"leeway": 10})
+        ctx = CWT(leeway=10)
         assert isinstance(ctx, CWT)
         assert ctx.leeway == 10
 
     @pytest.mark.parametrize(
         "invalid",
         [
-            {"expires_in": "xxx"},
-            {"expires_in": -1},
-            {"leeway": "xxx"},
-            {"leeway": -1},
+            "xxx",
+            0,
+            -1,
         ],
     )
-    def test_cwt_constructor_with_invalid_args(self, invalid):
+    def test_cwt_constructor_with_invalid_expires_in(self, invalid):
         with pytest.raises(ValueError) as err:
-            CWT(options=invalid)
+            CWT(expires_in=invalid)
+            pytest.fail("CWT() should fail.")
+        assert "should be" in str(err.value)
+
+    @pytest.mark.parametrize(
+        "invalid",
+        [
+            "xxx",
+            0,
+            -1,
+        ],
+    )
+    def test_cwt_constructor_with_invalid_leeway(self, invalid):
+        with pytest.raises(ValueError) as err:
+            CWT(leeway=invalid)
             pytest.fail("CWT() should fail.")
         assert "should be" in str(err.value)
 

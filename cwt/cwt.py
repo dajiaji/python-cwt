@@ -12,8 +12,8 @@ from .cose_key_interface import COSEKeyInterface
 from .exceptions import DecodeError, VerifyError
 from .recipient_interface import RecipientInterface
 
-_CWT_DEFAULT_EXPIRES_IN = 3600  # 1 hour
-_CWT_DEFAULT_LEEWAY = 60  # 1 min
+CWT_DEFAULT_EXPIRES_IN = 3600  # 1 hour
+CWT_DEFAULT_LEEWAY = 60  # 1 min
 
 
 class CWT(CBORProcessor):
@@ -26,46 +26,40 @@ class CWT(CBORProcessor):
 
     CBOR_TAG = 61
 
-    def __init__(self, options: Optional[Dict[str, Any]] = None):
+    def __init__(self, expires_in: int = CWT_DEFAULT_EXPIRES_IN, leeway: int = CWT_DEFAULT_LEEWAY):
         """
         Constructor.
 
         Args:
-            options (Optional[Dict[str, Any]]): Options for the initial
-                configuration of CWT. At this time, ``expires_in`` (default
-                value: ``3600`` ) and ``leaway`` (default value: ``60``) are
-                only supported. See also :func:`expires_in <cwt.CWT.expires_in>`,
-                :func:`leeway <cwt.CWT.leeway>`.
+            expires_in(int): The default lifetime in seconds of CWT
+                (default value: ``3600``).
+            leeway(int): The default leeway in seconds for validating
+                ``exp`` and ``nbf`` (default value: ``60``).
 
         Examples:
 
             >>> from cwt import CWT, COSEKey
-            >>> ctx = CWT({"expires_in": 3600*24, "leeway": 10})
-            >>> key = COSEKey.from_symmetric_key(alg="HS255")
+            >>> ctx = CWT(expires_in=3600*24, leeway=10)
+            >>> key = COSEKey.from_symmetric_key(alg="HS256")
             >>> token = ctx.encode(
             ...     {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"},
             ...     key,
             ... )
         """
-        self._expires_in = _CWT_DEFAULT_EXPIRES_IN
-        self._leeway = _CWT_DEFAULT_LEEWAY
+        if not isinstance(expires_in, int):
+            raise ValueError("expires_in should be int.")
+        if expires_in <= 0:
+            raise ValueError("expires_in should be positive number.")
+        self._expires_in = expires_in
+
+        if not isinstance(leeway, int):
+            raise ValueError("leeway should be int.")
+        if leeway <= 0:
+            raise ValueError("leeway should be positive number.")
+        self._leeway = leeway
+
         self._cose = COSE(kid_auto_inclusion=True, alg_auto_inclusion=True)
         self._claim_names: Dict[str, int] = {}
-        if not options:
-            return
-
-        if "expires_in" in options:
-            if not isinstance(options["expires_in"], int):
-                raise ValueError("expires_in should be int.")
-            self._expires_in = options["expires_in"]
-            if self._expires_in <= 0:
-                raise ValueError("expires_in should be positive number.")
-        if "leeway" in options:
-            if not isinstance(options["leeway"], int):
-                raise ValueError("leeway should be int.")
-            self._leeway = options["leeway"]
-            if self._leeway <= 0:
-                raise ValueError("leeway should be positive number.")
 
     @property
     def expires_in(self) -> int:
