@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 
+- Divide CWT options into independent parameters. `#113 <https://github.com/dajiaji/python-cwt/pull/113>`__
+
 Version 0.8.1
 -------------
 
