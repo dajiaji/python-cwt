@@ -68,7 +68,7 @@ decoded = cwt.decode(token, key)
 # }
 
 # If you want to treat the result like a JWT;
-readable = Claims.from_dict(decoded)
+readable = Claims.new(decoded)
 
 # readable.iss == 'coaps://as.example'
 # readable.sub == 'dajiaji'
@@ -228,7 +228,7 @@ raw = cwt.decode(token, public_key)
 # raw[-70002][0] == "bar"
 # raw[-70003]["baz"] == "qux"
 # raw[-70004] == 123
-readable = Claims.from_dict(raw)
+readable = Claims.new(raw)
 # readable.get(-70001) == "foo"
 # readable.get(-70002)[0] == "bar"
 # readable.get(-70003)["baz"] == "qux"
@@ -267,7 +267,7 @@ token = cwt.encode(
     private_key,
 )
 raw = cwt.decode(token, public_key)
-readable = Claims.from_dict(
+readable = Claims.new(
     raw,
     private_claims_names={
         "ext_1": -70001,
@@ -352,7 +352,7 @@ with open("./public_key_of_issuer.pem") as key_file:
 
 # Verifies and decodes the CWT received from the presenter.
 raw = cwt.decode(token, public_key)
-decoded = Claims.from_dict(raw)
+decoded = Claims.new(raw)
 
 # Extracts the PoP key from the CWT.
 extracted_pop_key = COSEKey.new(decoded.cnf)  # = raw[8][1]
