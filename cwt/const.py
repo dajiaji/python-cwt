@@ -69,40 +69,6 @@ COSE_KEY_TYPES = {
     "WalnutDSA": 6,  # WalnutDSA public key
 }
 
-# JWK Parameters
-JWK_PARAMS_COMMON = {
-    "kty": 1,
-    "kid": 2,
-    "alg": 3,
-    # "use": *,
-    "key_ops": 4,
-}
-
-JWK_PARAMS_OKP = {
-    # "crv": -1,
-    "x": -2,
-    "d": -4,
-}
-
-JWK_PARAMS_EC = {
-    # "crv": -1,
-    "x": -2,
-    "y": -3,
-    "d": -4,
-}
-
-JWK_PARAMS_RSA = {
-    "n": -1,
-    "e": -2,
-    "d": -3,
-    "p": -4,
-    "q": -5,
-    "dp": -6,
-    "dq": -7,
-    "qi": -8,
-    "oth": -9,
-}
-
 COSE_KEY_PARAMS_SYMMETRIC = {
     "k": -1,
 }
@@ -192,6 +158,19 @@ COSE_ALGORITHMS_MAC = {
     # etc.
 }
 
+# COSE Algorithms for Signature with OKP.
+COSE_ALGORITHMS_SIG_OKP = {
+    "EdDSA": -8,
+}
+
+# COSE Algorithms for Signature with EC2.
+COSE_ALGORITHMS_SIG_EC2 = {
+    "ES256K": -47,
+    "ES512": -36,
+    "ES384": -35,
+    "ES256": -7,
+}
+
 # COSE Algorithms for Signature with RSA.
 COSE_ALGORITHMS_SIG_RSA = {
     "R1": -65535,  # RSASSA-PKCS1-v1_5 using SHA-1 (No plan to support)
@@ -226,6 +205,40 @@ JOSE_ALGORITHMS_SUPPORTED = {
     "HS512": 7,
 }
 
+# JWK Parameters
+JWK_PARAMS_COMMON = {
+    "kty": 1,
+    "kid": 2,
+    "alg": 3,
+    # "use": *,
+    "key_ops": 4,
+}
+
+JWK_PARAMS_OKP = {
+    # "crv": -1,
+    "x": -2,
+    "d": -4,
+}
+
+JWK_PARAMS_EC = {
+    # "crv": -1,
+    "x": -2,
+    "y": -3,
+    "d": -4,
+}
+
+JWK_PARAMS_RSA = {
+    "n": -1,
+    "e": -2,
+    "d": -3,
+    "p": -4,
+    "q": -5,
+    "dp": -6,
+    "dq": -7,
+    "qi": -8,
+    "oth": -9,
+}
+
 JWK_TYPES = {
     "OKP": 1,
     "EC": 2,  # EC2
@@ -256,16 +269,23 @@ JWK_ELLIPTIC_CURVES = {
 }
 
 # COSE Algorithms for recipients.
-COSE_ALGORITHMS_RECIPIENT = dict(COSE_ALGORITHMS_CKDM, **COSE_ALGORITHMS_KEY_WRAP)
+COSE_ALGORITHMS_RECIPIENT = {**COSE_ALGORITHMS_CKDM, **COSE_ALGORITHMS_KEY_WRAP}
 
 # COSE Algorithms for Symmetric Keys.
-COSE_ALGORITHMS_SYMMETRIC = dict(COSE_ALGORITHMS_MAC, **COSE_ALGORITHMS_CEK)
+COSE_ALGORITHMS_SYMMETRIC = {**COSE_ALGORITHMS_MAC, **COSE_ALGORITHMS_CEK}
 
 # COSE Algorithms for RSA Keys.
-COSE_ALGORITHMS_RSA = dict(COSE_ALGORITHMS_SIG_RSA)
+COSE_ALGORITHMS_RSA = {**COSE_ALGORITHMS_SIG_RSA}
+
+# COSE Algorithms for RSA Keys.
+COSE_ALGORITHMS_SIGNATURE = {
+    **COSE_ALGORITHMS_SIG_OKP,
+    **COSE_ALGORITHMS_SIG_EC2,
+    **COSE_ALGORITHMS_SIG_RSA,
+}
 
 # All of Supported COSE Algorithms.
-COSE_ALGORITHMS = dict(COSE_ALGORITHMS_RSA, **COSE_ALGORITHMS_SYMMETRIC)
+COSE_ALGORITHMS = {**COSE_ALGORITHMS_SIGNATURE, **COSE_ALGORITHMS_SYMMETRIC}
 
 # COSE Named Algorithms for converting from JWK-like key.
-COSE_NAMED_ALGORITHMS_SUPPORTED = dict(JOSE_ALGORITHMS_SUPPORTED, **COSE_ALGORITHMS)
+COSE_NAMED_ALGORITHMS_SUPPORTED = {**JOSE_ALGORITHMS_SUPPORTED, **COSE_ALGORITHMS}

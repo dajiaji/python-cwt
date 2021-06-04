@@ -4,6 +4,9 @@ Changes
 Unreleased
 ----------
 
+- Add Signer for encode_and_sign function. `#114 <https://github.com/dajiaji/python-cwt/pull/114>`__
+- Divide CWT options into independent parameters. `#113 <https://github.com/dajiaji/python-cwt/pull/113>`__
+
 Version 0.8.1
 -------------
 

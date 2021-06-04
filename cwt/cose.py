@@ -7,6 +7,7 @@ from .const import COSE_ALGORITHMS_RECIPIENT
 from .cose_key_interface import COSEKeyInterface
 from .recipient_interface import RecipientInterface
 from .recipients import Recipients
+from .signer import Signer
 from .utils import to_cose_header
 
 
@@ -119,9 +120,10 @@ class COSE(CBORProcessor):
     def encode_and_sign(
         self,
         payload: bytes,
-        key: Union[COSEKeyInterface, List[COSEKeyInterface]],
+        key: Optional[COSEKeyInterface] = None,
         protected: Optional[Union[dict, bytes]] = None,
         unprotected: Optional[dict] = None,
+        signers: List[Signer] = [],
         external_aad: bytes = b"",
         out: str = "",
     ) -> Union[bytes, CBORTag]:
@@ -130,10 +132,13 @@ class COSE(CBORProcessor):
 
         Args:
             payload (bytes): A content to be signed.
-            key (Union[COSEKeyInterface, List[COSEKeyInterface]]): One or more COSE keys as signing keys.
+            key (COSEKeyInterface): A signing key for single signer cases. When the ``signers``
+                parameter is set, this ``key`` will be ignored and should not be set.
             protected (Optional[Union[dict, bytes]]): Parameters that are to be cryptographically
                 protected.
             unprotected (Optional[dict]): Parameters that are not cryptographically protected.
+            signers (Optional[List[Signer]]): A list of signer information objects for multiple
+                signer cases.
             external_aad(bytes): External additional authenticated data supplied by application.
             out(str): An output format. Only ``"cbor2/CBORTag"`` can be used. If ``"cbor2/CBORTag"``
                 is specified. This function will return encoded data as
@@ -150,9 +155,9 @@ class COSE(CBORProcessor):
         )
         u = to_cose_header(unprotected)
 
-        ctx = "Signature" if not isinstance(key, COSEKeyInterface) else "Signature1"
-        if isinstance(key, COSEKeyInterface) and isinstance(p, dict):
-            if self._alg_auto_inclusion:
+        ctx = "Signature" if signers else "Signature1"
+        if not signers and key is not None:
+            if isinstance(p, dict) and self._alg_auto_inclusion:
                 p[1] = key.alg
             if self._kid_auto_inclusion and key.kid:
                 u[4] = key.kid
@@ -164,7 +169,7 @@ class COSE(CBORProcessor):
             b_protected = self._dumps(p) if p else b""
 
         # Signature1
-        if isinstance(key, COSEKeyInterface):
+        if not signers and key is not None:
             sig_structure = [ctx, b_protected, external_aad, payload]
             sig = key.sign(self._dumps(sig_structure))
             res = CBORTag(18, [b_protected, u, payload, sig])
@@ -172,12 +177,10 @@ class COSE(CBORProcessor):
 
         # Signature
         sigs = []
-        for k in key:
-            p_header = self._dumps({1: k.alg})
-            u_header = {4: k.kid} if k.kid else {}
-            sig_structure = [ctx, b_protected, p_header, external_aad, payload]
-            sig = k.sign(self._dumps(sig_structure))
-            sigs.append([p_header, u_header, sig])
+        for s in signers:
+            sig_structure = [ctx, b_protected, s.protected, external_aad, payload]
+            s.sign(self._dumps(sig_structure))
+            sigs.append([s.protected, s.unprotected, s.signature])
         res = CBORTag(98, [b_protected, u, payload, sigs])
         return res if out == "cbor2/CBORTag" else self._dumps(res)
 

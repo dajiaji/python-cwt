@@ -17,6 +17,7 @@ from cbor2 import CBORTag
 import cwt
 from cwt import COSE, COSEKey, EncodeError, Recipient
 from cwt.recipient_interface import RecipientInterface
+from cwt.signer import Signer
 from cwt.utils import base64url_decode
 
 from .utils import key_path
@@ -250,7 +251,7 @@ class TestCOSE:
 
     def test_cose_sample_cose_wg_examples_sign_pass_01(self):
         # cwt_str = "D8628441A0A054546869732069732074686520636F6E74656E742E818343A10126A1044231315840E2AEAFD40D69D19DFE6E52077C5D7FF4E408282CBEFB5D06CBF414AF2E19D982AC45AC98B8544C908B4507DE1E90B717C3D34816FE926A2B98F53AFD2FA0F30A"
-        key = COSEKey.from_jwk(
+        signer = Signer.from_jwk(
             {
                 "kty": "EC",
                 "kid": "11",
@@ -263,15 +264,15 @@ class TestCOSE:
         ctx = COSE()
         encoded = ctx.encode_and_sign(
             b"This is the content.",
-            [key],
+            signers=[signer],
             protected=bytes.fromhex("a0"),
         )
-        assert ctx.decode(encoded, key) == b"This is the content."
+        assert ctx.decode(encoded, signer.cose_key) == b"This is the content."
         # assert ctx.decode(bytes.fromhex(cwt_str), key) == b"This is the content."
 
     def test_cose_sample_cose_wg_examples_sign_pass_02(self):
         cwt_str = "D8628440A054546869732069732074686520636F6E74656E742E818343A10126A1044231315840CBB8DAD9BEAFB890E1A414124D8BFBC26BEDF2A94FCB5A882432BFF6D63E15F574EEB2AB51D83FA2CBF62672EBF4C7D993B0F4C2447647D831BA57CCA86B930A"
-        key = COSEKey.from_jwk(
+        signer = Signer.from_jwk(
             {
                 "kty": "EC",
                 "kid": "11",
@@ -284,19 +285,21 @@ class TestCOSE:
         ctx = COSE()
         encoded = ctx.encode_and_sign(
             b"This is the content.",
-            [key],
+            signers=[signer],
             external_aad=bytes.fromhex("11aa22bb33cc44dd55006699"),
         )
         assert (
             ctx.decode(
-                encoded, key, external_aad=bytes.fromhex("11aa22bb33cc44dd55006699")
+                encoded,
+                signer.cose_key,
+                external_aad=bytes.fromhex("11aa22bb33cc44dd55006699"),
             )
             == b"This is the content."
         )
         assert (
             ctx.decode(
                 bytes.fromhex(cwt_str),
-                key,
+                signer.cose_key,
                 external_aad=bytes.fromhex("11aa22bb33cc44dd55006699"),
             )
             == b"This is the content."
@@ -304,7 +307,7 @@ class TestCOSE:
 
     def test_cose_sample_cose_wg_examples_ecdsa_01(self):
         cwt_str = "D8628443A10300A054546869732069732074686520636F6E74656E742E818343A10126A1044231315840D71C05DB52C9CE7F1BF5AAC01334BBEACAC1D86A2303E6EEAA89266F45C01ED602CA649EAF790D8BC99D2458457CA6A872061940E7AFBE48E289DFAC146AE258"
-        key = COSEKey.from_jwk(
+        signer = Signer.from_jwk(
             {
                 "kty": "EC",
                 "kid": "11",
@@ -317,15 +320,18 @@ class TestCOSE:
         ctx = COSE()
         encoded = ctx.encode_and_sign(
             b"This is the content.",
-            [key],
+            signers=[signer],
             protected={3: 0},
         )
-        assert ctx.decode(encoded, key) == b"This is the content."
-        assert ctx.decode(bytes.fromhex(cwt_str), key) == b"This is the content."
+        assert ctx.decode(encoded, signer.cose_key) == b"This is the content."
+        assert (
+            ctx.decode(bytes.fromhex(cwt_str), signer.cose_key)
+            == b"This is the content."
+        )
 
     def test_cose_sample_cose_wg_examples_eddsa_01(self):
         cwt_str = "D8628443A10300A054546869732069732074686520636F6E74656E742E818343A10127A104423131584077F3EACD11852C4BF9CB1D72FABE6B26FBA1D76092B2B5B7EC83B83557652264E69690DBC1172DDC0BF88411C0D25A507FDB247A20C40D5E245FABD3FC9EC106"
-        key = COSEKey.from_jwk(
+        signer = Signer.from_jwk(
             {
                 "kty": "OKP",
                 "kid": "11",
@@ -349,15 +355,15 @@ class TestCOSE:
         ctx = COSE()
         encoded = ctx.encode_and_sign(
             b"This is the content.",
-            [key],
+            signers=[signer],
             protected={3: 0},
         )
         assert encoded == bytes.fromhex(cwt_str)
-        assert ctx.decode(encoded, key) == b"This is the content."
+        assert ctx.decode(encoded, signer.cose_key) == b"This is the content."
 
     def test_cose_sample_cose_wg_examples_eddsa_02(self):
         cwt_str = "D8628440A054546869732069732074686520636F6E74656E742E818343A10127A1044565643434385872ABF04F4BC7DFACF70C20C34A3CFBD27719911DC8518B2D67BF6AF62895D0FA1E6A1CB8B47AD1297C0E9C34BEB34E50DFFEF14350EBD57842807D54914111150F698543B0A5E1DA1DB79632C6415CE18EF74EDAEA680B0C8881439D869171481D78E2F7D26340C293C2ECDED8DE1425851900"
-        key = COSEKey.from_jwk(
+        signer = Signer.from_jwk(
             {
                 "kty": "OKP",
                 "kid": "ed448",
@@ -381,10 +387,10 @@ class TestCOSE:
         ctx = COSE()
         encoded = ctx.encode_and_sign(
             b"This is the content.",
-            [key],
+            signers=[signer],
         )
         assert encoded == bytes.fromhex(cwt_str)
-        assert ctx.decode(encoded, key) == b"This is the content."
+        assert ctx.decode(encoded, signer.cose_key) == b"This is the content."
 
     def test_cose_sample_cose_wg_examples_eddsa_sig_01(self):
         cwt_str = "D28445A201270300A10442313154546869732069732074686520636F6E74656E742E58407142FD2FF96D56DB85BEE905A76BA1D0B7321A95C8C4D3607C5781932B7AFB8711497DFA751BF40B58B3BCC32300B1487F3DB34085EEF013BF08F4A44D6FEF0D"
