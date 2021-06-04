@@ -4,6 +4,11 @@ Changes
 Unreleased
 ----------
 
+Version 0.9.0
+-------------
+
+Released 2021-06-04
+
 - Introduce new() into CWT/COSE. `#115 <https://github.com/dajiaji/python-cwt/pull/115>`__
 - Rename Claims.from_dict to Claims.new. `#115 <https://github.com/dajiaji/python-cwt/pull/115>`__
 - Rename COSEKey.from_dict to COSEKey.new. `#115 <https://github.com/dajiaji/python-cwt/pull/115>`__
