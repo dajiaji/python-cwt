@@ -11,6 +11,7 @@ from .cose import COSE
 from .cose_key_interface import COSEKeyInterface
 from .exceptions import DecodeError, VerifyError
 from .recipient_interface import RecipientInterface
+from .signer import Signer
 
 CWT_DEFAULT_EXPIRES_IN = 3600  # 1 hour
 CWT_DEFAULT_LEEWAY = 60  # 1 min
@@ -84,6 +85,7 @@ class CWT(CBORProcessor):
         key: COSEKeyInterface,
         nonce: bytes = b"",
         recipients: Optional[List[RecipientInterface]] = None,
+        signers: List[Signer] = [],
         tagged: bool = False,
     ) -> bytes:
         """
@@ -112,14 +114,14 @@ class CWT(CBORProcessor):
             EncodeError: Failed to encode the claims.
         """
         if isinstance(claims, Claims):
-            return self._encode(claims, key, nonce, recipients, tagged)
+            return self._encode(claims, key, nonce, recipients, signers, tagged)
         if isinstance(claims, str):
             claims = claims.encode("utf-8")
         if isinstance(claims, bytes):
             try:
                 claims = Claims.from_json(claims, self._claim_names)
             except ValueError:
-                return self._encode(claims, key, nonce, recipients, tagged)
+                return self._encode(claims, key, nonce, recipients, signers, tagged)
         else:
             # Following code causes mypy error:
             # for k, v in claims.items():
@@ -133,7 +135,7 @@ class CWT(CBORProcessor):
                     json_claims[k] = v
             if json_claims:
                 claims = Claims.from_json(json_claims, self._claim_names)
-        return self._encode(claims, key, nonce, recipients, tagged)
+        return self._encode(claims, key, nonce, recipients, signers, tagged)
 
     def encode_and_mac(
         self,
@@ -174,7 +176,8 @@ class CWT(CBORProcessor):
     def encode_and_sign(
         self,
         claims: Union[Claims, Dict[int, Any], bytes],
-        key: Union[COSEKeyInterface, List[COSEKeyInterface]],
+        key: Optional[COSEKeyInterface] = None,
+        signers: List[Signer] = [],
         tagged: bool = False,
     ) -> bytes:
         """
@@ -183,8 +186,11 @@ class CWT(CBORProcessor):
         Args:
             claims (Claims, Union[Dict[int, Any], bytes]): A CWT claims object or byte
                 string.
-            key (Union[COSEKeyInterface, List[COSEKeyInterface]]): A COSE key or a list of the keys used
-                to sign claims.
+            key (Optional[COSEKeyInterface]): A COSE key or a list of the keys used to sign claims.
+               When the ``signers`` parameter is set, this ``key`` parameter will be ignored and
+               should not be set.
+            signers (List[Signer]): A list of signer information objects for multiple
+                signer cases.
             tagged (bool): An indicator whether the response is wrapped by CWT tag(61)
                 or not.
         Returns:
@@ -199,7 +205,9 @@ class CWT(CBORProcessor):
             claims = claims.to_dict()
         self._set_default_value(claims)
         b_claims = self._dumps(claims)
-        res = self._cose.encode_and_sign(b_claims, key, {}, {}, out="cbor2/CBORTag")
+        res = self._cose.encode_and_sign(
+            b_claims, key, {}, {}, signers=signers, out="cbor2/CBORTag"
+        )
         if tagged:
             return self._dumps(CBORTag(CWT.CBOR_TAG, res))
         return self._dumps(res)
@@ -310,12 +318,13 @@ class CWT(CBORProcessor):
         key: COSEKeyInterface,
         nonce: bytes = b"",
         recipients: Optional[List[RecipientInterface]] = None,
+        signers: List[Signer] = [],
         tagged: bool = False,
     ) -> bytes:
         if COSE_KEY_OPERATION_VALUES["sign"] in key.key_ops:
             if [ops for ops in key.key_ops if ops in [3, 4, 9, 10]]:
                 raise ValueError("The key operation could not be specified.")
-            return self.encode_and_sign(claims, key, tagged)
+            return self.encode_and_sign(claims, key, signers, tagged)
         if COSE_KEY_OPERATION_VALUES["encrypt"] in key.key_ops:
             if [ops for ops in key.key_ops if ops in [1, 2, 9, 10]]:
                 raise ValueError("The key operation could not be specified.")

@@ -1,4 +1,4 @@
-from cwt import COSE, COSEKey, Recipient
+from cwt import COSE, COSEKey, Recipient, Signer
 
 
 class TestCOSESample:
@@ -144,3 +144,53 @@ class TestCOSESample:
             unprotected={4: b"01"},
         )
         assert b"Hello world!" == ctx.decode(encoded3, sig_key)
+
+    def test_cose_usage_examples_cose_signature(self):
+
+        signer = Signer.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            },
+        )
+        ctx = COSE()
+        encoded = ctx.encode_and_sign(b"Hello world!", signers=[signer])
+        assert b"Hello world!" == ctx.decode(encoded, signer.cose_key)
+
+        signer = Signer.new(
+            cose_key=COSEKey.from_jwk(
+                {
+                    "kty": "EC",
+                    "kid": "01",
+                    "crv": "P-256",
+                    "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                    "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                    "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+                }
+            ),
+            protected={"alg": "ES256"},
+            unprotected={"kid": "01"},
+        )
+        encoded2 = ctx.encode_and_sign(b"Hello world!", signers=[signer])
+        assert b"Hello world!" == ctx.decode(encoded2, signer.cose_key)
+
+        signer = Signer.new(
+            cose_key=COSEKey.from_jwk(
+                {
+                    "kty": "EC",
+                    "kid": "01",
+                    "crv": "P-256",
+                    "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                    "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                    "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+                }
+            ),
+            protected={1: -7},
+            unprotected={4: b"01"},
+        )
+        encoded3 = ctx.encode_and_sign(b"Hello world!", signers=[signer])
+        assert b"Hello world!" == ctx.decode(encoded3, signer.cose_key)

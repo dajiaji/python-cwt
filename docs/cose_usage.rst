@@ -107,6 +107,7 @@ Create a COSE Encrypt0 message, verify and decode it as follows:
     enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
     ctx = COSE(alg_auto_inclusion=True, kid_auto_inclusion=True)
     encoded = ctx.encode_and_encrypt(b"Hello world!", enc_key)
+    decoded = ctx.decode(encoded, enc_key)
 
 Algorithms other than ``ChaCha20/Poly1305`` are listed in `Supported COSE Algorithms`_ .
 
@@ -248,6 +249,69 @@ Following two samples are other ways of writing the above example:
 COSE Signature
 --------------
 
-T.B.D.
+Create a COSE Signature message, verify and decode it as follows:
+
+.. code-block:: python
+
+    from cwt import COSE, Signer
+
+    signer = Signer.from_jwk(
+        {
+            "kty": "EC",
+            "kid": "01",
+            "crv": "P-256",
+            "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+            "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+        },
+    )
+    ctx = COSE()
+    encoded = ctx.encode_and_sign(b"Hello world!", signers=[signer])
+    decoded = ctx.decode(encoded, signer.cose_key)
+
+Following two samples are other ways of writing the above example:
+
+.. code-block:: python
+
+    from cwt import COSE, COSEKey, Signer
+
+    signer = Signer.new(
+        cose_key=COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        ),
+        protected={"alg": "ES256"},
+        unprotected={"kid": "01"},
+    )
+    encoded = ctx.encode_and_sign(b"Hello world!", signers=[signer])
+    decoded = ctx.decode(encoded, signer.cose_key)
+
+
+.. code-block:: python
+
+    from cwt import COSE, COSEKey, Signer
+
+    signer = Signer.new(
+        cose_key=COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        ),
+        protected={1: -7},
+        unprotected={4: b"01"},
+    )
+    encoded3 = ctx.encode_and_sign(b"Hello world!", signers=[signer])
+    decoded = ctx.decode(encoded, signer.cose_key)
 
 .. _`Supported COSE Algorithms`: ./algorithms.html

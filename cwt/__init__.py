@@ -13,6 +13,7 @@ from .cwt import (
 from .encrypted_cose_key import EncryptedCOSEKey
 from .exceptions import CWTError, DecodeError, EncodeError, VerifyError
 from .recipient import Recipient
+from .signer import Signer
 
 __version__ = "0.8.1"
 __title__ = "cwt"
@@ -37,6 +38,7 @@ __all__ = [
     "EncryptedCOSEKey",
     "Claims",
     "Recipient",
+    "Signer",
     "CWTError",
     "EncodeError",
     "DecodeError",

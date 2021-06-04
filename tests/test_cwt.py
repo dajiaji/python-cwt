@@ -15,6 +15,7 @@ from cbor2 import CBORTag
 from cwt import CWT, Claims, COSEKey, DecodeError, VerifyError
 from cwt.cose_key_interface import COSEKeyInterface
 from cwt.recipient_interface import RecipientInterface
+from cwt.signer import Signer
 
 from .utils import key_path, now
 
@@ -445,16 +446,16 @@ class TestCWT:
 
     def test_cwt_encode_and_sign_with_multiple_signatures(self, ctx):
         with open(key_path("private_key_es256.pem")) as key_file:
-            private_key_1 = COSEKey.from_pem(key_file.read(), kid="1")
+            signer_1 = Signer.from_pem(key_file.read(), kid="1")
         with open(key_path("public_key_es256.pem")) as key_file:
             public_key_1 = COSEKey.from_pem(key_file.read(), kid="1")
         with open(key_path("private_key_ed25519.pem")) as key_file:
-            private_key_2 = COSEKey.from_pem(key_file.read(), kid="2")
+            signer_2 = Signer.from_pem(key_file.read(), kid="2")
         with open(key_path("public_key_ed25519.pem")) as key_file:
             public_key_2 = COSEKey.from_pem(key_file.read(), kid="2")
         token = ctx.encode_and_sign(
             {1: "https://as.example", 2: "someone", 7: b"123"},
-            [private_key_1, private_key_2],
+            signers=[signer_1, signer_2],
         )
         decoded = ctx.decode(token, public_key_1)
         assert isinstance(decoded, dict)
@@ -476,16 +477,16 @@ class TestCWT:
 
     def test_cwt_encode_and_sign_with_signatures_kid_mismatch(self, ctx):
         with open(key_path("private_key_es256.pem")) as key_file:
-            private_key_1 = COSEKey.from_pem(key_file.read(), kid="1")
+            signer_1 = Signer.from_pem(key_file.read(), kid="1")
         with open(key_path("public_key_es256.pem")) as key_file:
             public_key_1 = COSEKey.from_pem(key_file.read(), kid="3")
         with open(key_path("private_key_ed25519.pem")) as key_file:
-            private_key_2 = COSEKey.from_pem(key_file.read(), kid="2")
+            signer_2 = Signer.from_pem(key_file.read(), kid="2")
         with open(key_path("public_key_ed25519.pem")) as key_file:
             COSEKey.from_pem(key_file.read(), kid="2")
         token = ctx.encode_and_sign(
             {1: "https://as.example", 2: "someone", 7: b"123"},
-            [private_key_1, private_key_2],
+            signers=[signer_1, signer_2],
         )
         with pytest.raises(ValueError) as err:
             ctx.decode(token, public_key_1)
