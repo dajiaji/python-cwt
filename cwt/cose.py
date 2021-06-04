@@ -20,6 +20,16 @@ class COSE(CBORProcessor):
     def __init__(
         self, alg_auto_inclusion: int = False, kid_auto_inclusion: int = False
     ):
+        if not isinstance(alg_auto_inclusion, bool):
+            raise ValueError("alg_auto_inclusion should be bool.")
+        self._alg_auto_inclusion = alg_auto_inclusion
+
+        if not isinstance(kid_auto_inclusion, bool):
+            raise ValueError("kid_auto_inclusion should be bool.")
+        self._kid_auto_inclusion = kid_auto_inclusion
+
+    @classmethod
+    def new(cls, alg_auto_inclusion: int = False, kid_auto_inclusion: int = False):
         """
         Constructor.
 
@@ -29,13 +39,7 @@ class COSE(CBORProcessor):
             kid_auto_inclusion(bool): The indicator whether ``kid`` parameter is included
                 in a proper header bucket automatically or not.
         """
-        if not isinstance(alg_auto_inclusion, bool):
-            raise ValueError("alg_auto_inclusion should be bool.")
-        self._alg_auto_inclusion = alg_auto_inclusion
-
-        if not isinstance(kid_auto_inclusion, bool):
-            raise ValueError("kid_auto_inclusion should be bool.")
-        self._kid_auto_inclusion = kid_auto_inclusion
+        return cls(alg_auto_inclusion, kid_auto_inclusion)
 
     def encode_and_mac(
         self,

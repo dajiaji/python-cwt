@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, List, TypeVar, Union
+from typing import Any, Dict, List, Union
 
 from .const import CWT_CLAIM_NAMES
 from .cose_key import COSEKey
@@ -69,9 +69,7 @@ class Claims:
         return
 
     @classmethod
-    def new(
-        cls, claims: Dict[int, Any], private_claim_names: Dict[str, int] = {}
-    ):
+    def new(cls, claims: Dict[int, Any], private_claim_names: Dict[str, int] = {}):
         """
         Create a Claims object from a CBOR-like(Dict[int, Any]) claim object.
 
