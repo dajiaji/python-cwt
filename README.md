@@ -62,11 +62,10 @@ Create a MACed CWT with `HS256`, verify and decode it as follows:
 import cwt
 from cwt import Claims, COSEKey
 
-key = COSEKey.from_symmetric_key(alg="HS256")  # == "HMAC 256/256"
+key = COSEKey.from_symmetric_key(alg="HS256")
 token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
 
 decoded = cwt.decode(token, key)
-
 # decoded == {
 #     1: 'coaps://as.example',
 #     2: 'dajiaji',
@@ -78,7 +77,6 @@ decoded = cwt.decode(token, key)
 
 # If you want to treat the result like a JWT;
 readable = Claims.new(decoded)
-
 # readable.iss == 'coaps://as.example'
 # readable.sub == 'dajiaji'
 # readable.cti == '123'
@@ -382,7 +380,7 @@ Create a COSE MAC0 message, verify and decode it as follows:
 from cwt import COSE, COSEKey
 
 mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
-ctx = COSE(alg_auto_inclusion=True, kid_auto_inclusion=True)
+ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
 encoded = ctx.encode_and_mac(b"Hello world!", mac_key)
 decoded = ctx.decode(encoded, mac_key)
 ```
@@ -431,18 +429,6 @@ encoded = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[recipient])
 decoded = ctx.decode(encoded, mac_key)
 ```
 
-Following sample is another way of writing the above example:
-
-```py
-from cwt import COSE, COSEKey
-
-recipient = Recipient.new(unprotected={"alg": "direct", "kid": "01"})
-mac_key = COSEKey.from_symmetric_key(alg="HS512", kid="01")
-ctx = COSE.new()
-encoded = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[recipient])
-decoded = ctx.decode(encoded, mac_key)
-```
-
 ### COSE Encrypt0
 
 Create a COSE Encrypt0 message, verify and decode it as follows:
@@ -453,23 +439,6 @@ from cwt import COSE, COSEKey
 enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
 ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
 encoded = ctx.encode_and_encrypt(b"Hello world!", enc_key)
-decoded = ctx.decode(encoded, enc_key)
-```
-
-Following sample is another way of writing the above example:
-
-```py
-from cwt import COSE, COSEKey
-
-enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
-ctx = COSE.new()
-encoded = ctx.encode_and_encrypt(
-    b"Hello world!",
-    enc_key,
-    nonce=nonce,
-    protected={"alg": "ChaCha20/Poly1305"},
-    unprotected={"kid": "01"},
-)
 decoded = ctx.decode(encoded, enc_key)
 ```
 
@@ -488,18 +457,6 @@ encoded = ctx.encode_and_encrypt(
     enc_key,
     recipients=[recipient],
 )
-decoded = ctx.decode(encoded, enc_key)
-```
-
-Following sample is another way of writing the above example:
-
-```py
-from cwt import COSE, COSEKey
-
-recipient = Recipient.new(unprotected={"alg": "direct", "kid": "01"})
-enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
-ctx = COSE.new()
-encoded = ctx.encode_and_mac(b"Hello world!", enc_key, recipients=[recipient])
 decoded = ctx.decode(encoded, enc_key)
 ```
 
@@ -525,31 +482,6 @@ encoded = ctx.encode_and_sign(b"Hello world!", sig_key)
 decoded = ctx.decode(encoded, sig_key)
 ```
 
-Following sample is another way of writing the above example:
-
-```py
-from cwt import COSE, COSEKey
-
-sig_key = COSEKey.from_jwk(
-    {
-        "kty": "EC",
-        "kid": "01",
-        "crv": "P-256",
-        "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
-        "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
-        "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
-    }
-)
-ctx = COSE.new()
-encoded = ctx.encode_and_sign(
-    b"Hello world!",
-    sig_key,
-    protected={"alg": "ES256"},
-    unprotected={"kid": "01"},
-)
-decoded = ctx.decode(encoded, sig_key)
-```
-
 ### COSE Signature
 
 Create a COSE Signature message, verify and decode it as follows:
@@ -566,30 +498,6 @@ signer = Signer.from_jwk(
         "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
         "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
     },
-)
-ctx = COSE.new()
-encoded = ctx.encode_and_sign(b"Hello world!", signers=[signer])
-decoded = ctx.decode(encoded, signer.cose_key)
-```
-
-Following sample is another way of writing the above example:
-
-```py
-from cwt import COSE, COSEKey, Signer
-
-signer = Signer.new(
-    cose_key=COSEKey.from_jwk(
-        {
-            "kty": "EC",
-            "kid": "01",
-            "crv": "P-256",
-            "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
-            "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
-            "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
-        }
-    ),
-    protected={"alg": "ES256"},
-    unprotected={"kid": "01"},
 )
 ctx = COSE.new()
 encoded = ctx.encode_and_sign(b"Hello world!", signers=[signer])
