@@ -1,10 +1,8 @@
 import json
-from typing import Any, Dict, List, TypeVar, Union
+from typing import Any, Dict, List, Union
 
 from .const import CWT_CLAIM_NAMES
 from .cose_key import COSEKey
-
-T = TypeVar("T", bound="Claims")
 
 
 class Claims:
@@ -71,9 +69,7 @@ class Claims:
         return
 
     @classmethod
-    def from_dict(
-        cls, claims: Dict[int, Any], private_claim_names: Dict[str, int] = {}
-    ) -> Any:
+    def new(cls, claims: Dict[int, Any], private_claim_names: Dict[str, int] = {}):
         """
         Create a Claims object from a CBOR-like(Dict[int, Any]) claim object.
 
@@ -105,7 +101,7 @@ class Claims:
         cls,
         claims: Union[str, bytes, Dict[str, Any]],
         private_claim_names: Dict[str, int] = {},
-    ) -> T:
+    ):
         """
         Converts a JWT claims object into a CWT claims object which has numeric
         keys. If a key string in JSON data cannot be mapped to a numeric key,
@@ -166,7 +162,7 @@ class Claims:
         for i in [-259, -258, 7]:
             if i in cbor_claims and isinstance(cbor_claims[i], str):
                 cbor_claims[i] = cbor_claims[i].encode("utf-8")
-        return cls.from_dict(cbor_claims, private_claim_names)
+        return cls.new(cbor_claims, private_claim_names)
 
     @classmethod
     def validate(cls, claims: Dict[int, Any]):

@@ -4,6 +4,10 @@ Changes
 Unreleased
 ----------
 
+- Introduce new() into CWT/COSE. `#115 <https://github.com/dajiaji/python-cwt/pull/115>`__
+- Rename Claims.from_dict to Claims.new. `#115 <https://github.com/dajiaji/python-cwt/pull/115>`__
+- Rename COSEKey.from_dict to COSEKey.new. `#115 <https://github.com/dajiaji/python-cwt/pull/115>`__
+- Rename Recipient.from_dict to Recipient.new. `#115 <https://github.com/dajiaji/python-cwt/pull/115>`__
 - Add Signer for encode_and_sign function. `#114 <https://github.com/dajiaji/python-cwt/pull/114>`__
 - Divide CWT options into independent parameters. `#113 <https://github.com/dajiaji/python-cwt/pull/113>`__
 

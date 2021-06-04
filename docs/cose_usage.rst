@@ -6,7 +6,7 @@ The following is a simple sample code for command line console.
 .. code-block:: pycon
 
     >>> from cwt import COSE, COSEKey
-    >>> ctx = COSE(alg_auto_inclusion=True, kid_auto_inclusion=True)
+    >>> ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
     >>> mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
     >>> encoded = ctx.encode_and_mac(b"Hello world!", mac_key)
     >>> encoded.hex()
@@ -29,7 +29,7 @@ Create a COSE MAC0 message, verify and decode it as follows:
     from cwt import COSE, COSEKey
 
     mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
-    ctx = COSE(alg_auto_inclusion=True, kid_auto_inclusion=True)
+    ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
     encoded = ctx.encode_and_mac(b"Hello world!", mac_key)
     decoded = ctx.decode(encoded, mac_key)
 
@@ -42,7 +42,7 @@ Following two samples are other ways of writing the above example:
     from cwt import COSE, COSEKey
 
     mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
-    ctx = COSE()
+    ctx = COSE.new()
     encoded = ctx.encode_and_mac(
         b"Hello world!",
         mac_key,
@@ -56,7 +56,7 @@ Following two samples are other ways of writing the above example:
     from cwt import COSE, COSEKey
 
     mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
-    ctx = COSE()
+    ctx = COSE.new()
     encoded = ctx.encode_and_mac(
         b"Hello world!",
         mac_key,
@@ -76,7 +76,7 @@ Create a COSE MAC message, verify and decode it as follows:
 
     recipient = Recipient.from_json({"alg": "direct", "kid": "01"})
     mac_key = COSEKey.from_symmetric_key(alg="HS512", kid="01")
-    ctx = COSE()
+    ctx = COSE.new()
     encoded = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[recipient])
     decoded = ctx.decode(encoded, mac_key)
 
@@ -88,9 +88,9 @@ Following sample is another way of writing the above example:
 
     from cwt import COSE, COSEKey
 
-    recipient = Recipient.from_dict(unprotected={"alg": "direct", "kid": "01"})
+    recipient = Recipient.new(unprotected={"alg": "direct", "kid": "01"})
     mac_key = COSEKey.from_symmetric_key(alg="HS512", kid="01")
-    ctx = COSE()
+    ctx = COSE.new()
     encoded = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[recipient])
     decoded = ctx.decode(encoded, mac_key)
 
@@ -105,7 +105,7 @@ Create a COSE Encrypt0 message, verify and decode it as follows:
     from cwt import COSE, COSEKey
 
     enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
-    ctx = COSE(alg_auto_inclusion=True, kid_auto_inclusion=True)
+    ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
     encoded = ctx.encode_and_encrypt(b"Hello world!", enc_key)
     decoded = ctx.decode(encoded, enc_key)
 
@@ -118,7 +118,7 @@ Following two samples are other ways of writing the above example:
     from cwt import COSE, COSEKey
 
     enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
-    ctx = COSE()
+    ctx = COSE.new()
     encoded = ctx.encode_and_encrypt(
         b"Hello world!",
         enc_key,
@@ -133,7 +133,7 @@ Following two samples are other ways of writing the above example:
     from cwt import COSE, COSEKey
 
     enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
-    ctx = COSE()
+    ctx = COSE.new()
     encoded = ctx.encode_and_encrypt(
         b"Hello world!",
         enc_key,
@@ -154,7 +154,7 @@ Create a COSE Encrypt message, verify and decode it as follows:
 
     recipient = Recipient.from_json({"alg": "direct", "kid": "01"})
     enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
-    ctx = COSE()
+    ctx = COSE.new()
     encoded = ctx.encode_and_encrypt(
         b"Hello world!",
         enc_key,
@@ -168,9 +168,9 @@ Following sample is another way of writing the above example:
 
     from cwt import COSE, COSEKey
 
-    recipient = Recipient.from_dict(unprotected={"alg": "direct", "kid": "01"})
+    recipient = Recipient.new(unprotected={"alg": "direct", "kid": "01"})
     enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
-    ctx = COSE()
+    ctx = COSE.new()
     encoded = ctx.encode_and_mac(b"Hello world!", enc_key, recipients=[recipient])
     decoded = ctx.decode(encoded, enc_key)
 
@@ -193,7 +193,7 @@ Create a COSE Signature1 message, verify and decode it as follows:
             "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
         }
     )
-    ctx = COSE(alg_auto_inclusion=True, kid_auto_inclusion=True)
+    ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
     encoded = ctx.encode_and_sign(b"Hello world!", sig_key)
     decoded = ctx.decode(encoded, sig_key)
 
@@ -213,7 +213,7 @@ Following two samples are other ways of writing the above example:
             "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
         }
     )
-    ctx = COSE()
+    ctx = COSE.new()
     encoded = ctx.encode_and_sign(
         b"Hello world!",
         sig_key,
@@ -237,7 +237,7 @@ Following two samples are other ways of writing the above example:
             "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
         }
     )
-    ctx = COSE()
+    ctx = COSE.new()
     encoded = ctx.encode_and_sign(
         b"Hello world!",
         sig_key,
@@ -265,7 +265,7 @@ Create a COSE Signature message, verify and decode it as follows:
             "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
         },
     )
-    ctx = COSE()
+    ctx = COSE.new()
     encoded = ctx.encode_and_sign(b"Hello world!", signers=[signer])
     decoded = ctx.decode(encoded, signer.cose_key)
 
@@ -289,6 +289,7 @@ Following two samples are other ways of writing the above example:
         protected={"alg": "ES256"},
         unprotected={"kid": "01"},
     )
+    ctx = COSE.new()
     encoded = ctx.encode_and_sign(b"Hello world!", signers=[signer])
     decoded = ctx.decode(encoded, signer.cose_key)
 
@@ -311,7 +312,8 @@ Following two samples are other ways of writing the above example:
         protected={1: -7},
         unprotected={4: b"01"},
     )
-    encoded3 = ctx.encode_and_sign(b"Hello world!", signers=[signer])
+    ctx = COSE.new()
+    encoded = ctx.encode_and_sign(b"Hello world!", signers=[signer])
     decoded = ctx.decode(encoded, signer.cose_key)
 
 .. _`Supported COSE Algorithms`: ./algorithms.html

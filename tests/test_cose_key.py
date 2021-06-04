@@ -19,11 +19,6 @@ from .utils import key_path
 # from secrets import token_bytes
 
 
-@pytest.fixture(scope="session", autouse=True)
-def ctx():
-    return COSEKey()
-
-
 class TestCOSEKey:
     """
     Tests for COSEKey.
@@ -42,8 +37,8 @@ class TestCOSEKey:
             ("HMAC 512/512", 7),
         ],
     )
-    def test_key_builder_from_symmetric_key_hmac(self, ctx, alg, alg_label):
-        k = ctx.from_symmetric_key("mysecret", alg=alg)
+    def test_key_builder_from_symmetric_key_hmac(self, alg, alg_label):
+        k = COSEKey.from_symmetric_key("mysecret", alg=alg)
         assert isinstance(k, COSEKeyInterface)
         assert k.alg == alg_label
         assert 9 in k.key_ops
@@ -72,9 +67,9 @@ class TestCOSEKey:
             "AES-CCM-64-128-256",
         ],
     )
-    def test_key_builder_from_symmetric_key_without_key(self, ctx, alg):
+    def test_key_builder_from_symmetric_key_without_key(self, alg):
         try:
-            k = ctx.from_symmetric_key(alg=alg)
+            k = COSEKey.from_symmetric_key(alg=alg)
             assert k.kty == 4
         except Exception:
             pytest.fail("from_symmetric_key should not fail.")
@@ -117,10 +112,8 @@ class TestCOSEKey:
             ("ChaCha20/Poly1305", ["wrap key", "unwrap key"], [5, 6]),
         ],
     )
-    def test_key_builder_from_symmetric_key_with_key_ops(
-        self, ctx, alg, key_ops, expected
-    ):
-        k = ctx.from_symmetric_key(alg=alg, key_ops=key_ops)
+    def test_key_builder_from_symmetric_key_with_key_ops(self, alg, key_ops, expected):
+        k = COSEKey.from_symmetric_key(alg=alg, key_ops=key_ops)
         assert len(k.key_ops) == len(key_ops)
         for ops in k.key_ops:
             assert ops in expected
@@ -129,9 +122,9 @@ class TestCOSEKey:
         "alg",
         ["xxx", 0, 8, 9, 34],
     )
-    def test_key_builder_from_symmetric_key_with_invalid_alg(self, ctx, alg):
+    def test_key_builder_from_symmetric_key_with_invalid_alg(self, alg):
         with pytest.raises(ValueError) as err:
-            ctx.from_symmetric_key("mysecret", alg=alg)
+            COSEKey.from_symmetric_key("mysecret", alg=alg)
             pytest.fail("from_symmetric_key should fail.")
         assert f"Unsupported or unknown alg(3): {alg}." in str(err.value)
 
@@ -139,9 +132,9 @@ class TestCOSEKey:
         "key_ops",
         [["xxx"], ["MAC create", "MAC verify", "xxx"]],
     )
-    def test_key_builder_from_symmetric_key_with_invalid_key_ops(self, ctx, key_ops):
+    def test_key_builder_from_symmetric_key_with_invalid_key_ops(self, key_ops):
         with pytest.raises(ValueError) as err:
-            ctx.from_symmetric_key("mysecret", key_ops=key_ops)
+            COSEKey.from_symmetric_key("mysecret", key_ops=key_ops)
             pytest.fail("from_symmetric_key should fail.")
         assert "Unsupported or unknown key_ops." in str(err.value)
 
@@ -219,9 +212,9 @@ class TestCOSEKey:
             (b"invalidbytes", "Failed to decode PEM."),
         ],
     )
-    def test_key_builder_from_pem_with_invalid_key(self, ctx, invalid, msg):
+    def test_key_builder_from_pem_with_invalid_key(self, invalid, msg):
         with pytest.raises(ValueError) as err:
-            ctx.from_pem(invalid)
+            COSEKey.from_pem(invalid)
             pytest.fail("from_pem should not fail.")
         assert msg in str(err.value)
 
@@ -232,7 +225,7 @@ class TestCOSEKey:
             (["sign"], "Unknown or not permissible key_ops(4) for SignatureKey: 1"),
         ],
     )
-    def test_key_builder_from_pem_public_with_invalid_key_ops(self, ctx, invalid, msg):
+    def test_key_builder_from_pem_public_with_invalid_key_ops(self, invalid, msg):
         with open(key_path("public_key_ed25519.pem")) as key_file:
             with pytest.raises(ValueError) as err:
                 COSEKey.from_pem(key_file.read(), key_ops=invalid)
@@ -250,7 +243,7 @@ class TestCOSEKey:
             (["xxx"], "Unsupported or unknown key_ops."),
         ],
     )
-    def test_key_builder_from_pem_private_with_invalid_key_ops(self, ctx, invalid, msg):
+    def test_key_builder_from_pem_private_with_invalid_key_ops(self, invalid, msg):
         with open(key_path("private_key_ed25519.pem")) as key_file:
             with pytest.raises(ValueError) as err:
                 COSEKey.from_pem(key_file.read(), key_ops=invalid)
@@ -342,11 +335,11 @@ class TestCOSEKey:
             {1: 4, 3: 33},
         ],
     )
-    def test_key_builder_from_dict_with_valid_args(self, ctx, cose_key):
+    def test_key_builder_new_with_valid_args(self, cose_key):
         try:
-            ctx.from_dict(cose_key)
+            COSEKey.new(cose_key)
         except Exception:
-            pytest.fail("from_dict should not fail.")
+            pytest.fail("new should not fail.")
 
     @pytest.mark.parametrize(
         "invalid, msg",
@@ -362,10 +355,10 @@ class TestCOSEKey:
             ({1: 4, 3: 0}, "Unsupported or unknown alg(3): 0."),
         ],
     )
-    def test_key_builder_from_dict_with_invalid_args(self, ctx, invalid, msg):
+    def test_key_builder_new_with_invalid_args(self, invalid, msg):
         with pytest.raises(ValueError) as err:
-            ctx.from_dict(invalid)
-            pytest.fail("from_dict should fail.")
+            COSEKey.new(invalid)
+            pytest.fail("new should fail.")
         assert msg in str(err.value)
 
     @pytest.mark.parametrize(
@@ -390,28 +383,28 @@ class TestCOSEKey:
             "public_key_rsa.json",
         ],
     )
-    def test_key_builder_from_jwk(self, ctx, key):
+    def test_key_builder_from_jwk(self, key):
         try:
             with open(key_path(key)) as key_file:
-                ctx.from_jwk(key_file.read())
+                COSEKey.from_jwk(key_file.read())
         except Exception:
             pytest.fail("from_jwk should not fail.")
 
-    def test_key_builder_from_jwk_with_key_ops(self, ctx):
+    def test_key_builder_from_jwk_with_key_ops(self):
         try:
             with open(key_path("public_key_ed25519.json")) as key_file:
                 obj = json.loads(key_file.read())
                 obj["key_ops"] = ["verify"]
-                ctx.from_jwk(obj)
+                COSEKey.from_jwk(obj)
         except Exception:
             pytest.fail("from_jwk should not fail.")
 
-    def test_key_builder_from_jwk_without_use(self, ctx):
+    def test_key_builder_from_jwk_without_use(self):
         try:
             with open(key_path("public_key_ed25519.json")) as key_file:
                 obj = json.loads(key_file.read())
                 del obj["use"]
-                ctx.from_jwk(obj)
+                COSEKey.from_jwk(obj)
         except Exception:
             pytest.fail("from_jwk should not fail.")
 
@@ -428,12 +421,12 @@ class TestCOSEKey:
         ],
     )
     def test_key_builder_from_jwk_with_encode_and_sign(
-        self, ctx, private_key_path, public_key_path
+        self, private_key_path, public_key_path
     ):
         with open(key_path(private_key_path)) as key_file:
-            private_key = ctx.from_jwk(key_file.read())
+            private_key = COSEKey.from_jwk(key_file.read())
         with open(key_path(public_key_path)) as key_file:
-            public_key = ctx.from_jwk(key_file.read())
+            public_key = COSEKey.from_jwk(key_file.read())
         token = cwt.encode_and_sign(
             Claims.from_json(
                 {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}
@@ -459,13 +452,11 @@ class TestCOSEKey:
             ("private_key_rsa.json", "public_key_rsa.json"),
         ],
     )
-    def test_key_builder_from_jwk_with_encode(
-        self, ctx, private_key_path, public_key_path
-    ):
+    def test_key_builder_from_jwk_with_encode(self, private_key_path, public_key_path):
         with open(key_path(private_key_path)) as key_file:
-            private_key = ctx.from_jwk(key_file.read())
+            private_key = COSEKey.from_jwk(key_file.read())
         with open(key_path(public_key_path)) as key_file:
-            public_key = ctx.from_jwk(key_file.read())
+            public_key = COSEKey.from_jwk(key_file.read())
         token = cwt.encode(
             {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"},
             private_key,
@@ -525,8 +516,8 @@ class TestCOSEKey:
             ),
         ],
     )
-    def test_key_builder_from_jwk_with_invalid_arg(self, ctx, invalid, msg):
+    def test_key_builder_from_jwk_with_invalid_arg(self, invalid, msg):
         with pytest.raises(ValueError) as err:
-            ctx.from_jwk(invalid)
+            COSEKey.from_jwk(invalid)
             pytest.fail("from_jwk should fail.")
         assert msg in str(err.value)

@@ -25,7 +25,7 @@ from .utils import key_path
 
 @pytest.fixture(scope="session", autouse=True)
 def ctx():
-    return COSE(alg_auto_inclusion=True)
+    return COSE.new(alg_auto_inclusion=True)
 
 
 class TestCOSE:
@@ -34,11 +34,11 @@ class TestCOSE:
     """
 
     def test_cose_constructor_with_options(self):
-        ctx = COSE()
+        ctx = COSE.new()
         assert isinstance(ctx, COSE)
 
     def test_cose_encode_and_decode_with_options(self):
-        ctx = COSE()
+        ctx = COSE.new()
 
         # MAC0
         mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
@@ -82,7 +82,7 @@ class TestCOSE:
         assert b"Hello world!" == ctx.decode(encoded, sig_key)
 
     def test_cose_encode_and_decode_with_protected_bytes(self):
-        ctx = COSE()
+        ctx = COSE.new()
 
         # MAC0
         mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
@@ -127,7 +127,7 @@ class TestCOSE:
         assert b"Hello world!" == ctx.decode(encoded, sig_key)
 
     def test_cose_encode_and_decode_with_recipient_builder(self):
-        ctx = COSE()
+        ctx = COSE.new()
 
         mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
         recipient = Recipient.from_json(
@@ -145,13 +145,13 @@ class TestCOSE:
 
     def test_cose_constructor_with_invalid_kid_auto_inclusion(self):
         with pytest.raises(ValueError) as err:
-            COSE(kid_auto_inclusion="xxx")
+            COSE.new(kid_auto_inclusion="xxx")
             pytest.fail("COSE should fail.")
         assert "kid_auto_inclusion should be bool." in str(err.value)
 
     def test_cose_constructor_with_invalid_alg_auto_inclusion(self):
         with pytest.raises(ValueError) as err:
-            COSE(alg_auto_inclusion="xxx")
+            COSE.new(alg_auto_inclusion="xxx")
             pytest.fail("COSE should fail.")
         assert "alg_auto_inclusion should be bool." in str(err.value)
 
@@ -204,7 +204,7 @@ class TestCOSE:
                 "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
             }
         )
-        ctx = COSE()
+        ctx = COSE.new()
         encoded = ctx.encode_and_sign(
             b"This is the content.",
             key,
@@ -226,7 +226,7 @@ class TestCOSE:
                 "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
             }
         )
-        ctx = COSE()
+        ctx = COSE.new()
         encoded = ctx.encode_and_sign(
             b"This is the content.",
             key,
@@ -261,7 +261,7 @@ class TestCOSE:
                 "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
             }
         )
-        ctx = COSE()
+        ctx = COSE.new()
         encoded = ctx.encode_and_sign(
             b"This is the content.",
             signers=[signer],
@@ -282,7 +282,7 @@ class TestCOSE:
                 "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
             }
         )
-        ctx = COSE()
+        ctx = COSE.new()
         encoded = ctx.encode_and_sign(
             b"This is the content.",
             signers=[signer],
@@ -317,7 +317,7 @@ class TestCOSE:
                 "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
             }
         )
-        ctx = COSE()
+        ctx = COSE.new()
         encoded = ctx.encode_and_sign(
             b"This is the content.",
             signers=[signer],
@@ -352,7 +352,7 @@ class TestCOSE:
                 .decode("ascii"),
             }
         )
-        ctx = COSE()
+        ctx = COSE.new()
         encoded = ctx.encode_and_sign(
             b"This is the content.",
             signers=[signer],
@@ -384,7 +384,7 @@ class TestCOSE:
                 .decode("ascii"),
             }
         )
-        ctx = COSE()
+        ctx = COSE.new()
         encoded = ctx.encode_and_sign(
             b"This is the content.",
             signers=[signer],
@@ -415,7 +415,7 @@ class TestCOSE:
                 .decode("ascii"),
             }
         )
-        ctx = COSE(kid_auto_inclusion=True)
+        ctx = COSE.new(kid_auto_inclusion=True)
         encoded = ctx.encode_and_sign(
             b"This is the content.",
             key,
@@ -447,7 +447,7 @@ class TestCOSE:
                 .decode("ascii"),
             }
         )
-        ctx = COSE(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
         encoded = ctx.encode_and_sign(
             b"This is the content.",
             key,
@@ -555,7 +555,7 @@ class TestCOSE:
             base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
             context=context,
         )
-        ctx = COSE()
+        ctx = COSE.new()
         encoded = ctx.encode_and_encrypt(
             b"This is the content.",
             key=enc_key,
@@ -607,7 +607,7 @@ class TestCOSE:
             base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
             context=context,
         )
-        ctx = COSE()
+        ctx = COSE.new()
         encoded = ctx.encode_and_encrypt(
             b"This is the content.",
             key=enc_key,
@@ -650,7 +650,7 @@ class TestCOSE:
             },
         )
         recipient.wrap_key(mac_key.key)
-        ctx = COSE()
+        ctx = COSE.new()
         encoded = ctx.encode_and_mac(
             b"This is the content.",
             key=mac_key,

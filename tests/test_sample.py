@@ -456,8 +456,8 @@ class TestSample:
         decoded = cwt.decode(token, public_key)
         assert 8 in decoded and isinstance(decoded[8], dict)
         assert 1 in decoded[8] and isinstance(decoded[8][1], dict)
-        c = Claims.from_dict(decoded)
-        extracted = COSEKey.from_dict(c.cnf)
+        c = Claims.new(decoded)
+        extracted = COSEKey.new(c.cnf)
         try:
             extracted.verify(msg, sig)
         except Exception:
@@ -492,7 +492,7 @@ class TestSample:
         decoded = cwt.decode(token, public_key)
         assert 8 in decoded and isinstance(decoded[8], dict)
         assert 2 in decoded[8] and isinstance(decoded[8][2], list)
-        c = Claims.from_dict(decoded)
+        c = Claims.new(decoded)
         extracted = EncryptedCOSEKey.to_cose_key(c.cnf, enc_key)
         assert extracted.kty == 4  # Symmetric
         assert extracted.alg == 5  # HMAC 256/256
@@ -519,7 +519,7 @@ class TestSample:
         decoded = cwt.decode(token, public_key)
         assert 8 in decoded and isinstance(decoded[8], dict)
         assert 3 in decoded[8] and decoded[8][3] == b"pop-key-id-of-cwt-presenter"
-        c = Claims.from_dict(decoded)
+        c = Claims.new(decoded)
         assert c.cnf == "pop-key-id-of-cwt-presenter"
 
     def test_sample_readme_cwt_with_pop_cose_key(self):
@@ -544,7 +544,7 @@ class TestSample:
         decoded = cwt.decode(token, public_key)
         assert 8 in decoded and isinstance(decoded[8], dict)
         assert 1 in decoded[8] and isinstance(decoded[8][1], dict)
-        extracted = COSEKey.from_dict(decoded[8][1])
+        extracted = COSEKey.new(decoded[8][1])
         assert extracted.kty == 2  # EC2
         assert extracted.crv == 1  # P-256
 
@@ -626,7 +626,7 @@ class TestSample:
         assert isinstance(raw[-70003], dict)
         assert raw[-70003]["baz"] == "qux"
         assert raw[-70004] == 123
-        readable = Claims.from_dict(raw)
+        readable = Claims.new(raw)
         assert readable.get(-70001) == "foo"
         assert readable.get(-70002)[0] == "bar"
         assert readable.get(-70003)["baz"] == "qux"
@@ -658,7 +658,7 @@ class TestSample:
             private_key,
         )
         raw = cwt.decode(token, public_key)
-        readable = Claims.from_dict(
+        readable = Claims.new(
             raw,
             private_claim_names={
                 "ext_1": -70001,
@@ -737,7 +737,7 @@ class TestSample:
         assert 1 in decoded and decoded[1] == "coap://as.example.com"
 
     def test_sample_rfc8392_a4_old(self):
-        key = COSEKey.from_dict(
+        key = COSEKey.new(
             {
                 -1: bytes.fromhex(
                     "403697de87af64611c1d32a05dab0fe1fcb715a86ab435f1ec99192d79569388"
@@ -765,7 +765,7 @@ class TestSample:
         assert 1 in decoded and decoded[1] == "coap://as.example.com"
 
     def test_sample_rfc8392_a4(self):
-        key = COSEKey.from_dict(
+        key = COSEKey.new(
             {
                 -1: bytes.fromhex(
                     "403697de87af64611c1d32a05dab0fe1fcb715a86ab435f1ec99192d79569388"

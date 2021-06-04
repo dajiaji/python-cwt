@@ -30,25 +30,6 @@ class CWT(CBORProcessor):
     def __init__(
         self, expires_in: int = CWT_DEFAULT_EXPIRES_IN, leeway: int = CWT_DEFAULT_LEEWAY
     ):
-        """
-        Constructor.
-
-        Args:
-            expires_in(int): The default lifetime in seconds of CWT
-                (default value: ``3600``).
-            leeway(int): The default leeway in seconds for validating
-                ``exp`` and ``nbf`` (default value: ``60``).
-
-        Examples:
-
-            >>> from cwt import CWT, COSEKey
-            >>> ctx = CWT(expires_in=3600*24, leeway=10)
-            >>> key = COSEKey.from_symmetric_key(alg="HS256")
-            >>> token = ctx.encode(
-            ...     {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"},
-            ...     key,
-            ... )
-        """
         if not isinstance(expires_in, int):
             raise ValueError("expires_in should be int.")
         if expires_in <= 0:
@@ -63,6 +44,31 @@ class CWT(CBORProcessor):
 
         self._cose = COSE(kid_auto_inclusion=True, alg_auto_inclusion=True)
         self._claim_names: Dict[str, int] = {}
+
+    @classmethod
+    def new(
+        cls, expires_in: int = CWT_DEFAULT_EXPIRES_IN, leeway: int = CWT_DEFAULT_LEEWAY
+    ):
+        """
+        Constructor.
+
+        Args:
+            expires_in(int): The default lifetime in seconds of CWT
+                (default value: ``3600``).
+            leeway(int): The default leeway in seconds for validating
+                ``exp`` and ``nbf`` (default value: ``60``).
+
+        Examples:
+
+            >>> from cwt import CWT, COSEKey
+            >>> ctx = CWT.new(expires_in=3600*24, leeway=10)
+            >>> key = COSEKey.from_symmetric_key(alg="HS256")
+            >>> token = ctx.encode(
+            ...     {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"},
+            ...     key,
+            ... )
+        """
+        return cls(expires_in, leeway)
 
     @property
     def expires_in(self) -> int:
@@ -81,7 +87,7 @@ class CWT(CBORProcessor):
 
     def encode(
         self,
-        claims: Union[Claims, Dict[str, Any], Dict[int, Any], bytes, str],
+        claims: Union[Claims, Dict[str, Any], Dict[int, Any], bytes],
         key: COSEKeyInterface,
         nonce: bytes = b"",
         recipients: Optional[List[RecipientInterface]] = None,
@@ -101,7 +107,7 @@ class CWT(CBORProcessor):
         parameter set to identify the usage.
 
         Args:
-            claims (Union[Claims, Dict[str, Any], Dict[int, Any], bytes, str]): A CWT
+            claims (Union[Claims, Dict[str, Any], Dict[int, Any], bytes]): A CWT
                 claims object, or a JWT claims object, text string or byte string.
             key (COSEKeyInterface): A COSE key used to generate a MAC for the claims.
             recipients (List[RecipientInterface]): A list of recipient information structures.

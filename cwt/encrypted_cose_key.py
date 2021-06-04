@@ -75,4 +75,4 @@ class EncryptedCOSEKey(CBORProcessor):
             VerifyError: Failed to verify the COSE key.
         """
         res = cbor2.loads(COSE().decode(CBORTag(16, key), encryption_key))
-        return COSEKey.from_dict(res)
+        return COSEKey.new(res)

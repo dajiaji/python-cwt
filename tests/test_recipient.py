@@ -226,9 +226,9 @@ class TestRecipient:
             ),
         ],
     )
-    def test_recipient_from_dict_with_invalid_arg(self, protected, unprotected, msg):
+    def test_recipient_new_with_invalid_arg(self, protected, unprotected, msg):
         with pytest.raises(ValueError) as err:
-            Recipient.from_dict(protected, unprotected)
+            Recipient.new(protected, unprotected)
             pytest.fail("Recipient() should fail.")
         assert msg in str(err.value)
 

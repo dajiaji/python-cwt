@@ -9,11 +9,11 @@ class TestCOSESample:
     def test_cose_usage_examples_cose_mac0(self):
         mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
 
-        ctx = COSE(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
         encoded = ctx.encode_and_mac(b"Hello world!", mac_key)
         assert b"Hello world!" == ctx.decode(encoded, mac_key)
 
-        ctx = COSE()
+        ctx = COSE.new()
         encoded2 = ctx.encode_and_mac(
             b"Hello world!",
             mac_key,
@@ -36,15 +36,15 @@ class TestCOSESample:
         mac_key = COSEKey.from_symmetric_key(alg="HS512", kid="01")
         recipient = Recipient.from_json({"alg": "direct", "kid": "01"})
 
-        ctx = COSE()
+        ctx = COSE.new()
         encoded = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[recipient])
         assert b"Hello world!" == ctx.decode(encoded, mac_key)
 
-        recipient2 = Recipient.from_dict(unprotected={"alg": "direct", "kid": "01"})
+        recipient2 = Recipient.new(unprotected={"alg": "direct", "kid": "01"})
         encoded2 = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[recipient2])
         assert b"Hello world!" == ctx.decode(encoded2, mac_key)
 
-        recipient3 = Recipient.from_dict(unprotected={1: -6, 4: b"01"})
+        recipient3 = Recipient.new(unprotected={1: -6, 4: b"01"})
         encoded3 = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[recipient3])
         assert b"Hello world!" == ctx.decode(encoded3, mac_key)
 
@@ -54,11 +54,11 @@ class TestCOSESample:
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
         nonce = enc_key.generate_nonce()
 
-        ctx = COSE(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
         encoded = ctx.encode_and_encrypt(b"Hello world!", enc_key, nonce=nonce)
         assert b"Hello world!" == ctx.decode(encoded, enc_key)
 
-        ctx = COSE()
+        ctx = COSE.new()
         encoded2 = ctx.encode_and_encrypt(
             b"Hello world!",
             enc_key,
@@ -84,7 +84,7 @@ class TestCOSESample:
         nonce = enc_key.generate_nonce()
         recipient = Recipient.from_json({"alg": "direct", "kid": "01"})
 
-        ctx = COSE()
+        ctx = COSE.new()
         encoded = ctx.encode_and_encrypt(
             b"Hello world!",
             enc_key,
@@ -93,7 +93,7 @@ class TestCOSESample:
         )
         assert b"Hello world!" == ctx.decode(encoded, enc_key)
 
-        recipient = Recipient.from_dict(unprotected={"alg": "direct", "kid": "01"})
+        recipient = Recipient.new(unprotected={"alg": "direct", "kid": "01"})
         encoded2 = ctx.encode_and_encrypt(
             b"Hello world!",
             enc_key,
@@ -124,11 +124,11 @@ class TestCOSESample:
                 "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
             }
         )
-        ctx = COSE(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
         encoded = ctx.encode_and_sign(b"Hello world!", sig_key)
         assert b"Hello world!" == ctx.decode(encoded, sig_key)
 
-        ctx = COSE()
+        ctx = COSE.new()
         encoded2 = ctx.encode_and_sign(
             b"Hello world!",
             sig_key,
@@ -157,7 +157,7 @@ class TestCOSESample:
                 "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
             },
         )
-        ctx = COSE()
+        ctx = COSE.new()
         encoded = ctx.encode_and_sign(b"Hello world!", signers=[signer])
         assert b"Hello world!" == ctx.decode(encoded, signer.cose_key)
 
