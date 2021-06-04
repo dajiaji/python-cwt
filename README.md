@@ -355,7 +355,7 @@ raw = cwt.decode(token, public_key)
 decoded = Claims.from_dict(raw)
 
 # Extracts the PoP key from the CWT.
-extracted_pop_key = COSEKey.from_dict(decoded.cnf)  # = raw[8][1]
+extracted_pop_key = COSEKey.new(decoded.cnf)  # = raw[8][1]
 
 # Then, verifies the message sent by the presenter
 # with the signature which is also sent by the presenter as follows:

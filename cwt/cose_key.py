@@ -56,7 +56,7 @@ class COSEKey:
     """
 
     @staticmethod
-    def from_dict(cose_key: Dict[int, Any]) -> COSEKeyInterface:
+    def new(cose_key: Dict[int, Any]) -> COSEKeyInterface:
         """
         Create a COSE key from a CBOR-like dictionary with numeric keys.
 
@@ -148,7 +148,7 @@ class COSEKey:
             except Exception:
                 raise ValueError("Unsupported or unknown key_ops.")
         cose_key[4] = key_ops_labels
-        return cls.from_dict(cose_key)
+        return cls.new(cose_key)
 
     @classmethod
     def from_bytes(cls, key_data: bytes) -> COSEKeyInterface:
@@ -164,7 +164,7 @@ class COSEKey:
             DecodeError: Failed to decode the key data.
         """
         cose_key = cbor2.loads(key_data)
-        return cls.from_dict(cose_key)
+        return cls.new(cose_key)
 
     @classmethod
     def from_jwk(cls, data: Union[str, bytes, Dict[str, Any]]) -> COSEKeyInterface:
@@ -270,7 +270,7 @@ class COSEKey:
             if use != 0:
                 cose_key[4] = []
                 cose_key[4].append(use)
-        return cls.from_dict(cose_key)
+        return cls.new(cose_key)
 
     @classmethod
     def from_pem(
@@ -438,4 +438,4 @@ class COSEKey:
                 )
         else:
             raise ValueError(f"Unsupported or unknown key: {type(k)}.")
-        return cls.from_dict(cose_key)
+        return cls.new(cose_key)

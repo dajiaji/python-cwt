@@ -457,7 +457,7 @@ class TestSample:
         assert 8 in decoded and isinstance(decoded[8], dict)
         assert 1 in decoded[8] and isinstance(decoded[8][1], dict)
         c = Claims.from_dict(decoded)
-        extracted = COSEKey.from_dict(c.cnf)
+        extracted = COSEKey.new(c.cnf)
         try:
             extracted.verify(msg, sig)
         except Exception:
@@ -544,7 +544,7 @@ class TestSample:
         decoded = cwt.decode(token, public_key)
         assert 8 in decoded and isinstance(decoded[8], dict)
         assert 1 in decoded[8] and isinstance(decoded[8][1], dict)
-        extracted = COSEKey.from_dict(decoded[8][1])
+        extracted = COSEKey.new(decoded[8][1])
         assert extracted.kty == 2  # EC2
         assert extracted.crv == 1  # P-256
 
@@ -737,7 +737,7 @@ class TestSample:
         assert 1 in decoded and decoded[1] == "coap://as.example.com"
 
     def test_sample_rfc8392_a4_old(self):
-        key = COSEKey.from_dict(
+        key = COSEKey.new(
             {
                 -1: bytes.fromhex(
                     "403697de87af64611c1d32a05dab0fe1fcb715a86ab435f1ec99192d79569388"
@@ -765,7 +765,7 @@ class TestSample:
         assert 1 in decoded and decoded[1] == "coap://as.example.com"
 
     def test_sample_rfc8392_a4(self):
-        key = COSEKey.from_dict(
+        key = COSEKey.new(
             {
                 -1: bytes.fromhex(
                     "403697de87af64611c1d32a05dab0fe1fcb715a86ab435f1ec99192d79569388"
