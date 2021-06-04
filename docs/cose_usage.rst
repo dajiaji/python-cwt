@@ -88,7 +88,7 @@ Following sample is another way of writing the above example:
 
     from cwt import COSE, COSEKey
 
-    recipient = Recipient.from_dict(unprotected={"alg": "direct", "kid": "01"})
+    recipient = Recipient.new(unprotected={"alg": "direct", "kid": "01"})
     mac_key = COSEKey.from_symmetric_key(alg="HS512", kid="01")
     ctx = COSE()
     encoded = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[recipient])
@@ -168,7 +168,7 @@ Following sample is another way of writing the above example:
 
     from cwt import COSE, COSEKey
 
-    recipient = Recipient.from_dict(unprotected={"alg": "direct", "kid": "01"})
+    recipient = Recipient.new(unprotected={"alg": "direct", "kid": "01"})
     enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
     ctx = COSE()
     encoded = ctx.encode_and_mac(b"Hello world!", enc_key, recipients=[recipient])

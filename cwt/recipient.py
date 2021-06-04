@@ -19,7 +19,7 @@ class Recipient:
     """
 
     @classmethod
-    def from_dict(
+    def new(
         cls,
         protected: dict = {},
         unprotected: dict = {},
@@ -120,4 +120,4 @@ class Recipient:
                 raise ValueError("k should be str.")
             key = base64url_decode(recipient["k"])
 
-        return cls.from_dict(protected, unprotected, key_ops=key_ops, key=key)
+        return cls.new(protected, unprotected, key_ops=key_ops, key=key)

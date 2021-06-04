@@ -40,11 +40,11 @@ class TestCOSESample:
         encoded = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[recipient])
         assert b"Hello world!" == ctx.decode(encoded, mac_key)
 
-        recipient2 = Recipient.from_dict(unprotected={"alg": "direct", "kid": "01"})
+        recipient2 = Recipient.new(unprotected={"alg": "direct", "kid": "01"})
         encoded2 = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[recipient2])
         assert b"Hello world!" == ctx.decode(encoded2, mac_key)
 
-        recipient3 = Recipient.from_dict(unprotected={1: -6, 4: b"01"})
+        recipient3 = Recipient.new(unprotected={1: -6, 4: b"01"})
         encoded3 = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[recipient3])
         assert b"Hello world!" == ctx.decode(encoded3, mac_key)
 
@@ -93,7 +93,7 @@ class TestCOSESample:
         )
         assert b"Hello world!" == ctx.decode(encoded, enc_key)
 
-        recipient = Recipient.from_dict(unprotected={"alg": "direct", "kid": "01"})
+        recipient = Recipient.new(unprotected={"alg": "direct", "kid": "01"})
         encoded2 = ctx.encode_and_encrypt(
             b"Hello world!",
             enc_key,
