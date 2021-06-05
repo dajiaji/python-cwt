@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Union
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
-from ..const import COSE_ALGORITHMS_SYMMETRIC, COSE_KEY_LEN, COSE_KEY_OPERATION_VALUES
+from ..const import COSE_KEY_LEN, COSE_KEY_OPERATION_VALUES
 from ..cose_key import COSEKey
 from ..cose_key_interface import COSEKeyInterface
 from ..exceptions import EncodeError, VerifyError
@@ -98,23 +98,3 @@ class DirectHKDF(Direct):
         except Exception as err:
             raise VerifyError("Failed to verify key.") from err
         return
-
-    def _validate_context(self, context: List[Any]):
-        if len(context) != 4 and len(context) != 5:
-            raise ValueError("Invalid context information.")
-        # AlgorithmID
-        if not isinstance(context[0], int):
-            raise ValueError("AlgorithmID should be int.")
-        if context[0] not in COSE_ALGORITHMS_SYMMETRIC.values():
-            raise ValueError(f"Unsupported or unknown algorithm: {context[0]}.")
-        # PartyVInfo
-        if not isinstance(context[1], list) or len(context[1]) != 3:
-            raise ValueError("PartyUInfo should be list(size=3).")
-        # PartyUInfo
-        if not isinstance(context[2], list) or len(context[2]) != 3:
-            raise ValueError("PartyVInfo should be list(size=3).")
-        # SuppPubInfo
-        if not isinstance(context[3], list) or (
-            len(context[3]) != 2 and len(context[3]) != 3
-        ):
-            raise ValueError("SuppPubInfo should be list(size=2 or 3).")
