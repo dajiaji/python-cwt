@@ -258,33 +258,7 @@ class COSEKey:
         elif isinstance(k, EllipticCurvePrivateKey) or isinstance(
             k, EllipticCurvePublicKey
         ):
-            key_len: int = 32
-            cose_key[1] = COSE_KEY_TYPES["EC2"]
-            if k.curve.name == "secp256r1":
-                cose_key[-1] = 1
-            elif k.curve.name == "secp384r1":
-                cose_key[-1] = 2
-                key_len = 48
-            elif k.curve.name == "secp521r1":
-                cose_key[-1] = 3
-                key_len = 66
-            elif k.curve.name == "secp256k1":
-                cose_key[-1] = 8
-            else:
-                raise ValueError(f"Unsupported or unknown alg: {k.curve.name}.")
-            if isinstance(k, EllipticCurvePublicKey):
-                cose_key[-2] = k.public_numbers().x.to_bytes(key_len, byteorder="big")
-                cose_key[-3] = k.public_numbers().y.to_bytes(key_len, byteorder="big")
-            else:
-                cose_key[-2] = (
-                    k.public_key().public_numbers().x.to_bytes(key_len, byteorder="big")
-                )
-                cose_key[-3] = (
-                    k.public_key().public_numbers().y.to_bytes(key_len, byteorder="big")
-                )
-                cose_key[-4] = k.private_numbers().private_value.to_bytes(
-                    key_len, byteorder="big"
-                )
+            cose_key.update(EC2Key.to_cose_key(k))
         elif isinstance(k, Ed25519PublicKey) or isinstance(k, Ed25519PrivateKey):
             cose_key[1] = COSE_KEY_TYPES["OKP"]
             cose_key[3] = -8  # EdDSA
