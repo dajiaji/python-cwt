@@ -42,8 +42,6 @@ class RecipientInterface(COSEKeyInterface):
             if not isinstance(unprotected[4], bytes):
                 raise ValueError("unprotected[4](kid) should be bytes.")
             params[2] = unprotected[4]
-        else:
-            params[2] = b""
 
         # alg
         if 1 in protected:

@@ -57,7 +57,7 @@ class TestRecipientInterface:
         assert r.unprotected == {}
         assert r.ciphertext == b""
         assert isinstance(r.recipients, list)
-        assert r.kid == b""
+        assert r.kid is None
         assert r.alg == 0
         assert len(r.recipients) == 0
         with pytest.raises(NotImplementedError):
