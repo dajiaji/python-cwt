@@ -1,14 +1,18 @@
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 import cryptography
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives.asymmetric.ec import (
+    EllipticCurvePrivateKey,
+    EllipticCurvePublicKey,
+)
 from cryptography.hazmat.primitives.asymmetric.utils import (
     decode_dss_signature,
     encode_dss_signature,
 )
 
-from ..const import JWK_ELLIPTIC_CURVES
+from ..const import COSE_KEY_TYPES, JWK_ELLIPTIC_CURVES
 from ..exceptions import EncodeError, VerifyError
 from ..utils import i2osp, os2ip
 from .signature import SignatureKey
@@ -105,6 +109,7 @@ class EC2Key(SignatureKey):
         # Validate d.
         if -4 not in params:
             self._public_key = public_numbers.public_key()
+            self._key = self._public_key
             return
 
         if not isinstance(params[-4], bytes):
@@ -118,9 +123,49 @@ class EC2Key(SignatureKey):
             self._private_key = ec.EllipticCurvePrivateNumbers(
                 int.from_bytes(self._d, byteorder="big"), public_numbers
             ).private_key()
+            self._key = self._private_key
         except Exception as err:
             raise ValueError("Invalid private key.") from err
         return
+
+    @staticmethod
+    def to_cose_key(
+        k: Union[EllipticCurvePrivateKey, EllipticCurvePublicKey]
+    ) -> Dict[int, Any]:
+        key_len: int = 32
+        cose_key: Dict[int, Any] = {}
+
+        cose_key[1] = COSE_KEY_TYPES["EC2"]
+        if k.curve.name == "secp256r1":
+            cose_key[-1] = 1
+        elif k.curve.name == "secp384r1":
+            cose_key[-1] = 2
+            key_len = 48
+        elif k.curve.name == "secp521r1":
+            cose_key[-1] = 3
+            key_len = 66
+        elif k.curve.name == "secp256k1":
+            cose_key[-1] = 8
+        else:
+            raise ValueError(f"Unsupported or unknown alg: {k.curve.name}.")
+        if isinstance(k, EllipticCurvePublicKey):
+            cose_key[-2] = k.public_numbers().x.to_bytes(key_len, byteorder="big")
+            cose_key[-3] = k.public_numbers().y.to_bytes(key_len, byteorder="big")
+            return cose_key
+        cose_key[-2] = (
+            k.public_key().public_numbers().x.to_bytes(key_len, byteorder="big")
+        )
+        cose_key[-3] = (
+            k.public_key().public_numbers().y.to_bytes(key_len, byteorder="big")
+        )
+        cose_key[-4] = k.private_numbers().private_value.to_bytes(
+            key_len, byteorder="big"
+        )
+        return cose_key
+
+    @property
+    def key(self) -> Union[EllipticCurvePublicKey, EllipticCurvePrivateKey]:
+        return self._key
 
     @property
     def crv(self) -> int:

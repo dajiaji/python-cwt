@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional, Union
 
+from .const import COSE_ALGORITHMS_SYMMETRIC
 from .cose_key_interface import COSEKeyInterface
 
 
@@ -155,14 +156,21 @@ class RecipientInterface(COSEKeyInterface):
         return
 
     def derive_key(
-        self, material: bytes, context: Union[List[Any], Dict[str, Any]]
+        self,
+        context: Union[List[Any], Dict[str, Any]],
+        material: bytes = b"",
+        private_key: Optional[COSEKeyInterface] = None,
+        public_key: Optional[COSEKeyInterface] = None,
     ) -> COSEKeyInterface:
         """
-        Derives a key from a key material.
+        Derives a key with a key material or key exchange.
 
         Args:
-            material (bytes): A key material.
-            context (Union[List[Any], Dict[str, Any]]): Context information structure.
+            context (Union[List[Any], Dict[str, Any]]): Context information structure for
+                key derivation functions.
+            material (bytes): A key material as bytes.
+            private_key: A private key for key derivation with key exchange.
+            public_key: A public key for key derivation with key exchange.
         Returns:
             COSEKeyInterface: A COSE key derived.
         Raises:
@@ -219,3 +227,23 @@ class RecipientInterface(COSEKeyInterface):
             DecodeError: Failed to decode(unwrap) the key.
         """
         raise NotImplementedError
+
+    def _validate_context(self, context: List[Any]):
+        if len(context) != 4 and len(context) != 5:
+            raise ValueError("Invalid context information.")
+        # AlgorithmID
+        if not isinstance(context[0], int):
+            raise ValueError("AlgorithmID should be int.")
+        if context[0] not in COSE_ALGORITHMS_SYMMETRIC.values():
+            raise ValueError(f"Unsupported or unknown algorithm: {context[0]}.")
+        # PartyVInfo
+        if not isinstance(context[1], list) or len(context[1]) != 3:
+            raise ValueError("PartyUInfo should be list(size=3).")
+        # PartyUInfo
+        if not isinstance(context[2], list) or len(context[2]) != 3:
+            raise ValueError("PartyVInfo should be list(size=3).")
+        # SuppPubInfo
+        if not isinstance(context[3], list) or (
+            len(context[3]) != 2 and len(context[3]) != 3
+        ):
+            raise ValueError("SuppPubInfo should be list(size=2 or 3).")

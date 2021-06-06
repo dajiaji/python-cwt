@@ -552,8 +552,8 @@ class TestCOSE:
             [128, cbor2.dumps({1: -10}), b"Encryption Example 02"],
         ]
         enc_key = recipient.derive_key(
-            base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
-            context=context,
+            context,
+            material=base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
         )
         ctx = COSE.new()
         encoded = ctx.encode_and_encrypt(
@@ -604,8 +604,8 @@ class TestCOSE:
             },
         }
         enc_key = recipient.derive_key(
-            base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
-            context=context,
+            context,
+            material=base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
         )
         ctx = COSE.new()
         encoded = ctx.encode_and_encrypt(
@@ -661,6 +661,45 @@ class TestCOSE:
         res = ctx.decode(encoded, key=[recipient])
         assert res == b"This is the content."
 
+    def test_cose_sample_cose_wg_ecdh_direct_p256_hkdf_256_01(self):
+        recipient = Recipient.from_json(
+            {
+                "alg": "ECDH-ES+HKDF-256",
+            },
+        )
+        pub_key = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "meriadoc.brandybuck@buckland.example",
+                "crv": "P-256",
+                "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
+                "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
+            }
+        )
+        enc_key = recipient.derive_key(
+            {"alg": "A128GCM"},
+            public_key=pub_key,
+        )
+        ctx = COSE.new(alg_auto_inclusion=True)
+        encoded = ctx.encode_and_encrypt(
+            b"This is the content.",
+            key=enc_key,
+            recipients=[recipient],
+        )
+        priv_key = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "meriadoc.brandybuck@buckland.example",
+                "crv": "P-256",
+                "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
+                "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
+                "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",
+            }
+        )
+        assert b"This is the content." == ctx.decode(
+            encoded, priv_key, context={"alg": "A128GCM"}
+        )
+
     @pytest.mark.parametrize(
         "invalid, msg",
         [
@@ -675,7 +714,6 @@ class TestCOSE:
         ],
     )
     def test_cose_encode_and_mac_with_invalid_protected(self, ctx, invalid, msg):
-        # ???
         key = COSEKey.from_symmetric_key(alg="HS256")
         with pytest.raises(ValueError) as err:
             ctx.encode_and_mac(b"This is the content.", key, protected=invalid)
@@ -933,3 +971,25 @@ class TestCOSE:
             ctx.decode(encoded, [key1, key2])
             pytest.fail("decode should fail.")
         assert "key is not specified." in str(err.value)
+
+    def test_cose_decode_ecdh_es_hkdf_256_without_context(self):
+        with open(key_path("public_key_es256.pem")) as key_file:
+            public_key = COSEKey.from_pem(key_file.read(), kid="01")
+        recipient = Recipient.from_json({"alg": "ECDH-ES+HKDF-256"})
+        enc_key = recipient.derive_key(
+            {"alg": "A128GCM"},
+            public_key=public_key,
+        )
+        ctx = COSE.new(alg_auto_inclusion=True)
+        encoded = ctx.encode_and_encrypt(
+            b"This is the content.",
+            key=enc_key,
+            recipients=[recipient],
+        )
+
+        with open(key_path("private_key_es256.pem")) as key_file:
+            private_key = COSEKey.from_pem(key_file.read(), kid="01")
+        with pytest.raises(ValueError) as err:
+            ctx.decode(encoded, private_key)
+            pytest.fail("decode should fail.")
+        assert "context should be set." in str(err.value)

@@ -98,8 +98,7 @@ class TestDirectHKDF:
     def test_direct_hkdf_derive_key(self):
         ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
         key = ctx.derive_key(
-            b"hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
-            context={
+            {
                 "alg": "AES-CCM-16-64-128",
                 "party_u": {
                     "identity": "lighting-client",
@@ -111,6 +110,7 @@ class TestDirectHKDF:
                     "other": "Encryption Example 02",
                 },
             },
+            material=b"hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
         )
         assert key.alg == 10
 
@@ -118,8 +118,7 @@ class TestDirectHKDF:
         ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
         with pytest.raises(EncodeError) as err:
             ctx.derive_key(
-                None,
-                context={
+                {
                     "alg": "AES-CCM-16-64-128",
                     "party_u": {
                         "identity": "lighting-client",
@@ -131,6 +130,7 @@ class TestDirectHKDF:
                         "other": "Encryption Example 02",
                     },
                 },
+                None,
             )
             pytest.fail("derive_key should fail.")
         assert "Failed to derive key." in str(err.value)
@@ -150,8 +150,8 @@ class TestDirectHKDF:
             },
         }
         key = ctx.derive_key(
-            b"hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
-            context=context,
+            context,
+            material=b"hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
         )
         ctx.verify_key(
             b"hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
@@ -168,8 +168,8 @@ class TestDirectHKDF:
             [128, cbor2.dumps({1: -10}), b"Encryption Example 02"],
         ]
         key = ctx.derive_key(
-            b"hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
-            context=context,
+            context,
+            material=b"hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
         )
         ctx.verify_key(
             b"hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
@@ -192,8 +192,8 @@ class TestDirectHKDF:
             },
         }
         key = ctx.derive_key(
-            b"hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
-            context=context,
+            context,
+            material=b"hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
         )
         with pytest.raises(VerifyError) as err:
             ctx.verify_key(
@@ -237,8 +237,8 @@ class TestDirectHKDF:
         ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
         with pytest.raises(ValueError) as err:
             ctx.derive_key(
-                b"hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
-                context=invalid,
+                invalid,
+                material=b"hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
             )
             pytest.fail("derive_key should fail.")
         assert msg in str(err.value)

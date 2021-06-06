@@ -1,9 +1,20 @@
 import base64
-from typing import Any, Dict, List, Optional
+import json
+from typing import Any, Dict, List, Optional, Union
 
 import cbor2
 
-from .const import COSE_HEADER_PARAMETERS, COSE_KEY_LEN, COSE_NAMED_ALGORITHMS_SUPPORTED
+from .const import (
+    COSE_HEADER_PARAMETERS,
+    COSE_KEY_LEN,
+    COSE_KEY_TYPES,
+    COSE_NAMED_ALGORITHMS_SUPPORTED,
+    JWK_ELLIPTIC_CURVES,
+    JWK_OPERATIONS,
+    JWK_PARAMS_EC,
+    JWK_PARAMS_OKP,
+    JWK_PARAMS_RSA,
+)
 
 
 def i2osp(x: int, x_len: int) -> bytes:
@@ -108,7 +119,7 @@ def to_cis(context: Dict[str, Any], alg: int = 0, recipient_alg: int = 0) -> Lis
     res.append(party_v)
 
     # SuppPubInfo
-    supp_pub: List[Any] = [None, None, None]
+    supp_pub: List[Any] = [None, None]
     protected = {}
     if "supp_pub" in context:
         if not isinstance(context["supp_pub"], dict):
@@ -126,7 +137,7 @@ def to_cis(context: Dict[str, Any], alg: int = 0, recipient_alg: int = 0) -> Lis
         if "other" in context["supp_pub"]:
             if not isinstance(context["supp_pub"]["other"], str):
                 raise ValueError("supp_pub.other should be str.")
-            supp_pub[2] = context["supp_pub"]["other"].encode("utf-8")
+            supp_pub.append(context["supp_pub"]["other"].encode("utf-8"))
     if alg not in COSE_KEY_LEN:
         raise ValueError(f"Unsupported or unknown alg: {alg}.")
     supp_pub[0] = COSE_KEY_LEN[alg]
@@ -160,3 +171,98 @@ def to_cose_header(
             v = v.encode("utf-8") if isinstance(v, str) else v
         res[COSE_HEADER_PARAMETERS[k]] = v
     return res
+
+
+def jwk_to_cose_key_params(data: Union[str, bytes, Dict[str, Any]]) -> Dict[int, Any]:
+    cose_key: Dict[int, Any] = {}
+
+    # kty
+    jwk: Dict[str, Any]
+    if not isinstance(data, dict):
+        jwk = json.loads(data)
+    else:
+        jwk = data
+    if "kty" not in jwk:
+        raise ValueError("kty not found.")
+    if jwk["kty"] not in COSE_KEY_TYPES:
+        raise ValueError(f"Unknown kty: {jwk['kty']}.")
+    cose_key[1] = COSE_KEY_TYPES[jwk["kty"]]
+
+    # kid
+    if "kid" in jwk:
+        if not isinstance(jwk["kid"], str):
+            raise ValueError("kid should be str.")
+        cose_key[2] = jwk["kid"].encode("utf-8")
+
+    # alg
+    if "alg" in jwk:
+        if not isinstance(jwk["alg"], str):
+            raise ValueError("alg should be str.")
+        if jwk["alg"] not in COSE_NAMED_ALGORITHMS_SUPPORTED:
+            raise ValueError(f"Unsupported or unknown alg: {jwk['alg']}.")
+        cose_key[3] = COSE_NAMED_ALGORITHMS_SUPPORTED[jwk["alg"]]
+
+    # key operation dependent conversion
+    is_public = False
+    if cose_key[1] == 4:  # Symmetric
+        if "k" not in jwk or not isinstance(jwk["k"], str):
+            raise ValueError("k is not found or invalid format.")
+        cose_key[-1] = base64url_decode(jwk["k"])
+
+    elif cose_key[1] == 3:  # RSA
+        for k, v in jwk.items():
+            if k not in JWK_PARAMS_RSA:
+                continue
+            cose_key[JWK_PARAMS_RSA[k]] = base64url_decode(v)
+        if -3 not in cose_key:
+            is_public = True
+
+    else:  # OKP/EC2
+        if "crv" not in jwk:
+            raise ValueError("crv not found.")
+        if jwk["crv"] not in JWK_ELLIPTIC_CURVES:
+            raise ValueError(f"Unknown crv: {jwk['crv']}.")
+        cose_key[-1] = JWK_ELLIPTIC_CURVES[jwk["crv"]]
+
+        if cose_key[1] == 1:  # OKP
+            for k, v in jwk.items():
+                if k not in JWK_PARAMS_OKP:
+                    continue
+                cose_key[JWK_PARAMS_OKP[k]] = base64url_decode(v)
+
+        else:  # EC2
+            for k, v in jwk.items():
+                if k not in JWK_PARAMS_EC:
+                    continue
+                cose_key[JWK_PARAMS_EC[k]] = base64url_decode(v)
+        if -4 not in cose_key:
+            is_public = True
+
+    # use/key_ops
+    use = 0
+    if "use" in jwk:
+        if jwk["use"] == "enc":
+            use = 4 if is_public else 3  # 3: encrypt, 4: decrypt
+        elif jwk["use"] == "sig":
+            if cose_key[1] == 4:
+                use = 10  # 10: MAC verify
+            else:
+                use = 2 if is_public else 1  # 1: sign, 2: verify
+        else:
+            raise ValueError(f"Unknown use: {jwk['use']}.")
+    if "key_ops" in jwk:
+        if not isinstance(jwk["key_ops"], list):
+            raise ValueError("key_ops should be list.")
+        cose_key[4] = []
+        try:
+            for ops in jwk["key_ops"]:
+                cose_key[4].append(JWK_OPERATIONS[ops])
+        except KeyError as err:
+            raise ValueError("Unsupported or unknown key_ops.") from err
+        if use != 0 and use not in cose_key[4]:
+            raise ValueError("use and key_ops are conflicted each other.")
+    else:
+        if use != 0:
+            cose_key[4] = []
+            cose_key[4].append(use)
+    return cose_key

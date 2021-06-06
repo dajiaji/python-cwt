@@ -283,6 +283,7 @@ class COSE(CBORProcessor):
         self,
         data: Union[bytes, CBORTag],
         key: Optional[Union[COSEKeyInterface, List[COSEKeyInterface]]] = None,
+        context: Optional[Union[Dict[str, Any], List[Any]]] = None,
         materials: Optional[List[dict]] = None,
         external_aad: bytes = b"",
     ) -> bytes:
@@ -292,9 +293,14 @@ class COSE(CBORProcessor):
         Args:
             data (Union[bytes, CBORTag]): A byte string or cbor2.CBORTag of an
                 encoded data.
-            key (Optional[Union[COSEKeyInterface, List[COSEKeyInterface]]]): A COSE key to verify and decrypt the encoded data.
-            materials (Optional[List[dict]]): A list of key materials to be used to derive an encryption key.
-            external_aad(bytes): External additional authenticated data supplied by application.
+            key (Optional[Union[COSEKeyInterface, List[COSEKeyInterface]]]): A COSE
+                key to verify and decrypt the encoded data.
+            context (Optional[Union[Dict[str, Any], List[Any]]]): A context information
+                structure for key deriviation functions.
+            materials (Optional[List[dict]]): A list of key materials to be used to
+                derive an encryption key.
+            external_aad(bytes): External additional authenticated data supplied by
+                application.
         Returns:
             bytes: A byte string of decoded payload.
         Raises:
@@ -351,9 +357,11 @@ class COSE(CBORProcessor):
             nonce = unprotected.get(5, None)
             recipients = Recipients.from_list(data.value[3])
             enc_key = (
-                recipients.derive_key(keys=keys, alg_hint=alg_hint)
+                recipients.extract_key(keys=keys, context=context, alg_hint=alg_hint)
                 if key is not None
-                else recipients.derive_key(materials=materials, alg_hint=alg_hint)
+                else recipients.extract_key(
+                    materials=materials, context=context, alg_hint=alg_hint
+                )
             )
             return enc_key.decrypt(data.value[2], nonce, aad)
 
@@ -387,7 +395,9 @@ class COSE(CBORProcessor):
                     else 0
                 )
             recipients = Recipients.from_list(data.value[4])
-            mac_auth_key = recipients.derive_key(keys=keys, alg_hint=alg_hint)
+            mac_auth_key = recipients.extract_key(
+                keys=keys, context=context, alg_hint=alg_hint
+            )
             mac_auth_key.verify(to_be_maced, data.value[3])
             return data.value[2]
 

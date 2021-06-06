@@ -1,4 +1,3 @@
-import json
 from typing import Any, Dict, List, Optional, Union
 
 import cbor2
@@ -38,16 +37,9 @@ from .const import (
     COSE_ALGORITHMS_SYMMETRIC,
     COSE_KEY_OPERATION_VALUES,
     COSE_KEY_TYPES,
-    COSE_NAMED_ALGORITHMS_SUPPORTED,
-    JWK_ELLIPTIC_CURVES,
-    JWK_OPERATIONS,
-    JWK_PARAMS_EC,
-    JWK_PARAMS_OKP,
-    JWK_PARAMS_RSA,
-    JWK_TYPES,
 )
 from .cose_key_interface import COSEKeyInterface
-from .utils import base64url_decode, uint_to_bytes
+from .utils import jwk_to_cose_key_params, uint_to_bytes
 
 
 class COSEKey:
@@ -179,98 +171,7 @@ class COSEKey:
             ValueError: Invalid arguments.
             DecodeError: Failed to decode the key data.
         """
-        cose_key: Dict[int, Any] = {}
-
-        # kty
-        jwk: Dict[str, Any]
-        if not isinstance(data, dict):
-            jwk = json.loads(data)
-        else:
-            jwk = data
-        if "kty" not in jwk:
-            raise ValueError("kty not found.")
-        if jwk["kty"] not in JWK_TYPES:
-            raise ValueError(f"Unknown kty: {jwk['kty']}.")
-        cose_key[1] = JWK_TYPES[jwk["kty"]]
-
-        # kid
-        if "kid" in jwk:
-            if not isinstance(jwk["kid"], str):
-                raise ValueError("kid should be str.")
-            cose_key[2] = jwk["kid"].encode("utf-8")
-
-        # alg
-        if "alg" in jwk:
-            if not isinstance(jwk["alg"], str):
-                raise ValueError("alg should be str.")
-            if jwk["alg"] not in COSE_NAMED_ALGORITHMS_SUPPORTED:
-                raise ValueError(f"Unsupported or unknown alg: {jwk['alg']}.")
-            cose_key[3] = COSE_NAMED_ALGORITHMS_SUPPORTED[jwk["alg"]]
-
-        # key operation dependent conversion
-        is_public = False
-        if cose_key[1] == 4:  # Symmetric
-            if "k" not in jwk or not isinstance(jwk["k"], str):
-                raise ValueError("k is not found or invalid format.")
-            cose_key[-1] = base64url_decode(jwk["k"])
-
-        elif cose_key[1] == 3:  # RSA
-            for k, v in jwk.items():
-                if k not in JWK_PARAMS_RSA:
-                    continue
-                cose_key[JWK_PARAMS_RSA[k]] = base64url_decode(v)
-            if -3 not in cose_key:
-                is_public = True
-
-        else:  # OKP/EC2
-            if "crv" not in jwk:
-                raise ValueError("crv not found.")
-            if jwk["crv"] not in JWK_ELLIPTIC_CURVES:
-                raise ValueError(f"Unknown crv: {jwk['crv']}.")
-            cose_key[-1] = JWK_ELLIPTIC_CURVES[jwk["crv"]]
-
-            if cose_key[1] == 1:  # OKP
-                for k, v in jwk.items():
-                    if k not in JWK_PARAMS_OKP:
-                        continue
-                    cose_key[JWK_PARAMS_OKP[k]] = base64url_decode(v)
-
-            else:  # EC2
-                for k, v in jwk.items():
-                    if k not in JWK_PARAMS_EC:
-                        continue
-                    cose_key[JWK_PARAMS_EC[k]] = base64url_decode(v)
-            if -4 not in cose_key:
-                is_public = True
-
-        # use/key_ops
-        use = 0
-        if "use" in jwk:
-            if jwk["use"] == "enc":
-                use = 4 if is_public else 3  # 3: encrypt, 4: decrypt
-            elif jwk["use"] == "sig":
-                if cose_key[1] == 4:
-                    use = 10  # 10: MAC verify
-                else:
-                    use = 2 if is_public else 1  # 1: sign, 2: verify
-            else:
-                raise ValueError(f"Unknown use: {jwk['use']}.")
-        if "key_ops" in jwk:
-            if not isinstance(jwk["key_ops"], list):
-                raise ValueError("key_ops should be list.")
-            cose_key[4] = []
-            try:
-                for ops in jwk["key_ops"]:
-                    cose_key[4].append(JWK_OPERATIONS[ops])
-            except KeyError as err:
-                raise ValueError("Unsupported or unknown key_ops.") from err
-            if use != 0 and use not in cose_key[4]:
-                raise ValueError("use and key_ops are conflicted each other.")
-        else:
-            if use != 0:
-                cose_key[4] = []
-                cose_key[4].append(use)
-        return cls.new(cose_key)
+        return cls.new(jwk_to_cose_key_params(data))
 
     @classmethod
     def from_pem(
@@ -357,33 +258,7 @@ class COSEKey:
         elif isinstance(k, EllipticCurvePrivateKey) or isinstance(
             k, EllipticCurvePublicKey
         ):
-            key_len: int = 32
-            cose_key[1] = COSE_KEY_TYPES["EC2"]
-            if k.curve.name == "secp256r1":
-                cose_key[-1] = 1
-            elif k.curve.name == "secp384r1":
-                cose_key[-1] = 2
-                key_len = 48
-            elif k.curve.name == "secp521r1":
-                cose_key[-1] = 3
-                key_len = 66
-            elif k.curve.name == "secp256k1":
-                cose_key[-1] = 8
-            else:
-                raise ValueError(f"Unsupported or unknown alg: {k.curve.name}.")
-            if isinstance(k, EllipticCurvePublicKey):
-                cose_key[-2] = k.public_numbers().x.to_bytes(key_len, byteorder="big")
-                cose_key[-3] = k.public_numbers().y.to_bytes(key_len, byteorder="big")
-            else:
-                cose_key[-2] = (
-                    k.public_key().public_numbers().x.to_bytes(key_len, byteorder="big")
-                )
-                cose_key[-3] = (
-                    k.public_key().public_numbers().y.to_bytes(key_len, byteorder="big")
-                )
-                cose_key[-4] = k.private_numbers().private_value.to_bytes(
-                    key_len, byteorder="big"
-                )
+            cose_key.update(EC2Key.to_cose_key(k))
         elif isinstance(k, Ed25519PublicKey) or isinstance(k, Ed25519PrivateKey):
             cose_key[1] = COSE_KEY_TYPES["OKP"]
             cose_key[3] = -8  # EdDSA

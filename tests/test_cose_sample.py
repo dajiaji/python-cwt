@@ -32,7 +32,7 @@ class TestCOSESample:
 
         assert encoded == encoded2 == encoded3
 
-    def test_cose_usage_examples_cose_mac(self):
+    def test_cose_usage_examples_cose_mac_direct(self):
         mac_key = COSEKey.from_symmetric_key(alg="HS512", kid="01")
         recipient = Recipient.from_json({"alg": "direct", "kid": "01"})
 
@@ -49,6 +49,22 @@ class TestCOSESample:
         assert b"Hello world!" == ctx.decode(encoded3, mac_key)
 
         assert encoded == encoded2 == encoded3
+
+    def test_cose_usage_examples_cose_mac_aes_key_wrap(self):
+        mac_key = COSEKey.from_symmetric_key(alg="HS512")
+        recipient = Recipient.from_json(
+            {
+                "alg": "A128KW",
+                "kid": "our-secret",
+                "k": "hJtXIZ2uSN5kbQfbtTNWbg",
+            },
+        )
+        recipient.wrap_key(mac_key.key)
+        ctx = COSE.new(alg_auto_inclusion=True)
+        encoded = ctx.encode_and_mac(
+            b"Hello world!", key=mac_key, recipients=[recipient]
+        )
+        assert b"Hello world!" == ctx.decode(encoded, recipient)
 
     def test_cose_usage_examples_cose_encrypt0(self):
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
@@ -114,7 +130,7 @@ class TestCOSESample:
 
     def test_cose_usage_examples_cose_signature1(self):
 
-        sig_key = COSEKey.from_jwk(
+        priv_key = COSEKey.from_jwk(
             {
                 "kty": "EC",
                 "kid": "01",
@@ -125,25 +141,35 @@ class TestCOSESample:
             }
         )
         ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
-        encoded = ctx.encode_and_sign(b"Hello world!", sig_key)
-        assert b"Hello world!" == ctx.decode(encoded, sig_key)
+        encoded = ctx.encode_and_sign(b"Hello world!", priv_key)
+
+        pub_key = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+        assert b"Hello world!" == ctx.decode(encoded, pub_key)
 
         ctx = COSE.new()
         encoded2 = ctx.encode_and_sign(
             b"Hello world!",
-            sig_key,
+            priv_key,
             protected={"alg": "ES256"},
             unprotected={"kid": "01"},
         )
-        assert b"Hello world!" == ctx.decode(encoded2, sig_key)
+        assert b"Hello world!" == ctx.decode(encoded2, pub_key)
 
         encoded3 = ctx.encode_and_sign(
             b"Hello world!",
-            sig_key,
+            priv_key,
             protected={1: -7},
             unprotected={4: b"01"},
         )
-        assert b"Hello world!" == ctx.decode(encoded3, sig_key)
+        assert b"Hello world!" == ctx.decode(encoded3, pub_key)
 
     def test_cose_usage_examples_cose_signature(self):
 
@@ -159,7 +185,17 @@ class TestCOSESample:
         )
         ctx = COSE.new()
         encoded = ctx.encode_and_sign(b"Hello world!", signers=[signer])
-        assert b"Hello world!" == ctx.decode(encoded, signer.cose_key)
+
+        pub_key = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+        assert b"Hello world!" == ctx.decode(encoded, pub_key)
 
         signer = Signer.new(
             cose_key=COSEKey.from_jwk(
@@ -176,7 +212,7 @@ class TestCOSESample:
             unprotected={"kid": "01"},
         )
         encoded2 = ctx.encode_and_sign(b"Hello world!", signers=[signer])
-        assert b"Hello world!" == ctx.decode(encoded2, signer.cose_key)
+        assert b"Hello world!" == ctx.decode(encoded2, pub_key)
 
         signer = Signer.new(
             cose_key=COSEKey.from_jwk(
@@ -193,4 +229,4 @@ class TestCOSESample:
             unprotected={4: b"01"},
         )
         encoded3 = ctx.encode_and_sign(b"Hello world!", signers=[signer])
-        assert b"Hello world!" == ctx.decode(encoded3, signer.cose_key)
+        assert b"Hello world!" == ctx.decode(encoded3, pub_key)
