@@ -80,16 +80,16 @@ COSE_KEY_OPERATION_VALUES = {
     "encrypt": 3,
     "decrypt": 4,
     "wrap key": 5,
-    "unwrap key": 6,
-    "derive key": 7,
-    "derive bits": 8,
-    "MAC create": 9,
-    "MAC verify": 10,
     "wrapKey": 5,  # JWK
+    "unwrap key": 6,
     "unwrapKey": 6,  # JWK
+    "derive key": 7,
     "deriveKey": 7,  # JWK
+    "derive bits": 8,
     "deriveBits": 8,  # JWK
+    "MAC create": 9,
     "createMAC": 9,  # JWK-like lowerCamelCase
+    "MAC verify": 10,
     "verifyMAC": 10,  # JWK-like lowerCamelCase
 }
 
@@ -132,6 +132,7 @@ COSE_ALGORITHMS_CKDM = {
     "direct+HKDF-SHA-512": -11,  # Shared secret w/ HKDF and SHA-512
     "direct+HKDF-SHA-256": -10,  # Shared secret w/ HKDF and SHA-256
     "direct": -6,  # direct
+    "dir": -6,  # direct (JWK)
     # etc.
 }
 
@@ -142,15 +143,33 @@ COSE_ALGORITHMS_KEY_WRAP = {
     # etc.
 }
 
+COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP = {
+    "ECDH-SS+A256KW": -34,  # ECDH SS w/ Concat KDF and AES Key Wrap w/ 256-bit key
+    "ECDH-SS+A192KW": -33,  # ECDH SS w/ Concat KDF and AES Key Wrap w/ 192-bit key
+    "ECDH-SS+A128KW": -32,  # ECDH SS w/ Concat KDF and AES Key Wrap w/ 128-bit key
+    "ECDH-ES+A256KW": -31,  # ECDH ES w/ Concat KDF and AES Key Wrap w/ 256-bit key
+    "ECDH-ES+A192KW": -30,  # ECDH ES w/ Concat KDF and AES Key Wrap w/ 192-bit key
+    "ECDH-ES+A128KW": -29,  # ECDH ES w/ Concat KDF and AES Key Wrap w/ 128-bit key
+    # etc.
+}
+
+COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT = {
+    "ECDH-SS+HKDF-512": -28,  # ECDH SS w/ HKDF - generate key directly
+    "ECDH-SS+HKDF-256": -27,  # ECDH SS w/ HKDF - generate key directly
+    "ECDH-ES+HKDF-512": -26,  # ECDH ES w/ HKDF - generate key directly
+    "ECDH-ES+HKDF-256": -25,  # ECDH ES w/ HKDF - generate key directly
+    # etc.
+}
+
 # COSE Algorithms for MAC.
 COSE_ALGORITHMS_MAC = {
     "HMAC 256/64": 4,  # HMAC w/ SHA-256 truncated to 64 bits
-    "HS256": 5,  # HMAC w/ SHA-256 (JWK)
-    "HS384": 6,  # HMAC w/ SHA-384 (JWK)
-    "HS512": 7,  # HMAC w/ SHA-512 (JWK)
     "HMAC 256/256": 5,  # HMAC w/ SHA-256
+    "HS256": 5,  # HMAC w/ SHA-256 (JWK)
     "HMAC 384/384": 6,  # HMAC w/ SHA-384
+    "HS384": 6,  # HMAC w/ SHA-384 (JWK)
     "HMAC 512/512": 7,  # HMAC w/ SHA-512
+    "HS512": 7,  # HMAC w/ SHA-512 (JWK)
     "AES-MAC128/64": 14,  # AES-MAC 128-bit key, 64-bit tag
     "AES-MAC256/64": 15,  # AES-MAC 256-bit key, 64-bit tag
     "AES-MAC128/128": 25,  # AES-MAC 128-bit key, 128-bit tag
@@ -269,7 +288,12 @@ JWK_ELLIPTIC_CURVES = {
 }
 
 # COSE Algorithms for recipients.
-COSE_ALGORITHMS_RECIPIENT = {**COSE_ALGORITHMS_CKDM, **COSE_ALGORITHMS_KEY_WRAP}
+COSE_ALGORITHMS_RECIPIENT = {
+    **COSE_ALGORITHMS_CKDM,
+    **COSE_ALGORITHMS_KEY_WRAP,
+    **COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT,
+    **COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP,
+}
 
 # COSE Algorithms for Symmetric Keys.
 COSE_ALGORITHMS_SYMMETRIC = {**COSE_ALGORITHMS_MAC, **COSE_ALGORITHMS_CEK}
@@ -285,7 +309,11 @@ COSE_ALGORITHMS_SIGNATURE = {
 }
 
 # All of Supported COSE Algorithms.
-COSE_ALGORITHMS = {**COSE_ALGORITHMS_SIGNATURE, **COSE_ALGORITHMS_SYMMETRIC}
+COSE_ALGORITHMS = {
+    **COSE_ALGORITHMS_SIGNATURE,
+    **COSE_ALGORITHMS_SYMMETRIC,
+    **COSE_ALGORITHMS_RECIPIENT,
+}
 
 # COSE Named Algorithms for converting from JWK-like key.
 COSE_NAMED_ALGORITHMS_SUPPORTED = {**JOSE_ALGORITHMS_SUPPORTED, **COSE_ALGORITHMS}

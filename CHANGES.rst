@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 
+- Add support for ECDH direct HKDF. `#118 <https://github.com/dajiaji/python-cwt/pull/118>`__
+
 Version 0.9.0
 -------------
 

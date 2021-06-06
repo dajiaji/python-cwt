@@ -119,7 +119,7 @@ def to_cis(context: Dict[str, Any], alg: int = 0, recipient_alg: int = 0) -> Lis
     res.append(party_v)
 
     # SuppPubInfo
-    supp_pub: List[Any] = [None, None, None]
+    supp_pub: List[Any] = [None, None]
     protected = {}
     if "supp_pub" in context:
         if not isinstance(context["supp_pub"], dict):
@@ -137,7 +137,7 @@ def to_cis(context: Dict[str, Any], alg: int = 0, recipient_alg: int = 0) -> Lis
         if "other" in context["supp_pub"]:
             if not isinstance(context["supp_pub"]["other"], str):
                 raise ValueError("supp_pub.other should be str.")
-            supp_pub[2] = context["supp_pub"]["other"].encode("utf-8")
+            supp_pub.append(context["supp_pub"]["other"].encode("utf-8"))
     if alg not in COSE_KEY_LEN:
         raise ValueError(f"Unsupported or unknown alg: {alg}.")
     supp_pub[0] = COSE_KEY_LEN[alg]

@@ -305,43 +305,43 @@ class TestRecipients:
             "mysecret", alg="HMAC 256/64", kid="our-secret"
         )
         r = Recipients([RecipientInterface(unprotected={1: -6, 4: b"our-secret"})])
-        key = r.derive_key([key])
+        key = r.extract_key([key])
         assert key.kty == 4
         assert key.alg == 4
         assert key.kid == b"our-secret"
 
-    def test_recipients_derive_key_with_empty_recipient(self):
+    def test_recipients_extract_key_with_empty_recipient(self):
         key = COSEKey.from_symmetric_key(
             "mysecret", alg="HMAC 256/64", kid="our-secret"
         )
         r = Recipients([RecipientInterface()])
         with pytest.raises(ValueError) as err:
-            r.derive_key([key])
-            pytest.fail("derive_key() should fail.")
+            r.extract_key([key])
+            pytest.fail("extract_key() should fail.")
         assert "Failed to derive a key." in str(err.value)
 
-    def test_recipients_derive_key_without_key(self):
+    def test_recipients_extract_key_without_key(self):
         r = Recipients([RecipientInterface(unprotected={1: -6, 4: b"our-secret"})])
         with pytest.raises(ValueError) as err:
-            r.derive_key([])
-            pytest.fail("derive_key() should fail.")
+            r.extract_key([])
+            pytest.fail("extract_key() should fail.")
         assert "Failed to derive a key." in str(err.value)
 
-    def test_recipients_derive_key_without_args(self):
+    def test_recipients_extract_key_without_args(self):
         r = Recipients([RecipientInterface(unprotected={1: -6, 4: b"our-secret"})])
         with pytest.raises(ValueError) as err:
-            r.derive_key()
-            pytest.fail("derive_key() should fail.")
+            r.extract_key()
+            pytest.fail("extract_key() should fail.")
         assert "Either keys or materials should be specified." in str(err.value)
 
-    def test_recipients_derive_key_with_empty_recipients(self, material):
+    def test_recipients_extract_key_with_empty_recipients(self, material):
         r = Recipients([])
         with pytest.raises(ValueError) as err:
-            r.derive_key(materials=[material])
-            pytest.fail("derive_key() should fail.")
+            r.extract_key(materials=[material])
+            pytest.fail("extract_key() should fail.")
         assert "Failed to derive a key." in str(err.value)
 
-    def test_recipients_derive_key_with_multiple_materials(self, material):
+    def test_recipients_extract_key_with_multiple_materials(self, material):
         r1 = Recipient.from_json(
             {
                 "alg": "direct",
@@ -356,11 +356,11 @@ class TestRecipients:
             }
         )
         rs = Recipients([r1, r2])
-        key = rs.derive_key(materials=[material])
+        key = rs.extract_key(materials=[material])
         assert key.alg == 10
         assert key.kid == b"02"
 
-    def test_recipients_derive_key_with_multiple_keys(self, material):
+    def test_recipients_extract_key_with_multiple_keys(self, material):
         mac_key = COSEKey.from_symmetric_key(
             bytes.fromhex(
                 "DDDC08972DF9BE62855291A17A1B4CF767C2DC762CB551911893BF7754988B0A286127BFF5D60C4CBC877CAC4BF3BA02C07AD544C951C3CA2FC46B70219BC3DC"
@@ -389,18 +389,18 @@ class TestRecipients:
         )
         r3.wrap_key(mac_key.key)
         rs = Recipients([r1, r2, r3])
-        key = rs.derive_key(keys=[r3], alg_hint=7)
+        key = rs.extract_key(keys=[r3], alg_hint=7)
         assert key.alg == 7
         assert key.kid == b"02"
 
-    def test_recipients_derive_key_with_different_kid(self):
+    def test_recipients_extract_key_with_different_kid(self):
         key = COSEKey.from_symmetric_key(
             "mysecret", alg="HMAC 256/64", kid="our-secret"
         )
         r = Recipients([RecipientInterface(unprotected={1: -6, 4: b"your-secret"})])
         with pytest.raises(ValueError) as err:
-            r.derive_key([key])
-            pytest.fail("derive_key() should fail.")
+            r.extract_key([key])
+            pytest.fail("extract_key() should fail.")
         assert "Failed to derive a key." in str(err.value)
 
     def test_recipients_from_list(self):
@@ -464,5 +464,5 @@ class TestRecipients:
     def test_recipients_from_list_with_invalid_args(self, invalid, msg):
         with pytest.raises(ValueError) as err:
             Recipients.from_list(invalid)
-            pytest.fail("derive_key() should fail.")
+            pytest.fail("extract_key() should fail.")
         assert msg in str(err.value)

@@ -99,9 +99,10 @@ class COSEKeyInterface(CBORProcessor):
         return self._base_iv
 
     @property
-    def key(self) -> bytes:
+    def key(self) -> Any:
         """
-        The body of the key as bytes.
+        The body of the key. It can be bytes or various PublicKey/PrivateKey objects
+        defined in ``pyca/cryptography``
         """
         raise NotImplementedError
 

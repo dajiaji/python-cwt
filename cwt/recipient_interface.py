@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Optional, Union
 
-from .cose_key_interface import COSEKeyInterface
 from .const import COSE_ALGORITHMS_SYMMETRIC
+from .cose_key_interface import COSEKeyInterface
 
 
 class RecipientInterface(COSEKeyInterface):
@@ -156,14 +156,21 @@ class RecipientInterface(COSEKeyInterface):
         return
 
     def derive_key(
-        self, material: bytes, context: Union[List[Any], Dict[str, Any]]
+        self,
+        context: Union[List[Any], Dict[str, Any]],
+        material: bytes = b"",
+        private_key: Optional[COSEKeyInterface] = None,
+        public_key: Optional[COSEKeyInterface] = None,
     ) -> COSEKeyInterface:
         """
-        Derives a key from a key material.
+        Derives a key with a key material or key exchange.
 
         Args:
-            material (bytes): A key material.
-            context (Union[List[Any], Dict[str, Any]]): Context information structure.
+            context (Union[List[Any], Dict[str, Any]]): Context information structure for
+                key derivation functions.
+            material (bytes): A key material as bytes.
+            private_key: A private key for key derivation with key exchange.
+            public_key: A public key for key derivation with key exchange.
         Returns:
             COSEKeyInterface: A COSE key derived.
         Raises:

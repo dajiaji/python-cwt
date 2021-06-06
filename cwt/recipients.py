@@ -1,8 +1,8 @@
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import cbor2
 
-from .const import COSE_ALGORITHMS_KEY_WRAP
+from .const import COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT, COSE_ALGORITHMS_KEY_WRAP
 from .cose_key_interface import COSEKeyInterface
 from .recipient import Recipient
 from .recipient_interface import RecipientInterface
@@ -50,24 +50,28 @@ class Recipients:
             recipients.append(cls._create_recipient(r))
         return Recipient.new(protected, recipient[1], recipient[2], recipients)
 
-    def derive_key(
+    def extract_key(
         self,
         keys: Optional[List[COSEKeyInterface]] = None,
+        context: Optional[Union[Dict[str, Any], List[Any]]] = None,
         materials: Optional[List[dict]] = None,
         alg_hint: int = 0,
     ) -> COSEKeyInterface:
         """
-        Derive an appropriate key from recipients, keys privided as a parameter ``keys``
+        Extracts an appropriate key from recipients, keys privided as a parameter ``keys``
         or key materials as a parameter ``materials``.
         """
         if keys is not None:
-            return self._derive_key_from_cose_keys(keys, alg_hint)
+            return self._extract_key_from_cose_keys(keys, alg_hint, context)
         if not materials:
             raise ValueError("Either keys or materials should be specified.")
-        return self._derive_key_from_key_materials(materials, alg_hint)
+        return self._extract_key_from_key_materials(materials, alg_hint)
 
-    def _derive_key_from_cose_keys(
-        self, keys: List[COSEKeyInterface], alg: int
+    def _extract_key_from_cose_keys(
+        self,
+        keys: List[COSEKeyInterface],
+        alg: int,
+        context: Optional[Union[Dict[str, Any], List[Any]]] = None,
     ) -> COSEKeyInterface:
         for r in self._recipients:
             for k in keys:
@@ -78,9 +82,13 @@ class Recipients:
                 elif r.alg in COSE_ALGORITHMS_KEY_WRAP.values():
                     r.set_key(k.key)
                     return r.unwrap_key(alg)
+                elif r.alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT.values():
+                    if not context:
+                        raise ValueError("context should be set.")
+                    return r.derive_key(context, private_key=k)
         raise ValueError("Failed to derive a key.")
 
-    def _derive_key_from_key_materials(
+    def _extract_key_from_key_materials(
         self, materials: List[dict], alg: int
     ) -> COSEKeyInterface:
         for r in self._recipients:
@@ -89,5 +97,5 @@ class Recipients:
                 if m["kid"].encode("utf-8") != r.kid:
                     continue
                 ctx = to_cis(m["context"], alg, recipient_alg)
-                return r.derive_key(base64url_decode(m["value"]), context=ctx)
+                return r.derive_key(ctx, base64url_decode(m["value"]))
         raise ValueError("Failed to derive a key.")

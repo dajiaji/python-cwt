@@ -164,6 +164,10 @@ class EC2Key(SignatureKey):
         return cose_key
 
     @property
+    def key(self) -> Union[EllipticCurvePublicKey, EllipticCurvePrivateKey]:
+        return self._key
+
+    @property
     def crv(self) -> int:
         return self._crv
 
