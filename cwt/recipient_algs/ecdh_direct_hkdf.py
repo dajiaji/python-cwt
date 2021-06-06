@@ -29,7 +29,7 @@ class ECDH_DirectHKDF(Direct):
         super().__init__(protected, unprotected, ciphertext, recipients)
         self._hash_alg: Any = None
         self._curve: Any = None
-        self._epk: Any = None
+        self._peer_public_key: Any = None
 
         self._party_u = [
             self.unprotected[-21] if -21 in self.unprotected else None,
@@ -41,21 +41,27 @@ class ECDH_DirectHKDF(Direct):
             self.unprotected[-25] if -25 in self.unprotected else None,
             self.unprotected[-26] if -26 in self.unprotected else None,
         ]
-        if -1 in self.unprotected:
-            self._epk = COSEKey.new(self.unprotected[-1])
 
         if self._alg == -25:
             self._hash_alg = hashes.SHA256()
             self._curve = ec.SECP256R1()
+            if -1 in self.unprotected:
+                self._peer_public_key = COSEKey.new(self.unprotected[-1])
         elif self._alg == -26:
             self._hash_alg = hashes.SHA512()
             self._curve = ec.SECP521R1()
+            if -1 in self.unprotected:
+                self._peer_public_key = COSEKey.new(self.unprotected[-1])
         elif self._alg == -27:
             self._hash_alg = hashes.SHA256()
             self._curve = ec.SECP256R1()
+            if -2 in self.unprotected:
+                self._peer_public_key = COSEKey.new(self.unprotected[-2])
         elif self._alg == -28:
             self._hash_alg = hashes.SHA512()
             self._curve = ec.SECP521R1()
+            if -2 in self.unprotected:
+                self._peer_public_key = COSEKey.new(self.unprotected[-2])
         else:
             raise ValueError(f"Unknown alg(1) for ECDH with HKDF: {self._alg}.")
 
@@ -77,7 +83,7 @@ class ECDH_DirectHKDF(Direct):
             raise ValueError("public_key should be EC public key.")
 
         # Derive key.
-        public_key = public_key if public_key else self._epk
+        public_key = public_key if public_key else self._peer_public_key
         priv_key = (
             private_key.key if private_key else ec.generate_private_key(self._curve)
         )
@@ -93,5 +99,10 @@ class ECDH_DirectHKDF(Direct):
         derived = COSEKey.from_symmetric_key(
             key, alg=context[0], kid=self._unprotected[4]
         )
-        self._unprotected[-1] = EC2Key.to_cose_key(priv_key.public_key())
+        if self._alg in [-25, -26]:
+            # ECDH-ES
+            self._unprotected[-1] = EC2Key.to_cose_key(priv_key.public_key())
+        else:  # in [-27, -28]
+            # ECDH-SS
+            self._unprotected[-2] = EC2Key.to_cose_key(priv_key.public_key())
         return derived
