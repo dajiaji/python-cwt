@@ -95,14 +95,14 @@ class ECDH_DirectHKDF(Direct):
             info=self._dumps(context),
         )
         key = hkdf.derive(shared_key)
-        self._unprotected[4] = self._kid if self._kid else public_key.kid
-        derived = COSEKey.from_symmetric_key(
-            key, alg=context[0], kid=self._unprotected[4]
-        )
+        kid = self._kid if self._kid else public_key.kid
+        if kid:
+            self._unprotected[4] = kid
+        derived = COSEKey.from_symmetric_key(key, alg=context[0], kid=kid)
         if self._alg in [-25, -26]:
             # ECDH-ES
             self._unprotected[-1] = EC2Key.to_cose_key(priv_key.public_key())
-        else:  # in [-27, -28]
-            # ECDH-SS
+        else:
+            # ECDH-SS (alg=-27 or -28)
             self._unprotected[-2] = EC2Key.to_cose_key(priv_key.public_key())
         return derived

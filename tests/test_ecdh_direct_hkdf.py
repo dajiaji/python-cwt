@@ -83,16 +83,18 @@ class TestECDH_DirectHKDF:
             encoded, private_key, context={"alg": "A128GCM"}
         )
 
-    # def test_ecdh_direct_hkdf_derive_key_without_kid(self):
-    #     rec = Recipient.from_json({"alg": "ECDH-ES+HKDF-256"})
-    #     with open(key_path("private_key_es256.pem")) as key_file:
-    #         private_key = COSEKey.from_pem(key_file.read())
-    #     with open(key_path("public_key_es256.pem")) as key_file:
-    #         public_key = COSEKey.from_pem(key_file.read())
-    #     enc_key = rec.derive_key({"alg": "A128GCM"}, public_key=public_key)
-    #     ctx = COSE.new(alg_auto_inclusion=True)
-    #     encoded = ctx.encode_and_encrypt(b"Hello world!", enc_key, recipients=[rec])
-    #     assert b"Hello world!" == ctx.decode(encoded, private_key, context={"alg": "A128GCM"})
+    def test_ecdh_direct_hkdf_derive_key_without_kid(self):
+        rec = Recipient.from_json({"alg": "ECDH-ES+HKDF-256"})
+        with open(key_path("private_key_es256.pem")) as key_file:
+            private_key = COSEKey.from_pem(key_file.read())
+        with open(key_path("public_key_es256.pem")) as key_file:
+            public_key = COSEKey.from_pem(key_file.read())
+        enc_key = rec.derive_key({"alg": "A128GCM"}, public_key=public_key)
+        ctx = COSE.new(alg_auto_inclusion=True)
+        encoded = ctx.encode_and_encrypt(b"Hello world!", enc_key, recipients=[rec])
+        assert b"Hello world!" == ctx.decode(
+            encoded, private_key, context={"alg": "A128GCM"}
+        )
 
     def test_ecdh_direct_hkdf_derive_key_with_invalid_private_key(self):
         rec = Recipient.from_json({"alg": "ECDH-ES+HKDF-256"})

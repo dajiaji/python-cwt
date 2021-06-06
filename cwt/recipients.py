@@ -79,10 +79,10 @@ class Recipients:
                     continue
                 if r.alg == -6:  # direct
                     return k
-                elif r.alg in COSE_ALGORITHMS_KEY_WRAP.values():
+                if r.alg in COSE_ALGORITHMS_KEY_WRAP.values():
                     r.set_key(k.key)
                     return r.unwrap_key(alg)
-                elif r.alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT.values():
+                if r.alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT.values():
                     if not context:
                         raise ValueError("context should be set.")
                     return r.derive_key(context, private_key=k)
