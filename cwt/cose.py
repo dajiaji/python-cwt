@@ -343,10 +343,10 @@ class COSE(CBORProcessor):
                     raise ValueError("Invalid Encrypt format.")
 
             aad = self._dumps(["Encrypt", data.value[0], external_aad])
-            alg_hint = 0
+            alg = 0
             if data.value[0]:
                 protected = self._loads(data.value[0])
-                alg_hint = (
+                alg = (
                     protected[1]
                     if isinstance(protected, dict) and 1 in protected
                     else 0
@@ -355,14 +355,8 @@ class COSE(CBORProcessor):
             if not isinstance(unprotected, dict):
                 raise ValueError("unprotected header should be dict.")
             nonce = unprotected.get(5, None)
-            recipients = Recipients.from_list(data.value[3])
-            enc_key = (
-                recipients.extract_key(keys=keys, context=context, alg_hint=alg_hint)
-                if key is not None
-                else recipients.extract_key(
-                    materials=materials, context=context, alg_hint=alg_hint
-                )
-            )
+            rs = Recipients.from_list(data.value[3])
+            enc_key = rs.extract_key(keys, context, materials, alg)
             return enc_key.decrypt(data.value[2], nonce, aad)
 
         # MAC0
@@ -386,18 +380,16 @@ class COSE(CBORProcessor):
             to_be_maced = self._dumps(
                 ["MAC", data.value[0], external_aad, data.value[2]]
             )
-            alg_hint = 0
+            alg = 0
             if data.value[0]:
                 protected = self._loads(data.value[0])
-                alg_hint = (
+                alg = (
                     protected[1]
                     if isinstance(protected, dict) and 1 in protected
                     else 0
                 )
-            recipients = Recipients.from_list(data.value[4])
-            mac_auth_key = recipients.extract_key(
-                keys=keys, context=context, alg_hint=alg_hint
-            )
+            rs = Recipients.from_list(data.value[4])
+            mac_auth_key = rs.extract_key(keys, context, materials, alg)
             mac_auth_key.verify(to_be_maced, data.value[3])
             return data.value[2]
 

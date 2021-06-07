@@ -31,13 +31,13 @@ class TestUtils:
         res = to_cis(
             {
                 "alg": "AES-CCM-16-64-128",
-                "party_u": {
-                    "identity": "lighting-client",
+                "apu": {
+                    "id": "lighting-client",
                     "nonce": "aabbccddeeff",
                     "other": "other PartyV info",
                 },
-                "party_v": {
-                    "identity": "lighting-server",
+                "apv": {
+                    "id": "lighting-server",
                     "nonce": "112233445566",
                     "other": "other PartyV info",
                 },
@@ -62,36 +62,36 @@ class TestUtils:
                 "Unsupported or unknown alg: xxx.",
             ),
             (
-                {"alg": "AES-CCM-16-64-128", "party_u": 123},
-                "party_u should be dict.",
+                {"alg": "AES-CCM-16-64-128", "apu": 123},
+                "apu should be dict.",
             ),
             (
-                {"alg": "AES-CCM-16-64-128", "party_u": {"identity": 123}},
-                "party_u.identity should be str.",
+                {"alg": "AES-CCM-16-64-128", "apu": {"id": 123}},
+                "apu.id should be str.",
             ),
             (
-                {"alg": "AES-CCM-16-64-128", "party_u": {"nonce": []}},
-                "party_u.nonce should be str or int.",
+                {"alg": "AES-CCM-16-64-128", "apu": {"nonce": []}},
+                "apu.nonce should be str or int.",
             ),
             (
-                {"alg": "AES-CCM-16-64-128", "party_u": {"nonce": 123, "other": 123}},
-                "party_u.other should be str.",
+                {"alg": "AES-CCM-16-64-128", "apu": {"nonce": 123, "other": 123}},
+                "apu.other should be str.",
             ),
             (
-                {"alg": "AES-CCM-16-64-128", "party_v": 123},
-                "party_v should be dict.",
+                {"alg": "AES-CCM-16-64-128", "apv": 123},
+                "apv should be dict.",
             ),
             (
-                {"alg": "AES-CCM-16-64-128", "party_v": {"identity": 123}},
-                "party_v.identity should be str.",
+                {"alg": "AES-CCM-16-64-128", "apv": {"id": 123}},
+                "apv.id should be str.",
             ),
             (
-                {"alg": "AES-CCM-16-64-128", "party_v": {"nonce": []}},
-                "party_v.nonce should be str or int.",
+                {"alg": "AES-CCM-16-64-128", "apv": {"nonce": []}},
+                "apv.nonce should be str or int.",
             ),
             (
-                {"alg": "AES-CCM-16-64-128", "party_v": {"nonce": 123, "other": 123}},
-                "party_v.other should be str.",
+                {"alg": "AES-CCM-16-64-128", "apv": {"nonce": 123, "other": 123}},
+                "apv.other should be str.",
             ),
             (
                 {"alg": "AES-CCM-16-64-128", "supp_pub": 123},

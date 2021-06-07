@@ -63,60 +63,60 @@ def base64url_decode(v: str) -> bytes:
     return base64.urlsafe_b64decode(bv)
 
 
-def to_cis(context: Dict[str, Any], alg: int = 0, recipient_alg: int = 0) -> List[Any]:
+def to_cis(context: Dict[str, Any], recipient_alg: int = 0) -> List[Any]:
     res: List[Any] = []
 
-    if alg == 0:
-        if "alg" not in context:
-            raise ValueError("alg not found.")
-        if context["alg"] not in COSE_NAMED_ALGORITHMS_SUPPORTED:
-            raise ValueError(f'Unsupported or unknown alg: {context["alg"]}.')
-        alg = COSE_NAMED_ALGORITHMS_SUPPORTED[context["alg"]]
+    # AlgorithmID
+    if "alg" not in context:
+        raise ValueError("alg not found.")
+    if context["alg"] not in COSE_NAMED_ALGORITHMS_SUPPORTED:
+        raise ValueError(f'Unsupported or unknown alg: {context["alg"]}.')
+    alg = COSE_NAMED_ALGORITHMS_SUPPORTED[context["alg"]]
     res.append(alg)
 
     # PartyU
-    party_u: List[Any] = [None, None, None]
-    if "party_u" in context:
-        if not isinstance(context["party_u"], dict):
-            raise ValueError("party_u should be dict.")
-        if "identity" in context["party_u"]:
-            if not isinstance(context["party_u"]["identity"], str):
-                raise ValueError("party_u.identity should be str.")
-            party_u[0] = context["party_u"]["identity"].encode("utf-8")
-        if "nonce" in context["party_u"]:
-            if isinstance(context["party_u"]["nonce"], str):
-                party_u[1] = context["party_u"]["nonce"].encode("utf-8")
-            elif isinstance(context["party_u"]["nonce"], int):
-                party_u[1] = context["party_u"]["nonce"]
+    apu: List[Any] = [None, None, None]
+    if "apu" in context:
+        if not isinstance(context["apu"], dict):
+            raise ValueError("apu should be dict.")
+        if "id" in context["apu"]:
+            if not isinstance(context["apu"]["id"], str):
+                raise ValueError("apu.id should be str.")
+            apu[0] = context["apu"]["id"].encode("utf-8")
+        if "nonce" in context["apu"]:
+            if isinstance(context["apu"]["nonce"], str):
+                apu[1] = context["apu"]["nonce"].encode("utf-8")
+            elif isinstance(context["apu"]["nonce"], int):
+                apu[1] = context["apu"]["nonce"]
             else:
-                raise ValueError("party_u.nonce should be str or int.")
-        if "other" in context["party_u"]:
-            if not isinstance(context["party_u"]["other"], str):
-                raise ValueError("party_u.other should be str.")
-            party_u[2] = context["party_u"]["other"].encode("utf-8")
-    res.append(party_u)
+                raise ValueError("apu.nonce should be str or int.")
+        if "other" in context["apu"]:
+            if not isinstance(context["apu"]["other"], str):
+                raise ValueError("apu.other should be str.")
+            apu[2] = context["apu"]["other"].encode("utf-8")
+    res.append(apu)
 
     # PartyV
-    party_v: List[Any] = [None, None, None]
-    if "party_v" in context:
-        if not isinstance(context["party_v"], dict):
-            raise ValueError("party_v should be dict.")
-        if "identity" in context["party_v"]:
-            if not isinstance(context["party_v"]["identity"], str):
-                raise ValueError("party_v.identity should be str.")
-            party_v[0] = context["party_v"]["identity"].encode("utf-8")
-        if "nonce" in context["party_v"]:
-            if isinstance(context["party_v"]["nonce"], str):
-                party_v[1] = context["party_v"]["nonce"].encode("utf-8")
-            elif isinstance(context["party_v"]["nonce"], int):
-                party_v[1] = context["party_v"]["nonce"]
+    apv: List[Any] = [None, None, None]
+    if "apv" in context:
+        if not isinstance(context["apv"], dict):
+            raise ValueError("apv should be dict.")
+        if "id" in context["apv"]:
+            if not isinstance(context["apv"]["id"], str):
+                raise ValueError("apv.id should be str.")
+            apv[0] = context["apv"]["id"].encode("utf-8")
+        if "nonce" in context["apv"]:
+            if isinstance(context["apv"]["nonce"], str):
+                apv[1] = context["apv"]["nonce"].encode("utf-8")
+            elif isinstance(context["apv"]["nonce"], int):
+                apv[1] = context["apv"]["nonce"]
             else:
-                raise ValueError("party_v.nonce should be str or int.")
-        if "other" in context["party_v"]:
-            if not isinstance(context["party_v"]["other"], str):
-                raise ValueError("party_v.other should be str.")
-            party_v[2] = context["party_v"]["other"].encode("utf-8")
-    res.append(party_v)
+                raise ValueError("apv.nonce should be str or int.")
+        if "other" in context["apv"]:
+            if not isinstance(context["apv"]["other"], str):
+                raise ValueError("apv.other should be str.")
+            apv[2] = context["apv"]["other"].encode("utf-8")
+    res.append(apv)
 
     # SuppPubInfo
     supp_pub: List[Any] = [None, None]
