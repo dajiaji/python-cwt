@@ -567,19 +567,20 @@ class TestCOSE:
         material = {
             "kid": "our-secret",
             "value": "hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
-            "context": {
-                "party_u": {
-                    "identity": "lighting-client",
-                },
-                "party_v": {
-                    "identity": "lighting-server",
-                },
-                "supp_pub": {
-                    "other": "Encryption Example 02",
-                },
+        }
+        context = {
+            "alg": "AES-CCM-16-64-128",
+            "apu": {
+                "id": "lighting-client",
+            },
+            "apv": {
+                "id": "lighting-server",
+            },
+            "supp_pub": {
+                "other": "Encryption Example 02",
             },
         }
-        res = ctx.decode(encoded, materials=[material])
+        res = ctx.decode(encoded, context=context, materials=[material])
         assert res == b"This is the content."
 
     def test_cose_sample_cose_wg_rfc8152_c_3_2_with_json(self):
@@ -593,11 +594,11 @@ class TestCOSE:
         )
         context = {
             "alg": "AES-CCM-16-64-128",
-            "party_u": {
-                "identity": "lighting-client",
+            "apu": {
+                "id": "lighting-client",
             },
-            "party_v": {
-                "identity": "lighting-server",
+            "apv": {
+                "id": "lighting-server",
             },
             "supp_pub": {
                 "other": "Encryption Example 02",
@@ -619,19 +620,20 @@ class TestCOSE:
         material = {
             "kid": "our-secret",
             "value": "hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
-            "context": {
-                "party_u": {
-                    "identity": "lighting-client",
-                },
-                "party_v": {
-                    "identity": "lighting-server",
-                },
-                "supp_pub": {
-                    "other": "Encryption Example 02",
-                },
+        }
+        context = {
+            "alg": "AES-CCM-16-64-128",
+            "apu": {
+                "id": "lighting-client",
+            },
+            "apv": {
+                "id": "lighting-server",
+            },
+            "supp_pub": {
+                "other": "Encryption Example 02",
             },
         }
-        res = ctx.decode(encoded, materials=[material])
+        res = ctx.decode(encoded, context=context, materials=[material])
         assert res == b"This is the content."
 
     def test_cose_sample_cose_wg_aes_wrap_128_03(self):

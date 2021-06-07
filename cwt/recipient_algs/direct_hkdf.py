@@ -32,12 +32,12 @@ class DirectHKDF(Direct):
             raise ValueError("salt(-20) or PartyU nonce(-22) should be set.")
         if -20 in unprotected:
             self._salt = unprotected[-20]
-        self._party_u = [
+        self._apu = [
             self.unprotected[-21] if -21 in self.unprotected else None,
             self.unprotected[-22] if -22 in self.unprotected else None,
             self.unprotected[-23] if -23 in self.unprotected else None,
         ]
-        self._party_v = [
+        self._apv = [
             self.unprotected[-24] if -24 in self.unprotected else None,
             self.unprotected[-25] if -25 in self.unprotected else None,
             self.unprotected[-26] if -26 in self.unprotected else None,
@@ -60,7 +60,7 @@ class DirectHKDF(Direct):
 
         if isinstance(context, dict):
             alg = self._alg if isinstance(self._alg, int) else 0
-            context = to_cis(context, recipient_alg=alg)
+            context = to_cis(context, alg)
         else:
             self._validate_context(context)
 
@@ -86,7 +86,7 @@ class DirectHKDF(Direct):
 
         if isinstance(context, dict):
             alg = self._alg if isinstance(self._alg, int) else 0
-            context = to_cis(context, recipient_alg=alg)
+            context = to_cis(context, alg)
         else:
             self._validate_context(context)
 

@@ -6,7 +6,7 @@ from .const import COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT, COSE_ALGORITHMS_KE
 from .cose_key_interface import COSEKeyInterface
 from .recipient import Recipient
 from .recipient_interface import RecipientInterface
-from .utils import base64url_decode, to_cis
+from .utils import base64url_decode
 
 
 class Recipients:
@@ -55,17 +55,17 @@ class Recipients:
         keys: Optional[List[COSEKeyInterface]] = None,
         context: Optional[Union[Dict[str, Any], List[Any]]] = None,
         materials: Optional[List[dict]] = None,
-        alg_hint: int = 0,
+        alg: int = 0,
     ) -> COSEKeyInterface:
         """
         Extracts an appropriate key from recipients, keys privided as a parameter ``keys``
         or key materials as a parameter ``materials``.
         """
-        if keys is not None:
-            return self._extract_key_from_cose_keys(keys, alg_hint, context)
+        if keys:
+            return self._extract_key_from_cose_keys(keys, alg, context)
         if not materials:
             raise ValueError("Either keys or materials should be specified.")
-        return self._extract_key_from_key_materials(materials, alg_hint)
+        return self._extract_key_from_key_materials(materials, context)
 
     def _extract_key_from_cose_keys(
         self,
@@ -89,13 +89,15 @@ class Recipients:
         raise ValueError("Failed to derive a key.")
 
     def _extract_key_from_key_materials(
-        self, materials: List[dict], alg: int
+        self,
+        materials: List[dict],
+        context: Optional[Union[Dict[str, Any], List[Any]]] = None,
     ) -> COSEKeyInterface:
+        if not context:
+            raise ValueError("context should be set.")
         for r in self._recipients:
-            recipient_alg = r.alg if isinstance(r.alg, int) else 0
             for m in materials:
                 if m["kid"].encode("utf-8") != r.kid:
                     continue
-                ctx = to_cis(m["context"], alg, recipient_alg)
-                return r.derive_key(ctx, base64url_decode(m["value"]))
+                return r.derive_key(context, base64url_decode(m["value"]))
         raise ValueError("Failed to derive a key.")
