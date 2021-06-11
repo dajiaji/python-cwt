@@ -27,7 +27,7 @@ Install with pip:
 pip install cwt
 ```
 
-## Usase
+## Usage
 
 Python CWT is an easy-to-use CWT/COSE library a little bit inspired by [PyJWT](https://github.com/jpadilla/pyjwt).
 If you already know about [JSON Web Token (JWT)](https://tools.ietf.org/html/rfc7519),
