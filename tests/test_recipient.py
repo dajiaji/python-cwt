@@ -88,7 +88,7 @@ class TestRecipientInterface:
             protected={"foo": "bar"},
             unprotected={1: -1, 4: b"our-secret"},
             recipients=[child],
-            key_ops=["wrapKey"],
+            key_ops=[5],
         )
         assert isinstance(r.protected, dict)
         assert r.protected["foo"] == "bar"

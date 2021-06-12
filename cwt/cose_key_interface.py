@@ -1,7 +1,12 @@
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 from .cbor_processor import CBORProcessor
-from .const import COSE_KEY_TYPES, COSE_NAMED_ALGORITHMS_SUPPORTED
+from .const import (
+    COSE_ALGORITHMS_SYMMETRIC,
+    COSE_KEY_OPERATION_VALUES,
+    COSE_KEY_TYPES,
+    COSE_NAMED_ALGORITHMS_SUPPORTED,
+)
 
 
 class COSEKeyInterface(CBORProcessor):
@@ -56,6 +61,9 @@ class COSEKeyInterface(CBORProcessor):
         if 4 in params and not isinstance(params[4], list):
             raise ValueError("key_ops(4) should be list.")
         self._key_ops: List[int] = params[4] if 4 in params else []
+        for v in self._key_ops:
+            if v not in COSE_KEY_OPERATION_VALUES.values():
+                raise ValueError(f"key_ops(4) includes invalid value: {v}.")
 
         # Base IV
         if 5 in params and not isinstance(params[5], bytes):
@@ -207,3 +215,46 @@ class COSEKeyInterface(CBORProcessor):
             DecodeError: Failed to decrypt the message.
         """
         raise NotImplementedError
+
+    def derive_key(
+        self,
+        context: Union[List[Any], Dict[str, Any]],
+        material: bytes = b"",
+        public_key: Optional[Any] = None,
+    ) -> Any:
+        """
+        Derives a key with a key material or key exchange.
+
+        Args:
+            context (Union[List[Any], Dict[str, Any]]): Context information structure for
+                key derivation functions.
+            material (bytes): A key material as bytes.
+            public_key: A public key for key derivation with key exchange.
+        Returns:
+            COSEKeyInterface: A COSE key derived.
+        Raises:
+            NotImplementedError: Not implemented.
+            ValueError: Invalid arguments.
+            EncodeError: Failed to derive key.
+        """
+        raise NotImplementedError
+
+    def _validate_context(self, context: List[Any]):
+        if len(context) != 4 and len(context) != 5:
+            raise ValueError("Invalid context information.")
+        # AlgorithmID
+        if not isinstance(context[0], int):
+            raise ValueError("AlgorithmID should be int.")
+        if context[0] not in COSE_ALGORITHMS_SYMMETRIC.values():
+            raise ValueError(f"Unsupported or unknown algorithm: {context[0]}.")
+        # PartyVInfo
+        if not isinstance(context[1], list) or len(context[1]) != 3:
+            raise ValueError("PartyUInfo should be list(size=3).")
+        # PartyUInfo
+        if not isinstance(context[2], list) or len(context[2]) != 3:
+            raise ValueError("PartyVInfo should be list(size=3).")
+        # SuppPubInfo
+        if not isinstance(context[3], list) or (
+            len(context[3]) != 2 and len(context[3]) != 3
+        ):
+            raise ValueError("SuppPubInfo should be list(size=2 or 3).")

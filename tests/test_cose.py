@@ -664,10 +664,12 @@ class TestCOSE:
         assert res == b"This is the content."
 
     def test_cose_sample_cose_wg_ecdh_direct_p256_hkdf_256_01(self):
-        recipient = Recipient.from_json(
+        rec = Recipient.from_json(
             {
+                "kty": "EC",
                 "alg": "ECDH-ES+HKDF-256",
-            },
+                "crv": "P-256",
+            }
         )
         pub_key = COSEKey.from_jwk(
             {
@@ -678,21 +680,19 @@ class TestCOSE:
                 "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
             }
         )
-        enc_key = recipient.derive_key(
-            {"alg": "A128GCM"},
-            public_key=pub_key,
-        )
+        enc_key = rec.derive_key({"alg": "A128GCM"}, public_key=pub_key)
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_encrypt(
             b"This is the content.",
             key=enc_key,
-            recipients=[recipient],
+            recipients=[rec],
         )
         priv_key = COSEKey.from_jwk(
             {
                 "kty": "EC",
                 "kid": "meriadoc.brandybuck@buckland.example",
                 "crv": "P-256",
+                "alg": "ECDH-ES+HKDF-256",
                 "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
                 "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
                 "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",

@@ -196,9 +196,7 @@ class TestSigner:
                     "key_ops": ["encrypt", "decrypt"],
                 },
             )
-        assert "Unknown or not permissible key_ops(4) for SignatureKey: 3." in str(
-            err.value
-        )
+        assert "Unknown or not permissible key_ops(4) for EC2." in str(err.value)
 
     def test_signer_from_pem(self):
         with open(key_path("private_key_ed25519.pem")) as key_file:

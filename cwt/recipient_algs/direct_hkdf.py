@@ -54,7 +54,6 @@ class DirectHKDF(Direct):
         self,
         context: Union[List[Any], Dict[str, Any]],
         material: bytes = b"",
-        private_key: Optional[COSEKeyInterface] = None,
         public_key: Optional[COSEKeyInterface] = None,
     ) -> COSEKeyInterface:
 

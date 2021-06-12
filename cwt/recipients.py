@@ -85,7 +85,7 @@ class Recipients:
                 if r.alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT.values():
                     if not context:
                         raise ValueError("context should be set.")
-                    return r.derive_key(context, private_key=k)
+                    return k.derive_key(context, public_key=r)
         raise ValueError("Failed to derive a key.")
 
     def _extract_key_from_key_materials(
