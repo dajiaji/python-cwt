@@ -50,6 +50,28 @@ class TestUtils:
         )
         assert isinstance(res, list)
 
+    def test_to_cis_without_supp_pub_other(self):
+        res = to_cis(
+            {
+                "alg": "AES-CCM-16-64-128",
+                "apu": {
+                    "id": "lighting-client",
+                    "nonce": "aabbccddeeff",
+                    "other": "other PartyV info",
+                },
+                "apv": {
+                    "id": "lighting-server",
+                    "nonce": "112233445566",
+                    "other": "other PartyV info",
+                },
+                "supp_pub": {
+                    "key_data_length": 128,
+                    "protected": {"alg": "direct+HKDF-SHA-256"},
+                },
+            }
+        )
+        assert isinstance(res, list)
+
     @pytest.mark.parametrize(
         "invalid, msg",
         [
