@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 import cryptography
 from cryptography.hazmat.primitives.asymmetric.ed448 import (
@@ -68,6 +68,7 @@ class OKPKey(SignatureKey):
                     self._public_key = Ed25519PublicKey.from_public_bytes(self._x)
                 else:  # self._crv == 7 (Ed448)
                     self._public_key = Ed448PublicKey.from_public_bytes(self._x)
+                self._key = self._public_key
                 return
         except ValueError as err:
             raise ValueError("Invalid key parameter.") from err
@@ -85,9 +86,25 @@ class OKPKey(SignatureKey):
                 self._private_key = Ed25519PrivateKey.from_private_bytes(self._d)
             else:  # self._crv == 7 (Ed448)
                 self._private_key = Ed448PrivateKey.from_private_bytes(self._d)
+            self._key = self._private_key
         except ValueError as err:
             raise ValueError("Invalid key parameter.") from err
         return
+
+    @property
+    def key(
+        self,
+    ) -> Union[
+        Ed448PrivateKey,
+        Ed448PublicKey,
+        Ed25519PrivateKey,
+        Ed25519PublicKey,
+        X448PrivateKey,
+        X448PublicKey,
+        X25519PrivateKey,
+        X25519PublicKey,
+    ]:
+        return self._key
 
     @property
     def crv(self) -> int:

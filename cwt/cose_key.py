@@ -33,7 +33,9 @@ from .algs.okp import OKPKey
 from .algs.rsa import RSAKey
 from .algs.symmetric import AESCCMKey, AESGCMKey, ChaCha20Key, HMACKey
 from .const import (
+    COSE_ALGORITHMS_CKDM_KEY_AGREEMENT,
     COSE_ALGORITHMS_RSA,
+    COSE_ALGORITHMS_SIG_EC2,
     COSE_ALGORITHMS_SYMMETRIC,
     COSE_KEY_OPERATION_VALUES,
     COSE_KEY_TYPES,
@@ -236,7 +238,7 @@ class COSEKey:
                 raise ValueError("alg parameter should be specified for an RSA key.")
             if isinstance(alg, str):
                 if alg not in COSE_ALGORITHMS_RSA:
-                    raise ValueError(f"Unsupported or unknow alg: {alg}.")
+                    raise ValueError(f"Unsupported or unknown alg: {alg}.")
                 alg = COSE_ALGORITHMS_RSA[alg]
             cose_key[1] = COSE_KEY_TYPES["RSA"]
             cose_key[3] = alg
@@ -258,6 +260,15 @@ class COSEKey:
         elif isinstance(k, EllipticCurvePrivateKey) or isinstance(
             k, EllipticCurvePublicKey
         ):
+            if alg:
+                if isinstance(alg, str):
+                    if alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT:
+                        alg = COSE_ALGORITHMS_CKDM_KEY_AGREEMENT[alg]
+                    elif alg in COSE_ALGORITHMS_SIG_EC2:
+                        alg = COSE_ALGORITHMS_SIG_EC2[alg]
+                    else:
+                        raise ValueError(f"Unsupported or unknown alg for EC2: {alg}.")
+                cose_key[3] = alg
             cose_key.update(EC2Key.to_cose_key(k))
         elif isinstance(k, Ed25519PublicKey) or isinstance(k, Ed25519PrivateKey):
             cose_key[1] = COSE_KEY_TYPES["OKP"]

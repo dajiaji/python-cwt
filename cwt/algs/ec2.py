@@ -1,4 +1,4 @@
-from typing import Any, Dict, Union
+from typing import Any, Dict, List, Optional, Union
 
 import cryptography
 from cryptography.hazmat.primitives import hashes
@@ -11,23 +11,150 @@ from cryptography.hazmat.primitives.asymmetric.utils import (
     decode_dss_signature,
     encode_dss_signature,
 )
+from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
-from ..const import COSE_KEY_TYPES, JWK_ELLIPTIC_CURVES
+from ..const import (
+    COSE_ALGORITHMS_CKDM_KEY_AGREEMENT,
+    COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_ES,
+    COSE_ALGORITHMS_SIG_EC2,
+    COSE_KEY_LEN,
+    COSE_KEY_OPERATION_VALUES,
+    COSE_KEY_TYPES,
+)
+from ..cose_key_interface import COSEKeyInterface
 from ..exceptions import EncodeError, VerifyError
-from ..utils import i2osp, os2ip
-from .signature import SignatureKey
+from ..utils import i2osp, os2ip, to_cis
+from .symmetric import AESCCMKey, AESGCMKey, ChaCha20Key
 
 
-class EC2Key(SignatureKey):
+class EC2Key(COSEKeyInterface):
+
+    _ACCEPTABLE_PUBLIC_KEY_OPS = [
+        COSE_KEY_OPERATION_VALUES["verify"],
+    ]
+
+    _ACCEPTABLE_PRIVATE_KEY_OPS = [
+        COSE_KEY_OPERATION_VALUES["sign"],
+        COSE_KEY_OPERATION_VALUES["verify"],
+        COSE_KEY_OPERATION_VALUES["deriveKey"],
+        COSE_KEY_OPERATION_VALUES["deriveBits"],
+    ]
+
     def __init__(self, params: Dict[int, Any]):
         super().__init__(params)
         self._public_key: Any = None
         self._private_key: Any = None
+        self._crv_obj: Any = None
         self._hash_alg: Any = None
 
         # Validate kty.
-        if params[1] != 2:
+        if self._kty != 2:
             raise ValueError("kty(1) should be EC2(2).")
+
+        # Validate crv.
+        if -1 not in params:
+            raise ValueError("crv(-1) not found.")
+        self._crv = params[-1]
+        if not isinstance(self._crv, int):
+            raise ValueError("crv(-1) should be int.")
+        if self._crv == 1:  # P-256
+            self._crv_obj = ec.SECP256R1()
+            self._hash_alg = hashes.SHA256
+        elif self._crv == 2:  # P-384
+            self._crv_obj = ec.SECP384R1()
+            self._hash_alg = hashes.SHA384
+        elif self._crv == 3:  # P-521
+            self._crv_obj = ec.SECP521R1()
+            self._hash_alg = hashes.SHA512
+        elif self._crv == 8:  # secp256k1
+            self._crv_obj = ec.SECP256K1()
+            self._hash_alg = hashes.SHA256
+        else:
+            raise ValueError(f"Unsupported or unknown crv(-1) for EC2: {self._crv}.")
+
+        # Validate alg and key_ops.
+        if self._key_ops:
+            if set(self._key_ops) & set([3, 4, 5, 6, 9, 10]):
+                raise ValueError("Unknown or not permissible key_ops(4) for EC2.")
+
+        if not self._alg and not self._key_ops:
+            # raise ValueError("EC2 private key should be identifiable to the algorithm.")
+            if -4 in params:
+                self._key_ops = [1, 2]
+            else:
+                self._key_ops = [2]
+        if self._alg:
+            if self._alg in COSE_ALGORITHMS_SIG_EC2.values():
+                if self._key_ops:
+                    if -4 in params:
+                        # private key for signing.
+                        if not (set(self._key_ops) & set([1, 2])):
+                            raise ValueError("Invalid key_ops for signing key.")
+                        if set(self._key_ops) & set([7, 8]):
+                            raise ValueError(
+                                "Signing key should not be used for key derivation."
+                            )
+                    else:
+                        # public key for signing.
+                        if 2 not in self._key_ops or len(self._key_ops) != 1:
+                            raise ValueError("Invalid key_ops for public key.")
+                else:
+                    if -4 in params:
+                        # private key for signing.
+                        self._key_ops = [1, 2]
+                    else:
+                        # public key for signing.
+                        self._key_ops = [2]
+
+            elif self._alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.values():
+                if self._key_ops:
+                    if -4 in params:
+                        # private key for key derivation.
+                        if not (set(self._key_ops) & set([7, 8])):
+                            raise ValueError("Invalid key_ops for key derivation.")
+                        if set(self._key_ops) & set([1, 2]):
+                            raise ValueError(
+                                "ECDHE key should not be used for signing."
+                            )
+                    else:
+                        # public key for key derivation.
+                        raise ValueError(
+                            "Public key for ECDHE should not have key_ops."
+                        )
+                else:
+                    if -2 not in params and -3 not in params:
+                        # private key for key derivation.
+                        self._key_ops = [7, 8]
+            else:
+                raise ValueError(f"Unsupported or unknown alg(3) for EC2: {self._alg}.")
+        else:
+            if -4 in params:
+                # private key.
+                if set(self._key_ops) & set([1, 2]):
+                    # private key for signing.
+                    if set(self._key_ops) & set([7, 8]):
+                        raise ValueError(
+                            "EC2 Private key should not be used for both signing and key derivation."
+                        )
+                    if self._crv == 1:
+                        self._alg = -7  # ES256
+                    elif self._crv == 2:
+                        self._alg = -35  # ES384
+                    elif self._crv == 3:
+                        self._alg = -36  # ES512
+                    else:  # self._crv == 8
+                        self._alg = -47  # ES256K
+            else:
+                # public key.
+                if 2 in self._key_ops:
+                    if len(self._key_ops) > 1:
+                        raise ValueError("Invalid key_ops for public key.")
+                else:
+                    raise ValueError("Invalid key_ops for public key.")
+
+        if self._alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_ES.values():
+            if -2 not in params and -3 not in params:
+                return
 
         # Validate x and y.
         if -2 not in params:
@@ -40,73 +167,27 @@ class EC2Key(SignatureKey):
             raise ValueError("y(-3) should be bytes(bstr).")
         self._x = params[-2]
         self._y = params[-3]
-        self._d = None
-
-        # Validate crv and alg.
-        if -1 not in params:
-            raise ValueError("crv(-1) not found.")
-        if not isinstance(params[-1], int) and not isinstance(params[-1], str):
-            raise ValueError("crv(-1) should be int or str(tstr).")
-        self._crv: int = (
-            params[-1]
-            if isinstance(params[-1], int)
-            else JWK_ELLIPTIC_CURVES[params[-1]]
-        )
-        crv_obj: Any
         if self._crv == 1:  # P-256
-            if not self._alg:
-                self._alg = -7
-            else:
-                if self._alg != -7:
-                    raise ValueError(f"EC2 algorithm mismatch: {params[3]}.")
-            if len(self._x) == len(self._y) == 32:
-                crv_obj = ec.SECP256R1()
-                self._hash_alg = hashes.SHA256
-            else:
+            if not (len(self._x) == len(self._y) == 32):
                 raise ValueError("Coords should be 32 bytes for crv P-256.")
         elif self._crv == 2:  # P-384
-            if not self._alg:
-                self._alg = -35
-            else:
-                if self._alg != -35:
-                    raise ValueError(f"EC2 algorithm mismatch: {params[3]}.")
-            if len(self._x) == len(self._y) == 48:
-                crv_obj = ec.SECP384R1()
-                self._hash_alg = hashes.SHA384
-            else:
+            if not (len(self._x) == len(self._y) == 48):
                 raise ValueError("Coords should be 48 bytes for crv P-384.")
         elif self._crv == 3:  # P-521
-            if not self._alg:
-                self._alg = -36
-            else:
-                if self._alg != -36:
-                    raise ValueError(f"EC2 algorithm mismatch: {params[3]}.")
-            if len(self._x) == len(self._y) == 66:
-                crv_obj = ec.SECP521R1()
-                self._hash_alg = hashes.SHA512
-            else:
+            if not (len(self._x) == len(self._y) == 66):
                 raise ValueError("Coords should be 66 bytes for crv P-521.")
-        elif self._crv == 8:  # secp256k1
-            if not self._alg:
-                self._alg = -47
-            else:
-                if self._alg != -47:
-                    raise ValueError(f"EC2 algorithm mismatch: {params[3]}.")
-            if len(self._x) == len(self._y) == 32:
-                crv_obj = ec.SECP256K1()
-                self._hash_alg = hashes.SHA256
-            else:
+        else:  # self._crv == 8 (secp256k1)
+            if not (len(self._x) == len(self._y) == 32):
                 raise ValueError("Coords should be 32 bytes for crv secp256k1.")
-        else:
-            raise ValueError(f"Unsupported or unknown crv: {self._crv}.")
 
         public_numbers = ec.EllipticCurvePublicNumbers(
             x=int.from_bytes(self._x, byteorder="big"),
             y=int.from_bytes(self._y, byteorder="big"),
-            curve=crv_obj,
+            curve=self._crv_obj,
         )
 
         # Validate d.
+        self._d = None
         if -4 not in params:
             self._public_key = public_numbers.public_key()
             self._key = self._public_key
@@ -136,6 +217,8 @@ class EC2Key(SignatureKey):
         cose_key: Dict[int, Any] = {}
 
         cose_key[1] = COSE_KEY_TYPES["EC2"]
+        if not hasattr(k, "curve"):
+            raise ValueError("Unsupported or unknown key for EC2.")
         if k.curve.name == "secp256r1":
             cose_key[-1] = 1
         elif k.curve.name == "secp384r1":
@@ -144,10 +227,8 @@ class EC2Key(SignatureKey):
         elif k.curve.name == "secp521r1":
             cose_key[-1] = 3
             key_len = 66
-        elif k.curve.name == "secp256k1":
+        else:  # k.curve.name == "secp256k1":
             cose_key[-1] = 8
-        else:
-            raise ValueError(f"Unsupported or unknown alg: {k.curve.name}.")
         if isinstance(k, EllipticCurvePublicKey):
             cose_key[-2] = k.public_numbers().x.to_bytes(key_len, byteorder="big")
             cose_key[-3] = k.public_numbers().y.to_bytes(key_len, byteorder="big")
@@ -203,6 +284,54 @@ class EC2Key(SignatureKey):
             raise VerifyError("Failed to verify.") from err
         except ValueError as err:
             raise VerifyError("Invalid signature.") from err
+
+    def derive_key(
+        self,
+        context: Union[List[Any], Dict[str, Any]],
+        material: bytes = b"",
+        public_key: Optional[COSEKeyInterface] = None,
+    ) -> COSEKeyInterface:
+
+        if self._public_key:
+            raise ValueError("Public key cannot be used for key derivation.")
+        if not public_key:
+            raise ValueError("public_key should be set.")
+        if not isinstance(public_key.key, EllipticCurvePublicKey):
+            raise ValueError("public_key should be elliptic curve public key.")
+        if self._alg not in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.values():
+            raise ValueError(f"Invalid alg for key derivation: {self._alg}.")
+
+        # Validate context information.
+        if isinstance(context, dict):
+            context = to_cis(context, self._alg)
+        else:
+            self._validate_context(context)
+
+        # Derive key.
+        priv_key = (
+            self._private_key
+            if self._private_key
+            else ec.generate_private_key(self._crv_obj)
+        )
+        shared_key = priv_key.exchange(ec.ECDH(), public_key.key)
+        hkdf = HKDF(
+            algorithm=self._hash_alg(),
+            length=COSE_KEY_LEN[context[0]] // 8,
+            salt=None,
+            info=self._dumps(context),
+        )
+        # return COSEKey.from_symmetric_key(hkdf.derive(shared_key), alg=context[0])
+        cose_key = {
+            1: 4,
+            3: context[0],
+            -1: hkdf.derive(shared_key),
+        }
+        if cose_key[3] in [1, 2, 3]:
+            return AESGCMKey(cose_key)
+        if cose_key[3] in [10, 11, 12, 13, 30, 31, 32, 33]:
+            return AESCCMKey(cose_key)
+        # cose_key[3] == 24:
+        return ChaCha20Key(cose_key)
 
     def _der_to_os(self, key_size: int, sig: bytes) -> bytes:
         num_bytes = (key_size + 7) // 8

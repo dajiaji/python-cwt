@@ -117,6 +117,10 @@ COSE_KEY_LEN = {
     1: 128,  # AES-GCM mode w/ 128-bit key, 128-bit tag
     2: 192,  # AES-GCM mode w/ 192-bit key, 128-bit tag
     3: 256,  # AES-GCM mode w/ 256-bit key, 128-bit tag
+    # 4: 256,  # HMAC w/ SHA-256 truncated to 64 bits
+    # 5: 256,  # HMAC w/ SHA-256
+    # 6: 384,  # HMAC w/ SHA-384
+    # 7: 512,  # HMAC w/ SHA-512
     10: 128,  # AES-CCM mode 128-bit key, 64-bit tag, 13-byte nonce
     11: 256,  # AES-CCM mode 256-bit key, 64-bit tag, 13-byte nonce
     12: 128,  # AES-CCM mode 128-bit key, 64-bit tag, 7-byte nonce
@@ -143,19 +147,27 @@ COSE_ALGORITHMS_KEY_WRAP = {
     # etc.
 }
 
-COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP = {
+COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP_SS = {
     "ECDH-SS+A256KW": -34,  # ECDH SS w/ Concat KDF and AES Key Wrap w/ 256-bit key
     "ECDH-SS+A192KW": -33,  # ECDH SS w/ Concat KDF and AES Key Wrap w/ 192-bit key
     "ECDH-SS+A128KW": -32,  # ECDH SS w/ Concat KDF and AES Key Wrap w/ 128-bit key
+    # etc.
+}
+
+COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP_ES = {
     "ECDH-ES+A256KW": -31,  # ECDH ES w/ Concat KDF and AES Key Wrap w/ 256-bit key
     "ECDH-ES+A192KW": -30,  # ECDH ES w/ Concat KDF and AES Key Wrap w/ 192-bit key
     "ECDH-ES+A128KW": -29,  # ECDH ES w/ Concat KDF and AES Key Wrap w/ 128-bit key
     # etc.
 }
 
-COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT = {
+COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT_SS = {
     "ECDH-SS+HKDF-512": -28,  # ECDH SS w/ HKDF - generate key directly
     "ECDH-SS+HKDF-256": -27,  # ECDH SS w/ HKDF - generate key directly
+    # etc.
+}
+
+COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT_ES = {
     "ECDH-ES+HKDF-512": -26,  # ECDH ES w/ HKDF - generate key directly
     "ECDH-ES+HKDF-256": -25,  # ECDH ES w/ HKDF - generate key directly
     # etc.
@@ -287,12 +299,41 @@ JWK_ELLIPTIC_CURVES = {
     "secp256k1": 8,
 }
 
+# COSE Algorithms for CKDM Direct Key Agreement.
+COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT = {
+    **COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT_SS,
+    **COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT_ES,
+}
+
+# COSE Algorithms for CKDM Key Agreement with Key Wrap.
+COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP = {
+    **COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP_SS,
+    **COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP_ES,
+}
+
+# COSE Algorithms for CKDM Key Agreement (Static-Static).
+COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_SS = {
+    **COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT_SS,
+    **COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP_SS,
+}
+
+# COSE Algorithms for CKDM Key Agreement (Ephemeral-Static).
+COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_ES = {
+    **COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT_ES,
+    **COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP_ES,
+}
+
+# COSE Algorithms for CKDM Key Agreement.
+COSE_ALGORITHMS_CKDM_KEY_AGREEMENT = {
+    **COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT,
+    **COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP,
+}
+
 # COSE Algorithms for recipients.
 COSE_ALGORITHMS_RECIPIENT = {
     **COSE_ALGORITHMS_CKDM,
     **COSE_ALGORITHMS_KEY_WRAP,
-    **COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT,
-    **COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP,
+    **COSE_ALGORITHMS_CKDM_KEY_AGREEMENT,
 }
 
 # COSE Algorithms for Symmetric Keys.

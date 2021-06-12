@@ -1,10 +1,14 @@
 """
 Tests for EC2Key.
 """
+import cbor2
 import pytest
 
 from cwt.algs.ec2 import EC2Key
+from cwt.cose_key import COSEKey
 from cwt.exceptions import VerifyError
+
+from .utils import key_path
 
 
 class TestEC2Key:
@@ -139,11 +143,63 @@ class TestEC2Key:
         assert len(public_key.key_ops) == 1
         assert 2 in public_key.key_ops
         assert public_key.base_iv is None
+        with pytest.raises(ValueError) as err:
+            public_key.derive_key({"alg": "A128GCM"})
+        assert "Public key cannot be used for key derivation." in str(err.value)
+
         try:
             sig = private_key.sign(b"Hello world!")
             public_key.verify(b"Hello world!", sig)
         except Exception:
             pytest.fail("sign/verify should not fail.")
+
+    def test_ec2_key_constructor_with_ecdhe_es_hdkf_256(self):
+        private_key = EC2Key(
+            {
+                1: 2,
+                3: -25,
+                # -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                # -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                # -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+                -1: 1,
+            }
+        )
+        assert private_key.kty == 2
+        assert private_key.kid is None
+        assert private_key.alg == -25
+        assert private_key.crv == 1
+        assert len(private_key.key_ops) == 2
+        assert 7 in private_key.key_ops
+        assert 8 in private_key.key_ops
+        pub_key = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                # "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        )
+        try:
+            derived_key = private_key.derive_key({"alg": "A128GCM"}, public_key=pub_key)
+            assert derived_key.alg == 1
+        except Exception:
+            pytest.fail("derive_key() should not fail.")
+
+        try:
+            derived_key = private_key.derive_key(
+                [
+                    1,
+                    [None, None, None],
+                    [None, None, None],
+                    [128, cbor2.dumps({1: -25})],
+                ],
+                public_key=pub_key,
+            )
+            assert derived_key.alg == 1
+        except Exception:
+            pytest.fail("derive_key() should not fail.")
 
     def test_cose_key_constructor_without_cose_key(self):
         with pytest.raises(TypeError):
@@ -175,23 +231,40 @@ class TestEC2Key:
             ),
             (
                 {1: 2},
-                "x(-2) not found.",
+                "crv(-1) not found.",
             ),
             (
-                {1: 2, -2: "xxxxxxxxxxxxxxxx"},
+                {1: 2, -1: {}},
+                "crv(-1) should be int.",
+            ),
+            (
+                {1: 2, -1: []},
+                "crv(-1) should be int.",
+            ),
+            (
+                {1: 2, -1: "P-256"},
+                "crv(-1) should be int.",
+            ),
+            (
+                {1: 2, -1: 0},
+                "Unsupported or unknown crv(-1) for EC2: 0.",
+            ),
+            (
+                {1: 2, -1: 1, -2: "xxxxxxxxxxxxxxxx"},
                 "x(-2) should be bytes(bstr).",
             ),
             (
-                {1: 2, -2: {}},
+                {1: 2, -1: 1, -2: {}},
                 "x(-2) should be bytes(bstr).",
             ),
             (
-                {1: 2, -2: []},
+                {1: 2, -1: 1, -2: []},
                 "x(-2) should be bytes(bstr).",
             ),
             (
                 {
                     1: 2,
+                    -1: 1,
                     -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
                 },
                 "y(-3) not found.",
@@ -199,6 +272,7 @@ class TestEC2Key:
             (
                 {
                     1: 2,
+                    -1: 1,
                     -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
                     -3: "yyyyyyyyyyyyyyyy",
                 },
@@ -207,6 +281,7 @@ class TestEC2Key:
             (
                 {
                     1: 2,
+                    -1: 1,
                     -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
                     -3: {},
                 },
@@ -215,6 +290,7 @@ class TestEC2Key:
             (
                 {
                     1: 2,
+                    -1: 1,
                     -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
                     -3: [],
                 },
@@ -223,56 +299,12 @@ class TestEC2Key:
             (
                 {
                     1: 2,
-                    -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
-                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
-                },
-                "crv(-1) not found.",
-            ),
-            (
-                {
-                    1: 2,
-                    -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
-                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
-                    -1: 0,
-                },
-                "Unsupported or unknown crv: 0",
-            ),
-            (
-                {
-                    1: 2,
-                    -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
-                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
-                    -1: {},
-                },
-                "crv(-1) should be int or str(tstr).",
-            ),
-            (
-                {
-                    1: 2,
-                    -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
-                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
-                    -1: [],
-                },
-                "crv(-1) should be int or str(tstr).",
-            ),
-            (
-                {
-                    1: 2,
-                    -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
-                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
-                    -1: b"P-256",
-                },
-                "crv(-1) should be int or str(tstr).",
-            ),
-            (
-                {
-                    1: 2,
-                    -2: b"invalid-length-x",
-                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
                     -1: 1,
+                    -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
                     3: -8,
                 },
-                "EC2 algorithm mismatch: -8.",
+                "Unsupported or unknown alg(3) for EC2: -8.",
             ),
             (
                 {
@@ -291,7 +323,7 @@ class TestEC2Key:
                     -1: 2,
                     3: -8,
                 },
-                "EC2 algorithm mismatch: -8.",
+                "Unsupported or unknown alg(3) for EC2: -8.",
             ),
             (
                 {
@@ -310,7 +342,7 @@ class TestEC2Key:
                     -1: 3,
                     3: -8,
                 },
-                "EC2 algorithm mismatch: -8.",
+                "Unsupported or unknown alg(3) for EC2: -8.",
             ),
             (
                 {
@@ -329,7 +361,7 @@ class TestEC2Key:
                     -1: 8,
                     3: -8,
                 },
-                "EC2 algorithm mismatch: -8.",
+                "Unsupported or unknown alg(3) for EC2: -8.",
             ),
             (
                 {
@@ -390,6 +422,187 @@ class TestEC2Key:
                 },
                 "Invalid private key.",
             ),
+            (
+                {
+                    1: 2,
+                    3: -7,
+                    -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                    -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+                    -1: 1,
+                    4: [7, 8],
+                },
+                "Invalid key_ops for signing key.",
+            ),
+            (
+                {
+                    1: 2,
+                    3: -7,
+                    -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                    -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+                    -1: 1,
+                    4: [1, 2, 7, 8],
+                },
+                "Signing key should not be used for key derivation.",
+            ),
+            (
+                {
+                    1: 2,
+                    3: -7,
+                    -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                    # -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+                    -1: 1,
+                    4: [1, 2],
+                },
+                "Invalid key_ops for public key.",
+            ),
+            (
+                {
+                    1: 2,
+                    3: -7,
+                    # -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                    -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+                    -1: 1,
+                    4: [1, 2],
+                },
+                "x(-2) not found.",
+            ),
+            (
+                {
+                    1: 2,
+                    3: -25,
+                    -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                    -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+                    -1: 1,
+                    4: [1, 2],
+                },
+                "Invalid key_ops for key derivation.",
+            ),
+            (
+                {
+                    1: 2,
+                    3: -25,
+                    -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                    -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+                    -1: 1,
+                    4: [1, 2, 7, 8],
+                },
+                "ECDHE key should not be used for signing.",
+            ),
+            (
+                {
+                    1: 2,
+                    3: -25,
+                    -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                    # -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+                    -1: 1,
+                    4: [7, 8],
+                },
+                "Public key for ECDHE should not have key_ops.",
+            ),
+            (
+                {
+                    1: 2,
+                    3: -25,
+                    # -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                    -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+                    -1: 1,
+                    4: [7, 8],
+                },
+                "x(-2) not found.",
+            ),
+            (
+                {
+                    1: 2,
+                    3: -25,
+                    # -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                    # -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+                    -1: 1,
+                    4: [],
+                },
+                "x(-2) not found.",
+            ),
+            (
+                {
+                    1: 2,
+                    # 3: -25,
+                    # -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                    # -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+                    -1: 1,
+                    4: [],
+                },
+                "x(-2) not found.",
+            ),
+            (
+                {
+                    1: 2,
+                    # 3: -25,
+                    -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                    -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+                    -1: 1,
+                    4: [1, 2, 7, 8],
+                },
+                "EC2 Private key should not be used for both signing and key derivation.",
+            ),
+            (
+                {
+                    1: 2,
+                    # 3: -25,
+                    # -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                    -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+                    -1: 1,
+                    4: [7, 8],
+                },
+                "x(-2) not found.",
+            ),
+            (
+                {
+                    1: 2,
+                    # 3: -25,
+                    # -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                    -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+                    -1: 1,
+                    4: [7, 8],
+                },
+                "x(-2) not found.",
+            ),
+            (
+                {
+                    1: 2,
+                    # 3: -25,
+                    # -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                    # -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+                    -1: 1,
+                    4: [7, 8],
+                },
+                "Invalid key_ops for public key.",
+            ),
+            (
+                {
+                    1: 2,
+                    # 3: -25,
+                    # -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                    # -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+                    -1: 1,
+                    4: [1, 2],
+                },
+                "Invalid key_ops for public key.",
+            ),
+            # ???
         ],
     )
     def test_ec2_key_constructor_with_invalid_args(self, invalid, msg):
@@ -450,5 +663,142 @@ class TestEC2Key:
         sig = private_key.sign(b"Hello world!")
         with pytest.raises(VerifyError) as err:
             private_key.verify(b"Hello world!", sig + b"xxx")
-            pytest.fail("verify should not fail.")
+            pytest.fail("verify() should fail.")
         assert "Invalid signature." in str(err.value)
+
+    @pytest.mark.parametrize(
+        "alg",
+        [
+            "A128GCM",
+            "A192GCM",
+            "A256GCM",
+            # "HMAC 256/64",
+            # "HMAC 256/256",
+            # "HS256",
+            # "HMAC 384/384",
+            # "HS384",
+            # "HMAC 512/512",
+            # "HS512",
+            "AES-CCM-16-64-128",
+            "AES-CCM-16-64-128",
+            "ChaCha20/Poly1305",
+        ],
+    )
+    def test_ec2_key_derive_key(self, alg):
+        private_key = EC2Key(
+            {
+                1: 2,
+                -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+                -1: 1,
+                3: -25,
+            }
+        )
+        pub_key = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+        try:
+            derived_key = private_key.derive_key({"alg": alg}, public_key=pub_key)
+            assert derived_key.kty == 4
+        except Exception:
+            pytest.fail("derive_key() should not fail.")
+
+    @pytest.mark.parametrize(
+        "invalid_alg, alg_id",
+        [
+            ("HMAC 256/64", 4),
+            ("HMAC 256/256", 5),
+            ("HS256", 5),
+            ("HMAC 384/384", 6),
+            ("HS384", 6),
+            ("HMAC 512/512", 7),
+            ("HS512", 7),
+        ],
+    )
+    def test_ec2_key_derive_key_with_invalid_alg(self, invalid_alg, alg_id):
+        private_key = EC2Key(
+            {
+                1: 2,
+                -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+                -1: 1,
+                3: -25,
+            }
+        )
+        pub_key = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+        with pytest.raises(ValueError) as err:
+            private_key.derive_key({"alg": invalid_alg}, public_key=pub_key)
+            pytest.fail("derive_key() should fail.")
+        assert f"Unsupported or unknown alg: {alg_id}." in str(err.value)
+
+    def test_ec2_key_derive_key_without_public_key(self):
+        private_key = EC2Key(
+            {
+                1: 2,
+                -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+                -1: 1,
+                3: -25,
+            }
+        )
+        with pytest.raises(ValueError) as err:
+            private_key.derive_key({"alg": "A128GCM"})
+        assert "public_key should be set." in str(err.value)
+
+    def test_ec2_key_derive_key_with_invalid_public_key(self):
+        private_key = EC2Key(
+            {
+                1: 2,
+                -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+                -1: 1,
+                3: -25,
+            }
+        )
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            public_key = COSEKey.from_pem(key_file.read())
+        with pytest.raises(ValueError) as err:
+            private_key.derive_key({"alg": "A128GCM"}, public_key=public_key)
+        assert "public_key should be elliptic curve public key." in str(err.value)
+
+    def test_ec2_key_derive_key_with_invalid_private_key(self):
+        private_key = EC2Key(
+            {
+                1: 2,
+                -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+                -1: 1,
+                3: -7,  # signature algorithm.
+            }
+        )
+        with open(key_path("public_key_es256.pem")) as key_file:
+            public_key = COSEKey.from_pem(key_file.read())
+        with pytest.raises(ValueError) as err:
+            private_key.derive_key({"alg": "A128GCM"}, public_key=public_key)
+        assert "Invalid alg for key derivation: -7." in str(err.value)
+
+    def test_ec2_key_to_cose_key_with_invalid_key(self):
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            private_key = COSEKey.from_pem(key_file.read())
+        with pytest.raises(ValueError) as err:
+            EC2Key.to_cose_key(private_key.key)
+        assert "Unsupported or unknown key for EC2." in str(err.value)

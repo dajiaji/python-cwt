@@ -63,7 +63,7 @@ def base64url_decode(v: str) -> bytes:
     return base64.urlsafe_b64decode(bv)
 
 
-def to_cis(context: Dict[str, Any], recipient_alg: int = 0) -> List[Any]:
+def to_cis(context: Dict[str, Any], recipient_alg: Optional[int] = None) -> List[Any]:
     res: List[Any] = []
 
     # AlgorithmID
@@ -72,6 +72,8 @@ def to_cis(context: Dict[str, Any], recipient_alg: int = 0) -> List[Any]:
     if context["alg"] not in COSE_NAMED_ALGORITHMS_SUPPORTED:
         raise ValueError(f'Unsupported or unknown alg: {context["alg"]}.')
     alg = COSE_NAMED_ALGORITHMS_SUPPORTED[context["alg"]]
+    if alg not in COSE_KEY_LEN:
+        raise ValueError(f"Unsupported or unknown alg: {alg}.")
     res.append(alg)
 
     # PartyU
@@ -133,15 +135,12 @@ def to_cis(context: Dict[str, Any], recipient_alg: int = 0) -> List[Any]:
                 raise ValueError("supp_pub.protected should be dict.")
             protected = context["supp_pub"]["protected"]
             supp_pub[1] = cbor2.dumps(protected)
-
         if "other" in context["supp_pub"]:
             if not isinstance(context["supp_pub"]["other"], str):
                 raise ValueError("supp_pub.other should be str.")
             supp_pub.append(context["supp_pub"]["other"].encode("utf-8"))
-    if alg not in COSE_KEY_LEN:
-        raise ValueError(f"Unsupported or unknown alg: {alg}.")
     supp_pub[0] = COSE_KEY_LEN[alg]
-    if recipient_alg != 0:
+    if recipient_alg:
         protected[1] = recipient_alg
         supp_pub[1] = cbor2.dumps(protected)
     res.append(supp_pub)

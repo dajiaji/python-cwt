@@ -161,6 +161,41 @@ class TestCOSEKey:
             pytest.fail("from_pem should not fail.")
 
     @pytest.mark.parametrize(
+        "alg",
+        [
+            "ECDH-SS+HKDF-512",
+            "ECDH-SS+HKDF-256",
+            "ECDH-ES+HKDF-512",
+            "ECDH-ES+HKDF-256",
+            "ES256K",
+            "ES512",
+            "ES384",
+            "ES256",
+        ],
+    )
+    def test_key_builder_from_pem_ec2_with_alg(self, alg):
+        try:
+            with open(key_path("private_key_es256.pem")) as key_file:
+                COSEKey.from_pem(key_file.read(), alg=alg)
+        except Exception:
+            pytest.fail("from_pem should not fail.")
+
+    @pytest.mark.parametrize(
+        "invalid_alg",
+        [
+            "HS256",
+            "HS384",
+            "HS512",
+        ],
+    )
+    def test_key_builder_from_pem_ec2_with_invalid_alg(self, invalid_alg):
+        with open(key_path("private_key_es256.pem")) as key_file:
+            with pytest.raises(ValueError) as err:
+                COSEKey.from_pem(key_file.read(), alg=invalid_alg)
+                pytest.fail("from_pem() should fail.")
+        assert f"Unsupported or unknown alg for EC2: {invalid_alg}." in str(err.value)
+
+    @pytest.mark.parametrize(
         "kid, expected",
         [
             (b"our-key", b"our-key"),
@@ -254,7 +289,7 @@ class TestCOSEKey:
         "alg, msg",
         [
             (None, "alg parameter should be specified for an RSA key."),
-            ("RSxxx", "Unsupported or unknow alg: RSxxx."),
+            ("RSxxx", "Unsupported or unknown alg: RSxxx."),
         ],
     )
     def test_key_builder_from_pem_private_with_invalid_alg(self, alg, msg):

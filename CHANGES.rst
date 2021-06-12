@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 
+- Add derive_key to EC2Key. `#122 <https://github.com/dajiaji/python-cwt/pull/122>`__
+- Add key to OKPKey. `#122 <https://github.com/dajiaji/python-cwt/pull/122>`__
 - Add support for key derivation without kid. `#120 <https://github.com/dajiaji/python-cwt/pull/120>`__
 - Add support for ECDH-SS direct HKDF. `#119 <https://github.com/dajiaji/python-cwt/pull/119>`__
 - Add support for ECDH-ES direct HKDF. `#118 <https://github.com/dajiaji/python-cwt/pull/118>`__

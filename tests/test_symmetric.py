@@ -185,7 +185,7 @@ class TestHMACKey:
             ),
             (
                 {1: 4, -1: b"mysecret", 3: 4, 4: [9, 10, 11]},
-                "Unknown or not permissible key_ops(4) for MACAuthenticationKey: 11.",
+                "key_ops(4) includes invalid value: 11.",
             ),
         ],
     )
@@ -393,11 +393,11 @@ class TestAESCCMKey:
             ),
             (
                 {1: 4, 3: 10, 4: [3, 4, 11]},
-                "Unknown or not permissible key_ops(4) for ContentEncryptionKey: 11.",
+                "key_ops(4) includes invalid value: 11.",
             ),
             (
                 {1: 4, 3: 10, 4: [5, 6, 11]},
-                "Unknown or not permissible key_ops(4) for ContentEncryptionKey: 11.",
+                "key_ops(4) includes invalid value: 11.",
             ),
         ],
     )
@@ -546,11 +546,11 @@ class TestAESGCMKey:
             ),
             (
                 {1: 4, 3: 1, 4: [3, 4, 11]},
-                "Unknown or not permissible key_ops(4) for ContentEncryptionKey: 11.",
+                "key_ops(4) includes invalid value: 11.",
             ),
             (
                 {1: 4, 3: 1, 4: [5, 6, 11]},
-                "Unknown or not permissible key_ops(4) for ContentEncryptionKey: 11.",
+                "key_ops(4) includes invalid value: 11.",
             ),
         ],
     )
@@ -665,11 +665,11 @@ class TestChaCha20Key:
             ),
             (
                 {1: 4, 3: 24, 4: [3, 4, 11]},
-                "Unknown or not permissible key_ops(4) for ContentEncryptionKey: 11.",
+                "key_ops(4) includes invalid value: 11.",
             ),
             (
                 {1: 4, 3: 24, 4: [5, 6, 11]},
-                "Unknown or not permissible key_ops(4) for ContentEncryptionKey: 11.",
+                "key_ops(4) includes invalid value: 11.",
             ),
         ],
     )
