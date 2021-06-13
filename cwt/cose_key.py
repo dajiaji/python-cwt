@@ -5,25 +5,8 @@ from cryptography.hazmat.primitives.asymmetric.ec import (
     EllipticCurvePrivateKey,
     EllipticCurvePublicKey,
 )
-from cryptography.hazmat.primitives.asymmetric.ed448 import (
-    Ed448PrivateKey,
-    Ed448PublicKey,
-)
-from cryptography.hazmat.primitives.asymmetric.ed25519 import (
-    Ed25519PrivateKey,
-    Ed25519PublicKey,
-)
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey
-from cryptography.hazmat.primitives.asymmetric.x448 import X448PrivateKey, X448PublicKey
-from cryptography.hazmat.primitives.asymmetric.x25519 import (
-    X25519PrivateKey,
-    X25519PublicKey,
-)
 from cryptography.hazmat.primitives.serialization import (
-    Encoding,
-    NoEncryption,
-    PrivateFormat,
-    PublicFormat,
     load_pem_private_key,
     load_pem_public_key,
 )
@@ -36,6 +19,7 @@ from .const import (
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT,
     COSE_ALGORITHMS_RSA,
     COSE_ALGORITHMS_SIG_EC2,
+    COSE_ALGORITHMS_SIG_OKP,
     COSE_ALGORITHMS_SYMMETRIC,
     COSE_KEY_OPERATION_VALUES,
     COSE_KEY_TYPES,
@@ -270,58 +254,15 @@ class COSEKey:
                         raise ValueError(f"Unsupported or unknown alg for EC2: {alg}.")
                 cose_key[3] = alg
             cose_key.update(EC2Key.to_cose_key(k))
-        elif isinstance(k, Ed25519PublicKey) or isinstance(k, Ed25519PrivateKey):
-            cose_key[1] = COSE_KEY_TYPES["OKP"]
-            cose_key[3] = -8  # EdDSA
-            cose_key[-1] = 6  # Ed25519
-            if isinstance(k, Ed25519PublicKey):
-                cose_key[-2] = k.public_bytes(Encoding.Raw, PublicFormat.Raw)
-            else:
-                cose_key[-2] = k.public_key().public_bytes(
-                    Encoding.Raw, PublicFormat.Raw
-                )
-                cose_key[-4] = k.private_bytes(
-                    Encoding.Raw, PrivateFormat.Raw, NoEncryption()
-                )
-        elif isinstance(k, Ed448PublicKey) or isinstance(k, Ed448PrivateKey):
-            cose_key[1] = COSE_KEY_TYPES["OKP"]
-            cose_key[3] = -8  # EdDSA
-            cose_key[-1] = 7  # Ed448
-            if isinstance(k, Ed448PublicKey):
-                cose_key[-2] = k.public_bytes(Encoding.Raw, PublicFormat.Raw)
-            else:
-                cose_key[-2] = k.public_key().public_bytes(
-                    Encoding.Raw, PublicFormat.Raw
-                )
-                cose_key[-4] = k.private_bytes(
-                    Encoding.Raw, PrivateFormat.Raw, NoEncryption()
-                )
-        elif isinstance(k, X25519PublicKey) or isinstance(k, X25519PrivateKey):
-            cose_key[1] = COSE_KEY_TYPES["OKP"]
-            cose_key[3] = -8  # EdDSA
-            cose_key[-1] = 4  # X25519
-            if isinstance(k, X25519PublicKey):
-                cose_key[-2] = k.public_bytes(Encoding.Raw, PublicFormat.Raw)
-            else:
-                cose_key[-2] = k.public_key().public_bytes(
-                    Encoding.Raw, PublicFormat.Raw
-                )
-                cose_key[-4] = k.private_bytes(
-                    Encoding.Raw, PrivateFormat.Raw, NoEncryption()
-                )
-        elif isinstance(k, X448PublicKey) or isinstance(k, X448PrivateKey):
-            cose_key[1] = COSE_KEY_TYPES["OKP"]
-            cose_key[3] = -8  # EdDSA
-            cose_key[-1] = 5  # X448
-            if isinstance(k, X448PublicKey):
-                cose_key[-2] = k.public_bytes(Encoding.Raw, PublicFormat.Raw)
-            else:
-                cose_key[-2] = k.public_key().public_bytes(
-                    Encoding.Raw, PublicFormat.Raw
-                )
-                cose_key[-4] = k.private_bytes(
-                    Encoding.Raw, PrivateFormat.Raw, NoEncryption()
-                )
         else:
-            raise ValueError(f"Unsupported or unknown key: {type(k)}.")
+            if alg:
+                if isinstance(alg, str):
+                    if alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT:
+                        alg = COSE_ALGORITHMS_CKDM_KEY_AGREEMENT[alg]
+                    elif alg in COSE_ALGORITHMS_SIG_OKP:
+                        alg = COSE_ALGORITHMS_SIG_OKP[alg]
+                    else:
+                        raise ValueError(f"Unsupported or unknown alg for OKP: {alg}.")
+                cose_key[3] = alg
+            cose_key.update(OKPKey.to_cose_key(k))
         return cls.new(cose_key)

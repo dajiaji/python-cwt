@@ -1,15 +1,14 @@
 from typing import Any, Dict, List, Optional, Union
 
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePublicKey
-from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+from cryptography.hazmat.primitives.asymmetric.x448 import X448PublicKey
+from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PublicKey
 
 from ..algs.ec2 import EC2Key
-from ..const import COSE_KEY_LEN, COSE_KEY_OPERATION_VALUES
+from ..algs.okp import OKPKey
+from ..const import COSE_KEY_OPERATION_VALUES
 from ..cose_key import COSEKey
 from ..cose_key_interface import COSEKeyInterface
-from ..utils import to_cis
 from .direct import Direct
 
 
@@ -25,11 +24,11 @@ class ECDH_DirectHKDF(Direct):
         unprotected: Dict[int, Any],
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
+        cose_key: Optional[COSEKeyInterface] = None,
     ):
         super().__init__(protected, unprotected, ciphertext, recipients)
-        self._hash_alg: Any = None
-        self._curve: Any = None
         self._peer_public_key: Any = None
+        self._cose_key = cose_key
 
         self._apu = [
             self.unprotected[-21] if -21 in self.unprotected else None,
@@ -42,27 +41,11 @@ class ECDH_DirectHKDF(Direct):
             self.unprotected[-26] if -26 in self.unprotected else None,
         ]
 
-        if self._alg == -25:
-            self._hash_alg = hashes.SHA256()
-            self._curve = ec.SECP256R1()
+        if self._alg in [-25, -26]:  # ECDH-ES
             if -1 in self.unprotected:
                 self._peer_public_key = COSEKey.new(self.unprotected[-1])
                 self._key = self._peer_public_key.key
-        elif self._alg == -26:
-            self._hash_alg = hashes.SHA512()
-            self._curve = ec.SECP521R1()
-            if -1 in self.unprotected:
-                self._peer_public_key = COSEKey.new(self.unprotected[-1])
-                self._key = self._peer_public_key.key
-        elif self._alg == -27:
-            self._hash_alg = hashes.SHA256()
-            self._curve = ec.SECP256R1()
-            if -2 in self.unprotected:
-                self._peer_public_key = COSEKey.new(self.unprotected[-2])
-                self._key = self._peer_public_key.key
-        elif self._alg == -28:
-            self._hash_alg = hashes.SHA512()
-            self._curve = ec.SECP521R1()
+        elif self._alg in [-27, -28]:  # ECDH-SS
             if -2 in self.unprotected:
                 self._peer_public_key = COSEKey.new(self.unprotected[-2])
                 self._key = self._peer_public_key.key
@@ -76,34 +59,30 @@ class ECDH_DirectHKDF(Direct):
         public_key: Optional[COSEKeyInterface] = None,
     ) -> COSEKeyInterface:
 
-        if isinstance(context, dict):
-            alg = self._alg if isinstance(self._alg, int) else 0
-            context = to_cis(context, alg)
-        else:
-            self._validate_context(context)
-
-        if public_key and not isinstance(public_key.key, EllipticCurvePublicKey):
-            raise ValueError("public_key should be EC public key.")
-
-        # Derive key.
+        if not self._cose_key:
+            raise ValueError(
+                "Internal COSE key should be set for key derivation in advance."
+            )
         public_key = public_key if public_key else self._peer_public_key
-        private_key = ec.generate_private_key(self._curve)
-        shared_key = private_key.exchange(ec.ECDH(), public_key.key)
-        hkdf = HKDF(
-            algorithm=self._hash_alg,
-            length=COSE_KEY_LEN[context[0]] // 8,
-            salt=None,
-            info=self._dumps(context),
-        )
-        key = hkdf.derive(shared_key)
+        if not public_key:
+            raise ValueError("public_key should be set.")
         kid = self._kid if self._kid else public_key.kid
         if kid:
             self._unprotected[4] = kid
-        derived = COSEKey.from_symmetric_key(key, alg=context[0], kid=kid)
+        derived_key = self._cose_key.derive_key(context, public_key=public_key)
         if self._alg in [-25, -26]:
             # ECDH-ES
-            self._unprotected[-1] = EC2Key.to_cose_key(private_key.public_key())
+            self._unprotected[-1] = self._to_cose_key(self._cose_key.key.public_key())
+            self._unprotected[-1][3] = self._alg
         else:
             # ECDH-SS (alg=-27 or -28)
-            self._unprotected[-2] = EC2Key.to_cose_key(private_key.public_key())
-        return derived
+            self._unprotected[-2] = self._to_cose_key(self._cose_key.key.public_key())
+            self._unprotected[-2][3] = self._alg
+        return derived_key
+
+    def _to_cose_key(
+        self, k: Union[EllipticCurvePublicKey, X25519PublicKey, X448PublicKey]
+    ) -> Dict[int, Any]:
+        if isinstance(k, EllipticCurvePublicKey):
+            return EC2Key.to_cose_key(k)
+        return OKPKey.to_cose_key(k)

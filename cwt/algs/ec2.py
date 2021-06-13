@@ -308,12 +308,12 @@ class EC2Key(COSEKeyInterface):
             self._validate_context(context)
 
         # Derive key.
-        priv_key = (
+        self._key = (
             self._private_key
             if self._private_key
             else ec.generate_private_key(self._crv_obj)
         )
-        shared_key = priv_key.exchange(ec.ECDH(), public_key.key)
+        shared_key = self._key.exchange(ec.ECDH(), public_key.key)
         hkdf = HKDF(
             algorithm=self._hash_alg(),
             length=COSE_KEY_LEN[context[0]] // 8,
