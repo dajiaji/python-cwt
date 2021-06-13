@@ -147,8 +147,8 @@ class TestCOSEKey:
             ("private_key_es256k.pem", "public_key_es256k.pem"),
             ("private_key_es384.pem", "public_key_es384.pem"),
             ("private_key_es512.pem", "public_key_es512.pem"),
-            ("private_key_x25519.pem", "public_key_x25519.pem"),
-            ("private_key_x448.pem", "public_key_x448.pem"),
+            # ("private_key_x25519.pem", "public_key_x25519.pem"),
+            # ("private_key_x448.pem", "public_key_x448.pem"),
         ],
     )
     def test_key_builder_from_pem(self, private_key_path, public_key_path):
@@ -157,6 +157,22 @@ class TestCOSEKey:
                 COSEKey.from_pem(key_file.read())
             with open(key_path(public_key_path)) as key_file:
                 COSEKey.from_pem(key_file.read())
+        except Exception:
+            pytest.fail("from_pem should not fail.")
+
+    @pytest.mark.parametrize(
+        "private_key_path, public_key_path",
+        [
+            ("private_key_x25519.pem", "public_key_x25519.pem"),
+            ("private_key_x448.pem", "public_key_x448.pem"),
+        ],
+    )
+    def test_key_builder_from_pem_with_alg(self, private_key_path, public_key_path):
+        try:
+            with open(key_path(private_key_path)) as key_file:
+                COSEKey.from_pem(key_file.read(), alg="ECDH-SS+HKDF-256")
+            with open(key_path(public_key_path)) as key_file:
+                COSEKey.from_pem(key_file.read(), alg="ECDH-SS+HKDF-256")
         except Exception:
             pytest.fail("from_pem should not fail.")
 
@@ -194,6 +210,66 @@ class TestCOSEKey:
                 COSEKey.from_pem(key_file.read(), alg=invalid_alg)
                 pytest.fail("from_pem() should fail.")
         assert f"Unsupported or unknown alg for EC2: {invalid_alg}." in str(err.value)
+
+    @pytest.mark.parametrize(
+        "alg",
+        [
+            "EdDSA",
+        ],
+    )
+    def test_key_builder_from_pem_okp_eddsa_with_alg(self, alg):
+        try:
+            with open(key_path("private_key_ed25519.pem")) as key_file:
+                COSEKey.from_pem(key_file.read(), alg=alg)
+        except Exception:
+            pytest.fail("from_pem should not fail.")
+
+    @pytest.mark.parametrize(
+        "alg",
+        [
+            "ECDH-SS+HKDF-512",
+            "ECDH-SS+HKDF-256",
+            "ECDH-ES+HKDF-512",
+            "ECDH-ES+HKDF-256",
+        ],
+    )
+    def test_key_builder_from_pem_okp_ecdhe_with_alg(self, alg):
+        try:
+            with open(key_path("private_key_x25519.pem")) as key_file:
+                COSEKey.from_pem(key_file.read(), alg=alg)
+        except Exception:
+            pytest.fail("from_pem should not fail.")
+
+    @pytest.mark.parametrize(
+        "alg_id",
+        [
+            -25,
+            -26,
+            -27,
+            -28,
+        ],
+    )
+    def test_key_builder_from_pem_okp_ecdhe_with_alg_id(self, alg_id):
+        try:
+            with open(key_path("private_key_x25519.pem")) as key_file:
+                COSEKey.from_pem(key_file.read(), alg=alg_id)
+        except Exception:
+            pytest.fail("from_pem should not fail.")
+
+    @pytest.mark.parametrize(
+        "invalid_alg",
+        [
+            "HS256",
+            "HS384",
+            "HS512",
+        ],
+    )
+    def test_key_builder_from_pem_okp_with_invalid_alg(self, invalid_alg):
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            with pytest.raises(ValueError) as err:
+                COSEKey.from_pem(key_file.read(), alg=invalid_alg)
+                pytest.fail("from_pem() should fail.")
+        assert f"Unsupported or unknown alg for OKP: {invalid_alg}." in str(err.value)
 
     @pytest.mark.parametrize(
         "kid, expected",
@@ -256,8 +332,8 @@ class TestCOSEKey:
     @pytest.mark.parametrize(
         "invalid, msg",
         [
-            ([1], "Unknown or not permissible key_ops(4) for SignatureKey: 1"),
-            (["sign"], "Unknown or not permissible key_ops(4) for SignatureKey: 1"),
+            ([1], "Invalid key_ops for public key."),
+            (["sign"], "Invalid key_ops for public key."),
         ],
     )
     def test_key_builder_from_pem_public_with_invalid_key_ops(self, invalid, msg):
@@ -270,10 +346,10 @@ class TestCOSEKey:
     @pytest.mark.parametrize(
         "invalid, msg",
         [
-            ([9], "Unknown or not permissible key_ops(4) for SignatureKey: 9"),
+            ([9], "Unknown or not permissible key_ops(4) for OKP."),
             (
                 ["MAC create"],
-                "Unknown or not permissible key_ops(4) for SignatureKey: 9",
+                "Unknown or not permissible key_ops(4) for OKP.",
             ),
             (["xxx"], "Unsupported or unknown key_ops."),
         ],
