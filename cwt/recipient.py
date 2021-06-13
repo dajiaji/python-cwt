@@ -63,9 +63,9 @@ class Recipient:
         raise ValueError(f"Unsupported or unknown alg(1): {alg}.")
 
     @classmethod
-    def from_json(cls, data: Union[str, bytes, Dict[str, Any]]) -> RecipientInterface:
+    def from_jwk(cls, data: Union[str, bytes, Dict[str, Any]]) -> RecipientInterface:
         """
-        Create a recipient from JSON-formatted recipient data.
+        Create a recipient from JWK-like data.
 
         Args:
             data (Union[str, bytes, Dict[str, Any]]): JSON-formatted recipient data.
