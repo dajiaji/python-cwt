@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Add support for X25519/X448. `#123 <https://github.com/dajiaji/python-cwt/pull/123>`__
 - Add derive_key to EC2Key. `#122 <https://github.com/dajiaji/python-cwt/pull/122>`__
 - Add key to OKPKey. `#122 <https://github.com/dajiaji/python-cwt/pull/122>`__
 - Add support for key derivation without kid. `#120 <https://github.com/dajiaji/python-cwt/pull/120>`__
