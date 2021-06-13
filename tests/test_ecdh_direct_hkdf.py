@@ -70,7 +70,7 @@ class TestECDH_DirectHKDF:
         )
 
     def test_ecdh_direct_hkdf_derive_key_with_ecdh_es_p256(self):
-        rec = Recipient.from_json(
+        rec = Recipient.from_jwk(
             {
                 "kty": "EC",
                 "alg": "ECDH-SS+HKDF-256",
@@ -96,7 +96,7 @@ class TestECDH_DirectHKDF:
         )
 
     def test_ecdh_direct_hkdf_derive_key_with_ecdh_es_p521(self):
-        rec = Recipient.from_json(
+        rec = Recipient.from_jwk(
             {
                 "kty": "EC",
                 "alg": "ECDH-SS+HKDF-512",
@@ -122,7 +122,7 @@ class TestECDH_DirectHKDF:
         )
 
     def test_ecdh_direct_hkdf_derive_key_with_raw_context(self):
-        rec = Recipient.from_json(
+        rec = Recipient.from_jwk(
             {"kty": "EC", "crv": "P-256", "alg": "ECDH-ES+HKDF-256"}
         )
         with open(key_path("public_key_es256.pem")) as key_file:
@@ -143,7 +143,7 @@ class TestECDH_DirectHKDF:
         )
 
     def test_ecdh_direct_hkdf_derive_key_without_kid(self):
-        rec = Recipient.from_json(
+        rec = Recipient.from_jwk(
             {"kty": "EC", "crv": "P-256", "alg": "ECDH-ES+HKDF-256"}
         )
         with open(key_path("public_key_es256.pem")) as key_file:
@@ -171,7 +171,7 @@ class TestECDH_DirectHKDF:
         )
 
     def test_ecdh_direct_hkdf_derive_key_without_public_key(self):
-        rec = Recipient.from_json(
+        rec = Recipient.from_jwk(
             {"kty": "EC", "crv": "P-256", "alg": "ECDH-ES+HKDF-256"}
         )
         with pytest.raises(ValueError) as err:
@@ -180,7 +180,7 @@ class TestECDH_DirectHKDF:
         assert "public_key should be set." in str(err.value)
 
     def test_ecdh_direct_hkdf_derive_key_with_invalid_private_key(self):
-        rec = Recipient.from_json(
+        rec = Recipient.from_jwk(
             {"kty": "EC", "crv": "P-256", "alg": "ECDH-ES+HKDF-256"}
         )
         with open(key_path("public_key_es256.pem")) as key_file:

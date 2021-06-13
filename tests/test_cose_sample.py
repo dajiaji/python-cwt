@@ -34,7 +34,7 @@ class TestCOSESample:
 
     def test_cose_usage_examples_cose_mac_direct(self):
         mac_key = COSEKey.from_symmetric_key(alg="HS512", kid="01")
-        recipient = Recipient.from_json({"alg": "direct", "kid": "01"})
+        recipient = Recipient.from_jwk({"alg": "direct", "kid": "01"})
 
         ctx = COSE.new()
         encoded = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[recipient])
@@ -52,7 +52,7 @@ class TestCOSESample:
 
     def test_cose_usage_examples_cose_mac_aes_key_wrap(self):
         mac_key = COSEKey.from_symmetric_key(alg="HS512")
-        recipient = Recipient.from_json(
+        recipient = Recipient.from_jwk(
             {
                 "alg": "A128KW",
                 "kid": "our-secret",
@@ -98,7 +98,7 @@ class TestCOSESample:
     def test_cose_usage_examples_cose_encrypt(self):
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
         nonce = enc_key.generate_nonce()
-        recipient = Recipient.from_json({"alg": "direct", "kid": "01"})
+        recipient = Recipient.from_jwk({"alg": "direct", "kid": "01"})
 
         ctx = COSE.new()
         encoded = ctx.encode_and_encrypt(
@@ -130,7 +130,7 @@ class TestCOSESample:
 
     def test_cose_usage_examples_cose_encrypt_ecdh_direct_hkdf_p256(self):
 
-        recipient = Recipient.from_json(
+        recipient = Recipient.from_jwk(
             {
                 "kty": "EC",
                 "alg": "ECDH-ES+HKDF-256",
@@ -171,7 +171,7 @@ class TestCOSESample:
 
     def test_cose_usage_examples_cose_encrypt_ecdh_direct_hkdf_x25519(self):
 
-        recipient = Recipient.from_json(
+        recipient = Recipient.from_jwk(
             {
                 "kty": "OKP",
                 "alg": "ECDH-ES+HKDF-256",
@@ -210,7 +210,7 @@ class TestCOSESample:
 
     def test_cose_usage_examples_cose_encrypt_ecdh_direct_hkdf_x448(self):
 
-        recipient = Recipient.from_json(
+        recipient = Recipient.from_jwk(
             {
                 "kty": "OKP",
                 "alg": "ECDH-ES+HKDF-256",

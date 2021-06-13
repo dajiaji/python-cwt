@@ -236,13 +236,13 @@ class TestRecipient:
             pytest.fail("Recipient() should fail.")
         assert msg in str(err.value)
 
-    def test_recipient_from_json_with_str(self):
-        recipient = Recipient.from_json('{"alg": "direct"}')
+    def test_recipient_from_jwk_with_str(self):
+        recipient = Recipient.from_jwk('{"alg": "direct"}')
         assert isinstance(recipient, RecipientInterface)
         assert recipient.alg == -6
 
-    def test_recipient_from_json_with_dict(self):
-        recipient = Recipient.from_json({"alg": "A128KW", "key_ops": ["wrapKey"]})
+    def test_recipient_from_jwk_with_dict(self):
+        recipient = Recipient.from_jwk({"alg": "A128KW", "key_ops": ["wrapKey"]})
         assert isinstance(recipient, RecipientInterface)
         assert recipient.alg == -3
         assert len(recipient.key_ops) == 1
@@ -288,9 +288,9 @@ class TestRecipient:
             ),
         ],
     )
-    def test_recipient_from_json_with_invalid_arg(self, data, msg):
+    def test_recipient_from_jwk_with_invalid_arg(self, data, msg):
         with pytest.raises(ValueError) as err:
-            Recipient.from_json(data)
+            Recipient.from_jwk(data)
             pytest.fail("Recipient() should fail.")
         assert msg in str(err.value)
 
@@ -359,13 +359,13 @@ class TestRecipients:
         assert "Failed to derive a key." in str(err.value)
 
     def test_recipients_extract_key_with_multiple_materials(self, material, context):
-        r1 = Recipient.from_json(
+        r1 = Recipient.from_jwk(
             {
                 "alg": "direct",
                 "kid": "01",
             }
         )
-        r2 = Recipient.from_json(
+        r2 = Recipient.from_jwk(
             {
                 "alg": "direct+HKDF-SHA-256",
                 "kid": "02",
@@ -384,20 +384,20 @@ class TestRecipients:
             ),
             alg="HS512",
         )
-        r1 = Recipient.from_json(
+        r1 = Recipient.from_jwk(
             {
                 "alg": "A128KW",
                 "kid": "01",
             }
         )
-        r2 = Recipient.from_json(
+        r2 = Recipient.from_jwk(
             {
                 "alg": "direct+HKDF-SHA-256",
                 "kid": "02",
                 "salt": "aabbccddeeffgghh",
             },
         )
-        r3 = Recipient.from_json(
+        r3 = Recipient.from_jwk(
             {
                 "alg": "A128KW",
                 "kid": "02",

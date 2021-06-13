@@ -422,7 +422,7 @@ Create a COSE MAC message, verify and decode it as follows:
 ```py
 from cwt import COSE, COSEKey
 
-recipient = Recipient.from_json({"alg": "direct", "kid": "01"})
+recipient = Recipient.from_jwk({"alg": "direct", "kid": "01"})
 mac_key = COSEKey.from_symmetric_key(alg="HS512", kid="01")
 ctx = COSE.new()
 encoded = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[recipient])
@@ -449,7 +449,7 @@ Create a COSE Encrypt message, verify and decode it as follows:
 ```py
 from cwt import COSE, COSEKey
 
-recipient = Recipient.from_json({"alg": "direct", "kid": "01"})
+recipient = Recipient.from_jwk({"alg": "direct", "kid": "01"})
 enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
 ctx = COSE.new()
 encoded = ctx.encode_and_encrypt(

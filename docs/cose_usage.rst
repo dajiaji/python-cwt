@@ -81,7 +81,7 @@ key distribution method.
     from cwt import COSE, COSEKey, Recipient
 
     # The sender makes a COSE MAC message as follows:
-    recipient = Recipient.from_json({"alg": "direct", "kid": "01"})
+    recipient = Recipient.from_jwk({"alg": "direct", "kid": "01"})
     mac_key = COSEKey.from_symmetric_key(alg="HS512", kid="01")
     ctx = COSE.new()
     encoded = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[recipient])
@@ -96,7 +96,7 @@ Following samples are other ways of writing the above sample:
     from cwt import COSE, COSEKey, Recipient
 
     # The sender side:
-    # In contrast to from_json(), new() is low-level constructor.
+    # In contrast to from_jwk(), new() is low-level constructor.
     recipient = Recipient.new(unprotected={"alg": "direct", "kid": "01"})
     mac_key = COSEKey.from_symmetric_key(alg="HS512", kid="01")
     ctx = COSE.new()
@@ -130,7 +130,7 @@ The AES key wrap algorithm can be used to wrap a MAC key as follows:
 
     # The sender side:
     mac_key = COSEKey.from_symmetric_key(alg="HS512")
-    recipient = Recipient.from_json(
+    recipient = Recipient.from_jwk(
         {
             "alg": "A128KW",
             "kid": "our-secret",
@@ -216,7 +216,7 @@ key distribution method.
     from cwt import COSE, COSEKey, Recipient
 
     # The sender side:
-    recipient = Recipient.from_json({"alg": "direct", "kid": "01"})
+    recipient = Recipient.from_jwk({"alg": "direct", "kid": "01"})
     enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
     ctx = COSE.new()
     encoded = ctx.encode_and_encrypt(
