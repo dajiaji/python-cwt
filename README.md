@@ -405,7 +405,7 @@ extracted_pop_key = COSEKey.new(decoded.cnf)  # = raw[8][1]
 extracted_pop_key.verify(msg, sig)
 ```
 
-[Usage Examples](https://python-cwt.readthedocs.io/en/stable/cwt-usage.html#cwt-with-pop-key)
+[Usage Examples](https://python-cwt.readthedocs.io/en/stable/cwt_usage.html#cwt-with-pop-key)
 shows other examples which use other confirmation methods for PoP keys.
 
 ## COSE Usage Examples
