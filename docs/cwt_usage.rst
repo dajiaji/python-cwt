@@ -1,7 +1,7 @@
 CWT Usage Examples
 ==================
 
-The following is a simple sample code for command line console.
+The following is a simple sample code using CWT API:
 
 .. code-block:: pycon
 
@@ -10,22 +10,11 @@ The following is a simple sample code for command line console.
     >>> key = COSEKey.from_symmetric_key(alg="HS256")
     >>> token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
     >>> token.hex()
-    'd18443a10105a05835a60172636f6170733a2f2f61732e6578616d706c65026764616a69616a69'
-    '0743313233041a609097b7051a609089a7061a609089a758201fad9b0a76803194bd11ca9b9b3c'
-    'bbf1028005e15321665a768994f38c7127f7'
-    >>> decoded = cwt.decode(token, key)
-    >>> decoded
-    {1: 'coaps://as.example', 2: 'dajiaji', 7: b'123',
-     4: 1620088759, 5: 1620085159, 6: 1620085159}
-    >>> readable = Claims.new(decoded)
-    >>> readable.iss
-    'coaps://as.example'
-    >>> readable.sub
-    'dajiaji'
-    >>> readable.exp
-    1620088759
+    'd18443a10105a05835a60172636f6170733a2f2f61732e6578616d706c65026764616a69616a690743313233041a609097b7051a609089a7061a609089a758201fad9b0a76803194bd11ca9b9b3cbbf1028005e15321665a768994f38c7127f7'
+    >>> cwt.decode(token, key)
+    {1: 'coaps://as.example', 2: 'dajiaji', 7: b'123', 4: 1620088759, 5: 1620085159, 6: 1620085159}
 
-This page shows various examples to use this library. Specific examples are as follows:
+This page shows various examples to use CWT API in this library.
 
 .. contents::
    :local:
@@ -47,6 +36,16 @@ Create a MACed CWT, verify and decode it as follows:
             key,
         )
         decoded = cwt.decode(token, key)
+
+        # If you want to treat the result like a JWT;
+        readable = Claims.new(decoded)
+        assert readable.iss == "coaps://as.example"
+        assert readable.sub == "dajiaji"
+        assert readable.cti == "123"
+        # readable.exp == 1620088759
+        # readable.nbf == 1620085159
+        # readable.iat == 1620085159
+
     except Exception as err:
         # All the other examples in this document omit error handling but this CWT library
         # can throw following errors:
@@ -57,7 +56,7 @@ Create a MACed CWT, verify and decode it as follows:
         print(err)
 
 
-CBOR-like structure (Dict[int, Any]) can also be used as follows:
+A raw CWT structure (Dict[int, Any]) can also be used as follows:
 
 .. code-block:: python
 
@@ -217,6 +216,26 @@ Create a signed CWT and encrypt it, and then decrypt and verify the nested CWT a
     # Decrypts and verifies the nested CWT.
     decoded = cwt.decode(nested, [enc_key, public_key])
 
+CWT with User Settings
+----------------------
+
+The ``cwt`` in ``cwt.encode()`` and ``cwt.decode()`` above is a global ``CWT`` class instance created
+with default settings in advance. The default settings are as follows:
+
+* ``expires_in``: ``3600`` seconds. This is the default lifetime in seconds of CWTs.
+* ``leeway``: ``60`` seconds. This is the default leeway in seconds for validating ``exp`` and ``nbf``.
+
+If you want to change the settings, you can create your own ``CWT`` class instance as follows:
+
+.. code-block:: python
+
+    from cwt import COSEKey, CWT
+
+    key = COSEKey.from_symmetric_key(alg="HS256")
+    mycwt = CWT.new(expires_in=3600 * 24, leeway=10)
+    token = mycwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
+    decoded = mycwt.decode(token, key)
+
 CWT with User-Defined Claims
 ----------------------------
 
@@ -246,15 +265,16 @@ Note that such user-defined claim's key should be less than -65536.
         private_key,
     )
     raw = cwt.decode(token, public_key)
-    # raw[-70001] == "foo"
-    # raw[-70002][0] == "bar"
-    # raw[-70003]["baz"] == "qux"
-    # raw[-70004] == 123
+    assert raw[-70001] == "foo"
+    assert raw[-70002][0] == "bar"
+    assert raw[-70003]["baz"] == "qux"
+    assert raw[-70004] == 123
+
     readable = Claims.new(raw)
-    # readable.get(-70001) == "foo"
-    # readable.get(-70002)[0] == "bar"
-    # readable.get(-70003)["baz"] == "qux"
-    # readable.get(-70004) == 123
+    assert readable.get(-70001) == "foo"
+    assert readable.get(-70002)[0] == "bar"
+    assert readable.get(-70003)["baz"] == "qux"
+    assert readable.get(-70004) == 123
 
 User-defined claims can also be used with JSON-based claims as follows:
 
@@ -268,14 +288,14 @@ User-defined claims can also be used with JSON-based claims as follows:
     with open("./public_key.pem") as key_file:
         public_key = COSEKey.from_pem(key_file.read(), kid="01")
 
-    cwt.set_private_claim_names(
-        {
-            "ext_1": -70001,
-            "ext_2": -70002,
-            "ext_3": -70003,
-            "ext_4": -70004,
-        }
-    )
+    my_claim_names = {
+        "ext_1": -70001,
+        "ext_2": -70002,
+        "ext_3": -70003,
+        "ext_4": -70004,
+    }
+
+    cwt.set_private_claim_names(my_claim_names)
     token = cwt.encode(
         {
             "iss": "coaps://as.example",
@@ -292,17 +312,12 @@ User-defined claims can also be used with JSON-based claims as follows:
     raw = cwt.decode(token, public_key)
     readable = Claims.new(
         raw,
-        private_claim_names={
-            "ext_1": -70001,
-            "ext_2": -70002,
-            "ext_3": -70003,
-            "ext_4": -70004,
-        },
+        private_claim_names=my_claim_names,
     )
-    # readable.get("ext_1") == "foo"
-    # readable.get("ext_2")[0] == "bar"
-    # readable.get("ext_3")["baz"] == "qux"
-    # readable.get("ext_4") == 123
+    assert readable.get("ext_1") == "foo"
+    assert readable.get("ext_2")[0] == "bar"
+    assert readable.get("ext_3")["baz"] == "qux"
+    assert readable.get("ext_4") == 123
 
 CWT with PoP key
 ----------------
