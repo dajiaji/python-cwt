@@ -9,15 +9,22 @@
 
 Python CWT is a CBOR Web Token (CWT) and CBOR Object Signing and Encryption (COSE)
 implementation compliant with:
-- [CWT (CBOR Web Token)](https://tools.ietf.org/html/rfc8392)
-- [COSE (CBOR Object Signing and Encryption)](https://tools.ietf.org/html/rfc8152)
-- and related various specifications listed [here](#referenced-specifications).
+- [RFC8392: CWT (CBOR Web Token)](https://tools.ietf.org/html/rfc8392)
+- [RFC8152: COSE (CBOR Object Signing and Encryption)](https://tools.ietf.org/html/rfc8152)
+- and related various specifications. See [Referenced Specifications](#referenced-specifications).
 
-It is designed to make users who already know about [JWS](https://tools.ietf.org/html/rfc7515)
-/[JWE](https://tools.ietf.org/html/rfc7516)/[JWT](https://tools.ietf.org/html/rfc7519) be able
-to use it in ease. Little knowledge of [CBOR](https://tools.ietf.org/html/rfc7049)
-/[COSE](https://tools.ietf.org/html/rfc8152)/[CWT](https://tools.ietf.org/html/rfc8392)
+It is designed to make users who already know about [JWS](https://tools.ietf.org/html/rfc7515)/[JWE](https://tools.ietf.org/html/rfc7516)/[JWT](https://tools.ietf.org/html/rfc7519)
+be able to use it in ease. Little knowledge of [CBOR](https://tools.ietf.org/html/rfc7049)/[COSE](https://tools.ietf.org/html/rfc8152)/[CWT](https://tools.ietf.org/html/rfc8392)
 is required to use it.
+
+You can install Python CWT with pip:
+
+
+```sh
+$ pip install cwt
+```
+
+And then, you can use it as follows:
 
 ```py
 >>> import cwt

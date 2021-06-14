@@ -4,6 +4,9 @@ Changes
 Unreleased
 ----------
 
+- Refine README. `#127 <https://github.com/dajiaji/python-cwt/pull/127>`__
+- Add samples of using direct key agreement. `#126 <https://github.com/dajiaji/python-cwt/pull/126>`__
+
 Version 0.10.0
 --------------
 
