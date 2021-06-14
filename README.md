@@ -87,7 +87,7 @@ try:
     key = COSEKey.from_symmetric_key(alg="HS256")
     token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
     decoded = cwt.decode(token, key)
-    
+
     # If you want to treat the result like a JWT;
     readable = Claims.new(decoded)
     assert readable.iss == 'coaps://as.example'
