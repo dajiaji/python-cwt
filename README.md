@@ -7,17 +7,54 @@
 [![codecov](https://codecov.io/gh/dajiaji/python-cwt/branch/main/graph/badge.svg?token=QN8GXEYEP3)](https://codecov.io/gh/dajiaji/python-cwt)
 
 
-A Python implementation of [CBOR Web Token (CWT)](https://tools.ietf.org/html/rfc8392)
-and [CBOR Object Signing and Encryption (COSE)](https://tools.ietf.org/html/rfc8152).
+Python CWT is a CBOR Web Token (CWT) and CBOR Object Signing and Encryption (COSE)
+implementation compliant with:
+- [CWT (CBOR Web Token)](https://tools.ietf.org/html/rfc8392)
+- [COSE (CBOR Object Signing and Encryption)](https://tools.ietf.org/html/rfc8152)
+- and related various specifications listed [here](#referenced-specifications).
 
-See [Document](https://python-cwt.readthedocs.io/en/stable/) for details:
+It is designed to make users who already know about [JWS](https://tools.ietf.org/html/rfc7515)
+/[JWE](https://tools.ietf.org/html/rfc7516)/[JWT](https://tools.ietf.org/html/rfc7519) be able
+to use it in ease. Little knowledge of [CBOR](https://tools.ietf.org/html/rfc7049)
+/[COSE](https://tools.ietf.org/html/rfc8152)/[CWT](https://tools.ietf.org/html/rfc8392)
+is required to use it.
 
-- [CWT Usage Examples](https://python-cwt.readthedocs.io/en/stable/cwt_usage.html)
-- [COSE Usage Examples](https://python-cwt.readthedocs.io/en/stable/cose_usage.html)
-- [API Reference](https://python-cwt.readthedocs.io/en/stable/api.html)
-- [Supported CWT Claims](https://python-cwt.readthedocs.io/en/stable/claims.html)
-- [Supported COSE Algorithms](https://python-cwt.readthedocs.io/en/stable/algorithms.html)
-- [Referenced Specifications](https://python-cwt.readthedocs.io/en/stable/specs.html)
+```py
+>>> import cwt
+>>> from cwt import COSEKey
+>>> key = COSEKey.from_symmetric_key(alg="HS256")
+>>> token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
+>>> token.hex()
+'d18443a10105a05835a60172636f6170733a2f2f61732e6578616d706c65026764616a69616a690743313233041a60c6a60b051a60c697fb061a60c697fb582019d4a89e141e3a8805ba1c90d81a8a2dd8261464dce379d8af8044d1cc062258'
+>>> cwt.decode(token, key)
+{1: 'coaps://as.example', 2: 'dajiaji', 7: b'123', 4: 1620088759, 5: 1620085159, 6: 1620085159}
+```
+
+See [Document](https://python-cwt.readthedocs.io/en/stable/) for details.
+
+## Index
+
+- [Installing](#installing)
+- [CWT Usage Examples](#cwt-usage-examples)
+    - [MACed CWT](#maced-cwt)
+    - [Signed CWT](#signed-cwt)
+    - [Encrypted CWT](#encrypted-cwt)
+    - [Nested CWT](#nested-cwt)
+    - [CWT with User Settings (e.g., expires\_in)](#cwt-with-user-settings)
+    - [CWT with User-Defined Claims](#cwt-with-user-defined-claims)
+    - [CWT with PoP Key](#cwt-with-pop-key)
+- [COSE Usage Examples](#cose-usage-examples)
+    - [COSE MAC0](#cose-mac0)
+    - [COSE MAC](#cose-mac)
+    - [COSE Encrypt0](#cose-encrypt0)
+    - [COSE Encrypt](#cose-encrypt)
+    - [COSE Signature1](#cose-signature1)
+    - [COSE Signature](#cose-signature)
+- [API Reference](#api-reference)
+- [Supported CWT Claims](#supported-cwt-claims)
+- [Supported COSE Algorithms](#supported-cose-algorithms)
+- [Referenced Specifications](#referenced-specifications)
+- [Tests](#tests)
 
 ## Installing
 
@@ -27,32 +64,16 @@ Install with pip:
 pip install cwt
 ```
 
-## Usage
+## CWT Usage Examples
 
-Python CWT is an easy-to-use CWT/COSE library a little bit inspired by [PyJWT](https://github.com/jpadilla/pyjwt).
-If you already know about [JSON Web Token (JWT)](https://tools.ietf.org/html/rfc7519),
-little knowledge of [CBOR](https://tools.ietf.org/html/rfc7049), [COSE](https://tools.ietf.org/html/rfc8152)
-and [CWT](https://tools.ietf.org/html/rfc8392) is required to use this library.
+Followings are typical and basic examples which create various types of CWTs, verify and decode them.
 
-Followings are typical and basic examples which create CWT, verify and decode it:
+[CWT API](https://python-cwt.readthedocs.io/en/stable/api.html) in the examples are built
+on top of [COSE API](https://python-cwt.readthedocs.io/en/stable/api.html#cwt.COSE).
 
-- CWT API
-    - [MACed CWT](#maced-cwt)
-    - [Signed CWT](#signed-cwt)
-    - [Encrypted CWT](#encrypted-cwt)
-    - [Nested CWT](#nested-cwt)
-    - [CWT with User-Defined Claims](#cwt-with-user-defined-claims)
-    - [CWT with PoP Key](#cwt-with-pop-key)
-    - (See [CWT Usage Examples](https://python-cwt.readthedocs.io/en/stable/cwt_usage.html) for details)
-- COSE API
-    - [COSE MAC0](#cose-mac0)
-    - [COSE MAC](#cose-mac)
-    - [COSE Encrypt0](#cose-encrypt0)
-    - [COSE Encrypt](#cose-encrypt)
-    - [COSE Signature1](#cose-signature1)
-    - [COSE Signature](#cose-signature)
-    - (See [COSE Usage Examples](https://python-cwt.readthedocs.io/en/stable/cose_usage.html) for details)
-
+See [API Reference](https://python-cwt.readthedocs.io/en/stable/api.html) and
+[CWT Usage Examples on document](https://python-cwt.readthedocs.io/en/stable/cwt_usage.html)
+for more details.
 
 ### MACed CWT
 
@@ -62,30 +83,31 @@ Create a MACed CWT with `HS256`, verify and decode it as follows:
 import cwt
 from cwt import Claims, COSEKey
 
-key = COSEKey.from_symmetric_key(alg="HS256")
-token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
+try:
+    key = COSEKey.from_symmetric_key(alg="HS256")
+    token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
+    decoded = cwt.decode(token, key)
+    
+    # If you want to treat the result like a JWT;
+    readable = Claims.new(decoded)
+    assert readable.iss == 'coaps://as.example'
+    assert readable.sub == 'dajiaji'
+    assert readable.cti == '123'
+    # readable.exp == 1620088759
+    # readable.nbf == 1620085159
+    # readable.iat == 1620085159
 
-decoded = cwt.decode(token, key)
-# decoded == {
-#     1: 'coaps://as.example',
-#     2: 'dajiaji',
-#     7: b'123',
-#     4: 1620088759,
-#     5: 1620085159,
-#     6: 1620085159,
-# }
-
-# If you want to treat the result like a JWT;
-readable = Claims.new(decoded)
-# readable.iss == 'coaps://as.example'
-# readable.sub == 'dajiaji'
-# readable.cti == '123'
-# readable.exp == 1620088759
-# readable.nbf == 1620085159
-# readable.iat == 1620085159
+except Exception as err:
+    # All the other examples in this document omit error handling but this CWT library
+    # can throw following errors:
+    #   ValueError: Invalid arguments.
+    #   EncodeError: Failed to encode.
+    #   VerifyError: Failed to verify.
+    #   DecodeError: Failed to decode.
+    print(err)
 ```
 
-CBOR-like structure (Dict[int, Any]) can also be used as follows:
+A raw CWT structure (Dict[int, Any]) can also be used as follows:
 
 ```py
 import cwt
@@ -204,6 +226,24 @@ nested = cwt.encode(token, enc_key)
 decoded = cwt.decode(nested, [enc_key, public_key])
 ```
 
+### CWT with User Settings
+
+The `cwt` in `cwt.encode()` and `cwt.decode()` above is a global `CWT` class instance created
+with default settings in advance. The default settings are as follows:
+- `expires_in`: `3600` seconds. This is the default lifetime in seconds of CWTs.
+- `leeway`: `60` seconds. This is the default leeway in seconds for validating `exp` and `nbf`.
+
+If you want to change the settings, you can create your own `CWT` class instance as follows:
+
+```py
+from cwt import COSEKey, CWT
+
+key = COSEKey.from_symmetric_key(alg="HS256")
+mycwt = CWT.new(expires_in=3600*24, leeway=10)
+token = mycwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
+decoded = mycwt.decode(token, key)
+```
+
 ### CWT with User-Defined Claims
 
 You can use your own claims as follows:
@@ -231,15 +271,16 @@ token = cwt.encode(
     private_key,
 )
 raw = cwt.decode(token, public_key)
-# raw[-70001] == "foo"
-# raw[-70002][0] == "bar"
-# raw[-70003]["baz"] == "qux"
-# raw[-70004] == 123
+assert raw[-70001] == "foo"
+assert raw[-70002][0] == "bar"
+assert raw[-70003]["baz"] == "qux"
+assert raw[-70004] == 123
+
 readable = Claims.new(raw)
-# readable.get(-70001) == "foo"
-# readable.get(-70002)[0] == "bar"
-# readable.get(-70003)["baz"] == "qux"
-# readable.get(-70004) == 123
+assert readable.get(-70001) == "foo"
+assert readable.get(-70002)[0] == "bar"
+assert readable.get(-70003)["baz"] == "qux"
+assert readable.get(-70004) == 123
 ```
 
 User-defined claims can also be used with JSON-based claims as follows:
@@ -253,14 +294,14 @@ with open("./private_key.pem") as key_file:
 with open("./public_key.pem") as key_file:
     public_key = COSEKey.from_pem(key_file.read(), kid="01")
 
-cwt.set_private_claim_names(
-    {
-        "ext_1": -70001,
-        "ext_2": -70002,
-        "ext_3": -70003,
-        "ext_4": -70004,
-    }
-)
+my_claim_names = {
+    "ext_1": -70001,
+    "ext_2": -70002,
+    "ext_3": -70003,
+    "ext_4": -70004,
+}
+
+cwt.set_private_claim_names(my_claim_names)
 token = cwt.encode(
     {
         "iss": "coaps://as.example",
@@ -276,23 +317,18 @@ token = cwt.encode(
 raw = cwt.decode(token, public_key)
 readable = Claims.new(
     raw,
-    private_claims_names={
-        "ext_1": -70001,
-        "ext_2": -70002,
-        "ext_3": -70003,
-        "ext_4": -70004,
-    }
+    private_claims_names=my_claim_names,
 )
-# readable.get("ext_1") == "foo"
-# readable.get("ext_2")[0] == "bar"
-# readable.get("ext_3")["baz"] == "qux"
-# readable.get("ext_4") == 123
+assert readable.get("ext_1") == "foo"
+assert readable.get("ext_2")[0] == "bar"
+assert readable.get("ext_3")["baz"] == "qux"
+assert readable.get("ext_4") == 123
 ```
 
 
 ### CWT with PoP Key
 
-This library supports [Proof-of-Possession Key Semantics for CBOR Web Tokens (CWTs)](https://tools.ietf.org/html/rfc8747).
+Python CWT supports [Proof-of-Possession Key Semantics for CBOR Web Tokens (CWTs)](https://tools.ietf.org/html/rfc8747).
 A CWT can include a PoP key as follows:
 
 On the issuer side:
@@ -369,8 +405,15 @@ extracted_pop_key = COSEKey.new(decoded.cnf)  # = raw[8][1]
 extracted_pop_key.verify(msg, sig)
 ```
 
-[Usage Examples](https://python-cwt.readthedocs.io/en/stable/usage.html#cwt-with-pop-key) shows other examples which
-use other confirmation methods for PoP keys.
+[Usage Examples](https://python-cwt.readthedocs.io/en/stable/cwt-usage.html#cwt-with-pop-key)
+shows other examples which use other confirmation methods for PoP keys.
+
+## COSE Usage Examples
+
+Followings are typical and basic examples which create various types of COSE messages, verify and decode them.
+
+See [API Reference](https://python-cwt.readthedocs.io/en/stable/api.html#cwt.COSE) and
+[COSE Usage Examples on document](https://python-cwt.readthedocs.io/en/stable/cose_usage.html) for more details.
 
 ### COSE MAC0
 
@@ -420,7 +463,7 @@ decoded = ctx.decode(encoded, mac_key)
 Create a COSE MAC message, verify and decode it as follows:
 
 ```py
-from cwt import COSE, COSEKey
+from cwt import COSE, COSEKey, Recipient
 
 recipient = Recipient.from_jwk({"alg": "direct", "kid": "01"})
 mac_key = COSEKey.from_symmetric_key(alg="HS512", kid="01")
@@ -447,7 +490,7 @@ decoded = ctx.decode(encoded, enc_key)
 Create a COSE Encrypt message, verify and decode it as follows:
 
 ```py
-from cwt import COSE, COSEKey
+from cwt import COSE, COSEKey, Recipient
 
 recipient = Recipient.from_jwk({"alg": "direct", "kid": "01"})
 enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
@@ -503,6 +546,27 @@ ctx = COSE.new()
 encoded = ctx.encode_and_sign(b"Hello world!", signers=[signer])
 decoded = ctx.decode(encoded, signer.cose_key)
 ```
+## API Reference
+
+See [Document](https://python-cwt.readthedocs.io/en/stable/api.html).
+
+## Supported CWT Claims
+
+See [Document](https://python-cwt.readthedocs.io/en/stable/claims.html).
+
+## Supported COSE Algorithms
+
+See [Document](https://python-cwt.readthedocs.io/en/stable/algorithms.html).
+
+## Referenced Specifications
+
+Python CWT is (partially) compliant with following specifications:
+
+- [RFC8152: CBOR Object Signing and Encryption (COSE)](https://tools.ietf.org/html/rfc8152)
+- [RFC8230: Using RSA Algorithms with COSE Messages](https://tools.ietf.org/html/rfc8230)
+- [RFC8392: CBOR Web Token (CWT)](https://tools.ietf.org/html/rfc8392)
+- [RFC8747: Proof-of-Possession Key Semantics for CBOR Web Tokens (CWTs)](https://tools.ietf.org/html/rfc8747)
+- [RFC8812: COSE and JOSE Registrations for Web Authentication (WebAuthn) Algorithms](https://tools.ietf.org/html/rfc8812)
 
 ## Tests
 
