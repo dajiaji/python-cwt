@@ -26,7 +26,7 @@ class ECDH_AESKeyWrap(RecipientInterface):
         super().__init__(protected, unprotected, ciphertext, recipients)
         self._peer_public_key: Any = None
         self._cose_key = cose_key
-        self._wrapping_key = None
+        self._wrapping_key: Any = None
 
         self._apu = [
             self.unprotected[-21] if -21 in self.unprotected else None,
