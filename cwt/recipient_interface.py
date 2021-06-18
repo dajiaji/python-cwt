@@ -1,5 +1,11 @@
 from typing import Any, Dict, List, Optional, Union
 
+from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePublicKey
+from cryptography.hazmat.primitives.asymmetric.x448 import X448PublicKey
+from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PublicKey
+
+from .algs.ec2 import EC2Key
+from .algs.okp import OKPKey
 from .cose_key_interface import COSEKeyInterface
 
 
@@ -199,3 +205,10 @@ class RecipientInterface(COSEKeyInterface):
             DecodeError: Failed to decode(unwrap) the key.
         """
         raise NotImplementedError
+
+    def _to_cose_key(
+        self, k: Union[EllipticCurvePublicKey, X25519PublicKey, X448PublicKey]
+    ) -> Dict[int, Any]:
+        if isinstance(k, EllipticCurvePublicKey):
+            return EC2Key.to_cose_key(k)
+        return OKPKey.to_cose_key(k)

@@ -2,7 +2,11 @@ from typing import Any, Dict, List, Optional, Union
 
 import cbor2
 
-from .const import COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT, COSE_ALGORITHMS_KEY_WRAP
+from .const import (
+    COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT,
+    COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP,
+    COSE_ALGORITHMS_KEY_WRAP,
+)
 from .cose_key_interface import COSEKeyInterface
 from .recipient import Recipient
 from .recipient_interface import RecipientInterface
@@ -86,6 +90,12 @@ class Recipients:
                     if not context:
                         raise ValueError("context should be set.")
                     return k.derive_key(context, public_key=r)
+                if r.alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP.values():
+                    if not context:
+                        raise ValueError("context should be set.")
+                    derived_key = k.derive_key(context, public_key=r)
+                    r.set_key(derived_key.key)
+                    return r.unwrap_key(alg)
         raise ValueError("Failed to derive a key.")
 
     def _extract_key_from_key_materials(

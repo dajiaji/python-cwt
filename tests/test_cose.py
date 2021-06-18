@@ -667,8 +667,8 @@ class TestCOSE:
         rec = Recipient.from_jwk(
             {
                 "kty": "EC",
-                "alg": "ECDH-ES+HKDF-256",
                 "crv": "P-256",
+                "alg": "ECDH-ES+HKDF-256",
             }
         )
         pub_key = COSEKey.from_jwk(
@@ -693,6 +693,69 @@ class TestCOSE:
                 "kid": "meriadoc.brandybuck@buckland.example",
                 "crv": "P-256",
                 "alg": "ECDH-ES+HKDF-256",
+                "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
+                "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
+                "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",
+            }
+        )
+        assert b"This is the content." == ctx.decode(
+            encoded, priv_key, context={"alg": "A128GCM"}
+        )
+
+    def test_cose_sample_cose_wg_ecdh_wrap_p256_ss_wrap_128_01(self):
+        # print(cbor2.loads(bytes.fromhex("D8608443A10101A1054CC9CF4DF2FE6C632BF788641358247ADBE2709CA818FB415F1E5DF66F4E1A51053BA6D65A1A0C52A357DA7A644B8070A151B0818344A1013818A220A40102200121582098F50A4FF6C05861C8860D13A638EA56C3F5AD7590BBFBF054E1C7B4D91D6280225820F01400B089867804B8E9FC96C3932161F1934F4223069170D924B7E03BF822BB0458246D65726961646F632E6272616E64796275636B406275636B6C616E642E6578616D706C6540")))
+        # assert False
+        cwt_str = "D8608443A10101A1054C02D1F7E6F26C43D4868D87CE582464F84D913BA60A76070A9A48F26E97E863E2852948658F0811139868826E89218A75715B818344A101381FA221A42001215820EDCBD809C754DB6582C16D6D65747C8AECC92D619C778EB17F13B55C9B3E48F52258200F38495E0CFD448E93B1E366C047CBA0D567B3C526BCE36C3F3403A29D9D2A8A01020458246D65726961646F632E6272616E64796275636B406275636B6C616E642E6578616D706C65581833CB2D33A9C2A9178284E03D6DCCFFEA4E32D7363BDA50D3"
+        aad_str = "8367456E637279707443A1010140"
+        print(cbor2.loads(bytes.fromhex(cwt_str)))
+        print(cbor2.loads(bytes.fromhex(aad_str)))
+        print(cbor2.loads(b"\xa1\x01\x01"))
+        print(cbor2.loads(b"\x02\xd1\xf7\xe6\xf2lC\xd4\x86\x8d\x87\xce"))
+
+        # The sender side:
+        enc_key = COSEKey.from_symmetric_key(
+            # bytes.fromhex("B2353161740AACF1F7163647984B522A"),
+            alg="A128GCM",
+        )
+        rec = Recipient.from_jwk(
+            {
+                "kty": "EC",
+                "crv": "P-256",
+                "alg": "ECDH-SS+A128KW",
+                "x": "7cvYCcdU22WCwW1tZXR8iuzJLWGcd46xfxO1XJs-SPU",
+                "y": "DzhJXgz9RI6TseNmwEfLoNVns8UmvONsPzQDop2dKoo",
+                "d": "Uqr4fay_qYQykwcNCB2efj_NFaQRRQ-6fHZm763jt5w",
+            }
+        )
+        pub_key = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "crv": "P-256",
+                "kid": "meriadoc.brandybuck@buckland.example",
+                "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
+                "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
+                # "d":"r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8"
+            }
+        )
+        rec.derive_key({"alg": "A128GCM"}, public_key=pub_key)
+        rec.wrap_key(enc_key.key)
+        ctx = COSE.new(alg_auto_inclusion=True)
+        encoded = ctx.encode_and_encrypt(
+            b"This is the content.",
+            key=enc_key,
+            nonce=b"\x02\xd1\xf7\xe6\xf2lC\xd4\x86\x8d\x87\xce",
+            recipients=[rec],
+        )
+        print(cbor2.loads(encoded))
+        # assert encoded == bytes.fromhex(cwt_str)
+
+        # The recipient side:
+        priv_key = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "crv": "P-256",
+                "alg": "ECDH-SS+A128KW",
+                "kid": "meriadoc.brandybuck@buckland.example",
                 "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
                 "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
                 "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",
@@ -984,6 +1047,29 @@ class TestCOSE:
             {"alg": "A128GCM"},
             public_key=public_key,
         )
+        ctx = COSE.new(alg_auto_inclusion=True)
+        encoded = ctx.encode_and_encrypt(
+            b"This is the content.",
+            key=enc_key,
+            recipients=[recipient],
+        )
+
+        with open(key_path("private_key_es256.pem")) as key_file:
+            private_key = COSEKey.from_pem(key_file.read(), kid="01")
+        with pytest.raises(ValueError) as err:
+            ctx.decode(encoded, private_key)
+            pytest.fail("decode should fail.")
+        assert "context should be set." in str(err.value)
+
+    def test_cose_decode_ecdh_aes_key_wrap_without_context(self):
+        with open(key_path("public_key_es256.pem")) as key_file:
+            public_key = COSEKey.from_pem(key_file.read(), kid="01")
+        enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
+        recipient = Recipient.from_jwk(
+            {"kty": "EC", "crv": "P-256", "alg": "ECDH-ES+A128KW"}
+        )
+        recipient.derive_key({"alg": "A128GCM"}, public_key=public_key)
+        recipient.wrap_key(enc_key.key)
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_encrypt(
             b"This is the content.",

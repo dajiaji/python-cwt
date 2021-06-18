@@ -290,6 +290,49 @@ class TestCOSESample:
         )
         assert b"Hello world!" == ctx.decode(encoded3, pub_key)
 
+    def test_cose_usage_examples_cose_encrypt_ecdh_aes_key_wrap(self):
+
+        enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
+        recipient = Recipient.from_jwk(
+            {
+                "kty": "EC",
+                "alg": "ECDH-ES+A128KW",
+                "crv": "P-256",
+            },
+        )
+        pub_key = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "alg": "ECDH-ES+A128KW",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
+                "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
+            }
+        )
+        recipient.derive_key({"alg": "A128GCM"}, public_key=pub_key)
+        recipient.wrap_key(enc_key.key)
+        ctx = COSE.new(alg_auto_inclusion=True)
+        encoded = ctx.encode_and_encrypt(
+            b"Hello world!",
+            key=enc_key,
+            recipients=[recipient],
+        )
+        priv_key = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "alg": "ECDH-ES+A128KW",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
+                "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
+                "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",
+            }
+        )
+        assert b"Hello world!" == ctx.decode(
+            encoded, priv_key, context={"alg": "A128GCM"}
+        )
+
     def test_cose_usage_examples_cose_signature(self):
 
         signer = Signer.from_jwk(

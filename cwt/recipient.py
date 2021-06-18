@@ -2,7 +2,9 @@ import json
 from typing import Any, Dict, List, Optional, Union
 
 from .const import (  # COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP,
+    COSE_ALGORITHMS_CKDM_KEY_AGREEMENT,
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT,
+    COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP,
     COSE_ALGORITHMS_KEY_WRAP,
     COSE_ALGORITHMS_RECIPIENT,
     COSE_KEY_OPERATION_VALUES,
@@ -12,6 +14,7 @@ from .cose_key_interface import COSEKeyInterface
 from .recipient_algs.aes_key_wrap import AESKeyWrap
 from .recipient_algs.direct_hkdf import DirectHKDF
 from .recipient_algs.direct_key import DirectKey
+from .recipient_algs.ecdh_aes_key_wrap import ECDH_AESKeyWrap
 from .recipient_algs.ecdh_direct_hkdf import ECDH_DirectHKDF
 from .recipient_interface import RecipientInterface
 from .utils import base64url_decode, to_cose_header
@@ -58,8 +61,8 @@ class Recipient:
             return AESKeyWrap(p, u, ciphertext, recipients, key_ops, key)
         if alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT.values():
             return ECDH_DirectHKDF(p, u, ciphertext, recipients, cose_key)
-        # if alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP:
-        #     return ECDH_AESKeyWrap(p, u, ciphertext, recipients, key_ops, key)
+        if alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP.values():
+            return ECDH_AESKeyWrap(p, u, ciphertext, recipients, cose_key)
         raise ValueError(f"Unsupported or unknown alg(1): {alg}.")
 
     @classmethod
@@ -105,7 +108,7 @@ class Recipient:
                 unprotected[1] = COSE_ALGORITHMS_RECIPIENT[recipient["alg"]]
             else:
                 protected[1] = COSE_ALGORITHMS_RECIPIENT[recipient["alg"]]
-            if recipient["alg"] in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT.keys():
+            if recipient["alg"] in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.keys():
                 cose_key = COSEKey.from_jwk(recipient)
 
         # kid
