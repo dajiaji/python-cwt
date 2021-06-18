@@ -71,22 +71,22 @@ COSE Algorithms
 +------------------------+--------+-------+-----------------------------------------------------+
 | ES384                  | ✅     | -35   | ECDSA w/ SHA-384                                    |
 +------------------------+--------+-------+-----------------------------------------------------+
-| ECDH-SS + A256KW       |        | -34   | | ECDH SS w/ Concat KDF and AES Key Wrap            |
+| ECDH-SS + A256KW       | ✅     | -34   | | ECDH SS w/ Concat KDF and AES Key Wrap            |
 |                        |        |       | | w/ 256-bit key                                    |
 +------------------------+--------+-------+-----------------------------------------------------+
-| ECDH-SS + A192KW       |        | -33   | | ECDH SS w/ Concat KDF and AES Key Wrap            |
+| ECDH-SS + A192KW       | ✅     | -33   | | ECDH SS w/ Concat KDF and AES Key Wrap            |
 |                        |        |       | | w/ 192-bit key                                    |
 +------------------------+--------+-------+-----------------------------------------------------+
-| ECDH-SS + A128KW       |        | -32   | | ECDH SS w/ Concat KDF and AES Key Wrap            |
+| ECDH-SS + A128KW       | ✅     | -32   | | ECDH SS w/ Concat KDF and AES Key Wrap            |
 |                        |        |       | | w/ 128-bit key                                    |
 +------------------------+--------+-------+-----------------------------------------------------+
-| ECDH-ES + A256KW       |        | -31   | | ECDH ES w/ Concat KDF and AES Key Wrap            |
+| ECDH-ES + A256KW       | ✅     | -31   | | ECDH ES w/ Concat KDF and AES Key Wrap            |
 |                        |        |       | | w/ 256-bit key                                    |
 +------------------------+--------+-------+-----------------------------------------------------+
-| ECDH-ES + A192KW       |        | -30   | | ECDH ES w/ Concat KDF and AES Key Wrap            |
+| ECDH-ES + A192KW       | ✅     | -30   | | ECDH ES w/ Concat KDF and AES Key Wrap            |
 |                        |        |       | | w/ 192-bit key                                    |
 +------------------------+--------+-------+-----------------------------------------------------+
-| ECDH-ES + A128KW       |        | -29   | | ECDH ES w/ Concat KDF and AES Key Wrap            |
+| ECDH-ES + A128KW       | ✅     | -29   | | ECDH ES w/ Concat KDF and AES Key Wrap            |
 |                        |        |       | | w/ 128-bit key                                    |
 +------------------------+--------+-------+-----------------------------------------------------+
 | ECDH-SS + HKDF-512     | ✅     | -28   | ECDH SS w/ HKDF - generate key directly             |
