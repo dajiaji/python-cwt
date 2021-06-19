@@ -581,7 +581,7 @@ class TestCOSE:
                 "other": "Encryption Example 02",
             },
         }
-        res = ctx.decode(encoded, context=context, key=[material])
+        res = ctx.decode(encoded, context=context, keys=[material])
         assert res == b"This is the content."
 
     def test_cose_sample_cose_wg_rfc8152_c_3_2_with_json(self):
@@ -635,7 +635,7 @@ class TestCOSE:
                 "other": "Encryption Example 02",
             },
         }
-        res = ctx.decode(encoded, context=context, key=[material])
+        res = ctx.decode(encoded, context=context, keys=[material])
         assert res == b"This is the content."
 
     def test_cose_sample_cose_wg_aes_wrap_128_03(self):
@@ -662,7 +662,7 @@ class TestCOSE:
             recipients=[recipient],
         )
         assert encoded == bytes.fromhex(cwt_str)
-        res = ctx.decode(encoded, key=[recipient])
+        res = ctx.decode(encoded, keys=[recipient])
         assert res == b"This is the content."
 
     def test_cose_sample_cose_wg_ecdh_direct_p256_hkdf_256_01(self):
@@ -993,7 +993,7 @@ class TestCOSE:
         with pytest.raises(ValueError) as err:
             ctx.decode(encoded, b"")
             pytest.fail("decode should fail.")
-        assert "key is not specified." in str(err.value)
+        assert "key in keys should have COSEKeyInterface." in str(err.value)
 
     def test_cose_decode_mac0_with_invalid_multiple_keys(self, ctx):
         key1 = COSEKey.from_symmetric_key(alg="HS256")
