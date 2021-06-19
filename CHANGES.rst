@@ -4,6 +4,9 @@ Changes
 Unreleased
 ----------
 
+- Remove materials from COSE.decode(). `#131 <https://github.com/dajiaji/python-cwt/pull/131>`__
+- Add decode_key() to RecipientInterface. `#131 <https://github.com/dajiaji/python-cwt/pull/131>`__
+- Remove alg from keys in recipient header. `#131 <https://github.com/dajiaji/python-cwt/pull/131>`__
 - Add support for ECDH with key wrap. `#130 <https://github.com/dajiaji/python-cwt/pull/130>`__
 - Refine README. `#127 <https://github.com/dajiaji/python-cwt/pull/127>`__
 - Add samples of using direct key agreement. `#126 <https://github.com/dajiaji/python-cwt/pull/126>`__
