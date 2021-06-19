@@ -282,7 +282,7 @@ class COSE(CBORProcessor):
     def decode(
         self,
         data: Union[bytes, CBORTag],
-        key: Union[COSEKeyInterface, List[COSEKeyInterface]],
+        keys: Union[COSEKeyInterface, List[COSEKeyInterface]],
         context: Optional[Union[Dict[str, Any], List[Any]]] = None,
         external_aad: bytes = b"",
     ) -> bytes:
@@ -292,8 +292,8 @@ class COSE(CBORProcessor):
         Args:
             data (Union[bytes, CBORTag]): A byte string or cbor2.CBORTag of an
                 encoded data.
-            key (Optional[Union[COSEKeyInterface, List[COSEKeyInterface]]]): A COSE
-                key to verify and decrypt the encoded data.
+            keys (Union[COSEKeyInterface, List[COSEKeyInterface]]): COSE key(s)
+                to verify and decrypt the encoded data.
             context (Optional[Union[Dict[str, Any], List[Any]]]): A context information
                 structure for key deriviation functions.
             external_aad(bytes): External additional authenticated data supplied by
@@ -310,9 +310,10 @@ class COSE(CBORProcessor):
         if not isinstance(data, CBORTag):
             raise ValueError("Invalid COSE format.")
 
-        keys: List[COSEKeyInterface] = []
-        if key:
-            keys = key if isinstance(key, list) else [key]
+        if not isinstance(keys, list):
+            if not isinstance(keys, COSEKeyInterface):
+                raise ValueError("key in keys should have COSEKeyInterface.")
+            keys = [keys]
 
         # Encrypt0
         if data.tag == 16:

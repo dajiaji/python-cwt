@@ -269,7 +269,7 @@ class CWT(CBORProcessor):
     def decode(
         self,
         data: bytes,
-        key: Union[COSEKeyInterface, List[COSEKeyInterface]],
+        keys: Union[COSEKeyInterface, List[COSEKeyInterface]],
         no_verify: bool = False,
     ) -> Union[Dict[int, Any], bytes]:
         """
@@ -277,7 +277,7 @@ class CWT(CBORProcessor):
 
         Args:
             data (bytes): A byte string of an encoded CWT.
-            key (Union[COSEKeyInterface, List[COSEKeyInterface]]): A COSE key or a list of the keys
+            keys (Union[COSEKeyInterface, List[COSEKeyInterface]]): A COSE key or a list of the keys
                 used to verify and decrypt the encoded CWT.
             no_verify (bool): An indicator whether token verification is skiped
                 or not.
@@ -291,9 +291,7 @@ class CWT(CBORProcessor):
         cwt: Union[bytes, CBORTag, Dict[int, Any]] = self._loads(data)
         if isinstance(cwt, CBORTag) and cwt.tag == CWT.CBOR_TAG:
             cwt = cwt.value
-        keys: List[COSEKeyInterface] = (
-            [key] if isinstance(key, COSEKeyInterface) else key
-        )
+        keys = [keys] if isinstance(keys, COSEKeyInterface) else keys
         while isinstance(cwt, CBORTag):
             cwt = self._cose.decode(cwt, keys)
             cwt = self._loads(cwt)

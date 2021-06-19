@@ -693,7 +693,7 @@ class TestSample:
     def test_sample_rfc8392_a3(self):
         key = COSEKey.from_bytes(bytes.fromhex(SAMPLE_COSE_KEY_RFC8392_A2_3))
         encoded = bytes.fromhex(SAMPLE_CWT_RFC8392_A3)
-        decoded = cwt.decode(encoded, key=key, no_verify=True)
+        decoded = cwt.decode(encoded, keys=key, no_verify=True)
         assert 1 in decoded and decoded[1] == "coap://as.example.com"
         assert 2 in decoded and decoded[2] == "erikw"
         assert 3 in decoded and decoded[3] == "coap://light.example.com"
@@ -716,7 +716,7 @@ class TestSample:
             },
             key=key,
         )
-        decoded = cwt.decode(encoded, key=key, no_verify=True)
+        decoded = cwt.decode(encoded, keys=key, no_verify=True)
         assert 1 in decoded and decoded[1] == "coap://as.example.com"
 
     def test_sample_rfc8392_a3_with_encoding(self):
@@ -733,7 +733,7 @@ class TestSample:
             },
             key,
         )
-        decoded = cwt.decode(token, key=key, no_verify=True)
+        decoded = cwt.decode(token, keys=key, no_verify=True)
         assert 1 in decoded and decoded[1] == "coap://as.example.com"
 
     def test_sample_rfc8392_a4_old(self):
@@ -761,7 +761,7 @@ class TestSample:
             tagged=True,
         )
         assert encoded == bytes.fromhex(SAMPLE_CWT_RFC8392_A4)
-        decoded = cwt.decode(encoded, key=key, no_verify=True)
+        decoded = cwt.decode(encoded, keys=key, no_verify=True)
         assert 1 in decoded and decoded[1] == "coap://as.example.com"
 
     def test_sample_rfc8392_a4(self):
@@ -789,7 +789,7 @@ class TestSample:
             tagged=True,
         )
         assert token == bytes.fromhex(SAMPLE_CWT_RFC8392_A4)
-        decoded = cwt.decode(token, key=key, no_verify=True)
+        decoded = cwt.decode(token, keys=key, no_verify=True)
         assert 1 in decoded and decoded[1] == "coap://as.example.com"
 
     def test_sample_rfc8392_a5_old(self):
@@ -811,7 +811,7 @@ class TestSample:
         print(cbor2.loads(encoded))
         print(cbor2.loads(bytes.fromhex(SAMPLE_CWT_RFC8392_A5)))
         assert encoded == bytes.fromhex(SAMPLE_CWT_RFC8392_A5)
-        decoded = cwt.decode(encoded, key=key, no_verify=True)
+        decoded = cwt.decode(encoded, keys=key, no_verify=True)
         assert 1 in decoded and decoded[1] == "coap://as.example.com"
 
     def test_sample_rfc8392_a5(self):
@@ -831,14 +831,14 @@ class TestSample:
             nonce=nonce,
         )
         assert token == bytes.fromhex(SAMPLE_CWT_RFC8392_A5)
-        decoded = cwt.decode(token, key=key, no_verify=True)
+        decoded = cwt.decode(token, keys=key, no_verify=True)
         assert 1 in decoded and decoded[1] == "coap://as.example.com"
 
     def test_sample_rfc8392_a6(self):
         sig_key = COSEKey.from_bytes(bytes.fromhex(SAMPLE_COSE_KEY_RFC8392_A2_3))
         enc_key = COSEKey.from_bytes(bytes.fromhex(SAMPLE_COSE_KEY_RFC8392_A2_1))
         encrypted = bytes.fromhex(SAMPLE_CWT_RFC8392_A6)
-        decoded = cwt.decode(encrypted, key=[enc_key, sig_key], no_verify=True)
+        decoded = cwt.decode(encrypted, keys=[enc_key, sig_key], no_verify=True)
         assert 1 in decoded and decoded[1] == "coap://as.example.com"
 
     def test_sample_rfc8392_a6_with_encoding_old(self):
@@ -858,7 +858,7 @@ class TestSample:
         enc_key = COSEKey.from_bytes(bytes.fromhex(SAMPLE_COSE_KEY_RFC8392_A2_1))
         nonce = bytes.fromhex("4a0694c0e69ee6b5956655c7b2")
         encrypted = cwt.encode_and_encrypt(signed, key=enc_key, nonce=nonce)
-        decoded = cwt.decode(encrypted, key=[enc_key, sig_key], no_verify=True)
+        decoded = cwt.decode(encrypted, keys=[enc_key, sig_key], no_verify=True)
         assert 1 in decoded and decoded[1] == "coap://as.example.com"
 
     def test_sample_rfc8392_a6_with_encoding(self):
@@ -878,5 +878,5 @@ class TestSample:
         enc_key = COSEKey.from_bytes(bytes.fromhex(SAMPLE_COSE_KEY_RFC8392_A2_1))
         nonce = bytes.fromhex("4a0694c0e69ee6b5956655c7b2")
         encrypted = cwt.encode(signed, key=enc_key, nonce=nonce)
-        decoded = cwt.decode(encrypted, key=[enc_key, sig_key], no_verify=True)
+        decoded = cwt.decode(encrypted, keys=[enc_key, sig_key], no_verify=True)
         assert 1 in decoded and decoded[1] == "coap://as.example.com"
