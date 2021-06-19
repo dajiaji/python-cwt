@@ -37,10 +37,12 @@ class ECDH_DirectHKDF(Direct):
 
         if self._alg in [-25, -26]:  # ECDH-ES
             if -1 in self.unprotected:
+                self.unprotected[-1][3] = self._alg
                 self._peer_public_key = COSEKey.new(self.unprotected[-1])
                 self._key = self._peer_public_key.key
         elif self._alg in [-27, -28]:  # ECDH-SS
             if -2 in self.unprotected:
+                self.unprotected[-2][3] = self._alg
                 self._peer_public_key = COSEKey.new(self.unprotected[-2])
                 self._key = self._peer_public_key.key
         else:
@@ -67,9 +69,17 @@ class ECDH_DirectHKDF(Direct):
         if self._alg in [-25, -26]:
             # ECDH-ES
             self._unprotected[-1] = self._to_cose_key(self._cose_key.key.public_key())
-            self._unprotected[-1][3] = self._alg
         else:
             # ECDH-SS (alg=-27 or -28)
             self._unprotected[-2] = self._to_cose_key(self._cose_key.key.public_key())
-            self._unprotected[-2][3] = self._alg
         return derived_key
+
+    def decode_key(
+        self,
+        key: COSEKeyInterface,
+        alg: Optional[int] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+    ) -> COSEKeyInterface:
+        if not context:
+            raise ValueError("context should be set.")
+        return key.derive_key(context, public_key=self)

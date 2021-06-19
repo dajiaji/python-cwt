@@ -1,5 +1,6 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Union
 
+from ..cose_key_interface import COSEKeyInterface
 from .direct import Direct
 
 
@@ -15,3 +16,11 @@ class DirectKey(Direct):
         if self._alg != -6:
             raise ValueError("alg(1) should be direct(-6).")
         return
+
+    def decode_key(
+        self,
+        key: COSEKeyInterface,
+        alg: Optional[int] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+    ) -> COSEKeyInterface:
+        return key

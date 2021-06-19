@@ -41,10 +41,12 @@ class ECDH_AESKeyWrap(RecipientInterface):
 
         if self._alg in [-29, -30, -31]:  # ECDH-ES
             if -1 in self.unprotected:
+                self._unprotected[-1][3] = self._alg
                 self._peer_public_key = COSEKey.new(self.unprotected[-1])
                 self._key = self._peer_public_key.key
         elif self._alg in [-32, -33, -34]:  # ECDH-SS
             if -2 in self.unprotected:
+                self._unprotected[-2][3] = self._alg
                 self._peer_public_key = COSEKey.new(self.unprotected[-2])
                 self._key = self._peer_public_key.key
         else:
@@ -68,11 +70,9 @@ class ECDH_AESKeyWrap(RecipientInterface):
         if self._alg in [-29, -30, -31]:
             # ECDH-ES
             self._unprotected[-1] = self._to_cose_key(self._cose_key.key.public_key())
-            self._unprotected[-1][3] = self._alg
         else:
             # ECDH-SS (alg=-32, -33, -34)
             self._unprotected[-2] = self._to_cose_key(self._cose_key.key.public_key())
-            self._unprotected[-2][3] = self._alg
         kid = self._kid if self._kid else public_key.kid
         if kid:
             self._unprotected[4] = kid
@@ -86,9 +86,19 @@ class ECDH_AESKeyWrap(RecipientInterface):
         except Exception as err:
             raise EncodeError("Failed to wrap key.") from err
 
-    def unwrap_key(self, alg: int) -> COSEKeyInterface:
+    def decode_key(
+        self,
+        key: COSEKeyInterface,
+        alg: Optional[int] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+    ) -> COSEKeyInterface:
+        if not alg:
+            raise ValueError("alg should be set.")
+        if not context:
+            raise ValueError("context should be set.")
         try:
-            key = aes_key_unwrap(self._key, self._ciphertext)
-            return COSEKey.from_symmetric_key(key, alg=alg, kid=self._kid)
+            derived = key.derive_key(context, public_key=self)
+            unwrapped = aes_key_unwrap(derived.key, self._ciphertext)
+            return COSEKey.from_symmetric_key(unwrapped, alg=alg, kid=self._kid)
         except Exception as err:
-            raise DecodeError("Failed to unwrap key.") from err
+            raise DecodeError("Failed to decode key.") from err

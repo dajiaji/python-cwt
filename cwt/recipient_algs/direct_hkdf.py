@@ -101,3 +101,28 @@ class DirectHKDF(Direct):
         except Exception as err:
             raise VerifyError("Failed to verify key.") from err
         return
+
+    def decode_key(
+        self,
+        key: COSEKeyInterface,
+        alg: Optional[int] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+    ) -> COSEKeyInterface:
+
+        if not context:
+            raise ValueError("context should be set.")
+        if isinstance(context, dict):
+            alg = self._alg if isinstance(self._alg, int) else 0
+            context = to_cis(context, alg)
+        else:
+            self._validate_context(context)
+
+        # Derive key.
+        hkdf = HKDF(
+            algorithm=self._hash_alg,
+            length=COSE_KEY_LEN[context[0]] // 8,
+            salt=self._salt,
+            info=self._dumps(context),
+        )
+        derived = hkdf.derive(key.key)
+        return COSEKey.from_symmetric_key(derived, alg=context[0], kid=self._kid)

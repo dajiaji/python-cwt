@@ -148,16 +148,6 @@ class RecipientInterface(COSEKeyInterface):
         res.append(children)
         return res
 
-    def set_key(self, key: bytes):
-        """
-        Sets a key.
-
-        Args:
-            key (bytes): The key as bytes.
-        """
-        self._key = key
-        return
-
     def verify_key(
         self,
         material: bytes,
@@ -199,6 +189,30 @@ class RecipientInterface(COSEKeyInterface):
             alg (int): The algorithm of the wrapped key.
         Returns:
             COSEKeyInterface: An unwrapped key.
+        Raises:
+            NotImplementedError: Not implemented.
+            ValueError: Invalid arguments.
+            DecodeError: Failed to decode(unwrap) the key.
+        """
+        raise NotImplementedError
+
+    def decode_key(
+        self,
+        key: COSEKeyInterface,
+        alg: Optional[int] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+    ) -> COSEKeyInterface:
+        """
+        Decodes a key with the recipient-specific method (e.g., key wrapping, key derivation).
+        This function will be called in COSE.encode_* so applications do not need to call it
+        directly.
+
+        Args:
+            key (COSEKeyInterface): The external key to be used for decoding the key.
+            alg (Optional[int]): The algorithm of the key extracted.
+            context (Optional[Union[List[Any], Dict[str, Any]]]): Context information structure.
+        Returns:
+            COSEKeyInterface: An extracted key.
         Raises:
             NotImplementedError: Not implemented.
             ValueError: Invalid arguments.
