@@ -21,10 +21,7 @@ def ctx():
 
 @pytest.fixture(scope="session", autouse=True)
 def material():
-    return {
-        "kid": "02",
-        "value": "hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
-    }
+    return COSEKey.from_symmetric_key(alg="A256GCM", kid="02")
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -55,6 +52,7 @@ class TestRecipientInterface:
     """
 
     def test_recipient_constructor(self):
+        k = COSEKey.from_symmetric_key(alg="A256GCM")
         r = RecipientInterface()
         assert isinstance(r, RecipientInterface)
         assert r.protected == {}
@@ -66,16 +64,19 @@ class TestRecipientInterface:
         assert len(r.recipients) == 0
         with pytest.raises(NotImplementedError):
             r.derive_key(b"", [])
-            pytest.fail("derive_key should fail.")
+            pytest.fail("derive_key() should fail.")
         with pytest.raises(NotImplementedError):
             r.verify_key(b"", b"", [])
-            pytest.fail("verify_key should fail.")
+            pytest.fail("verify_key() should fail.")
         with pytest.raises(NotImplementedError):
             r.wrap_key(b"")
-            pytest.fail("wrap_key should fail.")
+            pytest.fail("wrap_key() should fail.")
         with pytest.raises(NotImplementedError):
             r.unwrap_key(10)
-            pytest.fail("unwrap_key should fail.")
+            pytest.fail("unwrap_key() should fail.")
+        with pytest.raises(NotImplementedError):
+            r.decode_key(k)
+            pytest.fail("decode_key() should fail.")
         res = r.to_list()
         assert len(res) == 3
         assert res[0] == b""
@@ -329,32 +330,25 @@ class TestRecipients:
         with pytest.raises(ValueError) as err:
             r.extract_key([])
             pytest.fail("extract_key() should fail.")
-        assert "Either keys or materials should be specified." in str(err.value)
-
-    def test_recipients_extract_key_without_args(self):
-        r = Recipients([RecipientInterface(unprotected={1: -6, 4: b"our-secret"})])
-        with pytest.raises(ValueError) as err:
-            r.extract_key()
-            pytest.fail("extract_key() should fail.")
-        assert "Either keys or materials should be specified." in str(err.value)
+        assert "Failed to derive a key." in str(err.value)
 
     def test_recipients_extract_key_without_context(self, material):
         r = Recipients(
             [
                 RecipientInterface(
-                    unprotected={"alg": "direct+HKDF-SHA-256", "kid": "our-secret"}
+                    unprotected={"alg": "direct+HKDF-SHA-256", "kid": "02"}
                 )
             ]
         )
         with pytest.raises(ValueError) as err:
-            r.extract_key(materials=[material])
+            r.extract_key(keys=[material])
             pytest.fail("extract_key() should fail.")
-        assert "context should be set." in str(err.value)
+        assert "Failed to derive a key." in str(err.value)
 
     def test_recipients_extract_key_with_empty_recipients(self, material, context):
         r = Recipients([])
         with pytest.raises(ValueError) as err:
-            r.extract_key(context=context, materials=[material])
+            r.extract_key(context=context, keys=[material])
             pytest.fail("extract_key() should fail.")
         assert "Failed to derive a key." in str(err.value)
 
@@ -373,7 +367,7 @@ class TestRecipients:
             }
         )
         rs = Recipients([r1, r2])
-        key = rs.extract_key(context=context, materials=[material])
+        key = rs.extract_key(context=context, keys=[material])
         assert key.alg == 10
         assert key.kid == b"02"
 

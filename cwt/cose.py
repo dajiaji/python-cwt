@@ -282,9 +282,8 @@ class COSE(CBORProcessor):
     def decode(
         self,
         data: Union[bytes, CBORTag],
-        key: Optional[Union[COSEKeyInterface, List[COSEKeyInterface]]] = None,
+        key: Union[COSEKeyInterface, List[COSEKeyInterface]],
         context: Optional[Union[Dict[str, Any], List[Any]]] = None,
-        materials: Optional[List[dict]] = None,
         external_aad: bytes = b"",
     ) -> bytes:
         """
@@ -297,8 +296,6 @@ class COSE(CBORProcessor):
                 key to verify and decrypt the encoded data.
             context (Optional[Union[Dict[str, Any], List[Any]]]): A context information
                 structure for key deriviation functions.
-            materials (Optional[List[dict]]): A list of key materials to be used to
-                derive an encryption key.
             external_aad(bytes): External additional authenticated data supplied by
                 application.
         Returns:
@@ -308,8 +305,6 @@ class COSE(CBORProcessor):
             DecodeError: Failed to decode data.
             VerifyError: Failed to verify data.
         """
-        if key is None and materials is None:
-            raise ValueError("Either key or materials should be specified.")
         if isinstance(data, bytes):
             data = self._loads(data)
         if not isinstance(data, CBORTag):
@@ -337,10 +332,9 @@ class COSE(CBORProcessor):
 
         # Encrypt
         if data.tag == 96:
-            if keys:
-                keys = self._filter_by_key_ops(keys, 4)
-                if not isinstance(data.value, list) or len(data.value) != 4:
-                    raise ValueError("Invalid Encrypt format.")
+            keys = self._filter_by_key_ops(keys, 4)
+            if not isinstance(data.value, list) or len(data.value) != 4:
+                raise ValueError("Invalid Encrypt format.")
 
             aad = self._dumps(["Encrypt", data.value[0], external_aad])
             alg = 0
@@ -356,7 +350,7 @@ class COSE(CBORProcessor):
                 raise ValueError("unprotected header should be dict.")
             nonce = unprotected.get(5, None)
             rs = Recipients.from_list(data.value[3])
-            enc_key = rs.extract_key(keys, context, materials, alg)
+            enc_key = rs.extract_key(keys, context, alg)
             return enc_key.decrypt(data.value[2], nonce, aad)
 
         # MAC0
@@ -389,7 +383,7 @@ class COSE(CBORProcessor):
                     else 0
                 )
             rs = Recipients.from_list(data.value[4])
-            mac_auth_key = rs.extract_key(keys, context, materials, alg)
+            mac_auth_key = rs.extract_key(keys, context, alg)
             mac_auth_key.verify(to_be_maced, data.value[3])
             return data.value[2]
 

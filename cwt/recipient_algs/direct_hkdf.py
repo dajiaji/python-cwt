@@ -104,14 +104,11 @@ class DirectHKDF(Direct):
 
     def decode_key(
         self,
-        key: Union[COSEKeyInterface, bytes],
+        key: COSEKeyInterface,
         alg: Optional[int] = None,
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ) -> COSEKeyInterface:
-        if not key:
-            ValueError("key should be specified.")
-        if not isinstance(key, bytes):
-            raise ValueError("key should be bytes.")
+
         if not context:
             raise ValueError("context should be set.")
         if isinstance(context, dict):
@@ -127,10 +124,5 @@ class DirectHKDF(Direct):
             salt=self._salt,
             info=self._dumps(context),
         )
-        try:
-            derived_key = hkdf.derive(key)
-            return COSEKey.from_symmetric_key(
-                derived_key, alg=context[0], kid=self._kid
-            )
-        except Exception as err:
-            raise EncodeError("Failed to decode key.") from err
+        derived = hkdf.derive(key.key)
+        return COSEKey.from_symmetric_key(derived, alg=context[0], kid=self._kid)

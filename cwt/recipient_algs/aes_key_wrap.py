@@ -46,16 +46,14 @@ class AESKeyWrap(RecipientInterface):
 
     def decode_key(
         self,
-        key: Union[COSEKeyInterface, bytes],
+        key: COSEKeyInterface,
         alg: Optional[int] = None,
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ) -> COSEKeyInterface:
-        if isinstance(key, bytes):
-            raise ValueError("key should have COSEKeyInterface.")
         if not alg:
             raise ValueError("alg should be set.")
         try:
-            key = aes_key_unwrap(key.key, self._ciphertext)
-            return COSEKey.from_symmetric_key(key, alg=alg, kid=self._kid)
+            unwrapped = aes_key_unwrap(key.key, self._ciphertext)
+            return COSEKey.from_symmetric_key(unwrapped, alg=alg, kid=self._kid)
         except Exception as err:
             raise DecodeError("Failed to decode key.") from err

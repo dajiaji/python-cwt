@@ -19,12 +19,8 @@ class DirectKey(Direct):
 
     def decode_key(
         self,
-        key: Union[COSEKeyInterface, bytes],
+        key: COSEKeyInterface,
         alg: Optional[int] = None,
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ) -> COSEKeyInterface:
-        k: COSEKeyInterface
-        if isinstance(key, bytes):
-            raise ValueError("key should have COSEKeyInterface.")
-        k = key
-        return k
+        return key

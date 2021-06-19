@@ -76,12 +76,10 @@ class ECDH_DirectHKDF(Direct):
 
     def decode_key(
         self,
-        key: Union[COSEKeyInterface, bytes],
+        key: COSEKeyInterface,
         alg: Optional[int] = None,
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ) -> COSEKeyInterface:
-        if isinstance(key, bytes):
-            raise ValueError("key should have COSEKeyInterface.")
         if not context:
             raise ValueError("context should be set.")
         return key.derive_key(context, public_key=self)

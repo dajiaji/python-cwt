@@ -148,16 +148,6 @@ class RecipientInterface(COSEKeyInterface):
         res.append(children)
         return res
 
-    def set_key(self, key: bytes):
-        """
-        Sets a key.
-
-        Args:
-            key (bytes): The key as bytes.
-        """
-        self._key = key
-        return
-
     def verify_key(
         self,
         material: bytes,
@@ -208,7 +198,7 @@ class RecipientInterface(COSEKeyInterface):
 
     def decode_key(
         self,
-        key: Union[COSEKeyInterface, bytes],
+        key: COSEKeyInterface,
         alg: Optional[int] = None,
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ) -> COSEKeyInterface:
@@ -218,7 +208,7 @@ class RecipientInterface(COSEKeyInterface):
         directly.
 
         Args:
-            key (Union[COSEKeyInterface, bytes]): The external key to be used for decoding the key.
+            key (COSEKeyInterface): The external key to be used for decoding the key.
             alg (Optional[int]): The algorithm of the key extracted.
             context (Optional[Union[List[Any], Dict[str, Any]]]): Context information structure.
         Returns:

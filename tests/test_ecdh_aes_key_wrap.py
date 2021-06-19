@@ -48,6 +48,14 @@ class TestECDH_AESKeyWrap:
         assert ctx.alg == -34
         assert ctx.kid == b"01"
 
+    def test_ecdh_aes_key_wrap_decode_key_without_alg(self):
+        key = COSEKey.from_symmetric_key(alg="A128GCM")
+        ctx = ECDH_AESKeyWrap({1: -29}, {4: b"01"})
+        with pytest.raises(ValueError) as err:
+            ctx.decode_key(key)
+            pytest.fail("decode_key() should fail.")
+        assert "alg should be set." in str(err.value)
+
     def test_ecdh_aes_key_wrap_constructor_with_invalid_alg(self):
         with pytest.raises(ValueError) as err:
             ECDH_AESKeyWrap({1: -1}, {4: b"01"})
@@ -130,7 +138,7 @@ class TestECDH_AESKeyWrap:
         with pytest.raises(DecodeError) as err:
             ctx.decode(encoded, another_priv_key, context={"alg": "A128GCM"})
             pytest.fail("decode() should fail.")
-        assert "Failed to extract key." in str(err.value)
+        assert "Failed to decode key." in str(err.value)
 
     def test_ecdh_aes_key_wrap_derive_key_with_invalid_key(self):
         cose_key = COSEKey.from_jwk(

@@ -88,19 +88,17 @@ class ECDH_AESKeyWrap(RecipientInterface):
 
     def decode_key(
         self,
-        key: Union[COSEKeyInterface, bytes],
+        key: COSEKeyInterface,
         alg: Optional[int] = None,
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ) -> COSEKeyInterface:
-        if isinstance(key, bytes):
-            raise ValueError("key should have COSEKeyInterface.")
         if not alg:
-            raise ValueError("alg should not set.")
+            raise ValueError("alg should be set.")
         if not context:
             raise ValueError("context should be set.")
         try:
-            derived_key = key.derive_key(context, public_key=self)
-            key = aes_key_unwrap(derived_key.key, self._ciphertext)
-            return COSEKey.from_symmetric_key(key, alg=alg, kid=self._kid)
+            derived = key.derive_key(context, public_key=self)
+            unwrapped = aes_key_unwrap(derived.key, self._ciphertext)
+            return COSEKey.from_symmetric_key(unwrapped, alg=alg, kid=self._kid)
         except Exception as err:
-            raise DecodeError("Failed to extract key.") from err
+            raise DecodeError("Failed to decode key.") from err

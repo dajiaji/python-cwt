@@ -564,10 +564,11 @@ class TestCOSE:
             recipients=[recipient],
         )
         assert encoded == bytes.fromhex(cwt_str)
-        material = {
-            "kid": "our-secret",
-            "value": "hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
-        }
+        material = COSEKey.from_symmetric_key(
+            key=base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
+            alg="A256GCM",
+            kid="our-secret",
+        )
         context = {
             "alg": "AES-CCM-16-64-128",
             "apu": {
@@ -580,7 +581,7 @@ class TestCOSE:
                 "other": "Encryption Example 02",
             },
         }
-        res = ctx.decode(encoded, context=context, materials=[material])
+        res = ctx.decode(encoded, context=context, key=[material])
         assert res == b"This is the content."
 
     def test_cose_sample_cose_wg_rfc8152_c_3_2_with_json(self):
@@ -617,10 +618,11 @@ class TestCOSE:
             recipients=[recipient],
         )
         assert encoded == bytes.fromhex(cwt_str)
-        material = {
-            "kid": "our-secret",
-            "value": "hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
-        }
+        material = COSEKey.from_symmetric_key(
+            key=base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
+            alg="A256GCM",
+            kid="our-secret",
+        )
         context = {
             "alg": "AES-CCM-16-64-128",
             "apu": {
@@ -633,7 +635,7 @@ class TestCOSE:
                 "other": "Encryption Example 02",
             },
         }
-        res = ctx.decode(encoded, context=context, materials=[material])
+        res = ctx.decode(encoded, context=context, key=[material])
         assert res == b"This is the content."
 
     def test_cose_sample_cose_wg_aes_wrap_128_03(self):
@@ -989,9 +991,9 @@ class TestCOSE:
         key = COSEKey.from_symmetric_key(alg="HS256")
         encoded = cwt.encode({"iss": "coap://as.example"}, key)
         with pytest.raises(ValueError) as err:
-            ctx.decode(encoded)
+            ctx.decode(encoded, b"")
             pytest.fail("decode should fail.")
-        assert "Either key or materials should be specified." in str(err.value)
+        assert "key is not specified." in str(err.value)
 
     def test_cose_decode_mac0_with_invalid_multiple_keys(self, ctx):
         key1 = COSEKey.from_symmetric_key(alg="HS256")
