@@ -308,7 +308,7 @@ class TestRecipients:
         key = COSEKey.from_symmetric_key(
             "mysecret", alg="HMAC 256/64", kid="our-secret"
         )
-        r = Recipients([RecipientInterface(unprotected={1: -6, 4: b"our-secret"})])
+        r = Recipients([Recipient.new(unprotected={1: -6, 4: b"our-secret"})])
         key = r.extract_key([key])
         assert key.kty == 4
         assert key.alg == 4
@@ -400,7 +400,7 @@ class TestRecipients:
         r3 = Recipient.from_jwk(
             {
                 "alg": "A128KW",
-                "kid": "02",
+                "kid": "03",
                 "k": "hJtXIZ2uSN5kbQfbtTNWbg",
             },
         )
@@ -408,7 +408,7 @@ class TestRecipients:
         rs = Recipients([r1, r2, r3])
         key = rs.extract_key(keys=[r3], alg=7)
         assert key.alg == 7
-        assert key.kid == b"02"
+        assert key.kid == b"03"
 
     def test_recipients_extract_key_with_different_kid(self):
         key = COSEKey.from_symmetric_key(

@@ -73,3 +73,15 @@ class ECDH_DirectHKDF(Direct):
             # ECDH-SS (alg=-27 or -28)
             self._unprotected[-2] = self._to_cose_key(self._cose_key.key.public_key())
         return derived_key
+
+    def decode_key(
+        self,
+        key: Union[COSEKeyInterface, bytes],
+        alg: Optional[int] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+    ) -> COSEKeyInterface:
+        if isinstance(key, bytes):
+            raise ValueError("key should have COSEKeyInterface.")
+        if not context:
+            raise ValueError("context should be set.")
+        return key.derive_key(context, public_key=self)

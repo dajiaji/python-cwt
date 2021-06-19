@@ -130,7 +130,7 @@ class TestECDH_AESKeyWrap:
         with pytest.raises(DecodeError) as err:
             ctx.decode(encoded, another_priv_key, context={"alg": "A128GCM"})
             pytest.fail("decode() should fail.")
-        assert "Failed to unwrap key." in str(err.value)
+        assert "Failed to extract key." in str(err.value)
 
     def test_ecdh_aes_key_wrap_derive_key_with_invalid_key(self):
         cose_key = COSEKey.from_jwk(

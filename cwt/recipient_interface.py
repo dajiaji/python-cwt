@@ -206,6 +206,30 @@ class RecipientInterface(COSEKeyInterface):
         """
         raise NotImplementedError
 
+    def decode_key(
+        self,
+        key: Union[COSEKeyInterface, bytes],
+        alg: Optional[int] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+    ) -> COSEKeyInterface:
+        """
+        Decodes a key with the recipient-specific method (e.g., key wrapping, key derivation).
+        This function will be called in COSE.encode_* so applications do not need to call it
+        directly.
+
+        Args:
+            key (Union[COSEKeyInterface, bytes]): The external key to be used for decoding the key.
+            alg (Optional[int]): The algorithm of the key extracted.
+            context (Optional[Union[List[Any], Dict[str, Any]]]): Context information structure.
+        Returns:
+            COSEKeyInterface: An extracted key.
+        Raises:
+            NotImplementedError: Not implemented.
+            ValueError: Invalid arguments.
+            DecodeError: Failed to decode(unwrap) the key.
+        """
+        raise NotImplementedError
+
     def _to_cose_key(
         self, k: Union[EllipticCurvePublicKey, X25519PublicKey, X448PublicKey]
     ) -> Dict[int, Any]:

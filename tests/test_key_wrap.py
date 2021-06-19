@@ -4,7 +4,7 @@ Tests for KeyWrap.
 
 import pytest
 
-from cwt.exceptions import DecodeError, EncodeError
+from cwt.exceptions import EncodeError
 from cwt.recipient_algs.aes_key_wrap import AESKeyWrap
 
 
@@ -61,7 +61,7 @@ class TestAESKeyWrap:
 
     def test_aes_key_wrap_wrap_key_without_key_and_ciphertext(self):
         ctx = AESKeyWrap({1: -3}, {})
-        with pytest.raises(DecodeError) as err:
-            ctx.unwrap_key(10)
-            pytest.fail("unwrap_key should fail.")
-        assert "Failed to unwrap key." in str(err.value)
+        with pytest.raises(ValueError) as err:
+            ctx.decode_key(key=b"xxx")
+            pytest.fail("decode_key should fail.")
+        assert "key should have COSEKeyInterface." in str(err.value)
