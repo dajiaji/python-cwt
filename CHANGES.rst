@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Rename key to keys on CWT/COSE decode(). `#133 <https://github.com/dajiaji/python-cwt/pull/133>`__
 - Remove materials from COSE.decode(). `#131 <https://github.com/dajiaji/python-cwt/pull/131>`__
 - Add decode_key() to RecipientInterface. `#131 <https://github.com/dajiaji/python-cwt/pull/131>`__
 - Remove alg from keys in recipient header. `#131 <https://github.com/dajiaji/python-cwt/pull/131>`__
