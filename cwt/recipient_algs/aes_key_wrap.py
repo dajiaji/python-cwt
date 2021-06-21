@@ -38,11 +38,20 @@ class AESKeyWrap(RecipientInterface):
         else:
             raise ValueError(f"Unknown alg(3) for AES key wrap: {self._alg}.")
 
-    def wrap_key(self, key_to_wrap: bytes):
+    def encode_key(
+        self,
+        key: Optional[COSEKeyInterface] = None,
+        recipient_key: Optional[COSEKeyInterface] = None,
+        alg: Optional[int] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+    ) -> COSEKeyInterface:
+        if not key:
+            raise ValueError("key should be set.")
         try:
-            self._ciphertext = aes_key_wrap(self._key, key_to_wrap)
+            self._ciphertext = aes_key_wrap(self._key, key.key)
         except Exception as err:
             raise EncodeError("Failed to wrap key.") from err
+        return key
 
     def decode_key(
         self,

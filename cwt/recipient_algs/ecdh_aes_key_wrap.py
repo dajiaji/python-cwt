@@ -21,12 +21,11 @@ class ECDH_AESKeyWrap(RecipientInterface):
         unprotected: Dict[int, Any],
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
-        cose_key: Optional[COSEKeyInterface] = None,
+        sender_key: Optional[COSEKeyInterface] = None,
     ):
         super().__init__(protected, unprotected, ciphertext, recipients)
-        self._peer_public_key: Any = None
-        self._cose_key = cose_key
-        self._wrapping_key: Any = None
+        self._sender_public_key: Any = None
+        self._sender_key = sender_key
 
         self._apu = [
             self.unprotected[-21] if -21 in self.unprotected else None,
@@ -42,49 +41,45 @@ class ECDH_AESKeyWrap(RecipientInterface):
         if self._alg in [-29, -30, -31]:  # ECDH-ES
             if -1 in self.unprotected:
                 self._unprotected[-1][3] = self._alg
-                self._peer_public_key = COSEKey.new(self.unprotected[-1])
-                self._key = self._peer_public_key.key
+                self._sender_public_key = COSEKey.new(self.unprotected[-1])
         elif self._alg in [-32, -33, -34]:  # ECDH-SS
             if -2 in self.unprotected:
                 self._unprotected[-2][3] = self._alg
-                self._peer_public_key = COSEKey.new(self.unprotected[-2])
-                self._key = self._peer_public_key.key
+                self._sender_public_key = COSEKey.new(self.unprotected[-2])
         else:
             raise ValueError(f"Unknown alg(1) for ECDH with key wrap: {self._alg}.")
 
-    def derive_key(
+    def encode_key(
         self,
-        context: Union[List[Any], Dict[str, Any]],
-        material: bytes = b"",
-        public_key: Optional[COSEKeyInterface] = None,
+        key: Optional[COSEKeyInterface] = None,
+        recipient_key: Optional[COSEKeyInterface] = None,
+        alg: Optional[int] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ) -> COSEKeyInterface:
 
-        if not self._cose_key:
-            raise ValueError(
-                "Internal COSE key should be set for key derivation in advance."
-            )
-        public_key = public_key if public_key else self._peer_public_key
-        if not public_key:
-            raise ValueError("public_key should be set.")
-        self._wrapping_key = self._cose_key.derive_key(context, public_key=public_key)
+        if not key:
+            raise ValueError("key should be set.")
+        if not recipient_key:
+            raise ValueError("recipient_key should be set in advance.")
+        if not self._sender_key:
+            raise ValueError("sender_key should be set in advance.")
+        if not context:
+            raise ValueError("context should be set.")
+        wrapping_key = self._sender_key.derive_key(context, public_key=recipient_key)
         if self._alg in [-29, -30, -31]:
             # ECDH-ES
-            self._unprotected[-1] = self._to_cose_key(self._cose_key.key.public_key())
+            self._unprotected[-1] = self._to_cose_key(self._sender_key.key.public_key())
         else:
             # ECDH-SS (alg=-32, -33, -34)
-            self._unprotected[-2] = self._to_cose_key(self._cose_key.key.public_key())
-        kid = self._kid if self._kid else public_key.kid
+            self._unprotected[-2] = self._to_cose_key(self._sender_key.key.public_key())
+        kid = self._kid if self._kid else recipient_key.kid
         if kid:
             self._unprotected[4] = kid
-        return self._wrapping_key
-
-    def wrap_key(self, key_to_wrap: bytes):
-        if not self._wrapping_key:
-            raise EncodeError("Should call derive_key() before calling wrap_key().")
         try:
-            self._ciphertext = aes_key_wrap(self._wrapping_key.key, key_to_wrap)
+            self._ciphertext = aes_key_wrap(wrapping_key.key, key.key)
         except Exception as err:
             raise EncodeError("Failed to wrap key.") from err
+        return key
 
     def decode_key(
         self,
@@ -97,7 +92,7 @@ class ECDH_AESKeyWrap(RecipientInterface):
         if not context:
             raise ValueError("context should be set.")
         try:
-            derived = key.derive_key(context, public_key=self)
+            derived = key.derive_key(context, public_key=self._sender_public_key)
             unwrapped = aes_key_unwrap(derived.key, self._ciphertext)
             return COSEKey.from_symmetric_key(unwrapped, alg=alg, kid=self._kid)
         except Exception as err:

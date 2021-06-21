@@ -17,6 +17,17 @@ class DirectKey(Direct):
             raise ValueError("alg(1) should be direct(-6).")
         return
 
+    def encode_key(
+        self,
+        key: Optional[COSEKeyInterface] = None,
+        recipient_key: Optional[COSEKeyInterface] = None,
+        alg: Optional[int] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+    ) -> COSEKeyInterface:
+        if not key:
+            raise ValueError("key should be set.")
+        return key
+
     def decode_key(
         self,
         key: COSEKeyInterface,

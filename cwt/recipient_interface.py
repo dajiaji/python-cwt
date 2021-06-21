@@ -148,51 +148,36 @@ class RecipientInterface(COSEKeyInterface):
         res.append(children)
         return res
 
-    def verify_key(
+    def encode_key(
         self,
-        material: bytes,
-        expected_key: bytes,
-        context: Union[List[Any], Dict[str, Any]],
-    ):
+        key: Optional[COSEKeyInterface] = None,
+        recipient_key: Optional[COSEKeyInterface] = None,
+        alg: Optional[int] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+    ) -> COSEKeyInterface:
         """
-        Verifies a key with a key material and an expected key.
+        Generates a MAC/encryption key with the recipient-specific method
+        (e.g., key wrapping, key agreement, or the combination of them) and
+        sets up the related information (context information or ciphertext)
+        in the recipient structure. Therefore, it will be used by the sender
+        of the recipient information before calling COSE.encode_* functions
+        with the Recipient object. The key generated through this function
+        will be set to ``key`` parameter of COSE.encode_* functions.
 
         Args:
-            material (bytes): A key material.
-            expected_key (bytes): A byte string of the expected key.
-            context (Union[List[Any], Dict[str, Any]]): Context information structure.
-        Raises:
-            NotImplementedError: Not implemented.
-            ValueError: Invalid arguments.
-            VerifyError: Failed to verify the key.
-        """
-        raise NotImplementedError
-
-    def wrap_key(self, key_to_wrap: bytes):
-        """
-        Wraps a key and keeps it internally as the ciphertext.
-
-        Args:
-            key_to_wrap (bytes): A key to be wrapped.
-        Raises:
-            NotImplementedError: Not implemented.
-            ValueError: Invalid arguments.
-            EncodeError: Failed to encode(wrap) key.
-        """
-        raise NotImplementedError
-
-    def unwrap_key(self, alg: int) -> COSEKeyInterface:
-        """
-        Unwraps the key stored as the ciphertext.
-
-        Args:
-            alg (int): The algorithm of the wrapped key.
+            key (Optional[COSEKeyInterface]): The external key to
+                be used for encoding the key.
+            recipient_key (Optional[COSEKeyInterface]): The external public
+                key provided by the recipient used for ECDH key agreement.
+            alg (Optional[int]): The algorithm of the key generated.
+            context (Optional[Union[List[Any], Dict[str, Any]]]): Context
+                information structure.
         Returns:
-            COSEKeyInterface: An unwrapped key.
+            COSEKeyInterface: An encoded key which is used as ``key``
+                parameter of COSE.encode_* functions.
         Raises:
-            NotImplementedError: Not implemented.
             ValueError: Invalid arguments.
-            DecodeError: Failed to decode(unwrap) the key.
+            EncodeError: Failed to encode(e.g., wrap, derive) the key.
         """
         raise NotImplementedError
 
@@ -203,20 +188,23 @@ class RecipientInterface(COSEKeyInterface):
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ) -> COSEKeyInterface:
         """
-        Decodes a key with the recipient-specific method (e.g., key wrapping, key derivation).
-        This function will be called in COSE.encode_* so applications do not need to call it
-        directly.
+        Extracts a MAC/encryption key with the recipient-specific method
+        (e.g., key wrapping, key agreement, or the combination of them).
+        This function will be called in COSE.decode so applications do
+        not need to call it directly.
 
         Args:
-            key (COSEKeyInterface): The external key to be used for decoding the key.
+            key (COSEKeyInterface): The external key to be used for
+                extracting the key.
             alg (Optional[int]): The algorithm of the key extracted.
-            context (Optional[Union[List[Any], Dict[str, Any]]]): Context information structure.
+            context (Optional[Union[List[Any], Dict[str, Any]]]): Context
+                information structure.
         Returns:
-            COSEKeyInterface: An extracted key.
+            COSEKeyInterface: An extracted key which is used for decrypting
+                or verifying a payload message.
         Raises:
-            NotImplementedError: Not implemented.
             ValueError: Invalid arguments.
-            DecodeError: Failed to decode(unwrap) the key.
+            DecodeError: Failed to decode(e.g., unwrap, derive) the key.
         """
         raise NotImplementedError
 

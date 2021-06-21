@@ -50,32 +50,6 @@ class DirectHKDF(Direct):
         else:
             raise ValueError(f"Unknown alg(3) for direct key with KDF: {self._alg}.")
 
-    def derive_key(
-        self,
-        context: Union[List[Any], Dict[str, Any]],
-        material: bytes = b"",
-        public_key: Optional[COSEKeyInterface] = None,
-    ) -> COSEKeyInterface:
-
-        if isinstance(context, dict):
-            alg = self._alg if isinstance(self._alg, int) else 0
-            context = to_cis(context, alg)
-        else:
-            self._validate_context(context)
-
-        # Derive key.
-        hkdf = HKDF(
-            algorithm=self._hash_alg,
-            length=COSE_KEY_LEN[context[0]] // 8,
-            salt=self._salt,
-            info=self._dumps(context),
-        )
-        try:
-            key = hkdf.derive(material)
-            return COSEKey.from_symmetric_key(key, alg=context[0], kid=self._kid)
-        except Exception as err:
-            raise EncodeError("Failed to derive key.") from err
-
     def verify_key(
         self,
         material: bytes,
@@ -101,6 +75,37 @@ class DirectHKDF(Direct):
         except Exception as err:
             raise VerifyError("Failed to verify key.") from err
         return
+
+    def encode_key(
+        self,
+        key: Optional[COSEKeyInterface] = None,
+        recipient_key: Optional[COSEKeyInterface] = None,
+        alg: Optional[int] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+    ) -> COSEKeyInterface:
+
+        if not key:
+            raise ValueError("key should be set.")
+        if not context:
+            raise ValueError("context should be set.")
+        if isinstance(context, dict):
+            alg = self._alg if isinstance(self._alg, int) else 0
+            context = to_cis(context, alg)
+        else:
+            self._validate_context(context)
+
+        # Derive key.
+        hkdf = HKDF(
+            algorithm=self._hash_alg,
+            length=COSE_KEY_LEN[context[0]] // 8,
+            salt=self._salt,
+            info=self._dumps(context),
+        )
+        try:
+            derived = hkdf.derive(key.key)
+            return COSEKey.from_symmetric_key(derived, alg=context[0], kid=self._kid)
+        except Exception as err:
+            raise EncodeError("Failed to derive key.") from err
 
     def decode_key(
         self,

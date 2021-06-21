@@ -1,6 +1,8 @@
 import json
 from typing import Any, Dict, List, Optional, Union
 
+import cbor2
+
 from .const import (  # COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP,
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT,
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT,
@@ -34,7 +36,7 @@ class Recipient:
         recipients: List[Any] = [],
         key_ops: List[int] = [],
         key: bytes = b"",
-        cose_key: Optional[COSEKeyInterface] = None,
+        sender_key: Optional[COSEKeyInterface] = None,
     ) -> RecipientInterface:
         """
         Create a recipient from a CBOR-like dictionary with numeric keys.
@@ -60,9 +62,9 @@ class Recipient:
         if alg in [-3, -4, -5]:
             return AESKeyWrap(p, u, ciphertext, recipients, key_ops, key)
         if alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT.values():
-            return ECDH_DirectHKDF(p, u, ciphertext, recipients, cose_key)
+            return ECDH_DirectHKDF(p, u, ciphertext, recipients, sender_key)
         if alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP.values():
-            return ECDH_AESKeyWrap(p, u, ciphertext, recipients, cose_key)
+            return ECDH_AESKeyWrap(p, u, ciphertext, recipients, sender_key)
         raise ValueError(f"Unsupported or unknown alg(1): {alg}.")
 
     @classmethod
@@ -96,7 +98,7 @@ class Recipient:
             unprotected[-20] = recipient["salt"].encode("utf-8")
 
         # alg
-        cose_key = None
+        sender_key = None
         if "alg" in recipient:
             if not isinstance(recipient["alg"], str):
                 raise ValueError("alg should be str.")
@@ -109,7 +111,7 @@ class Recipient:
             else:
                 protected[1] = COSE_ALGORITHMS_RECIPIENT[recipient["alg"]]
             if recipient["alg"] in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.keys():
-                cose_key = COSEKey.from_jwk(recipient)
+                sender_key = COSEKey.from_jwk(recipient)
 
         # kid
         if "kid" in recipient:
@@ -136,5 +138,27 @@ class Recipient:
             key = base64url_decode(recipient["k"])
 
         return cls.new(
-            protected, unprotected, key_ops=key_ops, key=key, cose_key=cose_key
+            protected, unprotected, key_ops=key_ops, key=key, sender_key=sender_key
         )
+
+    @classmethod
+    def from_list(cls, recipient: List[Any]) -> RecipientInterface:
+        if not isinstance(recipient, list) or (
+            len(recipient) != 3 and len(recipient) != 4
+        ):
+            raise ValueError("Invalid recipient format.")
+        if not isinstance(recipient[0], bytes):
+            raise ValueError("protected header should be bytes.")
+        protected = {} if not recipient[0] else cbor2.loads(recipient[0])
+        if not isinstance(recipient[1], dict):
+            raise ValueError("unprotected header should be dict.")
+        if not isinstance(recipient[2], bytes):
+            raise ValueError("ciphertext should be bytes.")
+        if len(recipient) == 3:
+            return Recipient.new(protected, recipient[1], recipient[2])
+        if not isinstance(recipient[3], list):
+            raise ValueError("recipients should be list.")
+        recipients: List[RecipientInterface] = []
+        for r in recipient[3]:
+            recipients.append(cls.from_list(r))
+        return cls.new(protected, recipient[1], recipient[2], recipients)
