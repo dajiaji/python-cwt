@@ -59,7 +59,7 @@ class TestCOSESample:
                 "k": "hJtXIZ2uSN5kbQfbtTNWbg",
             },
         )
-        recipient.wrap_key(mac_key.key)
+        recipient.encode_key(mac_key)
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_mac(
             b"Hello world!", key=mac_key, recipients=[recipient]
@@ -140,14 +140,15 @@ class TestCOSESample:
         pub_key = COSEKey.from_jwk(
             {
                 "kty": "EC",
-                "alg": "ECDH-ES+HKDF-256",
                 "kid": "01",
                 "crv": "P-256",
                 "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
                 "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
             }
         )
-        enc_key = recipient.derive_key({"alg": "A128GCM"}, public_key=pub_key)
+        enc_key = recipient.encode_key(
+            recipient_key=pub_key, context={"alg": "A128GCM"}
+        )
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_encrypt(
             b"Hello world!",
@@ -187,7 +188,9 @@ class TestCOSESample:
                 "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
             }
         )
-        enc_key = recipient.derive_key({"alg": "A128GCM"}, public_key=pub_key)
+        enc_key = recipient.encode_key(
+            recipient_key=pub_key, context={"alg": "A128GCM"}
+        )
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_encrypt(
             b"Hello world!",
@@ -226,7 +229,9 @@ class TestCOSESample:
                 "x": "IkLmc0klvEMXYneHMKAB6ePohryAwAPVe2pRSffIDY6NrjeYNWVX5J-fG4NV2OoU77C88A0mvxI",
             }
         )
-        enc_key = recipient.derive_key({"alg": "A128GCM"}, public_key=pub_key)
+        enc_key = recipient.encode_key(
+            recipient_key=pub_key, context={"alg": "A128GCM"}
+        )
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_encrypt(
             b"Hello world!",
@@ -310,8 +315,7 @@ class TestCOSESample:
                 "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
             }
         )
-        recipient.derive_key({"alg": "A128GCM"}, public_key=pub_key)
-        recipient.wrap_key(enc_key.key)
+        recipient.encode_key(enc_key, recipient_key=pub_key, context={"alg": "A128GCM"})
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_encrypt(
             b"Hello world!",

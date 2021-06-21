@@ -9,6 +9,7 @@ from cwt.exceptions import EncodeError, VerifyError
 from cwt.recipient_algs.direct import Direct
 from cwt.recipient_algs.direct_hkdf import DirectHKDF
 from cwt.recipient_algs.direct_key import DirectKey
+from cwt.utils import base64url_decode
 
 
 class TestDirect:
@@ -17,9 +18,16 @@ class TestDirect:
     """
 
     def test_direct_constructor(self):
+        k = COSEKey.from_symmetric_key(alg="HS256")
         ctx = Direct({1: -6}, {})
         assert isinstance(ctx, Direct)
         assert ctx.alg == -6
+        with pytest.raises(NotImplementedError):
+            ctx.encode_key(k)
+            pytest.fail("encode_key() should fail.")
+        with pytest.raises(NotImplementedError):
+            ctx.decode_key(k)
+            pytest.fail("decode_key() should fail.")
 
     @pytest.mark.parametrize(
         "protected, unprotected, msg",
@@ -34,8 +42,19 @@ class TestDirect:
     def test_direct_constructor_with_invalid_arg(self, protected, unprotected, msg):
         with pytest.raises(ValueError) as err:
             Direct(protected, unprotected)
-            pytest.fail("Direct should fail.")
+            pytest.fail("Direct() should fail.")
         assert msg in str(err.value)
+
+
+class TestDirectKey:
+    """
+    Tests for DirectKey.
+    """
+
+    def test_direct_key_constructor(self):
+        ctx = DirectKey({1: -6}, {})
+        assert isinstance(ctx, DirectKey)
+        assert ctx.alg == -6
 
     @pytest.mark.parametrize(
         "invalid, msg",
@@ -49,8 +68,29 @@ class TestDirect:
     def test_direct_key_constructor_with_invalid_arg(self, invalid, msg):
         with pytest.raises(ValueError) as err:
             DirectKey(invalid)
-            pytest.fail("Direct should fail.")
+            pytest.fail("DirectKey() should fail.")
         assert msg in str(err.value)
+
+    def test_direct_key_encode_key(self):
+        k = COSEKey.from_symmetric_key(alg="HS256")
+        ctx = DirectKey({1: -6}, {})
+        encoded = ctx.encode_key(k)
+        assert encoded.alg == 5
+        assert k.key == encoded.key
+
+    def test_direct_key_encode_key_with_invalid_arg(self):
+        ctx = DirectKey({1: -6}, {})
+        with pytest.raises(ValueError) as err:
+            ctx.encode_key()
+            pytest.fail("encode_key() should fail.")
+        assert "key should be set." in str(err.value)
+
+    def test_direct_key_decode_key(self):
+        k = COSEKey.from_symmetric_key(alg="HS256")
+        ctx = DirectKey({1: -6}, {})
+        decoded = ctx.decode_key(k)
+        assert decoded.alg == 5
+        assert k.key == decoded.key
 
 
 class TestDirectHKDF:
@@ -102,6 +142,14 @@ class TestDirectHKDF:
         assert decoded.alg == alg_id
         assert len(decoded.key) == key_len
 
+    def test_direct_hkdf_decode_key_with_invalid_context(self):
+        key = COSEKey.from_symmetric_key(alg="A128GCM")
+        ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
+        with pytest.raises(ValueError) as err:
+            ctx.decode_key(key, alg="A128GCM", context=[None, None, None])
+            pytest.fail("decode_key() should fail.")
+        assert "Invalid context information." in str(err.value)
+
     def test_direct_hkdf_decode_key_without_context(self):
         key = COSEKey.from_symmetric_key(alg="A128GCM")
         ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
@@ -138,13 +186,18 @@ class TestDirectHKDF:
     ):
         with pytest.raises(ValueError) as err:
             DirectHKDF(protected, unprotected)
-            pytest.fail("Direct should fail.")
+            pytest.fail("DirectHKDF() should fail.")
         assert msg in str(err.value)
 
-    def test_direct_hkdf_derive_key(self):
+    def test_direct_hkdf_encode_key(self):
+        material = COSEKey.from_symmetric_key(
+            key=base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
+            alg="A256GCM",
+        )
         ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
-        key = ctx.derive_key(
-            {
+        key = ctx.encode_key(
+            key=material,
+            context={
                 "alg": "AES-CCM-16-64-128",
                 "party_u": {
                     "identity": "lighting-client",
@@ -156,15 +209,15 @@ class TestDirectHKDF:
                     "other": "Encryption Example 02",
                 },
             },
-            material=b"hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
         )
         assert key.alg == 10
 
-    def test_direct_hkdf_derive_key_with_invalid_material(self):
+    def test_direct_hkdf_encode_key_with_invalid_key(self):
         ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
         with pytest.raises(EncodeError) as err:
-            ctx.derive_key(
-                {
+            ctx.encode_key(
+                key=base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
+                context={
                     "alg": "AES-CCM-16-64-128",
                     "party_u": {
                         "identity": "lighting-client",
@@ -176,86 +229,37 @@ class TestDirectHKDF:
                         "other": "Encryption Example 02",
                     },
                 },
-                None,
             )
-            pytest.fail("derive_key should fail.")
+            pytest.fail("encode_key() should fail.")
         assert "Failed to derive key." in str(err.value)
 
-    def test_direct_hkdf_verify_key(self):
+    def test_direct_hkdf_encode_key_with_invalid_material(self):
         ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
-        context = {
-            "alg": "AES-CCM-16-64-128",
-            "party_u": {
-                "identity": "lighting-client",
-            },
-            "party_v": {
-                "identity": "lighting-server",
-            },
-            "supp_pub": {
-                "other": "Encryption Example 02",
-            },
-        }
-        key = ctx.derive_key(
-            context,
-            material=b"hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
-        )
-        ctx.verify_key(
-            b"hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
-            key.key,
-            context=context,
-        )
-
-    def test_direct_hkdf_verify_key_with_raw_context(self):
-        ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
-        context = [
-            10,
-            [b"lighting-client", None, None],
-            [b"lighting-server", None, None],
-            [128, cbor2.dumps({1: -10}), b"Encryption Example 02"],
-        ]
-        key = ctx.derive_key(
-            context,
-            material=b"hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
-        )
-        ctx.verify_key(
-            b"hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
-            key.key,
-            context=context,
-        )
-
-    def test_direct_hkdf_verify_key_with_invalid_material(self):
-        ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
-        context = {
-            "alg": "AES-CCM-16-64-128",
-            "party_u": {
-                "identity": "lighting-client",
-            },
-            "party_v": {
-                "identity": "lighting-server",
-            },
-            "supp_pub": {
-                "other": "Encryption Example 02",
-            },
-        }
-        key = ctx.derive_key(
-            context,
-            material=b"hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
-        )
-        with pytest.raises(VerifyError) as err:
-            ctx.verify_key(
-                b"xxxxxxxxxx",
-                key.key,
-                context=context,
+        with pytest.raises(ValueError) as err:
+            ctx.encode_key(
+                key=None,
+                context={
+                    "alg": "AES-CCM-16-64-128",
+                    "party_u": {
+                        "identity": "lighting-client",
+                    },
+                    "party_v": {
+                        "identity": "lighting-server",
+                    },
+                    "supp_pub": {
+                        "other": "Encryption Example 02",
+                    },
+                },
             )
-            pytest.fail("verify_key should fail.")
-        assert "Failed to verify key." in str(err.value)
+            pytest.fail("encode_key() should fail.")
+        assert "key should be set." in str(err.value)
 
     @pytest.mark.parametrize(
         "invalid, msg",
         [
             (
                 [],
-                "Invalid context information.",
+                "context should be set.",
             ),
             (
                 ["xxxx", [], [], []],
@@ -279,12 +283,88 @@ class TestDirectHKDF:
             ),
         ],
     )
-    def test_direct_hkdf_derive_key_with_invalid_context(self, invalid, msg):
+    def test_direct_hkdf_encode_key_with_invalid_context(self, invalid, msg):
+        material = COSEKey.from_symmetric_key(
+            key=base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
+            alg="A256GCM",
+        )
         ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
         with pytest.raises(ValueError) as err:
-            ctx.derive_key(
-                invalid,
-                material=b"hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
-            )
-            pytest.fail("derive_key should fail.")
+            ctx.encode_key(key=material, context=invalid)
+            pytest.fail("encode_key() should fail.")
         assert msg in str(err.value)
+
+    def test_direct_hkdf_verify_key(self):
+        material = COSEKey.from_symmetric_key(
+            key=base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
+            alg="A256GCM",
+        )
+        ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
+        context = {
+            "alg": "AES-CCM-16-64-128",
+            "party_u": {
+                "identity": "lighting-client",
+            },
+            "party_v": {
+                "identity": "lighting-server",
+            },
+            "supp_pub": {
+                "other": "Encryption Example 02",
+            },
+        }
+        key = ctx.encode_key(material, context=context)
+        ctx.verify_key(
+            base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
+            key.key,
+            context=context,
+        )
+
+    def test_direct_hkdf_verify_key_with_raw_context(self):
+        material = COSEKey.from_symmetric_key(
+            key=base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
+            alg="A256GCM",
+        )
+        ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
+        context = [
+            10,
+            [b"lighting-client", None, None],
+            [b"lighting-server", None, None],
+            [128, cbor2.dumps({1: -10}), b"Encryption Example 02"],
+        ]
+        key = ctx.encode_key(material, context=context)
+        ctx.verify_key(
+            base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
+            key.key,
+            context=context,
+        )
+
+    def test_direct_hkdf_verify_key_with_invalid_material(self):
+        material = COSEKey.from_symmetric_key(
+            key=base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
+            alg="A256GCM",
+        )
+        ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
+        context = {
+            "alg": "AES-CCM-16-64-128",
+            "party_u": {
+                "identity": "lighting-client",
+            },
+            "party_v": {
+                "identity": "lighting-server",
+            },
+            "supp_pub": {
+                "other": "Encryption Example 02",
+            },
+        }
+        key = ctx.encode_key(
+            material,
+            context=context,
+        )
+        with pytest.raises(VerifyError) as err:
+            ctx.verify_key(
+                b"xxxxxxxxxx",
+                key.key,
+                context=context,
+            )
+            pytest.fail("verify_key() should fail.")
+        assert "Failed to verify key." in str(err.value)

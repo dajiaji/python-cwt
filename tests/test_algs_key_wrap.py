@@ -53,12 +53,20 @@ class TestAESKeyWrap:
             pytest.fail("AESKeyWrap() should fail.")
         assert "Unknown alg(3) for AES key wrap: -1." in str(err.value)
 
-    def test_aes_key_wrap_wrap_key_with_invalid_key_to_wrap(self):
+    def test_aes_key_wrap_encode_key_with_invalid_key(self):
+        key = COSEKey.from_symmetric_key(key="xxx", alg="HS256", kid="01")
         ctx = AESKeyWrap({1: -3}, {})
         with pytest.raises(EncodeError) as err:
-            ctx.wrap_key(b"")
-            pytest.fail("wrap_key() should fail.")
+            ctx.encode_key(key, alg="A128GCM")
+            pytest.fail("encode_key() should fail.")
         assert "Failed to wrap key." in str(err.value)
+
+    def test_aes_key_wrap_encode_key_without_key(self):
+        ctx = AESKeyWrap({1: -3}, {})
+        with pytest.raises(ValueError) as err:
+            ctx.encode_key()
+            pytest.fail("encode_key() should fail.")
+        assert "key should be set." in str(err.value)
 
     def test_aes_key_wrap_wrap_key_without_alg(self):
         key = COSEKey.from_symmetric_key(alg="A128GCM", kid="01")

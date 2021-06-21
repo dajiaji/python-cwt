@@ -48,6 +48,9 @@ class TestCOSEKeyInterface:
         with pytest.raises(NotImplementedError):
             key.decrypt(b"message", nonce=b"123", aad=None)
             pytest.fail("COSEKeyInterface.decrypt() should fail.")
+        with pytest.raises(NotImplementedError):
+            key.derive_key([], b"material")
+            pytest.fail("COSEKeyInterface.derive_key() should fail.")
 
     def test_cose_key_constructor_with_alg_and_iv(self):
         key = COSEKeyInterface({1: 1, 2: b"123", 3: 1, 5: b"aabbccddee"})

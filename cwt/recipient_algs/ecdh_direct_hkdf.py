@@ -18,11 +18,11 @@ class ECDH_DirectHKDF(Direct):
         unprotected: Dict[int, Any],
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
-        cose_key: Optional[COSEKeyInterface] = None,
+        sender_key: Optional[COSEKeyInterface] = None,
     ):
         super().__init__(protected, unprotected, ciphertext, recipients)
-        self._peer_public_key: Any = None
-        self._cose_key = cose_key
+        self._sender_public_key: Any = None
+        self._sender_key = sender_key
 
         self._apu = [
             self.unprotected[-21] if -21 in self.unprotected else None,
@@ -38,40 +38,38 @@ class ECDH_DirectHKDF(Direct):
         if self._alg in [-25, -26]:  # ECDH-ES
             if -1 in self.unprotected:
                 self.unprotected[-1][3] = self._alg
-                self._peer_public_key = COSEKey.new(self.unprotected[-1])
-                self._key = self._peer_public_key.key
+                self._sender_public_key = COSEKey.new(self.unprotected[-1])
         elif self._alg in [-27, -28]:  # ECDH-SS
             if -2 in self.unprotected:
                 self.unprotected[-2][3] = self._alg
-                self._peer_public_key = COSEKey.new(self.unprotected[-2])
-                self._key = self._peer_public_key.key
+                self._sender_public_key = COSEKey.new(self.unprotected[-2])
         else:
             raise ValueError(f"Unknown alg(1) for ECDH with HKDF: {self._alg}.")
 
-    def derive_key(
+    def encode_key(
         self,
-        context: Union[List[Any], Dict[str, Any]],
-        material: bytes = b"",
-        public_key: Optional[COSEKeyInterface] = None,
+        key: Optional[COSEKeyInterface] = None,
+        recipient_key: Optional[COSEKeyInterface] = None,
+        alg: Optional[int] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ) -> COSEKeyInterface:
 
-        if not self._cose_key:
-            raise ValueError(
-                "Internal COSE key should be set for key derivation in advance."
-            )
-        public_key = public_key if public_key else self._peer_public_key
-        if not public_key:
-            raise ValueError("public_key should be set.")
-        kid = self._kid if self._kid else public_key.kid
-        if kid:
-            self._unprotected[4] = kid
-        derived_key = self._cose_key.derive_key(context, public_key=public_key)
+        if not self._sender_key:
+            raise ValueError("sender_key should be set in advance.")
+        if not recipient_key:
+            raise ValueError("recipient_key should be set in advance.")
+        if not context:
+            raise ValueError("context should be set.")
+        derived_key = self._sender_key.derive_key(context, public_key=recipient_key)
         if self._alg in [-25, -26]:
             # ECDH-ES
-            self._unprotected[-1] = self._to_cose_key(self._cose_key.key.public_key())
+            self._unprotected[-1] = self._to_cose_key(self._sender_key.key.public_key())
         else:
             # ECDH-SS (alg=-27 or -28)
-            self._unprotected[-2] = self._to_cose_key(self._cose_key.key.public_key())
+            self._unprotected[-2] = self._to_cose_key(self._sender_key.key.public_key())
+        kid = self._kid if self._kid else recipient_key.kid
+        if kid:
+            self._unprotected[4] = kid
         return derived_key
 
     def decode_key(
@@ -82,4 +80,4 @@ class ECDH_DirectHKDF(Direct):
     ) -> COSEKeyInterface:
         if not context:
             raise ValueError("context should be set.")
-        return key.derive_key(context, public_key=self)
+        return key.derive_key(context, public_key=self._sender_public_key)

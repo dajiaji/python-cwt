@@ -351,7 +351,7 @@ class COSE(CBORProcessor):
                 raise ValueError("unprotected header should be dict.")
             nonce = unprotected.get(5, None)
             rs = Recipients.from_list(data.value[3])
-            enc_key = rs.extract_key(keys, context, alg)
+            enc_key = rs.decode_key(keys, context, alg)
             return enc_key.decrypt(data.value[2], nonce, aad)
 
         # MAC0
@@ -384,7 +384,7 @@ class COSE(CBORProcessor):
                     else 0
                 )
             rs = Recipients.from_list(data.value[4])
-            mac_auth_key = rs.extract_key(keys, context, alg)
+            mac_auth_key = rs.decode_key(keys, context, alg)
             mac_auth_key.verify(to_be_maced, data.value[3])
             return data.value[2]
 
