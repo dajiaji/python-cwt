@@ -7,7 +7,7 @@ The following is a simple sample code using CWT API:
 
     >>> import cwt
     >>> from cwt import Claims, COSEKey
-    >>> key = COSEKey.from_symmetric_key(alg="HS256")
+    >>> key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
     >>> token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
     >>> token.hex()
     'd18443a10105a05835a60172636f6170733a2f2f61732e6578616d706c65026764616a69616a690743313233041a609097b7051a609089a7061a609089a758201fad9b0a76803194bd11ca9b9b3cbbf1028005e15321665a768994f38c7127f7'
@@ -30,7 +30,7 @@ Create a MACed CWT, verify and decode it as follows:
     from cwt import COSEKey
 
     try:
-        key = COSEKey.from_symmetric_key(alg="HS256")
+        key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
         token = cwt.encode(
             {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"},
             key,
@@ -63,7 +63,7 @@ A raw CWT structure (Dict[int, Any]) can also be used as follows:
     import cwt
     from cwt import COSEKey
 
-    key = COSEKey.from_symmetric_key(alg="HS256")
+    key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
     token = cwt.encode({1: "coaps://as.example", 2: "dajiaji", 7: b"123"}, key)
     decoded = cwt.decode(token, key)
 
@@ -167,7 +167,7 @@ and decrypt it as follows:
     import cwt
     from cwt import COSEKey
 
-    enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
+    enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
     token = cwt.encode(
         {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, enc_key
     )
@@ -181,7 +181,7 @@ Algorithms other than ``ChaCha20/Poly1305`` are also supported. The following is
     import cwt
     from cwt import COSEKey
 
-    enc_key = COSEKey.from_symmetric_key(alg="AES-CCM-16-64-256")
+    enc_key = COSEKey.from_symmetric_key(alg="AES-CCM-16-64-256", kid="01")
     token = cwt.encode(
         {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, enc_key
     )
@@ -200,9 +200,9 @@ Create a signed CWT and encrypt it, and then decrypt and verify the nested CWT a
     from cwt import COSEKey
 
     with open("./private_key.pem") as key_file:
-        private_key = COSEKey.from_pem(key_file.read(), kid="01")
+        private_key = COSEKey.from_pem(key_file.read(), kid="sig-01")
     with open("./public_key.pem") as key_file:
-        public_key = COSEKey.from_pem(key_file.read(), kid="01")
+        public_key = COSEKey.from_pem(key_file.read(), kid="sig-01")
 
     # Creates a CWT with ES256 signing.
     token = cwt.encode(
@@ -210,7 +210,7 @@ Create a signed CWT and encrypt it, and then decrypt and verify the nested CWT a
     )
 
     # Encrypts the signed CWT.
-    enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
+    enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="enc-01")
     nested = cwt.encode(token, enc_key)
 
     # Decrypts and verifies the nested CWT.
@@ -231,7 +231,7 @@ If you want to change the settings, you can create your own ``CWT`` class instan
 
     from cwt import COSEKey, CWT
 
-    key = COSEKey.from_symmetric_key(alg="HS256")
+    key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
     mycwt = CWT.new(expires_in=3600 * 24, leeway=10)
     token = mycwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
     decoded = mycwt.decode(token, key)
@@ -346,7 +346,7 @@ On the issuer side:
                     "kty": "OKP",
                     "use": "sig",
                     "crv": "Ed25519",
-                    "kid": "01",
+                    "kid": "presenter-01",
                     "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
                     "alg": "EdDSA",
                 },
@@ -366,7 +366,7 @@ On the CWT presenter side:
 
     # Prepares a private PoP key in advance.
     with open("./private_pop_key.pem") as key_file:
-        pop_key_private = COSEKey.from_pem(key_file.read(), kid="01")
+        pop_key_private = COSEKey.from_pem(key_file.read(), kid="presenter-01")
 
     # Receives a message (e.g., nonce)  from the recipient.
     msg = b"could-you-sign-this-message?"  # Provided by recipient.
@@ -411,10 +411,12 @@ In case of another PoP confirmation method ``Encrypted_COSE_Key``:
     enc_key = COSEKey.from_symmetric_key(
         "a-client-secret-of-cwt-recipient",  # Just 32 bytes!
         alg="ChaCha20/Poly1305",
+        kid="recipient-01",
     )
     pop_key = COSEKey.from_symmetric_key(
         "a-client-secret-of-cwt-presenter",
         alg="HMAC 256/256",
+        kid="presenter-01",
     )
 
     token = cwt.encode(
