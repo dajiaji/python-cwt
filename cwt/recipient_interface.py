@@ -95,13 +95,6 @@ class RecipientInterface(COSEKeyInterface):
         return
 
     @property
-    def key(self) -> bytes:
-        """
-        The body of the key as bytes.
-        """
-        return self._key
-
-    @property
     def protected(self) -> Dict[int, Any]:
         """
         The parameters that are to be cryptographically protected.

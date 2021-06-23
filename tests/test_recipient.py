@@ -234,7 +234,9 @@ class TestRecipient:
         assert recipient.alg == -6
 
     def test_recipient_from_jwk_with_dict(self):
-        recipient = Recipient.from_jwk({"alg": "A128KW", "key_ops": ["wrapKey"]})
+        recipient = Recipient.from_jwk(
+            {"kty": "oct", "alg": "A128KW", "key_ops": ["wrapKey"]}
+        )
         assert isinstance(recipient, RecipientInterface)
         assert recipient.alg == -3
         assert len(recipient.key_ops) == 1
@@ -263,19 +265,19 @@ class TestRecipient:
                 "salt should be str.",
             ),
             (
-                {"key_ops": 123},
+                {"kty": "oct", "alg": "A128KW", "key_ops": 123},
                 "key_ops should be list.",
             ),
             (
-                {"key_ops": [123]},
-                "Each value of key_ops should be str.",
+                {"kty": "oct", "alg": "A128KW", "key_ops": [123]},
+                "Unsupported or unknown key_ops.",
             ),
             (
-                {"key_ops": ["xxx"]},
-                "Unknown key_ops: xxx.",
+                {"kty": "oct", "alg": "A128KW", "key_ops": ["xxx"]},
+                "Unsupported or unknown key_ops.",
             ),
             (
-                {"k": 123},
+                {"kty": "oct", "alg": "A128KW", "k": 123},
                 "k should be str.",
             ),
         ],
@@ -371,6 +373,7 @@ class TestRecipients:
         )
         r1 = Recipient.from_jwk(
             {
+                "kty": "oct",
                 "alg": "A128KW",
                 "kid": "01",
             }
@@ -384,6 +387,15 @@ class TestRecipients:
         )
         r3 = Recipient.from_jwk(
             {
+                "kty": "oct",
+                "alg": "A128KW",
+                "kid": "03",
+                "k": "hJtXIZ2uSN5kbQfbtTNWbg",
+            },
+        )
+        k3 = COSEKey.from_jwk(
+            {
+                "kty": "oct",
                 "alg": "A128KW",
                 "kid": "03",
                 "k": "hJtXIZ2uSN5kbQfbtTNWbg",
@@ -391,7 +403,7 @@ class TestRecipients:
         )
         r3.encode_key(mac_key)
         rs = Recipients([r1, r2, r3])
-        key = rs.decode_key(keys=[r3], alg=7)
+        key = rs.decode_key(keys=[k3], alg=7)
         assert key.alg == 7
         assert key.kid == b"03"
 

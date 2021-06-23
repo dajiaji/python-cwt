@@ -646,6 +646,7 @@ class TestCOSE:
         )
         recipient = Recipient.from_jwk(
             {
+                "kty": "oct",
                 "alg": "A128KW",
                 "kid": "our-secret",
                 "k": "hJtXIZ2uSN5kbQfbtTNWbg",
@@ -660,7 +661,15 @@ class TestCOSE:
             recipients=[recipient],
         )
         assert encoded == bytes.fromhex(cwt_str)
-        res = ctx.decode(encoded, keys=[recipient])
+        key = COSEKey.from_jwk(
+            {
+                "kty": "oct",
+                "alg": "A128KW",
+                "kid": "our-secret",
+                "k": "hJtXIZ2uSN5kbQfbtTNWbg",
+            },
+        )
+        res = ctx.decode(encoded, keys=[key])
         assert res == b"This is the content."
 
     def test_cose_sample_cose_wg_ecdh_direct_p256_hkdf_256_01(self):

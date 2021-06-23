@@ -204,10 +204,10 @@ def jwk_to_cose_key_params(data: Union[str, bytes, Dict[str, Any]]) -> Dict[int,
     # key operation dependent conversion
     is_public = False
     if cose_key[1] == 4:  # Symmetric
-        if "k" not in jwk or not isinstance(jwk["k"], str):
-            raise ValueError("k is not found or invalid format.")
-        cose_key[-1] = base64url_decode(jwk["k"])
-
+        if "k" in jwk:
+            if not isinstance(jwk["k"], str):
+                raise ValueError("k should be str.")
+            cose_key[-1] = base64url_decode(jwk["k"])
     elif cose_key[1] == 3:  # RSA
         for k, v in jwk.items():
             if k not in JWK_PARAMS_RSA:

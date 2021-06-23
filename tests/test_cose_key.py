@@ -617,14 +617,14 @@ class TestCOSEKey:
                 },
                 "use and key_ops are conflicted each other.",
             ),
-            (
-                {"kty": "oct", "kid": "123"},
-                "k is not found or invalid format.",
-            ),
-            (
-                {"kty": "oct", "kid": "123", "use": "sig", "key_ops": ["verify"]},
-                "k is not found or invalid format.",
-            ),
+            # (
+            #     {"kty": "oct", "kid": "123"},
+            #     "k is not found or invalid format.",
+            # ),
+            # (
+            #     {"kty": "oct", "kid": "123", "use": "sig", "key_ops": ["verify"]},
+            #     "k is not found or invalid format.",
+            # ),
         ],
     )
     def test_key_builder_from_jwk_with_invalid_arg(self, invalid, msg):

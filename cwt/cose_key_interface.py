@@ -216,6 +216,36 @@ class COSEKeyInterface(CBORProcessor):
         """
         raise NotImplementedError
 
+    def wrap_key(self, key_to_wrap: bytes) -> bytes:
+        """
+        Wraps a key.
+
+        Args:
+            key_to_wrap: A key to wrap.
+        Returns:
+            bytes: A wrapped key as bytes.
+        Raises:
+            NotImplementedError: Not implemented.
+            ValueError: Invalid arguments.
+            EncodeError: Failed to derive key.
+        """
+        raise NotImplementedError
+
+    def unwrap_key(self, wrapped_key: bytes) -> bytes:
+        """
+        Unwraps a key.
+
+        Args:
+            wrapped_key: A key to be unwrapped.
+        Returns:
+            bytes: An unwrapped key as bytes.
+        Raises:
+            NotImplementedError: Not implemented.
+            ValueError: Invalid arguments.
+            DecodeError: Failed to unwrap key.
+        """
+        raise NotImplementedError
+
     def derive_key(
         self,
         context: Union[List[Any], Dict[str, Any]],

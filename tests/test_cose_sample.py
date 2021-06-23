@@ -34,37 +34,49 @@ class TestCOSESample:
 
     def test_cose_usage_examples_cose_mac_direct(self):
         mac_key = COSEKey.from_symmetric_key(alg="HS512", kid="01")
-        recipient = Recipient.from_jwk({"alg": "direct", "kid": "01"})
+        r = Recipient.from_jwk({"alg": "direct"})
+        r.encode_key(mac_key)
 
         ctx = COSE.new()
-        encoded = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[recipient])
+        encoded = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[r])
         assert b"Hello world!" == ctx.decode(encoded, mac_key)
 
-        recipient2 = Recipient.new(unprotected={"alg": "direct", "kid": "01"})
-        encoded2 = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[recipient2])
+        r2 = Recipient.new(unprotected={"alg": "direct"})
+        r2.encode_key(mac_key)
+        encoded2 = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[r2])
         assert b"Hello world!" == ctx.decode(encoded2, mac_key)
 
-        recipient3 = Recipient.new(unprotected={1: -6, 4: b"01"})
-        encoded3 = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[recipient3])
+        r3 = Recipient.new(unprotected={1: -6})
+        r3.encode_key(mac_key)
+        encoded3 = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[r3])
         assert b"Hello world!" == ctx.decode(encoded3, mac_key)
 
         assert encoded == encoded2 == encoded3
 
     def test_cose_usage_examples_cose_mac_aes_key_wrap(self):
+        # A key to wrap
         mac_key = COSEKey.from_symmetric_key(alg="HS512")
-        recipient = Recipient.from_jwk(
+
+        r = Recipient.from_jwk(
             {
+                "kty": "oct",
+                "alg": "A128KW",
+                "kid": "our-secret",
+                "k": "hJtXIZ2uSN5kbQfbtTNWbg",  # A wrapping key
+            },
+        )
+        r.encode_key(mac_key)
+        ctx = COSE.new(alg_auto_inclusion=True)
+        encoded = ctx.encode_and_mac(b"Hello world!", key=mac_key, recipients=[r])
+        shared_key = COSEKey.from_jwk(
+            {
+                "kty": "oct",
                 "alg": "A128KW",
                 "kid": "our-secret",
                 "k": "hJtXIZ2uSN5kbQfbtTNWbg",
             },
         )
-        recipient.encode_key(mac_key)
-        ctx = COSE.new(alg_auto_inclusion=True)
-        encoded = ctx.encode_and_mac(
-            b"Hello world!", key=mac_key, recipients=[recipient]
-        )
-        assert b"Hello world!" == ctx.decode(encoded, recipient)
+        assert b"Hello world!" == ctx.decode(encoded, shared_key)
 
     def test_cose_usage_examples_cose_encrypt0(self):
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")

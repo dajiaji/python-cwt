@@ -4,6 +4,7 @@ from secrets import token_bytes
 from typing import Any, Dict, Optional
 
 from cryptography.hazmat.primitives.ciphers.aead import AESCCM, AESGCM, ChaCha20Poly1305
+from cryptography.hazmat.primitives.keywrap import aes_key_unwrap, aes_key_wrap
 
 from ..const import COSE_KEY_OPERATION_VALUES
 from ..cose_key_interface import COSEKeyInterface
@@ -17,24 +18,24 @@ _CWT_NONCE_SIZE_CHACHA20_POLY1305 = 12
 
 
 class SymmetricKey(COSEKeyInterface):
-    def __init__(self, cose_key: Dict[int, Any]):
-        super().__init__(cose_key)
+    def __init__(self, params: Dict[int, Any]):
+        super().__init__(params)
 
         self._key: bytes = b""
 
         # Validate kty.
-        if cose_key[1] != 4:
+        if params[1] != 4:
             raise ValueError("kty(1) should be Symmetric(4).")
 
         # Validate k.
-        if -1 in cose_key:
-            if not isinstance(cose_key[-1], bytes):
+        if -1 in params:
+            if not isinstance(params[-1], bytes):
                 raise ValueError("k(-1) should be bytes(bstr).")
-            self._key = cose_key[-1]
+            self._key = params[-1]
 
-        if 3 not in cose_key:
+        if 3 not in params:
             raise ValueError("alg(3) not found.")
-        self._alg = cose_key[3]
+        self._alg = params[3]
 
     @property
     def key(self) -> bytes:
@@ -52,8 +53,8 @@ class MACAuthenticationKey(SymmetricKey):
         COSE_KEY_OPERATION_VALUES["MAC verify"],
     ]
 
-    def __init__(self, cose_key: Dict[int, Any]):
-        super().__init__(cose_key)
+    def __init__(self, params: Dict[int, Any]):
+        super().__init__(params)
 
         # Validate key_opt.
         if not self._key_ops:
@@ -78,8 +79,8 @@ class ContentEncryptionKey(SymmetricKey):
         COSE_KEY_OPERATION_VALUES["unwrap key"],
     ]
 
-    def __init__(self, cose_key: Dict[int, Any]):
-        super().__init__(cose_key)
+    def __init__(self, params: Dict[int, Any]):
+        super().__init__(params)
 
         # Validate key_opt.
         if not self._key_ops:
@@ -99,9 +100,9 @@ class ContentEncryptionKey(SymmetricKey):
 class HMACKey(MACAuthenticationKey):
     """ """
 
-    def __init__(self, cose_key: Dict[int, Any]):
+    def __init__(self, params: Dict[int, Any]):
         """ """
-        super().__init__(cose_key)
+        super().__init__(params)
 
         self._hash_alg = None
         self._trunc = 0
@@ -147,9 +148,9 @@ class HMACKey(MACAuthenticationKey):
 class AESCCMKey(ContentEncryptionKey):
     """ """
 
-    def __init__(self, cose_key: Dict[int, Any]):
+    def __init__(self, params: Dict[int, Any]):
         """ """
-        super().__init__(cose_key)
+        super().__init__(params)
 
         self._cipher: AESCCM
         self._nonce_len = 0
@@ -259,9 +260,9 @@ class AESCCMKey(ContentEncryptionKey):
 class AESGCMKey(ContentEncryptionKey):
     """ """
 
-    def __init__(self, cose_key: Dict[int, Any]):
+    def __init__(self, params: Dict[int, Any]):
         """ """
-        super().__init__(cose_key)
+        super().__init__(params)
 
         self._cipher: AESGCM
 
@@ -306,8 +307,8 @@ class AESGCMKey(ContentEncryptionKey):
 
 
 class ChaCha20Key(ContentEncryptionKey):
-    def __init__(self, cose_key: Dict[int, Any]):
-        super().__init__(cose_key)
+    def __init__(self, params: Dict[int, Any]):
+        super().__init__(params)
 
         # Validate alg.
         if self._alg != 24:  # ChaCha20/Poly1305
@@ -336,3 +337,57 @@ class ChaCha20Key(ContentEncryptionKey):
             return self._cipher.decrypt(nonce, msg, aad)
         except Exception as err:
             raise DecodeError("Failed to decrypt.") from err
+
+
+class AESKeyWrap(SymmetricKey):
+    _ACCEPTABLE_KEY_OPS = [
+        COSE_KEY_OPERATION_VALUES["wrapKey"],
+        COSE_KEY_OPERATION_VALUES["unwrapKey"],
+    ]
+
+    def __init__(self, params: Dict[int, Any]):
+        super().__init__(params)
+
+        # Validate alg.
+        if self._alg == -3:  # A128KW
+            if self._key and len(self._key) != 16:
+                raise ValueError(f"Invalid key length: {len(self._key)}.")
+            if not self._key:
+                self._key = token_bytes(16)
+        elif self._alg == -4:  # A192KW
+            if self._key and len(self._key) != 24:
+                raise ValueError(f"Invalid key length: {len(self._key)}.")
+            if not self._key:
+                self._key = token_bytes(24)
+        elif self._alg == -5:  # A256KW
+            print("(1)")
+            if self._key and len(self._key) != 32:
+                raise ValueError(f"Invalid key length: {len(self._key)}.")
+            if not self._key:
+                self._key = token_bytes(32)
+        else:
+            raise ValueError(f"Unknown alg(3) for AES key wrap: {self._alg}.")
+
+        # Validate key_opt.
+        if not self._key_ops:
+            self._key_ops = AESKeyWrap._ACCEPTABLE_KEY_OPS
+            return
+        not_acceptable = [
+            ops for ops in self._key_ops if ops not in AESKeyWrap._ACCEPTABLE_KEY_OPS
+        ]
+        if not_acceptable:
+            raise ValueError(
+                f"Unknown or not permissible key_ops(4) for AES key wrap: {not_acceptable[0]}."
+            )
+
+    def wrap_key(self, key_to_wrap: bytes) -> bytes:
+        try:
+            return aes_key_wrap(self._key, key_to_wrap)
+        except Exception as err:
+            raise EncodeError("Failed to wrap key.") from err
+
+    def unwrap_key(self, wrapped_key: bytes) -> bytes:
+        try:
+            return aes_key_unwrap(self._key, wrapped_key)
+        except Exception as err:
+            raise DecodeError("Failed to unwrap key.") from err

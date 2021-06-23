@@ -26,6 +26,8 @@ class DirectKey(Direct):
     ) -> COSEKeyInterface:
         if not key:
             raise ValueError("key should be set.")
+        if key.kid:
+            self._unprotected[4] = key.kid
         return key
 
     def decode_key(
