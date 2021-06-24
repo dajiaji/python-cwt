@@ -5,6 +5,8 @@ from typing import Any, Dict, List, Optional, Union
 import cbor2
 
 from .const import (
+    COSE_ALGORITHMS_CEK,
+    COSE_ALGORITHMS_MAC,
     COSE_HEADER_PARAMETERS,
     COSE_KEY_LEN,
     COSE_KEY_TYPES,
@@ -69,11 +71,13 @@ def to_cis(context: Dict[str, Any], recipient_alg: Optional[int] = None) -> List
     # AlgorithmID
     if "alg" not in context:
         raise ValueError("alg not found.")
-    if context["alg"] not in COSE_NAMED_ALGORITHMS_SUPPORTED:
-        raise ValueError(f'Unsupported or unknown alg: {context["alg"]}.')
+    # if context["alg"] not in COSE_NAMED_ALGORITHMS_SUPPORTED:
+    if (
+        context["alg"] not in COSE_ALGORITHMS_CEK
+        and context["alg"] not in COSE_ALGORITHMS_MAC
+    ):
+        raise ValueError(f'Unsupported or unknown alg for context information: {context["alg"]}.')
     alg = COSE_NAMED_ALGORITHMS_SUPPORTED[context["alg"]]
-    if alg not in COSE_KEY_LEN:
-        raise ValueError(f"Unsupported or unknown alg: {alg}.")
     res.append(alg)
 
     # PartyU

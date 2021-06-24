@@ -711,18 +711,28 @@ class TestEC2Key:
             pytest.fail("derive_key() should not fail.")
 
     @pytest.mark.parametrize(
-        "invalid_alg, alg_id",
+        "invalid_alg",
         [
-            ("HMAC 256/64", 4),
-            ("HMAC 256/256", 5),
-            ("HS256", 5),
-            ("HMAC 384/384", 6),
-            ("HS384", 6),
-            ("HMAC 512/512", 7),
-            ("HS512", 7),
+            ("ECDH-SS+A256KW"),
+            ("ECDH-SS+A192KW"),
+            ("ECDH-SS+A128KW"),
+            ("ECDH-ES+A256KW"),
+            ("ECDH-ES+A192KW"),
+            ("ECDH-ES+A128KW"),
+            ("ECDH-SS+HKDF-512"),
+            ("ECDH-SS+HKDF-256"),
+            ("ECDH-ES+HKDF-512"),
+            ("ECDH-ES+HKDF-256"),
+            ("direct+HKDF-SHA-512"),
+            ("direct+HKDF-SHA-256"),
+            ("dir"),
+            ("direct"),
+            ("A256KW"),
+            ("A192KW"),
+            ("A128KW"),
         ],
     )
-    def test_ec2_key_derive_key_with_invalid_alg(self, invalid_alg, alg_id):
+    def test_ec2_key_derive_key_with_invalid_alg(self, invalid_alg):
         private_key = EC2Key(
             {
                 1: 2,
@@ -745,7 +755,7 @@ class TestEC2Key:
         with pytest.raises(ValueError) as err:
             private_key.derive_key({"alg": invalid_alg}, public_key=pub_key)
             pytest.fail("derive_key() should fail.")
-        assert f"Unsupported or unknown alg: {alg_id}." in str(err.value)
+        assert f"Unsupported or unknown alg for context information: {invalid_alg}." in str(err.value)
 
     def test_ec2_key_derive_key_without_public_key(self):
         private_key = EC2Key(

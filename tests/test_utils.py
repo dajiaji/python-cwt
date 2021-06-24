@@ -81,7 +81,7 @@ class TestUtils:
             ),
             (
                 {"alg": "xxx"},
-                "Unsupported or unknown alg: xxx.",
+                "Unsupported or unknown alg for context information: xxx.",
             ),
             (
                 {"alg": "AES-CCM-16-64-128", "apu": 123},
@@ -132,12 +132,12 @@ class TestUtils:
                 "supp_pub.other should be str.",
             ),
             (
-                {"alg": "HS256"},
-                "Unsupported or unknown alg: 5.",
+                {"alg": "A128KW"},
+                "Unsupported or unknown alg for context information: A128KW.",
             ),
             (
-                {"alg": "HS256", "supp_pub": {}},
-                "Unsupported or unknown alg: 5.",
+                {"alg": "A128KW", "supp_pub": {}},
+                "Unsupported or unknown alg for context information: A128KW.",
             ),
         ],
     )
