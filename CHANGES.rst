@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 
+- Remove alg parameter from RecipientInterface.apply(). `#141 <https://github.com/dajiaji/python-cwt/pull/141>`__
+
 Version 1.0.0
 --------------
 

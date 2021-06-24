@@ -116,7 +116,7 @@ class TestAESKeyWrap:
             {1: -3}, {}, sender_key=COSEKey.from_symmetric_key(alg="A128KW")
         )
         with pytest.raises(EncodeError) as err:
-            ctx.apply(key, alg="A128GCM")
+            ctx.apply(key, context={"alg": "A128GCM"})
             pytest.fail("apply() should fail.")
         assert "Failed to wrap key." in str(err.value)
 
