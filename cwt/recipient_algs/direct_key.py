@@ -17,7 +17,7 @@ class DirectKey(Direct):
             raise ValueError("alg(1) should be direct(-6).")
         return
 
-    def encode_key(
+    def apply(
         self,
         key: Optional[COSEKeyInterface] = None,
         recipient_key: Optional[COSEKeyInterface] = None,

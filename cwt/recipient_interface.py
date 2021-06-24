@@ -141,7 +141,7 @@ class RecipientInterface(COSEKeyInterface):
         res.append(children)
         return res
 
-    def encode_key(
+    def apply(
         self,
         key: Optional[COSEKeyInterface] = None,
         recipient_key: Optional[COSEKeyInterface] = None,
@@ -149,13 +149,14 @@ class RecipientInterface(COSEKeyInterface):
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ) -> COSEKeyInterface:
         """
-        Generates a MAC/encryption key with the recipient-specific method
-        (e.g., key wrapping, key agreement, or the combination of them) and
-        sets up the related information (context information or ciphertext)
-        in the recipient structure. Therefore, it will be used by the sender
-        of the recipient information before calling COSE.encode_* functions
-        with the Recipient object. The key generated through this function
-        will be set to ``key`` parameter of COSE.encode_* functions.
+        Apply a COSEKey as a material to generate a MAC/encryption key with the
+        recipient-specific method (e.g., key wrapping, key agreement, or the
+        combination of them) and sets up the related information (context
+        information or ciphertext) in the recipient structure. Therefore, it
+        will be used by the sender of the recipient information before calling
+        COSE.encode_* functions with the Recipient object. The key generated
+        through this function will be set to ``key`` parameter of COSE.encode_*
+        functions.
 
         Args:
             key (Optional[COSEKeyInterface]): The external key to

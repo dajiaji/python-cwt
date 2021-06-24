@@ -35,7 +35,7 @@ class AESKeyWrap(RecipientInterface):
         )
         self._sender_key = sender_key
 
-    def encode_key(
+    def apply(
         self,
         key: Optional[COSEKeyInterface] = None,
         recipient_key: Optional[COSEKeyInterface] = None,

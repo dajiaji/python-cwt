@@ -76,7 +76,7 @@ class DirectHKDF(Direct):
             raise VerifyError("Failed to verify key.") from err
         return
 
-    def encode_key(
+    def apply(
         self,
         key: Optional[COSEKeyInterface] = None,
         recipient_key: Optional[COSEKeyInterface] = None,

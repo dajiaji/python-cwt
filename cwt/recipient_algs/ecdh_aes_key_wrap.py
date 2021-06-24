@@ -49,7 +49,7 @@ class ECDH_AESKeyWrap(RecipientInterface):
         else:
             raise ValueError(f"Unknown alg(1) for ECDH with key wrap: {self._alg}.")
 
-    def encode_key(
+    def apply(
         self,
         key: Optional[COSEKeyInterface] = None,
         recipient_key: Optional[COSEKeyInterface] = None,
