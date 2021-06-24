@@ -76,7 +76,9 @@ def to_cis(context: Dict[str, Any], recipient_alg: Optional[int] = None) -> List
         context["alg"] not in COSE_ALGORITHMS_CEK
         and context["alg"] not in COSE_ALGORITHMS_MAC
     ):
-        raise ValueError(f'Unsupported or unknown alg for context information: {context["alg"]}.')
+        raise ValueError(
+            f'Unsupported or unknown alg for context information: {context["alg"]}.'
+        )
     alg = COSE_NAMED_ALGORITHMS_SUPPORTED[context["alg"]]
     res.append(alg)
 

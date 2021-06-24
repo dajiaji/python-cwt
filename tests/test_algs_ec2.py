@@ -755,7 +755,10 @@ class TestEC2Key:
         with pytest.raises(ValueError) as err:
             private_key.derive_key({"alg": invalid_alg}, public_key=pub_key)
             pytest.fail("derive_key() should fail.")
-        assert f"Unsupported or unknown alg for context information: {invalid_alg}." in str(err.value)
+        assert (
+            f"Unsupported or unknown alg for context information: {invalid_alg}."
+            in str(err.value)
+        )
 
     def test_ec2_key_derive_key_without_public_key(self):
         private_key = EC2Key(
