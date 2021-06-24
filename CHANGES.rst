@@ -4,8 +4,9 @@ Changes
 Unreleased
 ----------
 
+- Make MAC key can be derived with ECDH. `#139 <https://github.com/dajiaji/python-cwt/pull/139>`__
 - Add RawKey for key material. `#138 <https://github.com/dajiaji/python-cwt/pull/138>`__
-- Make MAC key can be used for KDF. `#137 <https://github.com/dajiaji/python-cwt/pull/137>`__
+- Make MAC key can be derived with HKDF. `#137 <https://github.com/dajiaji/python-cwt/pull/137>`__
 - Remove COSEKeyInterface from RecipientInterface. `#137 <https://github.com/dajiaji/python-cwt/pull/137>`__
 - Implement AESKeyWrap which has COSEKeyInterface. `#137 <https://github.com/dajiaji/python-cwt/pull/137>`__
 - Add encode_key() to RecipientInterface. `#134 <https://github.com/dajiaji/python-cwt/pull/134>`__
