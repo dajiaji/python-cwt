@@ -81,7 +81,7 @@ class ECDH_AESKeyWrap(RecipientInterface):
             raise EncodeError("Failed to wrap key.") from err
         return key
 
-    def decode_key(
+    def extract(
         self,
         key: COSEKeyInterface,
         alg: Optional[int] = None,

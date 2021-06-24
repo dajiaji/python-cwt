@@ -91,7 +91,7 @@ class TestECDH_AESKeyWrap:
             pytest.fail("ECDH_AESKeyWrap() should fail.")
         assert "Unknown alg(1) for ECDH with key wrap: -1." in str(err.value)
 
-    def test_ecdh_aes_key_wrap_encode_and_decode_key_with_ecdh_es(
+    def test_ecdh_aes_key_wrap_encode_and_extract_with_ecdh_es(
         self, sender_key_es, recipient_public_key, recipient_private_key
     ):
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
@@ -103,7 +103,7 @@ class TestECDH_AESKeyWrap:
 
         encoded = sender.to_list()
         recipient = Recipient.from_list(encoded)
-        decoded_key = recipient.decode_key(
+        decoded_key = recipient.extract(
             recipient_private_key, alg="ChaCha20/Poly1305", context={"alg": "A128GCM"}
         )
         assert enc_key.key == decoded_key.key
@@ -213,23 +213,23 @@ class TestECDH_AESKeyWrap:
             pytest.fail("apply() should fail.")
         assert "Failed to wrap key." in str(err.value)
 
-    def test_ecdh_aes_key_wrap_decode_key_without_alg(self):
+    def test_ecdh_aes_key_wrap_extract_without_alg(self):
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
         ctx = ECDH_AESKeyWrap({1: -29}, {4: b"01"})
         with pytest.raises(ValueError) as err:
-            ctx.decode_key(enc_key)
-            pytest.fail("decode_key() should fail.")
+            ctx.extract(enc_key)
+            pytest.fail("extract() should fail.")
         assert "alg should be set." in str(err.value)
 
-    def test_ecdh_aes_key_wrap_decode_key_without_context(self):
+    def test_ecdh_aes_key_wrap_extract_without_context(self):
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
         ctx = ECDH_AESKeyWrap({1: -29}, {4: b"01"})
         with pytest.raises(ValueError) as err:
-            ctx.decode_key(enc_key, alg="ChaCha20/Poly1305")
-            pytest.fail("decode_key() should fail.")
+            ctx.extract(enc_key, alg="ChaCha20/Poly1305")
+            pytest.fail("extract() should fail.")
         assert "context should be set." in str(err.value)
 
-    def test_ecdh_aes_key_wrap_decode_key_with_invalid_recipient_private_key(
+    def test_ecdh_aes_key_wrap_extract_with_invalid_recipient_private_key(
         self, recipient_public_key
     ):
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
@@ -252,5 +252,5 @@ class TestECDH_AESKeyWrap:
         encoded = ctx.encode_and_encrypt(b"Hello world!", enc_key, recipients=[rec])
         with pytest.raises(DecodeError) as err:
             ctx.decode(encoded, recipient_private_key, context={"alg": "A128GCM"})
-            pytest.fail("decode_key() should fail.")
+            pytest.fail("extract() should fail.")
         assert "Failed to decode key." in str(err.value)

@@ -107,7 +107,7 @@ class DirectHKDF(Direct):
         except Exception as err:
             raise EncodeError("Failed to derive key.") from err
 
-    def decode_key(
+    def extract(
         self,
         key: COSEKeyInterface,
         alg: Optional[int] = None,

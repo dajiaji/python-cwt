@@ -84,7 +84,7 @@ class TestECDH_DirectHKDF:
             pytest.fail("ECDH_DirectHKDF() should fail.")
         assert "Unknown alg(1) for ECDH with HKDF: -1." in str(err.value)
 
-    def test_ecdh_direct_hkdf_encode_and_decode_key_with_ecdh_es(
+    def test_ecdh_direct_hkdf_encode_and_extract_with_ecdh_es(
         self, sender_key_es, recipient_public_key, recipient_private_key
     ):
         sender = ECDH_DirectHKDF({1: -25}, {4: b"01"}, sender_key=sender_key_es)
@@ -94,7 +94,7 @@ class TestECDH_DirectHKDF:
 
         encoded = sender.to_list()
         recipient = Recipient.from_list(encoded)
-        decoded_key = recipient.decode_key(
+        decoded_key = recipient.extract(
             recipient_private_key, context={"alg": "A128GCM"}
         )
         assert enc_key.key == decoded_key.key
@@ -279,7 +279,7 @@ class TestECDH_DirectHKDF:
             pytest.fail("apply() should fail.")
         assert "public_key should be elliptic curve public key." in str(err.value)
 
-    def test_ecdh_direct_hkdf_decode_key_with_invalid_private_key(
+    def test_ecdh_direct_hkdf_extract_with_invalid_private_key(
         self, recipient_public_key
     ):
         rec = Recipient.from_jwk(

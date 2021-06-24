@@ -72,7 +72,7 @@ class ECDH_DirectHKDF(Direct):
             self._unprotected[4] = kid
         return derived_key
 
-    def decode_key(
+    def extract(
         self,
         key: COSEKeyInterface,
         alg: Optional[int] = None,

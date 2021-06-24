@@ -149,33 +149,33 @@ class RecipientInterface(COSEKeyInterface):
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ) -> COSEKeyInterface:
         """
-        Apply a COSEKey as a material to generate a MAC/encryption key with the
-        recipient-specific method (e.g., key wrapping, key agreement, or the
-        combination of them) and sets up the related information (context
-        information or ciphertext) in the recipient structure. Therefore, it
-        will be used by the sender of the recipient information before calling
-        COSE.encode_* functions with the Recipient object. The key generated
-        through this function will be set to ``key`` parameter of COSE.encode_*
-        functions.
+        Applies a COSEKey as a material to prepare a MAC/encryption key with
+        the recipient-specific method (e.g., key wrapping, key agreement,
+        or the combination of them) and sets up the related information
+        (context information or ciphertext) in the recipient structure.
+        Therefore, it will be used by the sender of the recipient information
+        before calling COSE.encode_* functions with the Recipient object. The
+        key generated through this function will be set to ``key`` parameter
+        of COSE.encode_* functions.
 
         Args:
             key (Optional[COSEKeyInterface]): The external key to
-                be used for encoding the key.
+                be used for preparing the key.
             recipient_key (Optional[COSEKeyInterface]): The external public
                 key provided by the recipient used for ECDH key agreement.
-            alg (Optional[int]): The algorithm of the key generated.
+            alg (Optional[int]): The algorithm of the key to be generated.
             context (Optional[Union[List[Any], Dict[str, Any]]]): Context
                 information structure.
         Returns:
-            COSEKeyInterface: An encoded key which is used as ``key``
-                parameter of COSE.encode_* functions.
+            COSEKeyInterface: A generated key or passed-throug key which is used
+                as ``key`` parameter of COSE.encode_* functions.
         Raises:
             ValueError: Invalid arguments.
             EncodeError: Failed to encode(e.g., wrap, derive) the key.
         """
         raise NotImplementedError
 
-    def decode_key(
+    def extract(
         self,
         key: COSEKeyInterface,
         alg: Optional[int] = None,

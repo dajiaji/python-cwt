@@ -30,7 +30,7 @@ class DirectKey(Direct):
             self._unprotected[4] = key.kid
         return key
 
-    def decode_key(
+    def extract(
         self,
         key: COSEKeyInterface,
         alg: Optional[int] = None,

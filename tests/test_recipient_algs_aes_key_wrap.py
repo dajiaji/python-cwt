@@ -135,8 +135,8 @@ class TestAESKeyWrap:
             {1: -3}, {}, sender_key=COSEKey.from_symmetric_key(alg="A128KW")
         )
         with pytest.raises(ValueError) as err:
-            ctx.decode_key(key=key)
-            pytest.fail("decode_key() should fail.")
+            ctx.extract(key=key)
+            pytest.fail("extract() should fail.")
         assert "alg should be set." in str(err.value)
 
     def test_aes_key_wrap_wrap_key_without_ciphertext(self):
@@ -145,6 +145,6 @@ class TestAESKeyWrap:
             {1: -3}, {}, sender_key=COSEKey.from_symmetric_key(alg="A128KW")
         )
         with pytest.raises(DecodeError) as err:
-            ctx.decode_key(key=key, alg="A128GCM")
-            pytest.fail("decode_key() should fail.")
+            ctx.extract(key=key, alg="A128GCM")
+            pytest.fail("extract() should fail.")
         assert "Failed to decode key." in str(err.value)
