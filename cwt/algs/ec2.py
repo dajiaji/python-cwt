@@ -24,7 +24,7 @@ from ..const import (
 from ..cose_key_interface import COSEKeyInterface
 from ..exceptions import EncodeError, VerifyError
 from ..utils import i2osp, os2ip, to_cis
-from .symmetric import AESCCMKey, AESGCMKey, ChaCha20Key
+from .symmetric import AESCCMKey, AESGCMKey, ChaCha20Key, HMACKey
 
 
 class EC2Key(COSEKeyInterface):
@@ -328,6 +328,8 @@ class EC2Key(COSEKeyInterface):
         }
         if cose_key[3] in [1, 2, 3]:
             return AESGCMKey(cose_key)
+        if cose_key[3] in [4, 5, 6, 7]:
+            return HMACKey(cose_key)
         if cose_key[3] in [10, 11, 12, 13, 30, 31, 32, 33]:
             return AESCCMKey(cose_key)
         # cose_key[3] == 24:
