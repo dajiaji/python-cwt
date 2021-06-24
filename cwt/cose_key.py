@@ -13,6 +13,7 @@ from cryptography.hazmat.primitives.serialization import (
 
 from .algs.ec2 import EC2Key
 from .algs.okp import OKPKey
+from .algs.raw import RawKey
 from .algs.rsa import RSAKey
 from .algs.symmetric import AESCCMKey, AESGCMKey, AESKeyWrap, ChaCha20Key, HMACKey
 from .const import (
@@ -80,7 +81,7 @@ class COSEKey:
     def from_symmetric_key(
         cls,
         key: Union[bytes, str] = b"",
-        alg: Union[int, str] = "HMAC 256/256",
+        alg: Union[int, str] = "",
         kid: Union[bytes, str] = b"",
         key_ops: Optional[Union[List[int], List[str]]] = None,
     ) -> COSEKeyInterface:
@@ -103,6 +104,8 @@ class COSEKey:
         """
         if isinstance(key, str):
             key = key.encode("utf-8")
+        if alg == "":
+            return RawKey({1: 4, -1: key})
         alg_id = alg if isinstance(alg, int) else COSE_ALGORITHMS_SYMMETRIC.get(alg, 0)
         if alg_id == 0:
             raise ValueError(f"Unsupported or unknown alg(3): {alg}.")

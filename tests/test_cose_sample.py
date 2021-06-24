@@ -66,9 +66,7 @@ class TestCOSESample:
             },
         )
         shared_material = token_bytes(32)
-        shared_key = COSEKey.from_symmetric_key(
-            shared_material, alg="A256GCM", kid="01"
-        )
+        shared_key = COSEKey.from_symmetric_key(shared_material, kid="01")
         mac_key = recipient.apply(shared_key, context={"alg": "HS256"})
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_mac(
@@ -181,9 +179,7 @@ class TestCOSESample:
             },
         )
         shared_material = token_bytes(32)
-        shared_key = COSEKey.from_symmetric_key(
-            shared_material, alg="A256GCM", kid="01"
-        )
+        shared_key = COSEKey.from_symmetric_key(shared_material, kid="01")
         enc_key = recipient.apply(shared_key, context={"alg": "A256GCM"})
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_encrypt(
