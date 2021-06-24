@@ -80,7 +80,6 @@ class DirectHKDF(Direct):
         self,
         key: Optional[COSEKeyInterface] = None,
         recipient_key: Optional[COSEKeyInterface] = None,
-        alg: Optional[int] = None,
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ) -> COSEKeyInterface:
 

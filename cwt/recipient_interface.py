@@ -144,7 +144,6 @@ class RecipientInterface(CBORProcessor):
         self,
         key: Optional[COSEKeyInterface] = None,
         recipient_key: Optional[COSEKeyInterface] = None,
-        alg: Optional[int] = None,
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ) -> COSEKeyInterface:
         """
@@ -162,7 +161,6 @@ class RecipientInterface(CBORProcessor):
                 be used for preparing the key.
             recipient_key (Optional[COSEKeyInterface]): The external public
                 key provided by the recipient used for ECDH key agreement.
-            alg (Optional[int]): The algorithm of the key to be generated.
             context (Optional[Union[List[Any], Dict[str, Any]]]): Context
                 information structure.
         Returns:
