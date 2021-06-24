@@ -46,7 +46,7 @@ class ECDH_DirectHKDF(Direct):
         else:
             raise ValueError(f"Unknown alg(1) for ECDH with HKDF: {self._alg}.")
 
-    def encode_key(
+    def apply(
         self,
         key: Optional[COSEKeyInterface] = None,
         recipient_key: Optional[COSEKeyInterface] = None,
@@ -72,7 +72,7 @@ class ECDH_DirectHKDF(Direct):
             self._unprotected[4] = kid
         return derived_key
 
-    def decode_key(
+    def extract(
         self,
         key: COSEKeyInterface,
         alg: Optional[int] = None,

@@ -5,6 +5,8 @@ from typing import Any, Dict, List, Optional, Union
 import cbor2
 
 from .const import (
+    COSE_ALGORITHMS_CEK,
+    COSE_ALGORITHMS_MAC,
     COSE_HEADER_PARAMETERS,
     COSE_KEY_LEN,
     COSE_KEY_TYPES,
@@ -69,11 +71,15 @@ def to_cis(context: Dict[str, Any], recipient_alg: Optional[int] = None) -> List
     # AlgorithmID
     if "alg" not in context:
         raise ValueError("alg not found.")
-    if context["alg"] not in COSE_NAMED_ALGORITHMS_SUPPORTED:
-        raise ValueError(f'Unsupported or unknown alg: {context["alg"]}.')
+    # if context["alg"] not in COSE_NAMED_ALGORITHMS_SUPPORTED:
+    if (
+        context["alg"] not in COSE_ALGORITHMS_CEK
+        and context["alg"] not in COSE_ALGORITHMS_MAC
+    ):
+        raise ValueError(
+            f'Unsupported or unknown alg for context information: {context["alg"]}.'
+        )
     alg = COSE_NAMED_ALGORITHMS_SUPPORTED[context["alg"]]
-    if alg not in COSE_KEY_LEN:
-        raise ValueError(f"Unsupported or unknown alg: {alg}.")
     res.append(alg)
 
     # PartyU
@@ -204,10 +210,10 @@ def jwk_to_cose_key_params(data: Union[str, bytes, Dict[str, Any]]) -> Dict[int,
     # key operation dependent conversion
     is_public = False
     if cose_key[1] == 4:  # Symmetric
-        if "k" not in jwk or not isinstance(jwk["k"], str):
-            raise ValueError("k is not found or invalid format.")
-        cose_key[-1] = base64url_decode(jwk["k"])
-
+        if "k" in jwk:
+            if not isinstance(jwk["k"], str):
+                raise ValueError("k should be str.")
+            cose_key[-1] = base64url_decode(jwk["k"])
     elif cose_key[1] == 3:  # RSA
         for k, v in jwk.items():
             if k not in JWK_PARAMS_RSA:

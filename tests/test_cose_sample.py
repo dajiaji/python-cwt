@@ -1,3 +1,5 @@
+from secrets import token_bytes
+
 from cwt import COSE, COSEKey, Recipient, Signer
 
 
@@ -34,37 +36,76 @@ class TestCOSESample:
 
     def test_cose_usage_examples_cose_mac_direct(self):
         mac_key = COSEKey.from_symmetric_key(alg="HS512", kid="01")
-        recipient = Recipient.from_jwk({"alg": "direct", "kid": "01"})
+
+        r = Recipient.from_jwk({"alg": "direct"})
+        r.apply(mac_key)
 
         ctx = COSE.new()
-        encoded = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[recipient])
+        encoded = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[r])
         assert b"Hello world!" == ctx.decode(encoded, mac_key)
 
-        recipient2 = Recipient.new(unprotected={"alg": "direct", "kid": "01"})
-        encoded2 = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[recipient2])
+        r2 = Recipient.new(unprotected={"alg": "direct"})
+        r2.apply(mac_key)
+        encoded2 = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[r2])
         assert b"Hello world!" == ctx.decode(encoded2, mac_key)
 
-        recipient3 = Recipient.new(unprotected={1: -6, 4: b"01"})
-        encoded3 = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[recipient3])
+        r3 = Recipient.new(unprotected={1: -6})
+        r3.apply(mac_key)
+        encoded3 = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[r3])
         assert b"Hello world!" == ctx.decode(encoded3, mac_key)
 
         assert encoded == encoded2 == encoded3
 
-    def test_cose_usage_examples_cose_mac_aes_key_wrap(self):
-        mac_key = COSEKey.from_symmetric_key(alg="HS512")
+    def test_cose_usage_examples_cose_mac_direct_hkdf_sha_256(self):
+
         recipient = Recipient.from_jwk(
             {
+                "kty": "oct",
+                "alg": "direct+HKDF-SHA-256",
+                "salt": "aabbccddeeffgghh",
+            },
+        )
+        shared_material = token_bytes(32)
+        shared_key = COSEKey.from_symmetric_key(
+            shared_material, alg="A256GCM", kid="01"
+        )
+        mac_key = recipient.apply(shared_key, context={"alg": "HS256"})
+        ctx = COSE.new(alg_auto_inclusion=True)
+        encoded = ctx.encode_and_mac(
+            b"Hello world!",
+            key=mac_key,
+            recipients=[recipient],
+        )
+        assert b"Hello world!" == ctx.decode(
+            encoded, shared_key, context={"alg": "HS256"}
+        )
+
+    def test_cose_usage_examples_cose_mac_aes_key_wrap(self):
+
+        # The sender side:
+        mac_key = COSEKey.from_symmetric_key(alg="HS512")
+        r = Recipient.from_jwk(
+            {
+                "kty": "oct",
                 "alg": "A128KW",
-                "kid": "our-secret",
+                "kid": "01",
+                "k": "hJtXIZ2uSN5kbQfbtTNWbg",  # A shared wrapping key
+            },
+        )
+        r.apply(mac_key)
+        ctx = COSE.new(alg_auto_inclusion=True)
+        encoded = ctx.encode_and_mac(b"Hello world!", key=mac_key, recipients=[r])
+
+        # The recipient side:
+        shared_key = COSEKey.from_jwk(
+            {
+                "kty": "oct",
+                "alg": "A128KW",
+                "kid": "01",
                 "k": "hJtXIZ2uSN5kbQfbtTNWbg",
             },
         )
-        recipient.encode_key(mac_key)
-        ctx = COSE.new(alg_auto_inclusion=True)
-        encoded = ctx.encode_and_mac(
-            b"Hello world!", key=mac_key, recipients=[recipient]
-        )
-        assert b"Hello world!" == ctx.decode(encoded, recipient)
+        assert b"Hello world!" == ctx.decode(encoded, shared_key)
 
     def test_cose_usage_examples_cose_encrypt0(self):
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
@@ -98,7 +139,8 @@ class TestCOSESample:
     def test_cose_usage_examples_cose_encrypt(self):
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
         nonce = enc_key.generate_nonce()
-        recipient = Recipient.from_jwk({"alg": "direct", "kid": "01"})
+        recipient = Recipient.from_jwk({"alg": "direct"})
+        recipient.apply(enc_key)
 
         ctx = COSE.new()
         encoded = ctx.encode_and_encrypt(
@@ -109,7 +151,8 @@ class TestCOSESample:
         )
         assert b"Hello world!" == ctx.decode(encoded, enc_key)
 
-        recipient = Recipient.new(unprotected={"alg": "direct", "kid": "01"})
+        recipient = Recipient.new(unprotected={"alg": "direct"})
+        recipient.apply(enc_key)
         encoded2 = ctx.encode_and_encrypt(
             b"Hello world!",
             enc_key,
@@ -127,6 +170,55 @@ class TestCOSESample:
         assert b"Hello world!" == ctx.decode(encoded3, enc_key)
 
         assert encoded == encoded2 == encoded3
+
+    def test_cose_usage_examples_cose_encrypt_direct_hkdf_sha_256(self):
+
+        recipient = Recipient.from_jwk(
+            {
+                "kty": "oct",
+                "alg": "direct+HKDF-SHA-256",
+                "salt": "aabbccddeeffgghh",
+            },
+        )
+        shared_material = token_bytes(32)
+        shared_key = COSEKey.from_symmetric_key(
+            shared_material, alg="A256GCM", kid="01"
+        )
+        enc_key = recipient.apply(shared_key, context={"alg": "A256GCM"})
+        ctx = COSE.new(alg_auto_inclusion=True)
+        encoded = ctx.encode_and_encrypt(
+            b"Hello world!",
+            key=enc_key,
+            recipients=[recipient],
+        )
+        assert b"Hello world!" == ctx.decode(
+            encoded, shared_key, context={"alg": "A256GCM"}
+        )
+
+    def test_cose_usage_examples_cose_encrypt_aes_key_wrap_a128kw(self):
+        # A key to wrap
+        enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
+
+        r = Recipient.from_jwk(
+            {
+                "kty": "oct",
+                "alg": "A128KW",
+                "kid": "01",
+                "k": "hJtXIZ2uSN5kbQfbtTNWbg",  # A shared wrapping key
+            },
+        )
+        r.apply(enc_key)
+        ctx = COSE.new(alg_auto_inclusion=True)
+        encoded = ctx.encode_and_encrypt(b"Hello world!", key=enc_key, recipients=[r])
+        shared_key = COSEKey.from_jwk(
+            {
+                "kty": "oct",
+                "alg": "A128KW",
+                "kid": "01",
+                "k": "hJtXIZ2uSN5kbQfbtTNWbg",
+            },
+        )
+        assert b"Hello world!" == ctx.decode(encoded, shared_key)
 
     def test_cose_usage_examples_cose_encrypt_ecdh_direct_hkdf_p256(self):
 
@@ -146,9 +238,7 @@ class TestCOSESample:
                 "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
             }
         )
-        enc_key = recipient.encode_key(
-            recipient_key=pub_key, context={"alg": "A128GCM"}
-        )
+        enc_key = recipient.apply(recipient_key=pub_key, context={"alg": "A128GCM"})
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_encrypt(
             b"Hello world!",
@@ -188,9 +278,7 @@ class TestCOSESample:
                 "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
             }
         )
-        enc_key = recipient.encode_key(
-            recipient_key=pub_key, context={"alg": "A128GCM"}
-        )
+        enc_key = recipient.apply(recipient_key=pub_key, context={"alg": "A128GCM"})
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_encrypt(
             b"Hello world!",
@@ -229,9 +317,7 @@ class TestCOSESample:
                 "x": "IkLmc0klvEMXYneHMKAB6ePohryAwAPVe2pRSffIDY6NrjeYNWVX5J-fG4NV2OoU77C88A0mvxI",
             }
         )
-        enc_key = recipient.encode_key(
-            recipient_key=pub_key, context={"alg": "A128GCM"}
-        )
+        enc_key = recipient.apply(recipient_key=pub_key, context={"alg": "A128GCM"})
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_encrypt(
             b"Hello world!",
@@ -315,7 +401,7 @@ class TestCOSESample:
                 "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
             }
         )
-        recipient.encode_key(enc_key, recipient_key=pub_key, context={"alg": "A128GCM"})
+        recipient.apply(enc_key, recipient_key=pub_key, context={"alg": "A128GCM"})
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_encrypt(
             b"Hello world!",

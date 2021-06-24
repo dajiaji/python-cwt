@@ -6,10 +6,11 @@ from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PublicKey
 
 from .algs.ec2 import EC2Key
 from .algs.okp import OKPKey
+from .cbor_processor import CBORProcessor
 from .cose_key_interface import COSEKeyInterface
 
 
-class RecipientInterface(COSEKeyInterface):
+class RecipientInterface(CBORProcessor):
     """
     The interface class for a COSE Recipient.
     """
@@ -39,45 +40,35 @@ class RecipientInterface(COSEKeyInterface):
         """
         protected = {} if protected is None else protected
         unprotected = {} if unprotected is None else unprotected
-
-        params: Dict[int, Any] = {1: 4}  # Support only Symmetric key.
+        self._alg = 0
 
         # kid
         if 4 in unprotected:
             if not isinstance(unprotected[4], bytes):
                 raise ValueError("unprotected[4](kid) should be bytes.")
-            params[2] = unprotected[4]
+        self._kid = unprotected[4] if 4 in unprotected else None
 
         # alg
         if 1 in protected:
             if not isinstance(protected[1], int):
                 raise ValueError("protected[1](alg) should be int.")
-            params[3] = protected[1]
+            self._alg = protected[1]
         elif 1 in unprotected:
             if not isinstance(unprotected[1], int):
                 raise ValueError("unprotected[1](alg) should be int.")
-            params[3] = unprotected[1]
-            if params[3] == -6:  # direct
+            self._alg = unprotected[1]
+            if unprotected[1] == -6:  # direct
                 if len(protected) != 0:
                     raise ValueError("protected header should be empty.")
                 if len(ciphertext) != 0:
                     raise ValueError("ciphertext should be zero-length bytes.")
                 if len(recipients) != 0:
                     raise ValueError("recipients should be absent.")
-        else:
-            params[3] = 0
-
-        # key_ops
-        if key_ops:
-            params[4] = key_ops
 
         # iv
         if 5 in unprotected:
             if not isinstance(unprotected[5], bytes):
                 raise ValueError("unprotected[5](iv) should be bytes.")
-            params[5] = unprotected[5]
-
-        super().__init__(params)
 
         self._protected = protected
         self._unprotected = unprotected
@@ -95,11 +86,12 @@ class RecipientInterface(COSEKeyInterface):
         return
 
     @property
-    def key(self) -> bytes:
-        """
-        The body of the key as bytes.
-        """
-        return self._key
+    def kid(self) -> bytes:
+        return self._kid
+
+    @property
+    def alg(self) -> int:
+        return self._alg
 
     @property
     def protected(self) -> Dict[int, Any]:
@@ -148,7 +140,7 @@ class RecipientInterface(COSEKeyInterface):
         res.append(children)
         return res
 
-    def encode_key(
+    def apply(
         self,
         key: Optional[COSEKeyInterface] = None,
         recipient_key: Optional[COSEKeyInterface] = None,
@@ -156,32 +148,33 @@ class RecipientInterface(COSEKeyInterface):
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ) -> COSEKeyInterface:
         """
-        Generates a MAC/encryption key with the recipient-specific method
-        (e.g., key wrapping, key agreement, or the combination of them) and
-        sets up the related information (context information or ciphertext)
-        in the recipient structure. Therefore, it will be used by the sender
-        of the recipient information before calling COSE.encode_* functions
-        with the Recipient object. The key generated through this function
-        will be set to ``key`` parameter of COSE.encode_* functions.
+        Applies a COSEKey as a material to prepare a MAC/encryption key with
+        the recipient-specific method (e.g., key wrapping, key agreement,
+        or the combination of them) and sets up the related information
+        (context information or ciphertext) in the recipient structure.
+        Therefore, it will be used by the sender of the recipient information
+        before calling COSE.encode_* functions with the Recipient object. The
+        key generated through this function will be set to ``key`` parameter
+        of COSE.encode_* functions.
 
         Args:
             key (Optional[COSEKeyInterface]): The external key to
-                be used for encoding the key.
+                be used for preparing the key.
             recipient_key (Optional[COSEKeyInterface]): The external public
                 key provided by the recipient used for ECDH key agreement.
-            alg (Optional[int]): The algorithm of the key generated.
+            alg (Optional[int]): The algorithm of the key to be generated.
             context (Optional[Union[List[Any], Dict[str, Any]]]): Context
                 information structure.
         Returns:
-            COSEKeyInterface: An encoded key which is used as ``key``
-                parameter of COSE.encode_* functions.
+            COSEKeyInterface: A generated key or passed-throug key which is used
+                as ``key`` parameter of COSE.encode_* functions.
         Raises:
             ValueError: Invalid arguments.
             EncodeError: Failed to encode(e.g., wrap, derive) the key.
         """
         raise NotImplementedError
 
-    def decode_key(
+    def extract(
         self,
         key: COSEKeyInterface,
         alg: Optional[int] = None,

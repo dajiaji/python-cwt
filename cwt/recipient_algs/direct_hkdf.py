@@ -76,7 +76,7 @@ class DirectHKDF(Direct):
             raise VerifyError("Failed to verify key.") from err
         return
 
-    def encode_key(
+    def apply(
         self,
         key: Optional[COSEKeyInterface] = None,
         recipient_key: Optional[COSEKeyInterface] = None,
@@ -103,11 +103,13 @@ class DirectHKDF(Direct):
         )
         try:
             derived = hkdf.derive(key.key)
+            if key.kid:
+                self._unprotected[4] = key.kid
             return COSEKey.from_symmetric_key(derived, alg=context[0], kid=self._kid)
         except Exception as err:
             raise EncodeError("Failed to derive key.") from err
 
-    def decode_key(
+    def extract(
         self,
         key: COSEKeyInterface,
         alg: Optional[int] = None,

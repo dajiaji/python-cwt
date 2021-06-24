@@ -117,10 +117,10 @@ COSE_KEY_LEN = {
     1: 128,  # AES-GCM mode w/ 128-bit key, 128-bit tag
     2: 192,  # AES-GCM mode w/ 192-bit key, 128-bit tag
     3: 256,  # AES-GCM mode w/ 256-bit key, 128-bit tag
-    # 4: 256,  # HMAC w/ SHA-256 truncated to 64 bits
-    # 5: 256,  # HMAC w/ SHA-256
-    # 6: 384,  # HMAC w/ SHA-384
-    # 7: 512,  # HMAC w/ SHA-512
+    4: 64,  # HMAC w/ SHA-256 truncated to 64 bits
+    5: 256,  # HMAC w/ SHA-256
+    6: 384,  # HMAC w/ SHA-384
+    7: 512,  # HMAC w/ SHA-512
     10: 128,  # AES-CCM mode 128-bit key, 64-bit tag, 13-byte nonce
     11: 256,  # AES-CCM mode 256-bit key, 64-bit tag, 13-byte nonce
     12: 128,  # AES-CCM mode 128-bit key, 64-bit tag, 7-byte nonce
@@ -337,7 +337,11 @@ COSE_ALGORITHMS_RECIPIENT = {
 }
 
 # COSE Algorithms for Symmetric Keys.
-COSE_ALGORITHMS_SYMMETRIC = {**COSE_ALGORITHMS_MAC, **COSE_ALGORITHMS_CEK}
+COSE_ALGORITHMS_SYMMETRIC = {
+    **COSE_ALGORITHMS_MAC,
+    **COSE_ALGORITHMS_CEK,
+    **COSE_ALGORITHMS_KEY_WRAP,
+}
 
 # COSE Algorithms for RSA Keys.
 COSE_ALGORITHMS_RSA = {**COSE_ALGORITHMS_SIG_RSA}

@@ -49,6 +49,12 @@ class TestCOSEKeyInterface:
             key.decrypt(b"message", nonce=b"123", aad=None)
             pytest.fail("COSEKeyInterface.decrypt() should fail.")
         with pytest.raises(NotImplementedError):
+            key.wrap_key(b"key_to_wrap")
+            pytest.fail("COSEKeyInterface.decrypt() should fail.")
+        with pytest.raises(NotImplementedError):
+            key.unwrap_key(b"wrapped_key")
+            pytest.fail("COSEKeyInterface.decrypt() should fail.")
+        with pytest.raises(NotImplementedError):
             key.derive_key([], b"material")
             pytest.fail("COSEKeyInterface.derive_key() should fail.")
 

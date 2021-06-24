@@ -17,7 +17,7 @@ class DirectKey(Direct):
             raise ValueError("alg(1) should be direct(-6).")
         return
 
-    def encode_key(
+    def apply(
         self,
         key: Optional[COSEKeyInterface] = None,
         recipient_key: Optional[COSEKeyInterface] = None,
@@ -26,9 +26,11 @@ class DirectKey(Direct):
     ) -> COSEKeyInterface:
         if not key:
             raise ValueError("key should be set.")
+        if key.kid:
+            self._unprotected[4] = key.kid
         return key
 
-    def decode_key(
+    def extract(
         self,
         key: COSEKeyInterface,
         alg: Optional[int] = None,

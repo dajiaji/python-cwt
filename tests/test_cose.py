@@ -556,7 +556,7 @@ class TestCOSE:
             [b"lighting-server", None, None],
             [128, cbor2.dumps({1: -10}), b"Encryption Example 02"],
         ]
-        enc_key = recipient.encode_key(material, context=context)
+        enc_key = recipient.apply(material, context=context)
         ctx = COSE.new()
         encoded = ctx.encode_and_encrypt(
             b"This is the content.",
@@ -606,7 +606,7 @@ class TestCOSE:
             base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
             alg="A256GCM",
         )
-        enc_key = recipient.encode_key(material, context=context)
+        enc_key = recipient.apply(material, context=context)
         ctx = COSE.new()
         encoded = ctx.encode_and_encrypt(
             b"This is the content.",
@@ -646,12 +646,13 @@ class TestCOSE:
         )
         recipient = Recipient.from_jwk(
             {
+                "kty": "oct",
                 "alg": "A128KW",
                 "kid": "our-secret",
                 "k": "hJtXIZ2uSN5kbQfbtTNWbg",
             },
         )
-        recipient.encode_key(mac_key)
+        recipient.apply(mac_key)
         ctx = COSE.new()
         encoded = ctx.encode_and_mac(
             b"This is the content.",
@@ -660,7 +661,15 @@ class TestCOSE:
             recipients=[recipient],
         )
         assert encoded == bytes.fromhex(cwt_str)
-        res = ctx.decode(encoded, keys=[recipient])
+        key = COSEKey.from_jwk(
+            {
+                "kty": "oct",
+                "alg": "A128KW",
+                "kid": "our-secret",
+                "k": "hJtXIZ2uSN5kbQfbtTNWbg",
+            },
+        )
+        res = ctx.decode(encoded, keys=[key])
         assert res == b"This is the content."
 
     def test_cose_sample_cose_wg_ecdh_direct_p256_hkdf_256_01(self):
@@ -680,7 +689,7 @@ class TestCOSE:
                 "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
             }
         )
-        enc_key = rec.encode_key(recipient_key=pub_key, context={"alg": "A128GCM"})
+        enc_key = rec.apply(recipient_key=pub_key, context={"alg": "A128GCM"})
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_encrypt(
             b"This is the content.",
@@ -728,7 +737,7 @@ class TestCOSE:
                 # "d":"r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8"
             }
         )
-        rec.encode_key(enc_key, recipient_key=pub_key, context={"alg": "A128GCM"})
+        rec.apply(enc_key, recipient_key=pub_key, context={"alg": "A128GCM"})
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_encrypt(
             b"This is the content.",
@@ -1031,9 +1040,7 @@ class TestCOSE:
         recipient = Recipient.from_jwk(
             {"kty": "EC", "crv": "P-256", "alg": "ECDH-ES+HKDF-256"}
         )
-        enc_key = recipient.encode_key(
-            recipient_key=public_key, context={"alg": "A128GCM"}
-        )
+        enc_key = recipient.apply(recipient_key=public_key, context={"alg": "A128GCM"})
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_encrypt(
             b"This is the content.",
@@ -1055,9 +1062,7 @@ class TestCOSE:
         recipient = Recipient.from_jwk(
             {"kty": "EC", "crv": "P-256", "alg": "ECDH-ES+A128KW"}
         )
-        recipient.encode_key(
-            enc_key, recipient_key=public_key, context={"alg": "A128GCM"}
-        )
+        recipient.apply(enc_key, recipient_key=public_key, context={"alg": "A128GCM"})
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_encrypt(
             b"This is the content.",

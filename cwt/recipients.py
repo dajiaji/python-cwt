@@ -24,7 +24,7 @@ class Recipients:
             res.append(Recipient.from_list(r))
         return cls(res)
 
-    def decode_key(
+    def extract(
         self,
         keys: List[COSEKeyInterface],
         context: Optional[Union[Dict[str, Any], List[Any]]] = None,
@@ -37,5 +37,5 @@ class Recipients:
             for k in keys:
                 if k.kid != r.kid:
                     continue
-                return r.decode_key(k, alg=alg, context=context)
+                return r.extract(k, alg=alg, context=context)
         raise ValueError("Failed to derive a key.")

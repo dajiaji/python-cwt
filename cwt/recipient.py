@@ -9,7 +9,6 @@ from .const import (  # COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP,
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP,
     COSE_ALGORITHMS_KEY_WRAP,
     COSE_ALGORITHMS_RECIPIENT,
-    COSE_KEY_OPERATION_VALUES,
 )
 from .cose_key import COSEKey
 from .cose_key_interface import COSEKeyInterface
@@ -19,7 +18,7 @@ from .recipient_algs.direct_key import DirectKey
 from .recipient_algs.ecdh_aes_key_wrap import ECDH_AESKeyWrap
 from .recipient_algs.ecdh_direct_hkdf import ECDH_DirectHKDF
 from .recipient_interface import RecipientInterface
-from .utils import base64url_decode, to_cose_header
+from .utils import to_cose_header
 
 
 class Recipient:
@@ -34,8 +33,6 @@ class Recipient:
         unprotected: dict = {},
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
-        key_ops: List[int] = [],
-        key: bytes = b"",
         sender_key: Optional[COSEKeyInterface] = None,
     ) -> RecipientInterface:
         """
@@ -60,7 +57,9 @@ class Recipient:
         if alg in [-10, -11]:
             return DirectHKDF(p, u, ciphertext, recipients)
         if alg in [-3, -4, -5]:
-            return AESKeyWrap(p, u, ciphertext, recipients, key_ops, key)
+            if not sender_key:
+                sender_key = COSEKey.from_symmetric_key(alg=alg)
+            return AESKeyWrap(p, u, sender_key, ciphertext, recipients)
         if alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT.values():
             return ECDH_DirectHKDF(p, u, ciphertext, recipients, sender_key)
         if alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP.values():
@@ -83,8 +82,6 @@ class Recipient:
         protected: Dict[int, Any] = {}
         unprotected: Dict[int, Any] = {}
         recipient: Dict[str, Any]
-        key = b""
-        key_ops = []
 
         if not isinstance(data, dict):
             recipient = json.loads(data)
@@ -108,6 +105,7 @@ class Recipient:
                 unprotected[1] = COSE_ALGORITHMS_RECIPIENT[recipient["alg"]]
             elif recipient["alg"] in COSE_ALGORITHMS_KEY_WRAP:
                 unprotected[1] = COSE_ALGORITHMS_RECIPIENT[recipient["alg"]]
+                sender_key = COSEKey.from_jwk(recipient)
             else:
                 protected[1] = COSE_ALGORITHMS_RECIPIENT[recipient["alg"]]
             if recipient["alg"] in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.keys():
@@ -119,27 +117,7 @@ class Recipient:
                 raise ValueError("kid should be str.")
             unprotected[4] = recipient["kid"].encode("utf-8")
 
-        # key_ops
-        if "key_ops" in recipient:
-            if not isinstance(recipient["key_ops"], list):
-                raise ValueError("key_ops should be list.")
-            for ops in recipient["key_ops"]:
-                if not isinstance(ops, str):
-                    raise ValueError("Each value of key_ops should be str.")
-                try:
-                    key_ops.append(COSE_KEY_OPERATION_VALUES[ops])
-                except Exception:
-                    raise ValueError(f"Unknown key_ops: {ops}.")
-
-        # k
-        if "k" in recipient:
-            if not isinstance(recipient["k"], str):
-                raise ValueError("k should be str.")
-            key = base64url_decode(recipient["k"])
-
-        return cls.new(
-            protected, unprotected, key_ops=key_ops, key=key, sender_key=sender_key
-        )
+        return cls.new(protected, unprotected, sender_key=sender_key)
 
     @classmethod
     def from_list(cls, recipient: List[Any]) -> RecipientInterface:

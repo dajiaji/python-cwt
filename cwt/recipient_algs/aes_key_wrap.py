@@ -1,7 +1,5 @@
 from typing import Any, Dict, List, Optional, Union
 
-from cryptography.hazmat.primitives.keywrap import aes_key_unwrap, aes_key_wrap
-
 from ..const import COSE_KEY_OPERATION_VALUES
 from ..cose_key import COSEKey
 from ..cose_key_interface import COSEKeyInterface
@@ -19,26 +17,25 @@ class AESKeyWrap(RecipientInterface):
         self,
         protected: Dict[int, Any],
         unprotected: Dict[int, Any],
+        sender_key: COSEKeyInterface,
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
-        key_ops: List[int] = [],
-        key: bytes = b"",
     ):
-        super().__init__(protected, unprotected, ciphertext, recipients, key_ops, key)
+        if sender_key.alg not in [-3, -4, -5]:
+            raise ValueError(f"Invalid alg in sender_key: {sender_key.alg}.")
+        if 1 in protected and protected[1] != sender_key.alg:
+            raise ValueError("algs in protected and sender_key do not match.")
+        super().__init__(
+            protected,
+            unprotected,
+            ciphertext,
+            recipients,
+            sender_key.key_ops,
+            sender_key.key,
+        )
+        self._sender_key = sender_key
 
-        if self._alg == -3:  # A128KW
-            if self._key and len(self._key) != 16:
-                raise ValueError(f"Invalid key length: {len(self._key)}.")
-        elif self._alg == -4:  # A192KW
-            if self._key and len(self._key) != 24:
-                raise ValueError(f"Invalid key length: {len(self._key)}.")
-        elif self._alg == -5:  # A256KW
-            if self._key and len(self._key) != 32:
-                raise ValueError(f"Invalid key length: {len(self._key)}.")
-        else:
-            raise ValueError(f"Unknown alg(3) for AES key wrap: {self._alg}.")
-
-    def encode_key(
+    def apply(
         self,
         key: Optional[COSEKeyInterface] = None,
         recipient_key: Optional[COSEKeyInterface] = None,
@@ -47,13 +44,15 @@ class AESKeyWrap(RecipientInterface):
     ) -> COSEKeyInterface:
         if not key:
             raise ValueError("key should be set.")
+        if key.kid:
+            self._protected[4] = key.kid
         try:
-            self._ciphertext = aes_key_wrap(self._key, key.key)
+            self._ciphertext = self._sender_key.wrap_key(key.key)
         except Exception as err:
             raise EncodeError("Failed to wrap key.") from err
         return key
 
-    def decode_key(
+    def extract(
         self,
         key: COSEKeyInterface,
         alg: Optional[int] = None,
@@ -62,7 +61,7 @@ class AESKeyWrap(RecipientInterface):
         if not alg:
             raise ValueError("alg should be set.")
         try:
-            unwrapped = aes_key_unwrap(key.key, self._ciphertext)
+            unwrapped = key.unwrap_key(self._ciphertext)
             return COSEKey.from_symmetric_key(unwrapped, alg=alg, kid=self._kid)
         except Exception as err:
             raise DecodeError("Failed to decode key.") from err
