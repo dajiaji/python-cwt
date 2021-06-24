@@ -80,7 +80,6 @@ class TestRecipientInterface:
             protected={"foo": "bar"},
             unprotected={1: -1, 4: b"our-secret"},
             recipients=[child],
-            key_ops=[5],
         )
         assert isinstance(r.protected, dict)
         assert r.protected["foo"] == "bar"
@@ -89,7 +88,6 @@ class TestRecipientInterface:
         assert r.alg == -1
         assert r.ciphertext == b""
         assert len(r.recipients) == 1
-        assert len(r.key_ops) == 1
         res = r.to_list()
         assert len(res) == 4
         assert isinstance(res[3], list)
@@ -124,7 +122,6 @@ class TestRecipientInterface:
         )
         assert isinstance(r, RecipientInterface)
         assert r.alg == -3
-        assert r.base_iv == b"aabbccddee"
         assert isinstance(r.protected, dict)
         assert isinstance(r.unprotected, dict)
         assert r.ciphertext == b""
@@ -239,7 +236,6 @@ class TestRecipient:
         )
         assert isinstance(recipient, RecipientInterface)
         assert recipient.alg == -3
-        assert len(recipient.key_ops) == 1
 
     @pytest.mark.parametrize(
         "data, msg",

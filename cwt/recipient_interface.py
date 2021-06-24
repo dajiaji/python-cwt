@@ -6,10 +6,11 @@ from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PublicKey
 
 from .algs.ec2 import EC2Key
 from .algs.okp import OKPKey
+from .cbor_processor import CBORProcessor
 from .cose_key_interface import COSEKeyInterface
 
 
-class RecipientInterface(COSEKeyInterface):
+class RecipientInterface(CBORProcessor):
     """
     The interface class for a COSE Recipient.
     """
@@ -39,45 +40,35 @@ class RecipientInterface(COSEKeyInterface):
         """
         protected = {} if protected is None else protected
         unprotected = {} if unprotected is None else unprotected
-
-        params: Dict[int, Any] = {1: 4}  # Support only Symmetric key.
+        self._alg = 0
 
         # kid
         if 4 in unprotected:
             if not isinstance(unprotected[4], bytes):
                 raise ValueError("unprotected[4](kid) should be bytes.")
-            params[2] = unprotected[4]
+        self._kid = unprotected[4] if 4 in unprotected else None
 
         # alg
         if 1 in protected:
             if not isinstance(protected[1], int):
                 raise ValueError("protected[1](alg) should be int.")
-            params[3] = protected[1]
+            self._alg = protected[1]
         elif 1 in unprotected:
             if not isinstance(unprotected[1], int):
                 raise ValueError("unprotected[1](alg) should be int.")
-            params[3] = unprotected[1]
-            if params[3] == -6:  # direct
+            self._alg = unprotected[1]
+            if unprotected[1] == -6:  # direct
                 if len(protected) != 0:
                     raise ValueError("protected header should be empty.")
                 if len(ciphertext) != 0:
                     raise ValueError("ciphertext should be zero-length bytes.")
                 if len(recipients) != 0:
                     raise ValueError("recipients should be absent.")
-        else:
-            params[3] = 0
-
-        # key_ops
-        if key_ops:
-            params[4] = key_ops
 
         # iv
         if 5 in unprotected:
             if not isinstance(unprotected[5], bytes):
                 raise ValueError("unprotected[5](iv) should be bytes.")
-            params[5] = unprotected[5]
-
-        super().__init__(params)
 
         self._protected = protected
         self._unprotected = unprotected
@@ -93,6 +84,14 @@ class RecipientInterface(COSEKeyInterface):
                 raise ValueError("Invalid child recipient.")
             self._recipients.append(recipient)
         return
+
+    @property
+    def kid(self) -> bytes:
+        return self._kid
+
+    @property
+    def alg(self) -> int:
+        return self._alg
 
     @property
     def protected(self) -> Dict[int, Any]:
