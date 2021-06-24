@@ -103,7 +103,7 @@ class TestCWT:
         assert "The key operation could not be specified." in str(err.value)
 
     def test_cwt_encode_and_mac_with_default_alg(self, ctx):
-        key = COSEKey.from_symmetric_key("mysecret")
+        key = COSEKey.from_symmetric_key("mysecret", alg="HS256")
         token = ctx.encode_and_mac(
             {1: "https://as.example", 2: "someone", 7: b"123"}, key
         )
@@ -197,7 +197,7 @@ class TestCWT:
         ],
     )
     def test_cwt_encode_and_mac_with_invalid_args(self, ctx, invalid):
-        key = COSEKey.from_symmetric_key("mysecret")
+        key = COSEKey.from_symmetric_key("mysecret", alg="HS256")
         with pytest.raises(ValueError) as err:
             ctx.encode_and_mac(invalid, key)
             pytest.fail("encode_and_mac should fail.")
@@ -217,7 +217,7 @@ class TestCWT:
         ],
     )
     def test_cwt_encode_and_mac_with_invalid_claims(self, ctx, invalid, msg):
-        key = COSEKey.from_symmetric_key("mysecret")
+        key = COSEKey.from_symmetric_key("mysecret", alg="HS256")
         with pytest.raises(ValueError) as err:
             ctx.encode_and_mac(invalid, key)
             pytest.fail("encode_and_mac should fail.")
@@ -494,11 +494,11 @@ class TestCWT:
         assert "Verification key not found." in str(err.value)
 
     def test_cwt_decode_with_invalid_mac_key(self, ctx):
-        key = COSEKey.from_symmetric_key("mysecret")
+        key = COSEKey.from_symmetric_key("mysecret", alg="HS256")
         token = ctx.encode_and_mac(
             {1: "https://as.example", 2: "someone", 7: b"123"}, key
         )
-        wrong_key = COSEKey.from_symmetric_key("xxxxxxxxxx")
+        wrong_key = COSEKey.from_symmetric_key("xxxxxxxxxx", alg="HS256")
         with pytest.raises(VerifyError) as err:
             res = ctx.decode(token, wrong_key)
             pytest.fail("decode should fail: res=%s" % vars(res))
@@ -552,7 +552,7 @@ class TestCWT:
         ],
     )
     def test_cwt_decode_with_invalid_claim(self, ctx, invalid, msg):
-        mac_key = COSEKey.from_symmetric_key("mysecret")
+        mac_key = COSEKey.from_symmetric_key("mysecret", alg="HS256")
         token = ctx.encode_and_mac(invalid, mac_key)
         with pytest.raises(VerifyError) as err:
             ctx.decode(token, mac_key)

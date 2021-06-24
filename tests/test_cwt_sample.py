@@ -80,7 +80,7 @@ class TestSample:
     """
 
     def test_sample_readme_maced_cwt_with_json_dict_old(self):
-        key = COSEKey.from_symmetric_key("mysecretpassword")
+        key = COSEKey.from_symmetric_key("mysecretpassword", alg="HS256")
         encoded = cwt.encode_and_mac(
             Claims.from_json(
                 {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}
@@ -104,7 +104,7 @@ class TestSample:
         assert 1 in decoded and decoded[1] == "coaps://as.example"
 
     def test_sample_readme_maced_cwt_with_json_str_old(self):
-        key = COSEKey.from_symmetric_key("mysecretpassword")
+        key = COSEKey.from_symmetric_key("mysecretpassword", alg="HS256")
         encoded = cwt.encode_and_mac(
             Claims.from_json(
                 '{"iss":"coaps://as.example","sub":"dajiaji","cti":"123"}'
@@ -123,7 +123,7 @@ class TestSample:
         assert 1 in decoded and decoded[1] == "coaps://as.example"
 
     def test_sample_readme_maced_cwt_with_json_bytes_old(self):
-        key = COSEKey.from_symmetric_key("mysecretpassword")
+        key = COSEKey.from_symmetric_key("mysecretpassword", alg="HS256")
         encoded = cwt.encode_and_mac(
             Claims.from_json(
                 b'{"iss":"coaps://as.example","sub":"dajiaji","cti":"123"}'
@@ -142,7 +142,7 @@ class TestSample:
         assert 1 in decoded and decoded[1] == "coaps://as.example"
 
     def test_sample_readme_maced_cwt_old(self):
-        key = COSEKey.from_symmetric_key("mysecretpassword")
+        key = COSEKey.from_symmetric_key("mysecretpassword", alg="HS256")
         encoded = cwt.encode_and_mac(
             {1: "coaps://as.example", 2: "dajiaji", 7: b"123"}, key
         )

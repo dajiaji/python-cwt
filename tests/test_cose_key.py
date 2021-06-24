@@ -134,7 +134,7 @@ class TestCOSEKey:
     )
     def test_key_builder_from_symmetric_key_with_invalid_key_ops(self, key_ops):
         with pytest.raises(ValueError) as err:
-            COSEKey.from_symmetric_key("mysecret", key_ops=key_ops)
+            COSEKey.from_symmetric_key("mysecret", alg="HS256", key_ops=key_ops)
             pytest.fail("from_symmetric_key should fail.")
         assert "Unsupported or unknown key_ops." in str(err.value)
 
