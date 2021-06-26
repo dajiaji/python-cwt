@@ -512,7 +512,6 @@ r = Recipient.from_jwk(
     {
         "kty": "oct",
         "alg": "direct+HKDF-SHA-256",
-        "salt": "aabbccddeeffgghh",
     },
 )
 mac_key = r.apply(shared_key, context={"alg": "HS256"})
@@ -722,7 +721,6 @@ r = Recipient.from_jwk(
     {
         "kty": "oct",
         "alg": "direct+HKDF-SHA-256",
-        "salt": "aabbccddeeffgghh",
     },
 )
 enc_key = r.apply(shared_key, context={"alg": "A256GCM"})

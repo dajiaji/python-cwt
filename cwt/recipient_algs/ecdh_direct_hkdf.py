@@ -82,12 +82,13 @@ class ECDH_DirectHKDF(Direct):
         self._applied_ctx = self._apply_context(ctx)
 
         # Generate a salt automatically if both of a salt and a PartyU nonce are not specified.
-        if not salt and not self._salt and not self._applied_ctx[1][1]:
-            self._salt = token_bytes(32) if self._alg in [-25, -27] else token_bytes(64)
-            self._unprotected[-20] = self._salt
-        elif salt:
-            self._salt = salt
-            self._unprotected[-20] = self._salt
+        if self._alg in [-27, -28]:  # ECDH-SS
+            if not salt and not self._salt and not self._applied_ctx[1][1]:
+                self._salt = token_bytes(32) if self._alg == -27 else token_bytes(64)
+                self._unprotected[-20] = self._salt
+            elif salt:
+                self._salt = salt
+                self._unprotected[-20] = self._salt
 
         # PartyU nonce
         if self._applied_ctx[1][1]:
