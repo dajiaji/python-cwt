@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Disable auto salt generation in the case of ECDH-ES. `#143 <https://github.com/dajiaji/python-cwt/pull/143>`__
 - Add support for auto salt generation. `#142 <https://github.com/dajiaji/python-cwt/pull/142>`__
 - Add salt parameter to RecipientInterface.apply(). `#142 <https://github.com/dajiaji/python-cwt/pull/142>`__
 - Remove alg parameter from RecipientInterface.apply(). `#141 <https://github.com/dajiaji/python-cwt/pull/141>`__
