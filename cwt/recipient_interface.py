@@ -144,6 +144,7 @@ class RecipientInterface(CBORProcessor):
         self,
         key: Optional[COSEKeyInterface] = None,
         recipient_key: Optional[COSEKeyInterface] = None,
+        salt: Optional[bytes] = None,
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ) -> COSEKeyInterface:
         """
@@ -161,6 +162,7 @@ class RecipientInterface(CBORProcessor):
                 be used for preparing the key.
             recipient_key (Optional[COSEKeyInterface]): The external public
                 key provided by the recipient used for ECDH key agreement.
+            salt (Optional[bytes]): A salt used for deriving a key.
             context (Optional[Union[List[Any], Dict[str, Any]]]): Context
                 information structure.
         Returns:

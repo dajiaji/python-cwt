@@ -1,6 +1,8 @@
 """
 Tests for Direct.
 """
+from secrets import token_bytes
+
 import cbor2
 import pytest
 
@@ -113,67 +115,14 @@ class TestDirectHKDF:
         assert isinstance(ctx, DirectHKDF)
         assert ctx.alg == -11
 
-    def test_direct_hkdf_extract_with_raw_context(self):
-        context = [
-            10,
-            [b"lighting-client", None, None],
-            [b"lighting-server", None, None],
-            [128, cbor2.dumps({1: -10}), b"Encryption Example 02"],
-        ]
-        key = COSEKey.from_symmetric_key(alg="A128GCM")
-        ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
-        decoded = ctx.extract(key, context=context)
-        assert decoded.alg == 10
-        assert len(decoded.key) == 16
-
-    @pytest.mark.parametrize(
-        "alg, alg_id, key_len",
-        [
-            ("AES-CCM-16-64-128", 10, 16),
-            ("AES-CCM-16-64-256", 11, 32),
-            ("AES-CCM-64-64-128", 12, 16),
-            ("AES-CCM-64-64-256", 13, 32),
-        ],
-    )
-    def test_direct_hkdf_extract_with_json_context(self, alg, alg_id, key_len):
-        key = COSEKey.from_symmetric_key(alg="A128GCM")
-        ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
-        decoded = ctx.extract(key, context={"alg": alg})
-        assert decoded.alg == alg_id
-        assert len(decoded.key) == key_len
-
-    def test_direct_hkdf_extract_with_invalid_context(self):
-        key = COSEKey.from_symmetric_key(alg="A128GCM")
-        ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
-        with pytest.raises(ValueError) as err:
-            ctx.extract(key, alg="A128GCM", context=[None, None, None])
-            pytest.fail("extract() should fail.")
-        assert "Invalid context information." in str(err.value)
-
-    def test_direct_hkdf_extract_without_context(self):
-        key = COSEKey.from_symmetric_key(alg="A128GCM")
-        ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
-        with pytest.raises(ValueError) as err:
-            ctx.extract(key, alg="A128GCM")
-            pytest.fail("extract() should fail.")
-        assert "context should be set." in str(err.value)
-
-    def test_direct_hkdf_extract_with_invalid_key(self):
-        key = COSEKey.from_symmetric_key(key="a", alg="HS256")
-        ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
-        with pytest.raises(ValueError) as err:
-            ctx.extract(key, alg="A128GCM")
-            pytest.fail("extract() should fail.")
-        assert "context should be set." in str(err.value)
-
     @pytest.mark.parametrize(
         "protected, unprotected, msg",
         [
-            (
-                {1: -10},
-                {},
-                "salt(-20) or PartyU nonce(-22) should be set.",
-            ),
+            # (
+            #     {1: -10},
+            #     {},
+            #     "salt(-20) or PartyU nonce(-22) should be set.",
+            # ),
             (
                 {1: -6},
                 {-20: "aabbccddeeff"},
@@ -190,6 +139,70 @@ class TestDirectHKDF:
         assert msg in str(err.value)
 
     def test_direct_hkdf_apply(self):
+        context = [
+            10,
+            [b"lighting-client", None, None],
+            [b"lighting-server", None, None],
+            [128, cbor2.dumps({1: -10}), b"Encryption Example 02"],
+        ]
+        material = COSEKey.from_symmetric_key(token_bytes(16))
+        ctx = DirectHKDF({1: -10}, {4: b"01"})
+        key = ctx.apply(material, salt=b"aabbccddeeff", context=context)
+        assert key.alg == 10
+        assert len(key.key) == 16
+
+    def test_direct_hkdf_apply_without_salt(self):
+        context = [
+            10,
+            [b"lighting-client", None, None],
+            [b"lighting-server", None, None],
+            [128, cbor2.dumps({1: -10}), b"Encryption Example 02"],
+        ]
+        material = COSEKey.from_symmetric_key(token_bytes(16))
+        ctx = DirectHKDF({1: -10}, {4: b"01"})
+        key = ctx.apply(material, context=context)
+        assert key.alg == 10
+        assert len(key.key) == 16
+
+    def test_direct_hkdf_apply_with_party_u_nonce(self):
+        nonce = token_bytes(16)
+        context = [
+            10,
+            [b"lighting-client", nonce, None],
+            [b"lighting-server", None, None],
+            [128, cbor2.dumps({1: -10}), b"Encryption Example 02"],
+        ]
+        material = COSEKey.from_symmetric_key(token_bytes(16))
+        ctx = DirectHKDF({1: -10}, {4: b"01"})
+        key = ctx.apply(material, context=context)
+        assert key.alg == 10
+        assert len(key.key) == 16
+        assert nonce == ctx._unprotected[-22]
+
+    def test_direct_hkdf_apply_with_party_v_nonce(self):
+        nonce = token_bytes(16)
+        context = [
+            10,
+            [b"lighting-client", None, None],
+            [b"lighting-server", nonce, None],
+            [128, cbor2.dumps({1: -10}), b"Encryption Example 02"],
+        ]
+        material = COSEKey.from_symmetric_key(token_bytes(16))
+        ctx = DirectHKDF({1: -10}, {4: b"01"})
+        key = ctx.apply(material, context=context)
+        assert key.alg == 10
+        assert len(key.key) == 16
+        assert nonce == ctx._unprotected[-25]
+
+    def test_direct_hkdf_apply_without_alg(self):
+        material = COSEKey.from_symmetric_key(token_bytes(16))
+        ctx = DirectHKDF({1: -10}, {4: b"01"})
+        with pytest.raises(ValueError) as err:
+            ctx.apply(material)
+            pytest.fail("apply() should fail.")
+        assert "context should be set." in str(err.value)
+
+    def test_direct_hkdf_apply_with_json_context(self):
         material = COSEKey.from_symmetric_key(
             key=base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
             alg="A256GCM",
@@ -293,6 +306,59 @@ class TestDirectHKDF:
             ctx.apply(key=material, context=invalid)
             pytest.fail("apply() should fail.")
         assert msg in str(err.value)
+
+    def test_direct_hkdf_extract_with_raw_context(self):
+        context = [
+            10,
+            [b"lighting-client", None, None],
+            [b"lighting-server", None, None],
+            [128, cbor2.dumps({1: -10}), b"Encryption Example 02"],
+        ]
+        key = COSEKey.from_symmetric_key(alg="A128GCM")
+        ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
+        decoded = ctx.extract(key, context=context)
+        assert decoded.alg == 10
+        assert len(decoded.key) == 16
+
+    @pytest.mark.parametrize(
+        "alg, alg_id, key_len",
+        [
+            ("AES-CCM-16-64-128", 10, 16),
+            ("AES-CCM-16-64-256", 11, 32),
+            ("AES-CCM-64-64-128", 12, 16),
+            ("AES-CCM-64-64-256", 13, 32),
+        ],
+    )
+    def test_direct_hkdf_extract_with_json_context(self, alg, alg_id, key_len):
+        key = COSEKey.from_symmetric_key(alg="A128GCM")
+        ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
+        decoded = ctx.extract(key, context={"alg": alg})
+        assert decoded.alg == alg_id
+        assert len(decoded.key) == key_len
+
+    def test_direct_hkdf_extract_with_invalid_context(self):
+        key = COSEKey.from_symmetric_key(alg="A128GCM")
+        ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
+        with pytest.raises(ValueError) as err:
+            ctx.extract(key, alg="A128GCM", context=[None, None, None])
+            pytest.fail("extract() should fail.")
+        assert "Invalid context information." in str(err.value)
+
+    def test_direct_hkdf_extract_without_context(self):
+        key = COSEKey.from_symmetric_key(alg="A128GCM")
+        ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
+        with pytest.raises(ValueError) as err:
+            ctx.extract(key, alg="A128GCM")
+            pytest.fail("extract() should fail.")
+        assert "context should be set." in str(err.value)
+
+    def test_direct_hkdf_extract_with_invalid_key(self):
+        key = COSEKey.from_symmetric_key(key="a", alg="HS256")
+        ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
+        with pytest.raises(ValueError) as err:
+            ctx.extract(key, alg="A128GCM")
+            pytest.fail("extract() should fail.")
+        assert "context should be set." in str(err.value)
 
     def test_direct_hkdf_verify_key(self):
         material = COSEKey.from_symmetric_key(

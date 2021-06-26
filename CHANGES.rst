@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 
+- Add support for auto salt generation. `#142 <https://github.com/dajiaji/python-cwt/pull/142>`__
+- Add salt parameter to RecipientInterface.apply(). `#142 <https://github.com/dajiaji/python-cwt/pull/142>`__
 - Remove alg parameter from RecipientInterface.apply(). `#141 <https://github.com/dajiaji/python-cwt/pull/141>`__
 
 Version 1.0.0

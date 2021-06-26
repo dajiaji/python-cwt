@@ -39,6 +39,7 @@ class AESKeyWrap(RecipientInterface):
         self,
         key: Optional[COSEKeyInterface] = None,
         recipient_key: Optional[COSEKeyInterface] = None,
+        salt: Optional[bytes] = None,
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ) -> COSEKeyInterface:
         if not key:
