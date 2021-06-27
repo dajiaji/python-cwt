@@ -65,6 +65,54 @@ def base64url_decode(v: str) -> bytes:
     return base64.urlsafe_b64decode(bv)
 
 
+def parse_apu(context: dict) -> list:
+    apu: List[Any] = [None, None, None]
+    if "apu" not in context:
+        return apu
+    if not isinstance(context["apu"], dict):
+        raise ValueError("apu should be dict.")
+    if "id" in context["apu"]:
+        if not isinstance(context["apu"]["id"], str):
+            raise ValueError("apu.id should be str.")
+        apu[0] = context["apu"]["id"].encode("utf-8")
+    if "nonce" in context["apu"]:
+        if isinstance(context["apu"]["nonce"], str):
+            apu[1] = context["apu"]["nonce"].encode("utf-8")
+        elif isinstance(context["apu"]["nonce"], int):
+            apu[1] = context["apu"]["nonce"]
+        else:
+            raise ValueError("apu.nonce should be str or int.")
+    if "other" in context["apu"]:
+        if not isinstance(context["apu"]["other"], str):
+            raise ValueError("apu.other should be str.")
+        apu[2] = context["apu"]["other"].encode("utf-8")
+    return apu
+
+
+def parse_apv(context: dict) -> list:
+    apv: List[Any] = [None, None, None]
+    if "apv" not in context:
+        return apv
+    if not isinstance(context["apv"], dict):
+        raise ValueError("apv should be dict.")
+    if "id" in context["apv"]:
+        if not isinstance(context["apv"]["id"], str):
+            raise ValueError("apv.id should be str.")
+        apv[0] = context["apv"]["id"].encode("utf-8")
+    if "nonce" in context["apv"]:
+        if isinstance(context["apv"]["nonce"], str):
+            apv[1] = context["apv"]["nonce"].encode("utf-8")
+        elif isinstance(context["apv"]["nonce"], int):
+            apv[1] = context["apv"]["nonce"]
+        else:
+            raise ValueError("apv.nonce should be str or int.")
+    if "other" in context["apv"]:
+        if not isinstance(context["apv"]["other"], str):
+            raise ValueError("apv.other should be str.")
+        apv[2] = context["apv"]["other"].encode("utf-8")
+    return apv
+
+
 def to_cis(context: Dict[str, Any], recipient_alg: Optional[int] = None) -> List[Any]:
     res: List[Any] = []
 
@@ -83,48 +131,10 @@ def to_cis(context: Dict[str, Any], recipient_alg: Optional[int] = None) -> List
     res.append(alg)
 
     # PartyU
-    apu: List[Any] = [None, None, None]
-    if "apu" in context:
-        if not isinstance(context["apu"], dict):
-            raise ValueError("apu should be dict.")
-        if "id" in context["apu"]:
-            if not isinstance(context["apu"]["id"], str):
-                raise ValueError("apu.id should be str.")
-            apu[0] = context["apu"]["id"].encode("utf-8")
-        if "nonce" in context["apu"]:
-            if isinstance(context["apu"]["nonce"], str):
-                apu[1] = context["apu"]["nonce"].encode("utf-8")
-            elif isinstance(context["apu"]["nonce"], int):
-                apu[1] = context["apu"]["nonce"]
-            else:
-                raise ValueError("apu.nonce should be str or int.")
-        if "other" in context["apu"]:
-            if not isinstance(context["apu"]["other"], str):
-                raise ValueError("apu.other should be str.")
-            apu[2] = context["apu"]["other"].encode("utf-8")
-    res.append(apu)
+    res.append(parse_apu(context))
 
     # PartyV
-    apv: List[Any] = [None, None, None]
-    if "apv" in context:
-        if not isinstance(context["apv"], dict):
-            raise ValueError("apv should be dict.")
-        if "id" in context["apv"]:
-            if not isinstance(context["apv"]["id"], str):
-                raise ValueError("apv.id should be str.")
-            apv[0] = context["apv"]["id"].encode("utf-8")
-        if "nonce" in context["apv"]:
-            if isinstance(context["apv"]["nonce"], str):
-                apv[1] = context["apv"]["nonce"].encode("utf-8")
-            elif isinstance(context["apv"]["nonce"], int):
-                apv[1] = context["apv"]["nonce"]
-            else:
-                raise ValueError("apv.nonce should be str or int.")
-        if "other" in context["apv"]:
-            if not isinstance(context["apv"]["other"], str):
-                raise ValueError("apv.other should be str.")
-            apv[2] = context["apv"]["other"].encode("utf-8")
-    res.append(apv)
+    res.append(parse_apv(context))
 
     # SuppPubInfo
     supp_pub: List[Any] = [None, None]

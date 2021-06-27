@@ -237,6 +237,106 @@ class TestRecipient:
         assert isinstance(recipient, RecipientInterface)
         assert recipient.alg == -3
 
+    def test_recipient_from_jwk_with_context(self):
+        recipient = Recipient.from_jwk(
+            {
+                "kty": "oct",
+                "alg": "direct+HKDF-SHA-256",
+                "context": {
+                    "apu": {
+                        "id": "sender-01",
+                        "nonce": "xxx",
+                        "other": "yyy",
+                    },
+                    "apv": {
+                        "id": "recipient-01",
+                        "nonce": "abc",
+                        "other": "def",
+                    },
+                },
+            }
+        )
+        assert isinstance(recipient, RecipientInterface)
+        assert recipient.alg == -10
+        assert recipient._unprotected[-21] == b"sender-01"
+        assert recipient._unprotected[-22] == b"xxx"
+        assert recipient._unprotected[-23] == b"yyy"
+        assert recipient._unprotected[-24] == b"recipient-01"
+        assert recipient._unprotected[-25] == b"abc"
+        assert recipient._unprotected[-26] == b"def"
+
+    def test_recipient_from_jwk_with_context_id(self):
+        recipient = Recipient.from_jwk(
+            {
+                "kty": "oct",
+                "alg": "direct+HKDF-SHA-256",
+                "context": {
+                    "apu": {
+                        "id": "sender-01",
+                    },
+                    "apv": {
+                        "id": "recipient-01",
+                    },
+                },
+            }
+        )
+        assert isinstance(recipient, RecipientInterface)
+        assert recipient.alg == -10
+        assert recipient._unprotected[-21] == b"sender-01"
+        assert -22 not in recipient._unprotected
+        assert -23 not in recipient._unprotected
+        assert recipient._unprotected[-24] == b"recipient-01"
+        assert -25 not in recipient._unprotected
+        assert -26 not in recipient._unprotected
+
+    def test_recipient_from_jwk_with_context_nonce(self):
+        recipient = Recipient.from_jwk(
+            {
+                "kty": "oct",
+                "alg": "direct+HKDF-SHA-256",
+                "context": {
+                    "apu": {
+                        "nonce": "xxx",
+                    },
+                    "apv": {
+                        "nonce": "abc",
+                    },
+                },
+            }
+        )
+        assert isinstance(recipient, RecipientInterface)
+        assert recipient.alg == -10
+        assert -21 not in recipient._unprotected
+        assert recipient._unprotected[-22] == b"xxx"
+        assert -23 not in recipient._unprotected
+        assert -24 not in recipient._unprotected
+        assert recipient._unprotected[-25] == b"abc"
+        assert -26 not in recipient._unprotected
+
+    def test_recipient_from_jwk_with_context_other(self):
+        recipient = Recipient.from_jwk(
+            {
+                "kty": "oct",
+                "alg": "direct+HKDF-SHA-256",
+                "context": {
+                    "apu": {
+                        "other": "yyy",
+                    },
+                    "apv": {
+                        "other": "def",
+                    },
+                },
+            }
+        )
+        assert isinstance(recipient, RecipientInterface)
+        assert recipient.alg == -10
+        assert -21 not in recipient._unprotected
+        assert -22 not in recipient._unprotected
+        assert recipient._unprotected[-23] == b"yyy"
+        assert -24 not in recipient._unprotected
+        assert -25 not in recipient._unprotected
+        assert recipient._unprotected[-26] == b"def"
+
     @pytest.mark.parametrize(
         "data, msg",
         [
@@ -253,11 +353,15 @@ class TestRecipient:
                 "alg should be str.",
             ),
             (
-                {"kid": 123},
+                {"alg": "direct", "kid": 123},
                 "kid should be str.",
             ),
             (
-                {"salt": 123},
+                {"kty": "oct", "alg": "A128KW", "kid": 123},
+                "kid should be str.",
+            ),
+            (
+                {"kty": "oct", "alg": "A128KW", "salt": 123},
                 "salt should be str.",
             ),
             (
@@ -275,6 +379,10 @@ class TestRecipient:
             (
                 {"kty": "oct", "alg": "A128KW", "k": 123},
                 "k should be str.",
+            ),
+            (
+                {"kty": "oct", "alg": "direct+HKDF-SHA-256", "context": []},
+                "context should be dict.",
             ),
         ],
     )
