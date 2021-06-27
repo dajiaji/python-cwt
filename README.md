@@ -32,7 +32,7 @@ And then, you can use it as follows:
 >>> key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
 >>> token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
 >>> token.hex()
-'d18443a10105a05835a60172636f6170733a2f2f61732e6578616d706c65026764616a69616a690743313233041a60c6a60b051a60c697fb061a60c697fb582019d4a89e141e3a8805ba1c90d81a8a2dd8261464dce379d8af8044d1cc062258'
+'d18443a10105a05835a60172636f6170733a2f2f61732e657861'...
 >>> cwt.decode(token, key)
 {1: 'coaps://as.example', 2: 'dajiaji', 7: b'123', 4: 1620088759, 5: 1620085159, 6: 1620085159}
 ```
@@ -132,7 +132,6 @@ from cwt import COSEKey
 
 key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
 token = cwt.encode({1: "coaps://as.example", 2: "dajiaji", 7: b"123"}, key)
-
 decoded = cwt.decode(token, key)
 ```
 
@@ -154,16 +153,16 @@ Create a Signed CWT with `Ed25519`, verify and decode it with the key pair as fo
 import cwt
 from cwt import COSEKey
 
+# The sender side:
 with open("./private_key.pem") as key_file:
     private_key = COSEKey.from_pem(key_file.read(), kid="01")
-with open("./public_key.pem") as key_file:
-    public_key = COSEKey.from_pem(key_file.read(), kid="01")
-
-
 token = cwt.encode(
     {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
 )
 
+# The recipient side:
+with open("./public_key.pem") as key_file:
+    public_key = COSEKey.from_pem(key_file.read(), kid="01")
 decoded = cwt.decode(token, public_key)
 ```
 
@@ -173,27 +172,28 @@ JWKs can also be used instead of the PEM-formatted keys as follows:
 import cwt
 from cwt import COSEKey
 
+# The sender side:
 private_key = COSEKey.from_jwk({
-    "kty": "OKP",
-    "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
-    "use": "sig",
-    "crv": "Ed25519",
     "kid": "01",
-    "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+    "kty": "OKP",
+    "key_ops": ["sign"],
     "alg": "EdDSA",
-})
-public_key = COSEKey.from_jwk({
-    "kty": "OKP",
-    "use": "sig",
     "crv": "Ed25519",
-    "kid": "01",
     "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+    "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
 })
-
 token = cwt.encode(
     {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
 )
 
+# The recipient side:
+public_key = COSEKey.from_jwk({
+    "kid": "01",
+    "kty": "OKP",
+    "key_ops": ["verify"],
+    "crv": "Ed25519",
+    "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+})
 decoded = cwt.decode(token, public_key)
 ```
 
@@ -210,7 +210,6 @@ from cwt import COSEKey
 
 enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
 token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, enc_key)
-
 decoded = cwt.decode(token, enc_key)
 ```
 
@@ -225,21 +224,22 @@ Create a signed CWT and encrypt it, and then decrypt and verify the nested CWT a
 import cwt
 from cwt import COSEKey
 
-with open("./private_key.pem") as key_file:
-    private_key = COSEKey.from_pem(key_file.read(), kid="sig-01")
-with open("./public_key.pem") as key_file:
-    public_key = COSEKey.from_pem(key_file.read(), kid="sig-01")
+# A shared encryption key.
+enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="enc-01")
 
 # Creates a CWT with ES256 signing.
+with open("./private_key.pem") as key_file:
+    private_key = COSEKey.from_pem(key_file.read(), kid="sig-01")
 token = cwt.encode(
     {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
 )
 
 # Encrypts the signed CWT.
-enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="enc-01")
 nested = cwt.encode(token, enc_key)
 
 # Decrypts and verifies the nested CWT.
+with open("./public_key.pem") as key_file:
+    public_key = COSEKey.from_pem(key_file.read(), kid="sig-01")
 decoded = cwt.decode(nested, [enc_key, public_key])
 ```
 
@@ -271,10 +271,9 @@ Note that such user-defined claim's key should be less than -65536.
 import cwt
 from cwt import COSEKey
 
+# The sender side:
 with open("./private_key.pem") as key_file:
     private_key = COSEKey.from_pem(key_file.read(), kid="01")
-with open("./public_key.pem") as key_file:
-    public_key = COSEKey.from_pem(key_file.read(), kid="01")
 token = cwt.encode(
     {
         1: "coaps://as.example",  # iss
@@ -287,6 +286,10 @@ token = cwt.encode(
     },
     private_key,
 )
+
+# The recipient side:
+with open("./public_key.pem") as key_file:
+    public_key = COSEKey.from_pem(key_file.read(), kid="01")
 raw = cwt.decode(token, public_key)
 assert raw[-70001] == "foo"
 assert raw[-70002][0] == "bar"
@@ -308,8 +311,6 @@ from cwt import Claims, COSEKey
 
 with open("./private_key.pem") as key_file:
     private_key = COSEKey.from_pem(key_file.read(), kid="01")
-with open("./public_key.pem") as key_file:
-    public_key = COSEKey.from_pem(key_file.read(), kid="01")
 
 my_claim_names = {
     "ext_1": -70001,
@@ -331,6 +332,10 @@ token = cwt.encode(
     },
     private_key,
 )
+
+with open("./public_key.pem") as key_file:
+    public_key = COSEKey.from_pem(key_file.read(), kid="01")
+
 raw = cwt.decode(token, public_key)
 readable = Claims.new(
     raw,
@@ -537,8 +542,8 @@ from cwt import COSE, COSEKey, Recipient
 mac_key = COSEKey.from_symmetric_key(alg="HS512")
 r = Recipient.from_jwk(
     {
-        "alg": "A128KW",
         "kid": "01",
+        "alg": "A128KW",
         "k": "hJtXIZ2uSN5kbQfbtTNWbg",  # A shared wrapping key
     },
 )
@@ -549,9 +554,9 @@ encoded = ctx.encode_and_mac(b"Hello world!", key=mac_key, recipients=[r])
 # The recipient side:
 shared_key = COSEKey.from_jwk(
     {
+        "kid": "01",
         "kty": "oct",
         "alg": "A128KW",
-        "kid": "01",
         "k": "hJtXIZ2uSN5kbQfbtTNWbg",
     },
 )
@@ -579,9 +584,9 @@ r = Recipient.from_jwk(
 # The following key is provided by the recipient in advance.
 pub_key = COSEKey.from_jwk(
     {
+        "kid": "01",
         "kty": "EC",
         "alg": "ECDH-ES+HKDF-256",
-        "kid": "01",
         "crv": "P-256",
         "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
         "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
@@ -599,9 +604,9 @@ encoded = ctx.encode_and_mac(
 # The following key is the private key of the above pub_key.
 priv_key = COSEKey.from_jwk(
     {
+        "kid": "01",
         "kty": "EC",
         "alg": "ECDH-ES+HKDF-256",
-        "kid": "01",
         "crv": "P-256",
         "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
         "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
@@ -625,8 +630,8 @@ mac_key = COSEKey.from_symmetric_key(alg="HS256")
 r = Recipient.from_jwk(
     {
         "kty": "EC",
-        "crv": "P-256",
         "alg": "ECDH-SS+A128KW",
+        "crv": "P-256",
         "x": "7cvYCcdU22WCwW1tZXR8iuzJLWGcd46xfxO1XJs-SPU",
         "y": "DzhJXgz9RI6TseNmwEfLoNVns8UmvONsPzQDop2dKoo",
         "d": "Uqr4fay_qYQykwcNCB2efj_NFaQRRQ-6fHZm763jt5w",
@@ -634,9 +639,9 @@ r = Recipient.from_jwk(
 )
 pub_key = COSEKey.from_jwk(
     {
+        "kid": "meriadoc.brandybuck@buckland.example",
         "kty": "EC",
         "crv": "P-256",
-        "kid": "meriadoc.brandybuck@buckland.example",
         "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
         "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
     }
@@ -652,10 +657,10 @@ encoded = ctx.encode_and_mac(
 # The recipient side:
 priv_key = COSEKey.from_jwk(
     {
+        "kid": "meriadoc.brandybuck@buckland.example",
         "kty": "EC",
         "crv": "P-256",
         "alg": "ECDH-SS+A128KW",
-        "kid": "meriadoc.brandybuck@buckland.example",
         "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
         "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
         "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",
@@ -744,9 +749,9 @@ from cwt import COSE, COSEKey, Recipient
 # The sender side:
 r = Recipient.from_jwk(
     {
+        "kid": "01",
         "kty": "oct",
         "alg": "A128KW",
-        "kid": "01",
         "k": "hJtXIZ2uSN5kbQfbtTNWbg",  # A shared wrapping key
     },
 )
@@ -758,9 +763,9 @@ encoded = ctx.encode_and_encrypt(b"Hello world!", key=enc_key, recipients=[r])
 # The recipient side:
 shared_key = COSEKey.from_jwk(
     {
+        "kid": "01",
         "kty": "oct",
         "alg": "A128KW",
-        "kid": "01",
         "k": "hJtXIZ2uSN5kbQfbtTNWbg",
     },
 )
@@ -787,9 +792,9 @@ r = Recipient.from_jwk(
 )
 pub_key = COSEKey.from_jwk(
     {
+        "kid": "01",
         "kty": "OKP",
         "alg": "ECDH-ES+HKDF-256",
-        "kid": "01",
         "crv": "X25519",
         "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
     }
@@ -805,9 +810,9 @@ encoded = ctx.encode_and_encrypt(
 # The recipient side:
 priv_key = COSEKey.from_jwk(
     {
+        "kid": "01",
         "kty": "OKP",
         "alg": "ECDH-ES+HKDF-256",
-        "kid": "01",
         "crv": "X25519",
         "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
         "d": "vsJ1oX5NNi0IGdwGldiac75r-Utmq3Jq4LGv48Q_Qc4",
@@ -827,8 +832,8 @@ nonce = enc_key.generate_nonce()
 r = Recipient.from_jwk(
     {
         "kty": "EC",
-        "crv": "P-256",
         "alg": "ECDH-SS+A128KW",
+        "crv": "P-256",
         "x": "7cvYCcdU22WCwW1tZXR8iuzJLWGcd46xfxO1XJs-SPU",
         "y": "DzhJXgz9RI6TseNmwEfLoNVns8UmvONsPzQDop2dKoo",
         "d": "Uqr4fay_qYQykwcNCB2efj_NFaQRRQ-6fHZm763jt5w",
@@ -836,9 +841,9 @@ r = Recipient.from_jwk(
 )
 pub_key = COSEKey.from_jwk(
     {
+        "kid": "meriadoc.brandybuck@buckland.example",
         "kty": "EC",
         "crv": "P-256",
-        "kid": "meriadoc.brandybuck@buckland.example",
         "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
         "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
     }
@@ -855,10 +860,10 @@ encoded = ctx.encode_and_encrypt(
 # The recipient side:
 priv_key = COSEKey.from_jwk(
     {
-        "kty": "EC",
-        "crv": "P-256",
-        "alg": "ECDH-SS+A128KW",
         "kid": "meriadoc.brandybuck@buckland.example",
+        "kty": "EC",
+        "alg": "ECDH-SS+A128KW",
+        "crv": "P-256",
         "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
         "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
         "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",
@@ -878,8 +883,8 @@ from cwt import COSE, COSEKey, Signer
 signer = Signer.new(
     cose_key=COSEKey.from_jwk(
         {
-            "kty": "EC",
             "kid": "01",
+            "kty": "EC",
             "crv": "P-256",
             "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
             "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
@@ -895,8 +900,8 @@ encoded = ctx.encode_and_sign(b"Hello world!", signers=[signer])
 # The recipient side:
 pub_key = COSEKey.from_jwk(
     {
-        "kty": "EC",
         "kid": "01",
+        "kty": "EC",
         "crv": "P-256",
         "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
         "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
@@ -916,8 +921,8 @@ from cwt import COSE, COSEKey, Signer
 signer = Signer.new(
     cose_key=COSEKey.from_jwk(
         {
-            "kty": "EC",
             "kid": "01",
+            "kty": "EC",
             "crv": "P-256",
             "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
             "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
@@ -933,8 +938,8 @@ encoded = ctx.encode_and_sign(b"Hello world!", signers=[signer])
 # The recipient side:
 pub_key = COSEKey.from_jwk(
     {
-        "kty": "EC",
         "kid": "01",
+        "kty": "EC",
         "crv": "P-256",
         "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
         "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",

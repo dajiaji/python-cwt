@@ -164,8 +164,8 @@ The AES key wrap algorithm can be used to wrap a MAC key as follows:
     mac_key = COSEKey.from_symmetric_key(alg="HS512")
     r = Recipient.from_jwk(
         {
-            "alg": "A128KW",
             "kid": "01",
+            "alg": "A128KW",
             "k": "hJtXIZ2uSN5kbQfbtTNWbg",  # A shared wrapping key
         },
     )
@@ -176,9 +176,9 @@ The AES key wrap algorithm can be used to wrap a MAC key as follows:
     # The recipient side:
     shared_key = COSEKey.from_jwk(
         {
+            "kid": "01",
             "kty": "oct",
             "alg": "A128KW",
-            "kid": "01",
             "k": "hJtXIZ2uSN5kbQfbtTNWbg",
         },
     )
@@ -207,9 +207,9 @@ agreement methods (``ECDH-ES+HKDF-256`` with various curves).
     # The following key is provided by the recipient in advance.
     pub_key = COSEKey.from_jwk(
         {
+            "kid": "01",
             "kty": "EC",
             "alg": "ECDH-ES+HKDF-256",
-            "kid": "01",
             "crv": "P-256",
             "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
             "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
@@ -227,9 +227,9 @@ agreement methods (``ECDH-ES+HKDF-256`` with various curves).
     # The following key is the private key of the above pub_key.
     priv_key = COSEKey.from_jwk(
         {
+            "kid": "01",
             "kty": "EC",
             "alg": "ECDH-ES+HKDF-256",
-            "kid": "01",
             "crv": "P-256",
             "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
             "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
@@ -259,9 +259,9 @@ In case of ``X25519``:
     )
     pub_key = COSEKey.from_jwk(
         {
+            "kid": "01",
             "kty": "OKP",
             "alg": "ECDH-ES+HKDF-256",
-            "kid": "01",
             "crv": "X25519",
             "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
         }
@@ -277,9 +277,9 @@ In case of ``X25519``:
     # The recipient side:
     priv_key = COSEKey.from_jwk(
         {
+            "kid": "01",
             "kty": "OKP",
             "alg": "ECDH-ES+HKDF-256",
-            "kid": "01",
             "crv": "X25519",
             "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
             "d": "vsJ1oX5NNi0IGdwGldiac75r-Utmq3Jq4LGv48Q_Qc4",
@@ -302,9 +302,9 @@ In case of ``X448``:
     )
     pub_key = COSEKey.from_jwk(
         {
+            "kid": "01",
             "kty": "OKP",
             "alg": "ECDH-ES+HKDF-256",
-            "kid": "01",
             "crv": "X448",
             "x": "IkLmc0klvEMXYneHMKAB6ePohryAwAPVe2pRSffIDY6NrjeYNWVX5J-fG4NV2OoU77C88A0mvxI",
         }
@@ -318,9 +318,9 @@ In case of ``X448``:
     )
     priv_key = COSEKey.from_jwk(
         {
+            "kid": "01",
             "kty": "OKP",
             "alg": "ECDH-ES+HKDF-256",
-            "kid": "01",
             "crv": "X448",
             "x": "IkLmc0klvEMXYneHMKAB6ePohryAwAPVe2pRSffIDY6NrjeYNWVX5J-fG4NV2OoU77C88A0mvxI",
             "d": "rJJRG3nshyCtd9CgXld8aNaB9YXKR0UOi7zj7hApg9YH4XdBO0G8NcAFNz_uPH2GnCZVcSDgV5c",
@@ -341,8 +341,8 @@ Key Agreement with Key Wrap
     r = Recipient.from_jwk(
         {
             "kty": "EC",
-            "crv": "P-256",
             "alg": "ECDH-SS+A128KW",
+            "crv": "P-256",
             "x": "7cvYCcdU22WCwW1tZXR8iuzJLWGcd46xfxO1XJs-SPU",
             "y": "DzhJXgz9RI6TseNmwEfLoNVns8UmvONsPzQDop2dKoo",
             "d": "Uqr4fay_qYQykwcNCB2efj_NFaQRRQ-6fHZm763jt5w",
@@ -350,9 +350,9 @@ Key Agreement with Key Wrap
     )
     pub_key = COSEKey.from_jwk(
         {
+            "kid": "meriadoc.brandybuck@buckland.example",
             "kty": "EC",
             "crv": "P-256",
-            "kid": "meriadoc.brandybuck@buckland.example",
             "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
             "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
         }
@@ -368,10 +368,10 @@ Key Agreement with Key Wrap
     # The recipient side:
     priv_key = COSEKey.from_jwk(
         {
-            "kty": "EC",
-            "crv": "P-256",
-            "alg": "ECDH-SS+A128KW",
             "kid": "meriadoc.brandybuck@buckland.example",
+            "kty": "EC",
+            "alg": "ECDH-SS+A128KW",
+            "crv": "P-256",
             "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
             "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
             "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",
@@ -513,9 +513,9 @@ The AES key wrap algorithm can be used to wrap an encryption key as follows:
     # The sender side:
     r = Recipient.from_jwk(
         {
+            "kid": "01",
             "kty": "oct",
             "alg": "A128KW",
-            "kid": "01",
             "k": "hJtXIZ2uSN5kbQfbtTNWbg",  # A shared wrapping key
         },
     )
@@ -527,9 +527,9 @@ The AES key wrap algorithm can be used to wrap an encryption key as follows:
     # The recipient side:
     shared_key = COSEKey.from_jwk(
         {
+            "kid": "01",
             "kty": "oct",
             "alg": "A128KW",
-            "kid": "01",
             "k": "hJtXIZ2uSN5kbQfbtTNWbg",
         },
     )
@@ -558,9 +558,9 @@ agreement methods (``ECDH-ES+HKDF-256`` with various curves).
     # The following key is provided by the recipient in advance.
     pub_key = COSEKey.from_jwk(
         {
+            "kid": "01",
             "kty": "EC",
             "alg": "ECDH-ES+HKDF-256",
-            "kid": "01",
             "crv": "P-256",
             "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
             "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
@@ -578,9 +578,9 @@ agreement methods (``ECDH-ES+HKDF-256`` with various curves).
     # The following key is the private key of the above pub_key.
     priv_key = COSEKey.from_jwk(
         {
+            "kid": "01",
             "kty": "EC",
             "alg": "ECDH-ES+HKDF-256",
-            "kid": "01",
             "crv": "P-256",
             "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
             "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
@@ -610,9 +610,9 @@ In case of ``X25519``:
     )
     pub_key = COSEKey.from_jwk(
         {
+            "kid": "01",
             "kty": "OKP",
             "alg": "ECDH-ES+HKDF-256",
-            "kid": "01",
             "crv": "X25519",
             "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
         }
@@ -628,9 +628,9 @@ In case of ``X25519``:
     # The recipient side:
     priv_key = COSEKey.from_jwk(
         {
+            "kid": "01",
             "kty": "OKP",
             "alg": "ECDH-ES+HKDF-256",
-            "kid": "01",
             "crv": "X25519",
             "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
             "d": "vsJ1oX5NNi0IGdwGldiac75r-Utmq3Jq4LGv48Q_Qc4",
@@ -653,9 +653,9 @@ In case of ``X448``:
     )
     pub_key = COSEKey.from_jwk(
         {
+            "kid": "01",
             "kty": "OKP",
             "alg": "ECDH-ES+HKDF-256",
-            "kid": "01",
             "crv": "X448",
             "x": "IkLmc0klvEMXYneHMKAB6ePohryAwAPVe2pRSffIDY6NrjeYNWVX5J-fG4NV2OoU77C88A0mvxI",
         }
@@ -669,9 +669,9 @@ In case of ``X448``:
     )
     priv_key = COSEKey.from_jwk(
         {
+            "kid": "01",
             "kty": "OKP",
             "alg": "ECDH-ES+HKDF-256",
-            "kid": "01",
             "crv": "X448",
             "x": "IkLmc0klvEMXYneHMKAB6ePohryAwAPVe2pRSffIDY6NrjeYNWVX5J-fG4NV2OoU77C88A0mvxI",
             "d": "rJJRG3nshyCtd9CgXld8aNaB9YXKR0UOi7zj7hApg9YH4XdBO0G8NcAFNz_uPH2GnCZVcSDgV5c",
@@ -693,8 +693,8 @@ Key Agreement with Key Wrap
     r = Recipient.from_jwk(
         {
             "kty": "EC",
-            "crv": "P-256",
             "alg": "ECDH-SS+A128KW",
+            "crv": "P-256",
             "x": "7cvYCcdU22WCwW1tZXR8iuzJLWGcd46xfxO1XJs-SPU",
             "y": "DzhJXgz9RI6TseNmwEfLoNVns8UmvONsPzQDop2dKoo",
             "d": "Uqr4fay_qYQykwcNCB2efj_NFaQRRQ-6fHZm763jt5w",
@@ -702,9 +702,9 @@ Key Agreement with Key Wrap
     )
     pub_key = COSEKey.from_jwk(
         {
+            "kid": "meriadoc.brandybuck@buckland.example",
             "kty": "EC",
             "crv": "P-256",
-            "kid": "meriadoc.brandybuck@buckland.example",
             "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
             "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
         }
@@ -721,10 +721,10 @@ Key Agreement with Key Wrap
     # The recipient side:
     priv_key = COSEKey.from_jwk(
         {
-            "kty": "EC",
-            "crv": "P-256",
-            "alg": "ECDH-SS+A128KW",
             "kid": "meriadoc.brandybuck@buckland.example",
+            "kty": "EC",
+            "alg": "ECDH-SS+A128KW",
+            "crv": "P-256",
             "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
             "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
             "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",
@@ -745,8 +745,8 @@ Create a COSE Signature1 message, verify and decode it as follows:
     # The sender side:
     priv_key = COSEKey.from_jwk(
         {
-            "kty": "EC",
             "kid": "01",
+            "kty": "EC",
             "crv": "P-256",
             "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
             "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
@@ -759,8 +759,8 @@ Create a COSE Signature1 message, verify and decode it as follows:
     # The recipient side:
     pub_key = COSEKey.from_jwk(
         {
-            "kty": "EC",
             "kid": "01",
+            "kty": "EC",
             "crv": "P-256",
             "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
             "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
@@ -777,8 +777,8 @@ Following two samples are other ways of writing the above example:
     # The sender side:
     sig_key = COSEKey.from_jwk(
         {
-            "kty": "EC",
             "kid": "01",
+            "kty": "EC",
             "crv": "P-256",
             "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
             "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
@@ -804,8 +804,8 @@ Following two samples are other ways of writing the above example:
     # The sender side:
     sig_key = COSEKey.from_jwk(
         {
-            "kty": "EC",
             "kid": "01",
+            "kty": "EC",
             "crv": "P-256",
             "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
             "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
@@ -835,8 +835,8 @@ Create a COSE Signature message, verify and decode it as follows:
     # The sender side:
     signer = Signer.from_jwk(
         {
-            "kty": "EC",
             "kid": "01",
+            "kty": "EC",
             "crv": "P-256",
             "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
             "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
@@ -849,8 +849,8 @@ Create a COSE Signature message, verify and decode it as follows:
     # The recipient side:
     pub_key = COSEKey.from_jwk(
         {
-            "kty": "EC",
             "kid": "01",
+            "kty": "EC",
             "crv": "P-256",
             "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
             "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
@@ -868,8 +868,8 @@ Following two samples are other ways of writing the above example:
     signer = Signer.new(
         cose_key=COSEKey.from_jwk(
             {
-                "kty": "EC",
                 "kid": "01",
+                "kty": "EC",
                 "crv": "P-256",
                 "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
                 "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
@@ -885,8 +885,8 @@ Following two samples are other ways of writing the above example:
     # The recipient side:
     pub_key = COSEKey.from_jwk(
         {
-            "kty": "EC",
             "kid": "01",
+            "kty": "EC",
             "crv": "P-256",
             "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
             "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
@@ -903,8 +903,8 @@ Following two samples are other ways of writing the above example:
     signer = Signer.new(
         cose_key=COSEKey.from_jwk(
             {
-                "kty": "EC",
                 "kid": "01",
+                "kty": "EC",
                 "crv": "P-256",
                 "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
                 "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
@@ -920,8 +920,8 @@ Following two samples are other ways of writing the above example:
     # The recipient side:
     pub_key = COSEKey.from_jwk(
         {
-            "kty": "EC",
             "kid": "01",
+            "kty": "EC",
             "crv": "P-256",
             "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
             "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
