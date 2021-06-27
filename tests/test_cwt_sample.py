@@ -211,22 +211,18 @@ class TestSample:
     def test_sample_readme_signed_cwt_es384(self):
         with open(key_path("private_key_es384.pem")) as key_file:
             private_key = COSEKey.from_pem(key_file.read())
-        with open(key_path("public_key_es384.pem")) as key_file:
-            public_key = COSEKey.from_pem(key_file.read())
-
         token = cwt.encode(
             {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
         )
 
+        with open(key_path("public_key_es384.pem")) as key_file:
+            public_key = COSEKey.from_pem(key_file.read())
         decoded = cwt.decode(token, public_key)
         assert 1 in decoded and decoded[1] == "coaps://as.example"
 
     def test_sample_readme_signed_cwt_es512_old(self):
         with open(key_path("private_key_es512.pem")) as key_file:
             private_key = COSEKey.from_pem(key_file.read())
-        with open(key_path("public_key_es512.pem")) as key_file:
-            public_key = COSEKey.from_pem(key_file.read())
-
         encoded = cwt.encode_and_sign(
             Claims.from_json(
                 {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}
@@ -234,28 +230,26 @@ class TestSample:
             private_key,
         )
 
+        with open(key_path("public_key_es512.pem")) as key_file:
+            public_key = COSEKey.from_pem(key_file.read())
         decoded = cwt.decode(encoded, public_key)
         assert 1 in decoded and decoded[1] == "coaps://as.example"
 
     def test_sample_readme_signed_cwt_es512(self):
         with open(key_path("private_key_es512.pem")) as key_file:
             private_key = COSEKey.from_pem(key_file.read())
-        with open(key_path("public_key_es512.pem")) as key_file:
-            public_key = COSEKey.from_pem(key_file.read())
-
         token = cwt.encode(
             {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
         )
 
+        with open(key_path("public_key_es512.pem")) as key_file:
+            public_key = COSEKey.from_pem(key_file.read())
         decoded = cwt.decode(token, public_key)
         assert 1 in decoded and decoded[1] == "coaps://as.example"
 
     def test_sample_readme_signed_cwt_es256k_old(self):
         with open(key_path("private_key_es256k.pem")) as key_file:
             private_key = COSEKey.from_pem(key_file.read())
-        with open(key_path("public_key_es256k.pem")) as key_file:
-            public_key = COSEKey.from_pem(key_file.read())
-
         encoded = cwt.encode_and_sign(
             Claims.from_json(
                 {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}
@@ -263,28 +257,26 @@ class TestSample:
             private_key,
         )
 
+        with open(key_path("public_key_es256k.pem")) as key_file:
+            public_key = COSEKey.from_pem(key_file.read())
         decoded = cwt.decode(encoded, public_key)
         assert 1 in decoded and decoded[1] == "coaps://as.example"
 
     def test_sample_readme_signed_cwt_es256k(self):
         with open(key_path("private_key_es256k.pem")) as key_file:
             private_key = COSEKey.from_pem(key_file.read())
-        with open(key_path("public_key_es256k.pem")) as key_file:
-            public_key = COSEKey.from_pem(key_file.read())
-
         token = cwt.encode(
             {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
         )
 
+        with open(key_path("public_key_es256k.pem")) as key_file:
+            public_key = COSEKey.from_pem(key_file.read())
         decoded = cwt.decode(token, public_key)
         assert 1 in decoded and decoded[1] == "coaps://as.example"
 
     def test_sample_readme_signed_cwt_ed25519_old(self):
         with open(key_path("private_key_ed25519.pem")) as key_file:
             private_key = COSEKey.from_pem(key_file.read())
-        with open(key_path("public_key_ed25519.pem")) as key_file:
-            public_key = COSEKey.from_pem(key_file.read())
-
         encoded = cwt.encode_and_sign(
             Claims.from_json(
                 {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}
@@ -292,45 +284,75 @@ class TestSample:
             private_key,
         )
 
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            public_key = COSEKey.from_pem(key_file.read())
         decoded = cwt.decode(encoded, public_key)
         assert 1 in decoded and decoded[1] == "coaps://as.example"
 
     def test_sample_readme_signed_cwt_ed25519(self):
         with open(key_path("private_key_ed25519.pem")) as key_file:
             private_key = COSEKey.from_pem(key_file.read())
-        with open(key_path("public_key_ed25519.pem")) as key_file:
-            public_key = COSEKey.from_pem(key_file.read())
-
         token = cwt.encode(
             {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
         )
 
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            public_key = COSEKey.from_pem(key_file.read())
+        decoded = cwt.decode(token, public_key)
+        assert 1 in decoded and decoded[1] == "coaps://as.example"
+
+    def test_sample_readme_signed_cwt_ed25519_with_jwk(self):
+
+        # The sender side:
+        private_key = COSEKey.from_jwk(
+            {
+                "kid": "01",
+                "kty": "OKP",
+                "key_ops": ["sign"],
+                "alg": "EdDSA",
+                "crv": "Ed25519",
+                "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+                "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
+            }
+        )
+        token = cwt.encode(
+            {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
+        )
+
+        # The recipient side:
+        public_key = COSEKey.from_jwk(
+            {
+                "kid": "01",
+                "kty": "OKP",
+                "key_ops": ["verify"],
+                "crv": "Ed25519",
+                "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+            }
+        )
         decoded = cwt.decode(token, public_key)
         assert 1 in decoded and decoded[1] == "coaps://as.example"
 
     def test_sample_readme_signed_cwt_rs256(self):
         with open(key_path("private_key_rsa.pem")) as key_file:
             private_key = COSEKey.from_pem(key_file.read(), alg="RS256")
-        with open(key_path("public_key_rsa.pem")) as key_file:
-            public_key = COSEKey.from_pem(key_file.read(), alg="RS256")
-
         token = cwt.encode(
             {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
         )
 
+        with open(key_path("public_key_rsa.pem")) as key_file:
+            public_key = COSEKey.from_pem(key_file.read(), alg="RS256")
         decoded = cwt.decode(token, public_key)
         assert 1 in decoded and decoded[1] == "coaps://as.example"
 
     def test_sample_readme_signed_cwt_ps256(self):
         with open(key_path("private_key_rsa.pem")) as key_file:
             private_key = COSEKey.from_pem(key_file.read(), alg="PS256")
-        with open(key_path("public_key_rsa.pem")) as key_file:
-            public_key = COSEKey.from_pem(key_file.read(), alg="PS256")
-
         token = cwt.encode(
             {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
         )
 
+        with open(key_path("public_key_rsa.pem")) as key_file:
+            public_key = COSEKey.from_pem(key_file.read(), alg="PS256")
         decoded = cwt.decode(token, public_key)
         assert 1 in decoded and decoded[1] == "coaps://as.example"
 
@@ -359,16 +381,12 @@ class TestSample:
     def test_sample_readme_nested_cwt_old(self):
         with open(key_path("private_key_es256.pem")) as key_file:
             private_key = COSEKey.from_pem(key_file.read(), kid="01")
-        with open(key_path("public_key_es256.pem")) as key_file:
-            public_key = COSEKey.from_pem(key_file.read(), kid="01")
-
         encoded = cwt.encode_and_sign(
             Claims.from_json(
                 {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}
             ),
             private_key,
         )
-
         nonce = token_bytes(13)
         mysecret = token_bytes(32)
         enc_key = COSEKey.from_symmetric_key(
@@ -376,38 +394,37 @@ class TestSample:
         )
         nested = cwt.encode_and_encrypt(encoded, enc_key, nonce=nonce)
 
+        with open(key_path("public_key_es256.pem")) as key_file:
+            public_key = COSEKey.from_pem(key_file.read(), kid="01")
         decoded = cwt.decode(nested, [enc_key, public_key])
         assert 1 in decoded and decoded[1] == "coaps://as.example"
 
     def test_sample_readme_nested_cwt(self):
         with open(key_path("private_key_es256.pem")) as key_file:
             private_key = COSEKey.from_pem(key_file.read(), kid="01")
-        with open(key_path("public_key_es256.pem")) as key_file:
-            public_key = COSEKey.from_pem(key_file.read(), kid="01")
-
         token = cwt.encode(
             {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
         )
-
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="02")
         nested = cwt.encode(token, enc_key)
 
+        with open(key_path("public_key_es256.pem")) as key_file:
+            public_key = COSEKey.from_pem(key_file.read(), kid="01")
         decoded = cwt.decode(nested, [enc_key, public_key])
         assert 1 in decoded and decoded[1] == "coaps://as.example"
 
     def test_sample_readme_nested_cwt_without_kid(self):
+        enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
+
         with open(key_path("private_key_es256.pem")) as key_file:
             private_key = COSEKey.from_pem(key_file.read())
-        with open(key_path("public_key_es256.pem")) as key_file:
-            public_key = COSEKey.from_pem(key_file.read())
-
         token = cwt.encode(
             {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
         )
-
-        enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
         nested = cwt.encode(token, enc_key)
 
+        with open(key_path("public_key_es256.pem")) as key_file:
+            public_key = COSEKey.from_pem(key_file.read())
         decoded = cwt.decode(nested, [enc_key, public_key])
         assert 1 in decoded and decoded[1] == "coaps://as.example"
 
@@ -605,8 +622,6 @@ class TestSample:
     def test_sample_readme_cwt_with_user_defined_claims(self):
         with open(key_path("private_key_ed25519.pem")) as key_file:
             private_key = COSEKey.from_pem(key_file.read())
-        with open(key_path("public_key_ed25519.pem")) as key_file:
-            public_key = COSEKey.from_pem(key_file.read())
         token = cwt.encode(
             {
                 1: "coaps://as.example",  # iss
@@ -619,6 +634,9 @@ class TestSample:
             },
             private_key,
         )
+
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            public_key = COSEKey.from_pem(key_file.read())
         raw = cwt.decode(token, public_key)
         assert raw[-70001] == "foo"
         assert isinstance(raw[-70002], list)
@@ -635,8 +653,6 @@ class TestSample:
     def test_sample_readme_cwt_with_user_defined_claims_readable(self):
         with open(key_path("private_key_ed25519.pem")) as key_file:
             private_key = COSEKey.from_pem(key_file.read())
-        with open(key_path("public_key_ed25519.pem")) as key_file:
-            public_key = COSEKey.from_pem(key_file.read())
         cwt.set_private_claim_names(
             {
                 "ext_1": -70001,
@@ -657,6 +673,9 @@ class TestSample:
             },
             private_key,
         )
+
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            public_key = COSEKey.from_pem(key_file.read())
         raw = cwt.decode(token, public_key)
         readable = Claims.new(
             raw,
@@ -673,10 +692,6 @@ class TestSample:
         assert readable.get("ext_4") == 123
 
     def test_sample_readme_decode_with_multiple_keys(self):
-        with open(key_path("public_key_es256.pem")) as key_file:
-            public_key_1 = COSEKey.from_pem(key_file.read(), kid="01")
-        with open(key_path("public_key_ed25519.pem")) as key_file:
-            public_key_2 = COSEKey.from_pem(key_file.read(), kid="02")
         with open(key_path("private_key_ed25519.pem")) as key_file:
             private_key = COSEKey.from_pem(key_file.read(), kid="02")
         token = cwt.encode(
@@ -687,6 +702,11 @@ class TestSample:
             },
             private_key,
         )
+
+        with open(key_path("public_key_es256.pem")) as key_file:
+            public_key_1 = COSEKey.from_pem(key_file.read(), kid="01")
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            public_key_2 = COSEKey.from_pem(key_file.read(), kid="02")
         decoded = cwt.decode(token, [public_key_1, public_key_2])
         assert 1 in decoded and decoded[1] == "coaps://as.example"
 
