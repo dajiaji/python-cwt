@@ -15,7 +15,7 @@ from .exceptions import CWTError, DecodeError, EncodeError, VerifyError
 from .recipient import Recipient
 from .signer import Signer
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 __title__ = "cwt"
 __description__ = "A Python implementation of CWT/COSE"
 __url__ = "https://python-cwt.readthedocs.io"
