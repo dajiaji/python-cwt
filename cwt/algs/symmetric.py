@@ -360,7 +360,6 @@ class AESKeyWrap(SymmetricKey):
             if not self._key:
                 self._key = token_bytes(24)
         elif self._alg == -5:  # A256KW
-            print("(1)")
             if self._key and len(self._key) != 32:
                 raise ValueError(f"Invalid key length: {len(self._key)}.")
             if not self._key:

@@ -209,6 +209,10 @@ class Claims:
         return self._claims[7].decode("utf-8")
 
     @property
+    def hcert(self) -> Union[dict, None]:
+        return self._claims.get(-260, None)
+
+    @property
     def cnf(self) -> Union[Dict[int, Any], List[Any], str, None]:
         if 8 not in self._claims:
             return None

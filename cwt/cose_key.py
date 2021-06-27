@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional, Union
 
 import cbor2
+from cryptography import x509
 from cryptography.hazmat.primitives.asymmetric.ec import (
     EllipticCurvePrivateKey,
     EllipticCurvePublicKey,
@@ -197,6 +198,8 @@ class COSEKey:
         k: Any = None
         if "BEGIN PUBLIC" in key_str:
             k = load_pem_public_key(key_data)
+        elif "BEGIN CERTIFICATE" in key_str:
+            k = x509.load_pem_x509_certificate(key_data).public_key()
         elif "BEGIN PRIVATE" in key_str:
             k = load_pem_private_key(key_data, password=None)
         elif "BEGIN EC PRIVATE" in key_str:

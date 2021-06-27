@@ -10,6 +10,8 @@ from secrets import token_bytes
 
 import cbor2
 import pytest
+from cryptography import x509
+from cryptography.hazmat.primitives.hashes import SHA256
 
 import cwt
 from cwt import Claims, COSEKey, EncryptedCOSEKey
@@ -900,3 +902,68 @@ class TestSample:
         encrypted = cwt.encode(signed, key=enc_key, nonce=nonce)
         decoded = cwt.decode(encrypted, keys=[enc_key, sig_key], no_verify=True)
         assert 1 in decoded and decoded[1] == "coap://as.example.com"
+
+    def test_sample_dgc_testdata_AT_2DCode_raw_1(self):
+
+        # A DSC(Document Signing Certificate) issued by a CSCA (Certificate Signing Certificate Authority).
+        dsc = "-----BEGIN CERTIFICATE-----\nMIIBvTCCAWOgAwIBAgIKAXk8i88OleLsuTAKBggqhkjOPQQDAjA2MRYwFAYDVQQDDA1BVCBER0MgQ1NDQSAxMQswCQYDVQQGEwJBVDEPMA0GA1UECgwGQk1TR1BLMB4XDTIxMDUwNTEyNDEwNloXDTIzMDUwNTEyNDEwNlowPTERMA8GA1UEAwwIQVQgRFNDIDExCzAJBgNVBAYTAkFUMQ8wDQYDVQQKDAZCTVNHUEsxCjAIBgNVBAUTATEwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASt1Vz1rRuW1HqObUE9MDe7RzIk1gq4XW5GTyHuHTj5cFEn2Rge37+hINfCZZcozpwQKdyaporPUP1TE7UWl0F3o1IwUDAOBgNVHQ8BAf8EBAMCB4AwHQYDVR0OBBYEFO49y1ISb6cvXshLcp8UUp9VoGLQMB8GA1UdIwQYMBaAFP7JKEOflGEvef2iMdtopsetwGGeMAoGCCqGSM49BAMCA0gAMEUCIQDG2opotWG8tJXN84ZZqT6wUBz9KF8D+z9NukYvnUEQ3QIgdBLFSTSiDt0UJaDF6St2bkUQuVHW6fQbONd731/M4nc=\n-----END CERTIFICATE-----"
+
+        # An EUDCC (EU Digital COVID Certificate)
+        eudcc = bytes.fromhex(
+            "d2844da20448d919375fc1e7b6b20126a0590133a4041a61817ca0061a60942ea001624154390103a101a4617681aa62646e01626d616d4f52472d3130303033303231356276706a313131393334393030376264746a323032312d30322d313862636f624154626369783155524e3a555643493a30313a41543a31303830373834334639344145453045453530393346424332353442443831332342626d706c45552f312f32302f31353238626973781b4d696e6973747279206f66204865616c74682c20417573747269616273640262746769383430353339303036636e616da463666e74754d5553544552465241553c474f455353494e47455262666e754d7573746572667261752d47c3b6c39f696e67657263676e74684741425249454c4562676e684761627269656c656376657265312e302e3063646f626a313939382d30322d323658405812fce67cb84c3911d78e3f61f890d0c80eb9675806aebed66aa2d0d0c91d1fc98d7bcb80bf00e181806a9502e11b071325901bd0d2c1b6438747b8cc50f521"
+        )
+
+        def _generate_kid(cert_str: str) -> bytes:
+            c = x509.load_pem_x509_certificate(cert_str.encode())
+            fp = c.fingerprint(SHA256())
+            return fp[0:8]
+
+        public_key = COSEKey.from_pem(dsc, kid=_generate_kid(dsc))
+        decoded = cwt.decode(eudcc, keys=[public_key], no_verify=True)
+        claims = Claims.new(decoded)
+
+        assert 1 in claims.hcert
+        assert isinstance(claims.hcert[1], dict)
+        assert "v" in claims.hcert[1]
+        assert "nam" in claims.hcert[1]
+        assert "dob" in claims.hcert[1]
+        assert "ver" in claims.hcert[1]
+        assert isinstance(claims.hcert[1]["v"], list)
+        assert len(claims.hcert[1]["v"]) == 1
+        assert isinstance(claims.hcert[1]["v"][0], dict)
+        assert isinstance(claims.hcert[1]["nam"], dict)
+        assert "fnt" in claims.hcert[1]["nam"]
+        assert claims.hcert[1]["nam"]["fnt"] == "MUSTERFRAU<GOESSINGER"
+        assert claims.hcert[1]["dob"] == "1998-02-26"
+        assert claims.hcert[1]["ver"] == "1.0.0"
+
+    def test_sample_dgc_testdata_AT_2DCode_raw_1_with_cert_file(self):
+        eudcc = bytes.fromhex(
+            "d2844da20448d919375fc1e7b6b20126a0590133a4041a61817ca0061a60942ea001624154390103a101a4617681aa62646e01626d616d4f52472d3130303033303231356276706a313131393334393030376264746a323032312d30322d313862636f624154626369783155524e3a555643493a30313a41543a31303830373834334639344145453045453530393346424332353442443831332342626d706c45552f312f32302f31353238626973781b4d696e6973747279206f66204865616c74682c20417573747269616273640262746769383430353339303036636e616da463666e74754d5553544552465241553c474f455353494e47455262666e754d7573746572667261752d47c3b6c39f696e67657263676e74684741425249454c4562676e684761627269656c656376657265312e302e3063646f626a313939382d30322d323658405812fce67cb84c3911d78e3f61f890d0c80eb9675806aebed66aa2d0d0c91d1fc98d7bcb80bf00e181806a9502e11b071325901bd0d2c1b6438747b8cc50f521"
+        )
+
+        def _generate_kid(cert: str) -> bytes:
+            c = x509.load_pem_x509_certificate(cert.encode())
+            fp = c.fingerprint(SHA256())
+            return fp[0:8]
+
+        with open(key_path("dgc_testdata_cert_at.pem")) as key_file:
+            dsc = key_file.read()
+            public_key = COSEKey.from_pem(dsc, kid=_generate_kid(dsc))
+        decoded = cwt.decode(eudcc, keys=[public_key], no_verify=True)
+        claims = Claims.new(decoded)
+
+        assert 1 in claims.hcert
+        assert isinstance(claims.hcert[1], dict)
+        assert "v" in claims.hcert[1]
+        assert "nam" in claims.hcert[1]
+        assert "dob" in claims.hcert[1]
+        assert "ver" in claims.hcert[1]
+        assert isinstance(claims.hcert[1]["v"], list)
+        assert len(claims.hcert[1]["v"]) == 1
+        assert isinstance(claims.hcert[1]["v"][0], dict)
+        assert isinstance(claims.hcert[1]["nam"], dict)
+        assert "fnt" in claims.hcert[1]["nam"]
+        assert claims.hcert[1]["nam"]["fnt"] == "MUSTERFRAU<GOESSINGER"
+        assert claims.hcert[1]["dob"] == "1998-02-26"
+        assert claims.hcert[1]["ver"] == "1.0.0"

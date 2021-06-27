@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 
+- Add support for hcert. `#147 <https://github.com/dajiaji/python-cwt/pull/147>`__
+
 Version 1.1.0
 --------------
 
