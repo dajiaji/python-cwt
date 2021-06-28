@@ -15,7 +15,7 @@ import pytest
 from cbor2 import CBORTag
 
 import cwt
-from cwt import COSE, COSEKey, EncodeError, Recipient
+from cwt import COSE, COSEKey, DecodeError, EncodeError, Recipient, VerifyError
 from cwt.recipient_interface import RecipientInterface
 from cwt.signer import Signer
 from cwt.utils import base64url_decode
@@ -37,15 +37,19 @@ class TestCOSE:
         ctx = COSE.new()
         assert isinstance(ctx, COSE)
 
-    def test_cose_encode_and_decode_with_options(self):
-        ctx = COSE.new()
+    def test_cose_encode_and_decode_mac0_with_options(self):
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
 
         # MAC0
         mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
         encoded = ctx.encode_and_mac(b"Hello world!", mac_key)
         assert b"Hello world!" == ctx.decode(encoded, mac_key)
 
+    def test_cose_encode_and_decode_mac_with_options(self):
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+
         # MAC
+        mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
         encoded = ctx.encode_and_mac(
             b"Hello world!",
             mac_key,
@@ -53,12 +57,19 @@ class TestCOSE:
         )
         assert b"Hello world!" == ctx.decode(encoded, mac_key)
 
+    def test_cose_encode_and_decode_encrypt0_with_options(self):
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+
         # Encrypt0
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="02")
         encoded = ctx.encode_and_encrypt(b"Hello world!", enc_key)
         assert b"Hello world!" == ctx.decode(encoded, enc_key)
 
+    def test_cose_encode_and_decode_encrypt_with_options(self):
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+
         # Encrypt
+        enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="02")
         rec = Recipient.from_jwk({"alg": "direct", "kid": "02"})
         encoded = ctx.encode_and_encrypt(
             b"Hello world!",
@@ -66,6 +77,9 @@ class TestCOSE:
             recipients=[rec],
         )
         assert b"Hello world!" == ctx.decode(encoded, enc_key)
+
+    def test_cose_encode_and_decode_signature1_with_options(self):
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
 
         # Signature1
         sig_key = COSEKey.from_jwk(
@@ -81,15 +95,19 @@ class TestCOSE:
         encoded = ctx.encode_and_sign(b"Hello world!", sig_key)
         assert b"Hello world!" == ctx.decode(encoded, sig_key)
 
-    def test_cose_encode_and_decode_with_protected_bytes(self):
-        ctx = COSE.new()
+    def test_cose_encode_and_decode_mac0_with_protected_bytes(self):
+        ctx = COSE.new(kid_auto_inclusion=True)
 
         # MAC0
         mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
         encoded = ctx.encode_and_mac(b"Hello world!", mac_key, protected=b"a0")
         assert b"Hello world!" == ctx.decode(encoded, mac_key)
 
+    def test_cose_encode_and_decode_mac_with_protected_bytes(self):
+        ctx = COSE.new()
+
         # MAC
+        mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
         encoded = ctx.encode_and_mac(
             b"Hello world!",
             mac_key,
@@ -98,12 +116,19 @@ class TestCOSE:
         )
         assert b"Hello world!" == ctx.decode(encoded, mac_key)
 
+    def test_cose_encode_and_decode_encrypt0_with_protected_bytes(self):
+        ctx = COSE.new(kid_auto_inclusion=True)
+
         # Encrypt0
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="02")
         encoded = ctx.encode_and_encrypt(b"Hello world!", enc_key, protected=b"a0")
         assert b"Hello world!" == ctx.decode(encoded, enc_key)
 
+    def test_cose_encode_and_decode_encrypt_with_protected_bytes(self):
+        ctx = COSE.new(kid_auto_inclusion=True)
+
         # Encrypt
+        enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="02")
         encoded = ctx.encode_and_encrypt(
             b"Hello world!",
             enc_key,
@@ -111,6 +136,9 @@ class TestCOSE:
             recipients=[RecipientInterface(unprotected={1: -6, 4: b"02"})],
         )
         assert b"Hello world!" == ctx.decode(encoded, enc_key)
+
+    def test_cose_encode_and_decode_signature1_with_protected_bytes(self):
+        ctx = COSE.new(kid_auto_inclusion=True)
 
         # Signature1
         sig_key = COSEKey.from_jwk(
@@ -125,6 +153,29 @@ class TestCOSE:
         )
         encoded = ctx.encode_and_sign(b"Hello world!", sig_key, protected=b"a0")
         assert b"Hello world!" == ctx.decode(encoded, sig_key)
+
+    def test_cose_encode_and_decode_mac0_with_verify_kid(self):
+        ctx = COSE.new(
+            alg_auto_inclusion=True, kid_auto_inclusion=True, verify_kid=True
+        )
+
+        # MAC0
+        mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+        encoded = ctx.encode_and_mac(b"Hello world!", mac_key)
+        assert b"Hello world!" == ctx.decode(encoded, mac_key)
+
+    def test_cose_encode_and_decode_mac0_without_kid_with_verify_kid(self):
+        ctx = COSE.new(
+            alg_auto_inclusion=True, kid_auto_inclusion=True, verify_kid=True
+        )
+
+        # MAC0
+        mac_key = COSEKey.from_symmetric_key(alg="HS256")
+        encoded = ctx.encode_and_mac(b"Hello world!", mac_key)
+        with pytest.raises(ValueError) as err:
+            ctx.decode(encoded, mac_key)
+            pytest.fail("decode() should fail.")
+        assert "kid should be specified." in str(err.value)
 
     def test_cose_encode_and_decode_with_recipient_builder(self):
         ctx = COSE.new()
@@ -146,14 +197,20 @@ class TestCOSE:
     def test_cose_constructor_with_invalid_kid_auto_inclusion(self):
         with pytest.raises(ValueError) as err:
             COSE.new(kid_auto_inclusion="xxx")
-            pytest.fail("COSE should fail.")
+            pytest.fail("COSE() should fail.")
         assert "kid_auto_inclusion should be bool." in str(err.value)
 
     def test_cose_constructor_with_invalid_alg_auto_inclusion(self):
         with pytest.raises(ValueError) as err:
             COSE.new(alg_auto_inclusion="xxx")
-            pytest.fail("COSE should fail.")
+            pytest.fail("COSE() should fail.")
         assert "alg_auto_inclusion should be bool." in str(err.value)
+
+    def test_cose_constructor_with_invalid_verify_kid(self):
+        with pytest.raises(ValueError) as err:
+            COSE.new(verify_kid="xxx")
+            pytest.fail("COSE() should fail.")
+        assert "verify_kid should be bool." in str(err.value)
 
     def test_cose_sample_cose_wg_examples_mac0_hmac_01(self, ctx):
         cwt_str = "D18443A10105A054546869732069732074686520636F6E74656E742E5820A1A848D3471F9D61EE49018D244C824772F223AD4F935293F1789FC3A08D8C58"
@@ -957,11 +1014,23 @@ class TestCOSE:
             ),
             (
                 cbor2.dumps(CBORTag(98, [b"", b"", b"", b""])),
-                "Invalid Signature format.",
+                "unprotected header should be dict.",
             ),
             (
                 cbor2.dumps(CBORTag(98, [b"", b"", b"", [b""]])),
+                "unprotected header should be dict.",
+            ),
+            (
+                cbor2.dumps(CBORTag(98, [b"", {}, b"", b""])),
                 "Invalid Signature format.",
+            ),
+            (
+                cbor2.dumps(CBORTag(98, [b"", {}, b"", [b""]])),
+                "Invalid Signature format.",
+            ),
+            (
+                cbor2.dumps(CBORTag(98, [b"", {}, b"", [[b"", b"", b""]]])),
+                "unprotected header in signature structure should be dict.",
             ),
         ],
     )
@@ -982,38 +1051,153 @@ class TestCOSE:
             pytest.fail("decode should fail.")
         assert "key in keys should have COSEKeyInterface." in str(err.value)
 
-    def test_cose_decode_mac0_with_invalid_multiple_keys(self, ctx):
+    def test_cose_decode_mac0_with_multiple_keys_without_kid(self, ctx):
         key1 = COSEKey.from_symmetric_key(alg="HS256")
         key2 = COSEKey.from_symmetric_key(alg="HS256")
-        encoded = cwt.encode({"iss": "coap://as.example"}, key1)
-        with pytest.raises(ValueError) as err:
-            ctx.decode(encoded, [key1, key2])
-            pytest.fail("decode should fail.")
-        assert "key is not specified." in str(err.value)
+        encoded = ctx.encode_and_mac(b"Hello world!", key1)
+        decoded = ctx.decode(encoded, [key1, key2])
+        assert decoded == b"Hello world!"
 
-    def test_cose_decode_encrypt0_with_invalid_multiple_keys(self, ctx):
+    def test_cose_decode_mac0_with_different_multiple_keys(self, ctx):
+        key1 = COSEKey.from_symmetric_key(alg="HS256")
+        key2 = COSEKey.from_symmetric_key(alg="HS256")
+        key3 = COSEKey.from_symmetric_key(alg="HS256")
+        encoded = ctx.encode_and_mac(b"Hello world!", key1)
+        with pytest.raises(VerifyError) as err:
+            ctx.decode(encoded, [key2, key3])
+            pytest.fail("decode() should fail.")
+        assert "Failed to compare digest." in str(err.value)
+
+    def test_cose_decode_mac0_with_different_multiple_keys_2(self):
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        key1 = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+        key2 = COSEKey.from_symmetric_key(alg="HS256")
+        key3 = COSEKey.from_symmetric_key(alg="HS256")
+        encoded = ctx.encode_and_mac(b"Hello world!", key1)
+        with pytest.raises(ValueError) as err:
+            ctx.decode(encoded, [key2, key3])
+            pytest.fail("decode() should fail.")
+        assert "key is not found." in str(err.value)
+
+    def test_cose_decode_mac0_with_multiple_kid(self):
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        key1 = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+        key2 = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+        key3 = COSEKey.from_symmetric_key(alg="HS256", kid="02")
+        encoded = ctx.encode_and_mac(b"Hello world!", key2)
+        decoded = ctx.decode(encoded, [key1, key2, key3])
+        assert decoded == b"Hello world!"
+
+    def test_cose_decode_encrypt0_with_multiple_keys_without_kid(self, ctx):
         key1 = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
         key2 = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
-        encoded = cwt.encode({"iss": "coap://as.example"}, key1)
-        with pytest.raises(ValueError) as err:
-            ctx.decode(encoded, [key1, key2])
-            pytest.fail("decode should fail.")
-        assert "key is not specified." in str(err.value)
+        encoded = ctx.encode_and_encrypt(b"Hello world!", key1)
+        decoded = ctx.decode(encoded, [key2, key1])
+        assert decoded == b"Hello world!"
 
-    def test_cose_decode_signature1_with_invalid_multiple_keys(self, ctx):
+    def test_cose_decode_encrypt0_with_different_multiple_keys(self, ctx):
+        key1 = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
+        key2 = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
+        key3 = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
+        encoded = ctx.encode_and_encrypt(b"Hello world!", key1)
+        with pytest.raises(DecodeError) as err:
+            ctx.decode(encoded, [key2, key3])
+            pytest.fail("decode() should fail.")
+        assert "Failed to decrypt." in str(err.value)
+
+    def test_cose_decode_encrypt0_with_different_multiple_keys_2(self):
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        key1 = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
+        key2 = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
+        key3 = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
+        encoded = ctx.encode_and_encrypt(b"Hello world!", key1)
+        with pytest.raises(ValueError) as err:
+            ctx.decode(encoded, [key2, key3])
+            pytest.fail("decode() should fail.")
+        assert "key is not found." in str(err.value)
+
+    def test_cose_decode_encrypt0_with_multiple_kid(self):
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        key1 = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
+        key2 = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
+        key3 = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="02")
+        encoded = ctx.encode_and_encrypt(b"Hello world!", key2)
+        decoded = ctx.decode(encoded, [key1, key2, key3])
+        assert decoded == b"Hello world!"
+
+    def test_cose_decode_signature1_with_multiple_keys_without_kid(self, ctx):
         with open(key_path("public_key_es256.pem")) as key_file:
             key1 = COSEKey.from_pem(key_file.read())
         with open(key_path("public_key_ed25519.pem")) as key_file:
             key2 = COSEKey.from_pem(key_file.read())
         with open(key_path("private_key_ed25519.pem")) as key_file:
             private_key = COSEKey.from_pem(key_file.read())
-        encoded = cwt.encode({"iss": "coap://as.example"}, private_key)
-        with pytest.raises(ValueError) as err:
-            ctx.decode(encoded, [key1, key2])
-            pytest.fail("decode should fail.")
-        assert "key is not specified." in str(err.value)
+        encoded = ctx.encode_and_sign(b"Hello world!", private_key)
+        decoded = ctx.decode(encoded, [key1, key2])
+        assert decoded == b"Hello world!"
 
-    def test_cose_decode_with_key_not_found(self, ctx):
+    def test_cose_decode_signature1_with_different_multiple_keys(self, ctx):
+        with open(key_path("public_key_es256.pem")) as key_file:
+            key1 = COSEKey.from_pem(key_file.read())
+        # with open(key_path("public_key_ed25519.pem")) as key_file:
+        #     key2 = COSEKey.from_pem(key_file.read())
+        with open(key_path("public_key_ed448.pem")) as key_file:
+            key3 = COSEKey.from_pem(key_file.read())
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            private_key = COSEKey.from_pem(key_file.read())
+        encoded = ctx.encode_and_sign(b"Hello world!", private_key)
+        with pytest.raises(VerifyError) as err:
+            ctx.decode(encoded, [key1, key3])
+            pytest.fail("decode() should fail.")
+        assert "Failed to verify." in str(err.value)
+
+    def test_cose_decode_signature1_with_different_multiple_keys_2(self):
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        with open(key_path("public_key_es256.pem")) as key_file:
+            key1 = COSEKey.from_pem(key_file.read())
+        # with open(key_path("public_key_ed25519.pem")) as key_file:
+        #     key2 = COSEKey.from_pem(key_file.read())
+        with open(key_path("public_key_ed448.pem")) as key_file:
+            key3 = COSEKey.from_pem(key_file.read())
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            private_key = COSEKey.from_pem(key_file.read(), kid="01")
+        encoded = ctx.encode_and_sign(b"Hello world!", private_key)
+        with pytest.raises(ValueError) as err:
+            ctx.decode(encoded, [key1, key3])
+            pytest.fail("decode() should fail.")
+        assert "key is not found." in str(err.value)
+
+    def test_cose_decode_signature1_with_multiple_kid(self):
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        with open(key_path("public_key_es256.pem")) as key_file:
+            key1 = COSEKey.from_pem(key_file.read(), kid="01")
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            key2 = COSEKey.from_pem(key_file.read(), kid="01")
+        with open(key_path("public_key_ed448.pem")) as key_file:
+            key3 = COSEKey.from_pem(key_file.read(), kid="02")
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            private_key = COSEKey.from_pem(key_file.read(), kid="01")
+        encoded = ctx.encode_and_sign(b"Hello world!", private_key)
+        decoded = ctx.decode(encoded, [key1, key2, key3])
+        assert decoded == b"Hello world!"
+
+    def test_cose_decode_signature1_with_same_kid_bound_to_different_key(self):
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        with open(key_path("public_key_es256.pem")) as key_file:
+            key1 = COSEKey.from_pem(key_file.read(), kid="01")
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            key2 = COSEKey.from_pem(key_file.read(), kid="02")
+        with open(key_path("public_key_ed448.pem")) as key_file:
+            key3 = COSEKey.from_pem(key_file.read(), kid="03")
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            private_key = COSEKey.from_pem(key_file.read(), kid="01")
+        encoded = ctx.encode_and_sign(b"Hello world!", private_key)
+        with pytest.raises(VerifyError) as err:
+            ctx.decode(encoded, [key1, key2, key3])
+            pytest.fail("decode() should fail.")
+        assert "Failed to verify." in str(err.value)
+
+    def test_cose_decode_signature1_with_key_not_found(self, ctx):
         with open(key_path("public_key_es256.pem")) as key_file:
             key1 = COSEKey.from_pem(key_file.read(), kid="01")
         with open(key_path("public_key_ed25519.pem")) as key_file:
@@ -1024,7 +1208,93 @@ class TestCOSE:
         with pytest.raises(ValueError) as err:
             ctx.decode(encoded, [key1, key2])
             pytest.fail("decode should fail.")
-        assert "key is not specified." in str(err.value)
+        assert "key is not found." in str(err.value)
+
+    def test_cose_decode_signature_with_multiple_keys_without_kid(self, ctx):
+        with open(key_path("public_key_es256.pem")) as key_file:
+            key1 = COSEKey.from_pem(key_file.read())
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            key2 = COSEKey.from_pem(key_file.read())
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            signer = Signer.from_pem(key_file.read())
+        encoded = ctx.encode_and_sign(b"Hello world!", signers=[signer])
+        decoded = ctx.decode(encoded, [key1, key2])
+        assert decoded == b"Hello world!"
+
+    def test_cose_decode_signature_with_different_multiple_keys(self, ctx):
+        with open(key_path("public_key_es256.pem")) as key_file:
+            key1 = COSEKey.from_pem(key_file.read())
+        # with open(key_path("public_key_ed25519.pem")) as key_file:
+        #     key2 = COSEKey.from_pem(key_file.read())
+        with open(key_path("public_key_ed448.pem")) as key_file:
+            key3 = COSEKey.from_pem(key_file.read())
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            signer = Signer.from_pem(key_file.read())
+        encoded = ctx.encode_and_sign(b"Hello world!", signers=[signer])
+        with pytest.raises(VerifyError) as err:
+            ctx.decode(encoded, [key1, key3])
+            pytest.fail("decode() should fail.")
+        assert "Failed to verify." in str(err.value)
+
+    def test_cose_decode_signature_with_different_multiple_keys_2(self):
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        with open(key_path("public_key_es256.pem")) as key_file:
+            key1 = COSEKey.from_pem(key_file.read())
+        # with open(key_path("public_key_ed25519.pem")) as key_file:
+        #     key2 = COSEKey.from_pem(key_file.read())
+        with open(key_path("public_key_ed448.pem")) as key_file:
+            key3 = COSEKey.from_pem(key_file.read())
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            signer = Signer.from_pem(key_file.read(), kid="01")
+        encoded = ctx.encode_and_sign(b"Hello world!", signers=[signer])
+        with pytest.raises(ValueError) as err:
+            ctx.decode(encoded, [key1, key3])
+            pytest.fail("decode() should fail.")
+        assert "key is not found." in str(err.value)
+
+    def test_cose_decode_signature_with_multiple_kid(self):
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        with open(key_path("public_key_es256.pem")) as key_file:
+            key1 = COSEKey.from_pem(key_file.read(), kid="01")
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            key2 = COSEKey.from_pem(key_file.read(), kid="01")
+        with open(key_path("public_key_ed448.pem")) as key_file:
+            key3 = COSEKey.from_pem(key_file.read(), kid="02")
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            signer = Signer.from_pem(key_file.read(), kid="01")
+        encoded = ctx.encode_and_sign(b"Hello world!", signers=[signer])
+        decoded = ctx.decode(encoded, [key1, key2, key3])
+        assert decoded == b"Hello world!"
+
+    def test_cose_decode_signature_with_same_kid_bound_to_different_key(self):
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        with open(key_path("public_key_es256.pem")) as key_file:
+            key1 = COSEKey.from_pem(key_file.read(), kid="01")
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            key2 = COSEKey.from_pem(key_file.read(), kid="02")
+        with open(key_path("public_key_ed448.pem")) as key_file:
+            key3 = COSEKey.from_pem(key_file.read(), kid="03")
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            signer = Signer.from_pem(key_file.read(), kid="01")
+        encoded = ctx.encode_and_sign(b"Hello world!", signers=[signer])
+        with pytest.raises(VerifyError) as err:
+            ctx.decode(encoded, [key1, key2, key3])
+            pytest.fail("decode() should fail.")
+        assert "Failed to verify." in str(err.value)
+
+    def test_cose_decode_signature_with_key_not_found(self):
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        with open(key_path("public_key_es256.pem")) as key_file:
+            key1 = COSEKey.from_pem(key_file.read(), kid="01")
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            key2 = COSEKey.from_pem(key_file.read(), kid="02")
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            signer = Signer.from_pem(key_file.read(), kid="03")
+        encoded = ctx.encode_and_sign(b"Hello world!", signers=[signer])
+        with pytest.raises(ValueError) as err:
+            ctx.decode(encoded, [key1, key2])
+            pytest.fail("decode should fail.")
+        assert "key is not found." in str(err.value)
 
     def test_cose_decode_ecdh_es_hkdf_256_without_context(self):
         with open(key_path("public_key_es256.pem")) as key_file:
