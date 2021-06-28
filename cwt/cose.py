@@ -19,8 +19,8 @@ class COSE(CBORProcessor):
 
     def __init__(
         self,
-        alg_auto_inclusion: int = False,
-        kid_auto_inclusion: int = False,
+        alg_auto_inclusion: bool = False,
+        kid_auto_inclusion: bool = False,
         verify_kid: bool = False,
     ):
         if not isinstance(alg_auto_inclusion, bool):
@@ -38,8 +38,8 @@ class COSE(CBORProcessor):
     @classmethod
     def new(
         cls,
-        alg_auto_inclusion: int = False,
-        kid_auto_inclusion: int = False,
+        alg_auto_inclusion: bool = False,
+        kid_auto_inclusion: bool = False,
         verify_kid: bool = False,
     ):
         """

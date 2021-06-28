@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Fix type of parameter for COSE constructor. `#149 <https://github.com/dajiaji/python-cwt/pull/149>`__
 - Add verify_kid option to COSE. `#148 <https://github.com/dajiaji/python-cwt/pull/148>`__
 - Fix kid verification. `#148 <https://github.com/dajiaji/python-cwt/pull/148>`__
 - Add support for hcert. `#147 <https://github.com/dajiaji/python-cwt/pull/147>`__
