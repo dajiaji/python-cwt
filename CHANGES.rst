@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 
+- Add verify_kid option to COSE. `#148 <https://github.com/dajiaji/python-cwt/pull/148>`__
+- Fix kid verification. `#148 <https://github.com/dajiaji/python-cwt/pull/148>`__
 - Add support for hcert. `#147 <https://github.com/dajiaji/python-cwt/pull/147>`__
 
 Version 1.1.0

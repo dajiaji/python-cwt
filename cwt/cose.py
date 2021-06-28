@@ -18,7 +18,10 @@ class COSE(CBORProcessor):
     """
 
     def __init__(
-        self, alg_auto_inclusion: int = False, kid_auto_inclusion: int = False
+        self,
+        alg_auto_inclusion: int = False,
+        kid_auto_inclusion: int = False,
+        verify_kid: bool = False,
     ):
         if not isinstance(alg_auto_inclusion, bool):
             raise ValueError("alg_auto_inclusion should be bool.")
@@ -28,8 +31,17 @@ class COSE(CBORProcessor):
             raise ValueError("kid_auto_inclusion should be bool.")
         self._kid_auto_inclusion = kid_auto_inclusion
 
+        if not isinstance(verify_kid, bool):
+            raise ValueError("verify_kid should be bool.")
+        self._verify_kid = verify_kid
+
     @classmethod
-    def new(cls, alg_auto_inclusion: int = False, kid_auto_inclusion: int = False):
+    def new(
+        cls,
+        alg_auto_inclusion: int = False,
+        kid_auto_inclusion: int = False,
+        verify_kid: bool = False,
+    ):
         """
         Constructor.
 
@@ -38,8 +50,10 @@ class COSE(CBORProcessor):
                 in a proper header bucket automatically or not.
             kid_auto_inclusion(bool): The indicator whether ``kid`` parameter is included
                 in a proper header bucket automatically or not.
+            verify_kid(bool): The indicator whether ``kid`` verification is mandatory or
+                not.
         """
-        return cls(alg_auto_inclusion, kid_auto_inclusion)
+        return cls(alg_auto_inclusion, kid_auto_inclusion, verify_kid)
 
     def encode_and_mac(
         self,
@@ -87,9 +101,9 @@ class COSE(CBORProcessor):
             else:
                 if self._alg_auto_inclusion:
                     p[1] = key.alg
-                if self._kid_auto_inclusion and key.kid:
-                    u[4] = key.kid
                 b_protected = self._dumps(p)
+            if self._kid_auto_inclusion and key.kid:
+                u[4] = key.kid
             mac_structure = [ctx, b_protected, external_aad, payload]
             tag = key.sign(self._dumps(mac_structure))
             res = CBORTag(17, [b_protected, u, payload, tag])
@@ -286,6 +300,7 @@ class COSE(CBORProcessor):
         context: Optional[Union[Dict[str, Any], List[Any]]] = None,
         external_aad: bytes = b"",
     ) -> bytes:
+
         """
         Verifies and decodes COSE data.
 
@@ -315,40 +330,66 @@ class COSE(CBORProcessor):
                 raise ValueError("key in keys should have COSEKeyInterface.")
             keys = [keys]
 
-        # Encrypt0
         if data.tag == 16:
             keys = self._filter_by_key_ops(keys, 4)
             if not isinstance(data.value, list) or len(data.value) != 3:
                 raise ValueError("Invalid Encrypt0 format.")
-
-            aad = self._dumps(["Encrypt0", data.value[0], external_aad])
-            unprotected = data.value[1]
-            if not isinstance(unprotected, dict):
-                raise ValueError("unprotected header should be dict.")
-            nonce = unprotected.get(5, None)
-            k = self._get_key(keys, unprotected)
-            if not k:
-                raise ValueError("key is not specified.")
-            return k.decrypt(data.value[2], nonce, aad)
-
-        # Encrypt
-        if data.tag == 96:
+        elif data.tag == 96:
             keys = self._filter_by_key_ops(keys, 4)
             if not isinstance(data.value, list) or len(data.value) != 4:
                 raise ValueError("Invalid Encrypt format.")
+        elif data.tag == 17:
+            keys = self._filter_by_key_ops(keys, 10)
+            if not isinstance(data.value, list) or len(data.value) != 4:
+                raise ValueError("Invalid MAC0 format.")
+        elif data.tag == 97:
+            keys = self._filter_by_key_ops(keys, 10)
+            if not isinstance(data.value, list) or len(data.value) != 5:
+                raise ValueError("Invalid MAC format.")
+        elif data.tag == 18:
+            keys = self._filter_by_key_ops(keys, 2)
+            if not isinstance(data.value, list) or len(data.value) != 4:
+                raise ValueError("Invalid Signature1 format.")
+        elif data.tag == 98:
+            keys = self._filter_by_key_ops(keys, 2)
+            if not isinstance(data.value, list) or len(data.value) != 4:
+                raise ValueError("Invalid Signature format.")
+        else:
+            raise ValueError(f"Unsupported or unknown CBOR tag({data.tag}).")
 
+        protected = self._loads(data.value[0]) if data.value[0] else b""
+        unprotected = data.value[1]
+        if not isinstance(unprotected, dict):
+            raise ValueError("unprotected header should be dict.")
+        alg = self._get_alg(protected)
+
+        err: Exception = ValueError("key is not found.")
+
+        # Encrypt0
+        if data.tag == 16:
+            kid = self._get_kid(protected, unprotected)
+            aad = self._dumps(["Encrypt0", data.value[0], external_aad])
+            nonce = unprotected.get(5, None)
+            if kid:
+                for i, k in enumerate(keys):
+                    if k.kid != kid:
+                        continue
+                    try:
+                        return k.decrypt(data.value[2], nonce, aad)
+                    except Exception as e:
+                        err = e
+                raise err
+            for i, k in enumerate(keys):
+                try:
+                    return k.decrypt(data.value[2], nonce, aad)
+                except Exception as e:
+                    err = e
+            raise err
+
+        # Encrypt
+        if data.tag == 96:
+            kid = self._get_kid(protected, unprotected)
             aad = self._dumps(["Encrypt", data.value[0], external_aad])
-            alg = 0
-            if data.value[0]:
-                protected = self._loads(data.value[0])
-                alg = (
-                    protected[1]
-                    if isinstance(protected, dict) and 1 in protected
-                    else 0
-                )
-            unprotected = data.value[1]
-            if not isinstance(unprotected, dict):
-                raise ValueError("unprotected header should be dict.")
             nonce = unprotected.get(5, None)
             rs = Recipients.from_list(data.value[3])
             enc_key = rs.extract(keys, context, alg)
@@ -356,33 +397,32 @@ class COSE(CBORProcessor):
 
         # MAC0
         if data.tag == 17:
-            keys = self._filter_by_key_ops(keys, 10)
-            if not isinstance(data.value, list) or len(data.value) != 4:
-                raise ValueError("Invalid MAC0 format.")
-
+            kid = self._get_kid(protected, unprotected)
             msg = self._dumps(["MAC0", data.value[0], external_aad, data.value[2]])
-            k = self._get_key(keys, data.value[1])
-            if not k:
-                raise ValueError("key is not specified.")
-            k.verify(msg, data.value[3])
-            return data.value[2]
+            if kid:
+                for i, k in enumerate(keys):
+                    if k.kid != kid:
+                        continue
+                    try:
+                        k.verify(msg, data.value[3])
+                        return data.value[2]
+                    except Exception as e:
+                        err = e
+                raise err
+            for i, k in enumerate(keys):
+                try:
+                    k.verify(msg, data.value[3])
+                    return data.value[2]
+                except Exception as e:
+                    err = e
+            raise err
 
         # MAC
         if data.tag == 97:
-            keys = self._filter_by_key_ops(keys, 10)
-            if not isinstance(data.value, list) or len(data.value) != 5:
-                raise ValueError("Invalid MAC format.")
+            kid = self._get_kid(protected, unprotected)
             to_be_maced = self._dumps(
                 ["MAC", data.value[0], external_aad, data.value[2]]
             )
-            alg = 0
-            if data.value[0]:
-                protected = self._loads(data.value[0])
-                alg = (
-                    protected[1]
-                    if isinstance(protected, dict) and 1 in protected
-                    else 0
-                )
             rs = Recipients.from_list(data.value[4])
             mac_auth_key = rs.extract(keys, context, alg)
             mac_auth_key.verify(to_be_maced, data.value[3])
@@ -390,55 +430,79 @@ class COSE(CBORProcessor):
 
         # Signature1
         if data.tag == 18:
-            keys = self._filter_by_key_ops(keys, 2)
-            if not isinstance(data.value, list) or len(data.value) != 4:
-                raise ValueError("Invalid Signature1 format.")
-
+            kid = self._get_kid(protected, unprotected)
             to_be_signed = self._dumps(
                 ["Signature1", data.value[0], external_aad, data.value[2]]
             )
-            k = self._get_key(keys, data.value[1])
-            if not k:
-                raise ValueError("key is not specified.")
-            k.verify(to_be_signed, data.value[3])
-            return data.value[2]
+            if kid:
+                for i, k in enumerate(keys):
+                    if k.kid != kid:
+                        continue
+                    try:
+                        k.verify(to_be_signed, data.value[3])
+                        return data.value[2]
+                    except Exception as e:
+                        err = e
+                raise err
+            for i, k in enumerate(keys):
+                try:
+                    k.verify(to_be_signed, data.value[3])
+                    return data.value[2]
+                except Exception as e:
+                    err = e
+            raise err
 
         # Signature
-        if data.tag == 98:
-            keys = self._filter_by_key_ops(keys, 2)
-            if not isinstance(data.value, list) or len(data.value) != 4:
+        # if data.tag == 98:
+        sigs = data.value[3]
+        if not isinstance(sigs, list):
+            raise ValueError("Invalid Signature format.")
+        for sig in sigs:
+            if not isinstance(sig, list) or len(sig) != 3:
                 raise ValueError("Invalid Signature format.")
-            sigs = data.value[3]
-            if not isinstance(sigs, list):
-                raise ValueError("Invalid Signature format.")
-            for sig in sigs:
-                if not isinstance(sig, list) or len(sig) != 3:
-                    raise ValueError("Invalid Signature format.")
-                k = self._get_key(keys, sig[1])
-                if not k:
-                    continue
-                to_be_signed = self._dumps(
-                    ["Signature", data.value[0], sig[0], external_aad, data.value[2]]
-                )
-                k.verify(to_be_signed, sig[2])
-                return data.value[2]
-            raise ValueError("Verification key not found.")
-        raise ValueError(f"Unsupported or unknown CBOR tag({data.tag}).")
 
-    def _get_key(
-        self, keys: List[COSEKeyInterface], unprotected: Dict[int, Any]
-    ) -> Union[COSEKeyInterface, None]:
-        if len(keys) == 1:
-            if 4 in unprotected and keys[0].kid:
-                if unprotected[4] != keys[0].kid:
-                    return None
-            return keys[0]
-        if 4 not in unprotected:
-            return None
-        for k in keys:
-            if k.kid == unprotected[4]:
-                return k
-        return None
+            protected = self._loads(sig[0]) if sig[0] else b""
+            unprotected = sig[1]
+            if not isinstance(unprotected, dict):
+                raise ValueError(
+                    "unprotected header in signature structure should be dict."
+                )
+            kid = self._get_kid(protected, unprotected)
+            if kid:
+                for i, k in enumerate(keys):
+                    if k.kid != kid:
+                        continue
+                    try:
+                        to_be_signed = self._dumps(
+                            [
+                                "Signature",
+                                data.value[0],
+                                sig[0],
+                                external_aad,
+                                data.value[2],
+                            ]
+                        )
+                        k.verify(to_be_signed, sig[2])
+                        return data.value[2]
+                    except Exception as e:
+                        err = e
+                continue
+            for i, k in enumerate(keys):
+                try:
+                    to_be_signed = self._dumps(
+                        [
+                            "Signature",
+                            data.value[0],
+                            sig[0],
+                            external_aad,
+                            data.value[2],
+                        ]
+                    )
+                    k.verify(to_be_signed, sig[2])
+                    return data.value[2]
+                except Exception as e:
+                    err = e
+        raise err
 
     def _filter_by_key_ops(
         self, keys: List[COSEKeyInterface], op: int
@@ -450,3 +514,16 @@ class COSE(CBORProcessor):
         if len(res) == 0:
             res = keys
         return res
+
+    def _get_alg(self, protected: Any) -> int:
+        return protected[1] if isinstance(protected, dict) and 1 in protected else 0
+
+    def _get_kid(self, protected: Any, unprotected: dict) -> bytes:
+        kid = b""
+        if isinstance(protected, dict) and 4 in protected:
+            kid = protected[4]
+        elif 4 in unprotected:
+            kid = unprotected[4]
+        elif self._verify_kid:
+            raise ValueError("kid should be specified.")
+        return kid
