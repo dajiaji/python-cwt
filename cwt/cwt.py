@@ -42,7 +42,9 @@ class CWT(CBORProcessor):
             raise ValueError("leeway should be positive number.")
         self._leeway = leeway
 
-        self._cose = COSE(kid_auto_inclusion=True, alg_auto_inclusion=True)
+        self._cose = COSE(
+            kid_auto_inclusion=True, alg_auto_inclusion=True, verify_kid=True
+        )
         self._claim_names: Dict[str, int] = {}
 
     @classmethod
@@ -78,12 +80,33 @@ class CWT(CBORProcessor):
         """
         return self._expires_in
 
+    @expires_in.setter
+    def expires_in(self, expires_in: int):
+        if expires_in <= 0:
+            raise ValueError("expires_in should be positive number.")
+        self._expires_in = expires_in
+        return
+
     @property
     def leeway(self) -> int:
         """
         The default leeway in seconds for validating ``exp`` and ``nbf``.
         """
         return self._leeway
+
+    @leeway.setter
+    def leeway(self, leeway: int):
+        if leeway <= 0:
+            raise ValueError("leeway should be positive number.")
+        self._leeway = leeway
+        return
+
+    @property
+    def cose(self) -> COSE:
+        """
+        The underlying COSE object.
+        """
+        return self._cose
 
     def encode(
         self,
@@ -393,4 +416,7 @@ encode_and_mac = _cwt.encode_and_mac
 encode_and_sign = _cwt.encode_and_sign
 encode_and_encrypt = _cwt.encode_and_encrypt
 decode = _cwt.decode
+leeway = _cwt.leeway
+expires_in = _cwt.expires_in
+cose = _cwt.cose
 set_private_claim_names = _cwt.set_private_claim_names

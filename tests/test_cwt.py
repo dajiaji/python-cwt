@@ -74,6 +74,37 @@ class TestCWT:
             pytest.fail("CWT.new() should fail.")
         assert "should be" in str(err.value)
 
+    def test_cwt_expires_in(self):
+        ctx = CWT.new()
+        ctx.expires_in = 7600
+        assert ctx.expires_in == 7600
+
+    def test_cwt_expires_in_with_0(self):
+        ctx = CWT.new()
+        with pytest.raises(ValueError) as err:
+            ctx.expires_in = 0
+            pytest.fail("expires_in should fail.")
+        assert "expires_in should be positive number." in str(err.value)
+
+    def test_cwt_expires_in_with_negative_value(self):
+        ctx = CWT.new()
+        with pytest.raises(ValueError) as err:
+            ctx.expires_in = -1
+            pytest.fail("expires_in should fail.")
+        assert "expires_in should be positive number." in str(err.value)
+
+    def test_cwt_leeway(self):
+        ctx = CWT.new()
+        ctx.leeway = 10
+        assert ctx.leeway == 10
+
+    def test_cwt_leeway_with_negative_value(self):
+        ctx = CWT.new()
+        with pytest.raises(ValueError) as err:
+            ctx.leeway = -1
+            pytest.fail("leeway should fail.")
+        assert "leeway should be positive number." in str(err.value)
+
     def test_cwt_encode_with_claims_object(self, ctx):
         key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
         token = ctx.encode(
