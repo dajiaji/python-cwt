@@ -55,6 +55,33 @@ class COSE(CBORProcessor):
         """
         return cls(alg_auto_inclusion, kid_auto_inclusion, verify_kid)
 
+    @property
+    def alg_auto_inclusion(self) -> bool:
+        return self._alg_auto_inclusion
+
+    @alg_auto_inclusion.setter
+    def alg_auto_inclusion(self, alg_auto_inclusion: bool):
+        self._alg_auto_inclusion = alg_auto_inclusion
+        return
+
+    @property
+    def kid_auto_inclusion(self) -> bool:
+        return self._kid_auto_inclusion
+
+    @kid_auto_inclusion.setter
+    def kid_auto_inclusion(self, kid_auto_inclusion: bool):
+        self._kid_auto_inclusion = kid_auto_inclusion
+        return
+
+    @property
+    def verify_kid(self) -> bool:
+        return self._verify_kid
+
+    @verify_kid.setter
+    def verify_kid(self, verify_kid: bool):
+        self._verify_kid = verify_kid
+        return
+
     def encode_and_mac(
         self,
         payload: bytes,

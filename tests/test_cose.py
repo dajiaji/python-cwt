@@ -37,6 +37,21 @@ class TestCOSE:
         ctx = COSE.new()
         assert isinstance(ctx, COSE)
 
+    def test_cose_alg_auto_inclusion(self):
+        ctx = COSE.new()
+        ctx.alg_auto_inclusion = True
+        assert ctx.alg_auto_inclusion is True
+
+    def test_cose_kid_auto_inclusion(self):
+        ctx = COSE.new()
+        ctx.kid_auto_inclusion = True
+        assert ctx.kid_auto_inclusion is True
+
+    def test_cose_verify_kid(self):
+        ctx = COSE.new()
+        ctx.verify_kid = True
+        assert ctx.verify_kid is True
+
     def test_cose_encode_and_decode_mac0_with_options(self):
         ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
 
