@@ -430,7 +430,6 @@ class TestSample:
         with open(key_path("public_key_es256.pem")) as key_file:
             public_key = COSEKey.from_pem(key_file.read())
 
-        print(cwt.cose.verify_kid)
         cwt.cose.verify_kid = False
         decoded = cwt.decode(nested, [enc_key, public_key])
         assert 1 in decoded and decoded[1] == "coaps://as.example"

@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 
+- Change default setting of verify_kid to True for CWT. `#150 <https://github.com/dajiaji/python-cwt/pull/150>`__
+- Add setter/getter for each setting to COSE/CWT. `#150 <https://github.com/dajiaji/python-cwt/pull/150>`__
 - Fix type of parameter for COSE constructor. `#149 <https://github.com/dajiaji/python-cwt/pull/149>`__
 - Add verify_kid option to COSE. `#148 <https://github.com/dajiaji/python-cwt/pull/148>`__
 - Fix kid verification. `#148 <https://github.com/dajiaji/python-cwt/pull/148>`__
