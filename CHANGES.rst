@@ -4,6 +4,11 @@ Changes
 Unreleased
 ----------
 
+Version 1.2.0
+--------------
+
+Released 2021-07-01
+
 - Disable access to CWT property for global CWT instance (cwt). `#153 <https://github.com/dajiaji/python-cwt/pull/153>`__
 - Fix kid verification for recipient. `#152 <https://github.com/dajiaji/python-cwt/pull/152>`__
 - Change default setting of verify_kid to True for CWT. `#150 <https://github.com/dajiaji/python-cwt/pull/150>`__
