@@ -416,7 +416,4 @@ encode_and_mac = _cwt.encode_and_mac
 encode_and_sign = _cwt.encode_and_sign
 encode_and_encrypt = _cwt.encode_and_encrypt
 decode = _cwt.decode
-leeway = _cwt.leeway
-expires_in = _cwt.expires_in
-cose = _cwt.cose
 set_private_claim_names = _cwt.set_private_claim_names

@@ -3,14 +3,11 @@ from .cose import COSE
 from .cose_key import COSEKey
 from .cwt import (
     CWT,
-    cose,
     decode,
     encode,
     encode_and_encrypt,
     encode_and_mac,
     encode_and_sign,
-    expires_in,
-    leeway,
     set_private_claim_names,
 )
 from .encrypted_cose_key import EncryptedCOSEKey
@@ -18,7 +15,7 @@ from .exceptions import CWTError, DecodeError, EncodeError, VerifyError
 from .recipient import Recipient
 from .signer import Signer
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 __title__ = "cwt"
 __description__ = "A Python implementation of CWT/COSE"
 __url__ = "https://python-cwt.readthedocs.io"
@@ -29,14 +26,11 @@ __email__ = "ajitomi@gmail.com"
 __license__ = "MIT"
 __copyright__ = "Copyright 2021 AJITOMI Daisuke"
 __all__ = [
-    "cose",
     "encode",
     "encode_and_mac",
     "encode_and_sign",
     "encode_and_encrypt",
-    "expires_in",
     "decode",
-    "leeway",
     "set_private_claim_names",
     "CWT",
     "COSE",

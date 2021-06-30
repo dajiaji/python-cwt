@@ -13,7 +13,7 @@ from cryptography import x509
 from cryptography.hazmat.primitives.hashes import SHA256
 
 import cwt
-from cwt import Claims, COSEKey, EncryptedCOSEKey
+from cwt import CWT, Claims, COSEKey, EncryptedCOSEKey
 
 from .utils import key_path, now
 
@@ -421,16 +421,17 @@ class TestSample:
 
         with open(key_path("private_key_es256.pem")) as key_file:
             private_key = COSEKey.from_pem(key_file.read())
-        token = cwt.encode(
+        ctx = CWT.new()
+        ctx.cose.verify_kid = False
+        token = ctx.encode(
             {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
         )
-        nested = cwt.encode(token, enc_key)
+        nested = ctx.encode(token, enc_key)
 
         with open(key_path("public_key_es256.pem")) as key_file:
             public_key = COSEKey.from_pem(key_file.read())
 
-        cwt.cose.verify_kid = False
-        decoded = cwt.decode(nested, [enc_key, public_key])
+        decoded = ctx.decode(nested, [enc_key, public_key])
         assert 1 in decoded and decoded[1] == "coaps://as.example"
 
     def test_sample_readme_cwt_with_pop_jwk(self):
