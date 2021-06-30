@@ -8,7 +8,6 @@ Tests for samples on README and RFCs related to CWT/COSE.
 """
 from secrets import token_bytes
 
-import cbor2
 import pytest
 from cryptography import x509
 from cryptography.hazmat.primitives.hashes import SHA256
