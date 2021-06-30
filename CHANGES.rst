@@ -4,7 +4,7 @@ Changes
 Unreleased
 ----------
 
-- Fix kid verification for recipient. `#151 <https://github.com/dajiaji/python-cwt/pull/151>`__
+- Fix kid verification for recipient. `#152 <https://github.com/dajiaji/python-cwt/pull/152>`__
 - Change default setting of verify_kid to True for CWT. `#150 <https://github.com/dajiaji/python-cwt/pull/150>`__
 - Add setter/getter for each setting to COSE/CWT. `#150 <https://github.com/dajiaji/python-cwt/pull/150>`__
 - Fix type of parameter for COSE constructor. `#149 <https://github.com/dajiaji/python-cwt/pull/149>`__
