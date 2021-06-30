@@ -59,7 +59,7 @@ class TestRecipientInterface:
         assert r.unprotected == {}
         assert r.ciphertext == b""
         assert isinstance(r.recipients, list)
-        assert r.kid is None
+        assert r.kid == b""
         assert r.alg == 0
         assert len(r.recipients) == 0
         with pytest.raises(NotImplementedError):
@@ -159,6 +159,13 @@ class TestRecipientInterface:
                 b"",
                 [RecipientInterface()],
                 "unprotected[4](kid) should be bytes.",
+            ),
+            (
+                {4: "our-secret"},
+                {},
+                b"",
+                [RecipientInterface()],
+                "protected[4](kid) should be bytes.",
             ),
             (
                 {1: "alg-a"},
@@ -412,42 +419,33 @@ class TestRecipients:
         assert key.alg == 4
         assert key.kid == b"our-secret"
 
-    def test_recipients_extract_with_empty_recipient(self):
-        key = COSEKey.from_symmetric_key(
-            "mysecret", alg="HMAC 256/64", kid="our-secret"
-        )
-        r = Recipients([RecipientInterface()])
-        with pytest.raises(ValueError) as err:
-            r.extract([key])
-            pytest.fail("extract() should fail.")
-        assert "Failed to derive a key." in str(err.value)
-
     def test_recipients_extract_without_key(self):
         r = Recipients([RecipientInterface(unprotected={1: -6, 4: b"our-secret"})])
         with pytest.raises(ValueError) as err:
             r.extract([])
             pytest.fail("extract() should fail.")
-        assert "Failed to derive a key." in str(err.value)
+        assert "key is not found." in str(err.value)
 
     def test_recipients_extract_without_context(self, material):
         r = Recipients(
             [
-                RecipientInterface(
-                    unprotected={"alg": "direct+HKDF-SHA-256", "kid": "02"}
+                Recipient.new(
+                    unprotected={"alg": "direct+HKDF-SHA-256", "kid": "02"},
                 )
-            ]
+            ],
+            True,
         )
         with pytest.raises(ValueError) as err:
             r.extract(keys=[material])
             pytest.fail("extract() should fail.")
-        assert "Failed to derive a key." in str(err.value)
+        assert "context should be set." in str(err.value)
 
     def test_recipients_extract_with_empty_recipients(self, material, context):
         r = Recipients([])
         with pytest.raises(ValueError) as err:
             r.extract(context=context, keys=[material])
             pytest.fail("extract() should fail.")
-        assert "Failed to derive a key." in str(err.value)
+        assert "No recipients." in str(err.value)
 
     def test_recipients_extract_with_multiple_materials(self, material, context):
         r1 = Recipient.from_jwk(
@@ -519,7 +517,7 @@ class TestRecipients:
         with pytest.raises(ValueError) as err:
             r.extract([key])
             pytest.fail("extract() should fail.")
-        assert "Failed to derive a key." in str(err.value)
+        assert "key is not found." in str(err.value)
 
     def test_recipients_from_list(self):
         try:

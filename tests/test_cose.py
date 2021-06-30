@@ -9,6 +9,7 @@ Tests for COSE.
 
 import base64
 import datetime
+from secrets import token_bytes
 
 import cbor2
 import pytest
@@ -1100,6 +1101,194 @@ class TestCOSE:
         key2 = COSEKey.from_symmetric_key(alg="HS256", kid="01")
         key3 = COSEKey.from_symmetric_key(alg="HS256", kid="02")
         encoded = ctx.encode_and_mac(b"Hello world!", key2)
+        b"Hello world!" == ctx.decode(encoded, [key1, key2, key3])
+
+    def test_cose_decode_mac_with_multiple_keys_without_kid(self, ctx):
+        key = COSEKey.from_symmetric_key(alg="HS256")
+
+        material1 = base64.urlsafe_b64encode(token_bytes(16)).decode()
+        material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
+        material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
+
+        r1 = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "k": material1})
+        r2 = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "k": material2})
+        r1.apply(key)
+        r2.apply(key)
+
+        encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2, r1])
+
+        shared_key1 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material1})
+        shared_key3 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material3})
+        b"Hello world!" == ctx.decode(encoded, keys=[shared_key3, shared_key1])
+
+    def test_cose_decode_mac_with_multiple_keys_with_verify_kid(self):
+        ctx = COSE.new(alg_auto_inclusion=True, verify_kid=True)
+        key = COSEKey.from_symmetric_key(alg="HS256")
+
+        material1 = base64.urlsafe_b64encode(token_bytes(16)).decode()
+        material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
+        material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
+
+        r1 = Recipient.from_jwk(
+            {"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1}
+        )
+        r2 = Recipient.from_jwk(
+            {"kid": "02", "kty": "oct", "alg": "A128KW", "k": material2}
+        )
+        r1.apply(key)
+        r2.apply(key)
+
+        encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2, r1])
+
+        shared_key1 = COSEKey.from_jwk(
+            {"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1}
+        )
+        shared_key3 = COSEKey.from_jwk(
+            {"kid": "03", "kty": "oct", "alg": "A128KW", "k": material3}
+        )
+
+        assert b"Hello world!" == ctx.decode(encoded, keys=[shared_key3, shared_key1])
+
+    def test_cose_decode_mac_with_multiple_keys_with_verify_kid_and_protected_kid(self):
+        ctx = COSE.new(alg_auto_inclusion=True, verify_kid=True)
+        key = COSEKey.from_symmetric_key(alg="HS256")
+
+        material1 = base64.urlsafe_b64encode(token_bytes(16)).decode()
+        material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
+        material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
+
+        shared_key1 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material1})
+        shared_key2 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material2})
+        shared_key3 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material3})
+
+        r1 = Recipient.new(protected={1: -3, 4: b"01"}, sender_key=shared_key1)
+        r2 = Recipient.new(protected={1: -3, 4: b"02"}, sender_key=shared_key2)
+        r1.apply(key)
+        r2.apply(key)
+
+        encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2, r1])
+
+        shared_key1 = COSEKey.from_jwk(
+            {"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1}
+        )
+        shared_key3 = COSEKey.from_jwk(
+            {"kid": "03", "kty": "oct", "alg": "A128KW", "k": material3}
+        )
+
+        assert b"Hello world!" == ctx.decode(encoded, keys=[shared_key3, shared_key1])
+
+    def test_cose_decode_mac_with_multiple_keys_without_kid_with_verify_kid(self):
+        ctx = COSE.new(alg_auto_inclusion=True, verify_kid=True)
+        key = COSEKey.from_symmetric_key(alg="HS256")
+
+        material1 = base64.urlsafe_b64encode(token_bytes(16)).decode()
+        material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
+        material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
+
+        r1 = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "k": material1})
+        r2 = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "k": material2})
+        r1.apply(key)
+        r2.apply(key)
+
+        encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2, r1])
+
+        shared_key1 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material1})
+        shared_key3 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material3})
+
+        with pytest.raises(ValueError) as err:
+            ctx.decode(encoded, keys=[shared_key3, shared_key1])
+            pytest.fail("decode() should fail.")
+        assert "kid should be specified in recipient." in str(err.value)
+
+    def test_cose_decode_mac_with_multiple_keys_without_recipient_kid_with_verify_kid(
+        self,
+    ):
+        ctx = COSE.new(alg_auto_inclusion=True, verify_kid=True)
+        key = COSEKey.from_symmetric_key(alg="HS256")
+
+        material1 = base64.urlsafe_b64encode(token_bytes(16)).decode()
+        material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
+        material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
+
+        r1 = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "k": material1})
+        r2 = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "k": material2})
+        r1.apply(key)
+        r2.apply(key)
+
+        encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2, r1])
+
+        shared_key1 = COSEKey.from_jwk(
+            {"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1}
+        )
+        shared_key3 = COSEKey.from_jwk(
+            {"kid": "02", "kty": "oct", "alg": "A128KW", "k": material3}
+        )
+
+        with pytest.raises(ValueError) as err:
+            ctx.decode(encoded, keys=[shared_key3, shared_key1])
+            pytest.fail("decode() should fail.")
+        assert "kid should be specified in recipient." in str(err.value)
+
+    def test_cose_decode_mac_with_different_multiple_keys(self, ctx):
+        ctx = COSE.new(alg_auto_inclusion=True, verify_kid=True)
+        key = COSEKey.from_symmetric_key(alg="HS256")
+
+        material1 = base64.urlsafe_b64encode(token_bytes(16)).decode()
+        material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
+        material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
+
+        r2 = Recipient.from_jwk(
+            {"kid": "03", "kty": "oct", "alg": "A128KW", "k": material2}
+        )
+        r2.apply(key)
+
+        encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2])
+
+        shared_key1 = COSEKey.from_jwk(
+            {"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1}
+        )
+        shared_key3 = COSEKey.from_jwk(
+            {"kid": "03", "kty": "oct", "alg": "A128KW", "k": material3}
+        )
+
+        with pytest.raises(DecodeError) as err:
+            ctx.decode(encoded, keys=[shared_key1, shared_key3])
+            pytest.fail("decode() should fail.")
+        assert "Failed to decode key." in str(err.value)
+
+    def test_cose_decode_mac_with_different_multiple_keys_2(self):
+        ctx = COSE.new(alg_auto_inclusion=True, verify_kid=True)
+        key = COSEKey.from_symmetric_key(alg="HS256")
+
+        material1 = base64.urlsafe_b64encode(token_bytes(16)).decode()
+        material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
+        material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
+
+        r2 = Recipient.from_jwk(
+            {"kid": "03", "kty": "oct", "alg": "A128KW", "k": material2}
+        )
+        r2.apply(key)
+
+        encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2])
+
+        shared_key1 = COSEKey.from_jwk(
+            {"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1}
+        )
+        shared_key3 = COSEKey.from_jwk(
+            {"kid": "02", "kty": "oct", "alg": "A128KW", "k": material3}
+        )
+
+        with pytest.raises(ValueError) as err:
+            ctx.decode(encoded, keys=[shared_key1, shared_key3])
+            pytest.fail("decode() should fail.")
+        assert "key is not found." in str(err.value)
+
+    def test_cose_decode_mac_with_multiple_kid(self):
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        key1 = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+        key2 = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+        key3 = COSEKey.from_symmetric_key(alg="HS256", kid="02")
+        encoded = ctx.encode_and_mac(b"Hello world!", key2)
         decoded = ctx.decode(encoded, [key1, key2, key3])
         assert decoded == b"Hello world!"
 
@@ -1139,6 +1328,34 @@ class TestCOSE:
         encoded = ctx.encode_and_encrypt(b"Hello world!", key2)
         decoded = ctx.decode(encoded, [key1, key2, key3])
         assert decoded == b"Hello world!"
+
+    def test_cose_decode_encrypt_with_multiple_keys_with_verify_kid(self):
+        ctx = COSE.new(alg_auto_inclusion=True, verify_kid=True)
+        key = COSEKey.from_symmetric_key(alg="A128GCM")
+
+        material1 = base64.urlsafe_b64encode(token_bytes(16)).decode()
+        material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
+        material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
+
+        r1 = Recipient.from_jwk(
+            {"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1}
+        )
+        r2 = Recipient.from_jwk(
+            {"kid": "02", "kty": "oct", "alg": "A128KW", "k": material2}
+        )
+        r1.apply(key)
+        r2.apply(key)
+
+        encoded = ctx.encode_and_encrypt(b"Hello world!", key, recipients=[r2, r1])
+
+        shared_key1 = COSEKey.from_jwk(
+            {"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1}
+        )
+        shared_key3 = COSEKey.from_jwk(
+            {"kid": "03", "kty": "oct", "alg": "A128KW", "k": material3}
+        )
+
+        assert b"Hello world!" == ctx.decode(encoded, keys=[shared_key3, shared_key1])
 
     def test_cose_decode_signature1_with_multiple_keys_without_kid(self, ctx):
         with open(key_path("public_key_es256.pem")) as key_file:

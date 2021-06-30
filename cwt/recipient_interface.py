@@ -43,10 +43,15 @@ class RecipientInterface(CBORProcessor):
         self._alg = 0
 
         # kid
-        if 4 in unprotected:
+        self._kid = b""
+        if 4 in protected:
+            if not isinstance(protected[4], bytes):
+                raise ValueError("protected[4](kid) should be bytes.")
+            self._kid = protected[4]
+        elif 4 in unprotected:
             if not isinstance(unprotected[4], bytes):
                 raise ValueError("unprotected[4](kid) should be bytes.")
-        self._kid = unprotected[4] if 4 in unprotected else None
+            self._kid = unprotected[4]
 
         # alg
         if 1 in protected:
