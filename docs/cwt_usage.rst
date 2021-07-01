@@ -484,10 +484,8 @@ A following example shows how to verify an EUDCC:
 
 .. code-block:: python
 
-    from cryptography import x509
-    from cryptography.hazmat.primitives.hashes import SHA256
     import cwt
-    from cwt import Claims, COSEKey
+    from cwt import Claims, load_pem_dgc_dsc
 
     # A DSC(Document Signing Certificate) issued by a CSCA
     # (Certificate Signing Certificate Authority) quoted from:
@@ -507,7 +505,7 @@ A following example shows how to verify an EUDCC:
         return fp[0:8]
 
 
-    public_key = COSEKey.from_pem(dsc, kid=_generate_kid(dsc))
+    public_key = load_pem_dgc_dsc(dsc)
     decoded = cwt.decode(eudcc, keys=[public_key])
     claims = Claims.new(decoded)
     # claims.hcert[1] ==

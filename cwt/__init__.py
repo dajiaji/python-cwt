@@ -12,6 +12,7 @@ from .cwt import (
 )
 from .encrypted_cose_key import EncryptedCOSEKey
 from .exceptions import CWTError, DecodeError, EncodeError, VerifyError
+from .helpers.dgc import load_pem_dgc_dsc
 from .recipient import Recipient
 from .signer import Signer
 
@@ -31,6 +32,7 @@ __all__ = [
     "encode_and_sign",
     "encode_and_encrypt",
     "decode",
+    "load_pem_dgc_dsc",
     "set_private_claim_names",
     "CWT",
     "COSE",
