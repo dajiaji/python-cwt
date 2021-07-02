@@ -439,10 +439,8 @@ and [EUDCC (EU Digital COVID Certificate)](https://ec.europa.eu/info/live-work-t
 A following example shows how to verify an EUDCC:
 
 ```py
-from cryptography import x509
-from cryptography.hazmat.primitives.hashes import SHA256
 import cwt
-from cwt import Claims, COSEKey
+from cwt import load_pem_hcert_dsc
 
 # A DSC(Document Signing Certificate) issued by a CSCA
 # (Certificate Signing Certificate Authority) quoted from:
@@ -455,14 +453,7 @@ eudcc = bytes.fromhex(
     "d2844da20448d919375fc1e7b6b20126a0590133a4041a61817ca0061a60942ea001624154390103a101a4617681aa62646e01626d616d4f52472d3130303033303231356276706a313131393334393030376264746a323032312d30322d313862636f624154626369783155524e3a555643493a30313a41543a31303830373834334639344145453045453530393346424332353442443831332342626d706c45552f312f32302f31353238626973781b4d696e6973747279206f66204865616c74682c20417573747269616273640262746769383430353339303036636e616da463666e74754d5553544552465241553c474f455353494e47455262666e754d7573746572667261752d47c3b6c39f696e67657263676e74684741425249454c4562676e684761627269656c656376657265312e302e3063646f626a313939382d30322d323658405812fce67cb84c3911d78e3f61f890d0c80eb9675806aebed66aa2d0d0c91d1fc98d7bcb80bf00e181806a9502e11b071325901bd0d2c1b6438747b8cc50f521"
 )
 
-
-def _generate_kid(cert_str: str) -> bytes:
-    c = x509.load_pem_x509_certificate(cert_str.encode())
-    fp = c.fingerprint(SHA256())
-    return fp[0:8]
-
-
-public_key = COSEKey.from_pem(dsc, kid=_generate_kid(dsc))
+public_key = load_pem_hcert_dsc(dsc)
 decoded = cwt.decode(eudcc, keys=[public_key])
 claims = Claims.new(decoded)
 # claims.hcert[1] ==
