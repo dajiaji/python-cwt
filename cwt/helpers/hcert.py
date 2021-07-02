@@ -11,14 +11,13 @@ def _generate_kid(cert: str) -> bytes:
     return fp[0:8]
 
 
-def load_pem_dgc_dsc(cert: str) -> COSEKeyInterface:
+def load_pem_hcert_dsc(cert: str) -> COSEKeyInterface:
     """
     Loads PEM-formatted DSC (Digital Signing Certificate) issued by CSCA
     (Certificate Signing Certificate Authority) as a COSEKey. At this time,
     the kid of the COSE key will be generated as a 8-byte truncated SHA256
-    fingerprint of the DSC complient with `Technical Specifications of Digital
-    Green Certificates Volume 1
-    <https://ec.europa.eu/health/sites/default/files/ehealth/docs/digital-green-certificates_v1_en.pdf>`_.
+    fingerprint of the DSC complient with `Electronic Health Certificate
+    Specification <https://github.com/ehn-dcc-development/hcert-spec/blob/main/hcert_spec.md>`_.
 
     Args:
         cert(str): A DSC.
