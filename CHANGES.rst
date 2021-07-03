@@ -4,6 +4,13 @@ Changes
 Unreleased
 ----------
 
+Version 1.3.0
+--------------
+
+Released 2021-07-03
+
+- Add helper for hcert. `#154 <https://github.com/dajiaji/python-cwt/pull/154>`__
+
 Version 1.2.0
 --------------
 
