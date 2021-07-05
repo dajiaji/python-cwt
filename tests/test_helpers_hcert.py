@@ -1,0 +1,45 @@
+import pytest
+
+from cwt import COSEKey, load_pem_hcert_dsc
+
+
+class TestHelperHcert:
+    def test_helpers_hcert_load_pem_hcert_dsc_es256(self):
+
+        dsc = "-----BEGIN CERTIFICATE-----\nMIIBvTCCAWOgAwIBAgIKAXk8i88OleLsuTAKBggqhkjOPQQDAjA2MRYwFAYDVQQDDA1BVCBER0MgQ1NDQSAxMQswCQYDVQQGEwJBVDEPMA0GA1UECgwGQk1TR1BLMB4XDTIxMDUwNTEyNDEwNloXDTIzMDUwNTEyNDEwNlowPTERMA8GA1UEAwwIQVQgRFNDIDExCzAJBgNVBAYTAkFUMQ8wDQYDVQQKDAZCTVNHUEsxCjAIBgNVBAUTATEwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASt1Vz1rRuW1HqObUE9MDe7RzIk1gq4XW5GTyHuHTj5cFEn2Rge37+hINfCZZcozpwQKdyaporPUP1TE7UWl0F3o1IwUDAOBgNVHQ8BAf8EBAMCB4AwHQYDVR0OBBYEFO49y1ISb6cvXshLcp8UUp9VoGLQMB8GA1UdIwQYMBaAFP7JKEOflGEvef2iMdtopsetwGGeMAoGCCqGSM49BAMCA0gAMEUCIQDG2opotWG8tJXN84ZZqT6wUBz9KF8D+z9NukYvnUEQ3QIgdBLFSTSiDt0UJaDF6St2bkUQuVHW6fQbONd731/M4nc=\n-----END CERTIFICATE-----"
+        public_key = load_pem_hcert_dsc(dsc)
+        assert public_key.alg == -7
+
+    def test_helpers_hcert_load_pem_hcert_dsc_ps256(self):
+
+        dsc = "-----BEGIN CERTIFICATE-----\nMIIEFzCCAf8CAhI8MA0GCSqGSIb3DQEBBAUAMIGDMQswCQYDVQQGEwJYWDEaMBgGA1UECAwRRXVyb3BlYW4gQ29tbWlzb24xETAPBgNVBAcMCEJydXNzZWxzMQ4wDAYDVQQKDAVESUdJVDEUMBIGA1UECwwLUGVuIFRlc3RpbmcxHzAdBgNVBAMMFlBlbiBUZXN0ZXJzIEFDQyAoQ1NDQSkwHhcNMjEwNTA3MTM0MTE0WhcNMjIwNTA3MTM0MTE0WjAeMQswCQYDVQQGEwJYWDEPMA0GA1UEAwwGUm9iZXJ0MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqrScBZXVoF4+UcbE8+eRVMsDjvdA9CvxE+f077zYJ6/xaVzNooafTvWI/QHCxNKT8diNoo1uylhvbvCY1sWsjPwCFkTJE49LGm5IetPRHX9zKTsd+fyMj2+yQxx3tkj6d9jO6hmozJhjxSMGvV0IyXIv3fsXHH3kOHpT43mf9MxFBYua4Qxci0RgGYCIJSwZk9jiHRKAFFiDf5hMcqmcezzcMDJc17FhJ7TenqbtzVfr3L9yzZLURqDylVeOit/w5PGyN+KhJRGjPqReqreaFGQsviy3VVf0wKfKMOovHobj7+DYBpyXFuUKE6u0P+3NQfnwwzt6bxLasHwhSmwCCwIDAQABMA0GCSqGSIb3DQEBBAUAA4ICAQBiKvNcpS9aVn58UbUgRLNgOkjhzd5qby/s0bV1XHT7te7rmfoPeB1wypP4XMt6Sfz1hiQcBGTnpbox4/HPkHHGgpJ5RFdFeCUYj4oqIB+MWOqpnQxKIu2f4a2TqgoW2zdvxk9eO9kdoTbxU4xQn/Y6/Wovw29B9nCiMRwa39ZGScDRMQMTbesd/6lJYtSZyjNls2Guxv4kCy3ekFktXQzsUXIrm+Yvhe68+dPgKe26S1xLNRt3kAR30HM5kB3vM8jTGiqubOe6W6YfcX4XoVfmwVfttk2BLPl0u/SXt/SsRHWuYzJ48AUXkK6vd3HR5FG39YSvEZ1Tlf9GRmR2uXO/TnnZiGd+cyjLgAPGtjg1oq0MdzlIFsoFe9cN/XVGjkmRYZ7FzdiSn6IQWUyyoGmFN5B7Q6ZdBMAb58Z3jcTwzmkkHZlfqpUSoK+Hpah515SgjwfY5s9g8vEqefWVmLlYGAiDkfaTYUie53wCXBC+xBJBL7VJnaxqmTKWwM5cRx5uZyOUs6ZQT7CKD1SDk1+C7PAevGKNFTatFn4puITVgQ0NFiIf7ZKOy1w8Zf5aVk0vP3gfOg3SK38RgD81iLTPWr07XTfMZBTaTUr+ph6hxtwSIhHVFsF6n8adl5RynuYDfCCts5E9mOGLqC7ruMKRoOIBOPEwGS5/wIhMO7UEgQ==\n-----END CERTIFICATE-----"
+        public_key = load_pem_hcert_dsc(dsc)
+        assert public_key.alg == -37
+
+    def test_helpers_hcert_load_pem_hcert_dsc_ps256_with_bytes(self):
+
+        dsc = b"-----BEGIN CERTIFICATE-----\nMIIEFzCCAf8CAhI8MA0GCSqGSIb3DQEBBAUAMIGDMQswCQYDVQQGEwJYWDEaMBgGA1UECAwRRXVyb3BlYW4gQ29tbWlzb24xETAPBgNVBAcMCEJydXNzZWxzMQ4wDAYDVQQKDAVESUdJVDEUMBIGA1UECwwLUGVuIFRlc3RpbmcxHzAdBgNVBAMMFlBlbiBUZXN0ZXJzIEFDQyAoQ1NDQSkwHhcNMjEwNTA3MTM0MTE0WhcNMjIwNTA3MTM0MTE0WjAeMQswCQYDVQQGEwJYWDEPMA0GA1UEAwwGUm9iZXJ0MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqrScBZXVoF4+UcbE8+eRVMsDjvdA9CvxE+f077zYJ6/xaVzNooafTvWI/QHCxNKT8diNoo1uylhvbvCY1sWsjPwCFkTJE49LGm5IetPRHX9zKTsd+fyMj2+yQxx3tkj6d9jO6hmozJhjxSMGvV0IyXIv3fsXHH3kOHpT43mf9MxFBYua4Qxci0RgGYCIJSwZk9jiHRKAFFiDf5hMcqmcezzcMDJc17FhJ7TenqbtzVfr3L9yzZLURqDylVeOit/w5PGyN+KhJRGjPqReqreaFGQsviy3VVf0wKfKMOovHobj7+DYBpyXFuUKE6u0P+3NQfnwwzt6bxLasHwhSmwCCwIDAQABMA0GCSqGSIb3DQEBBAUAA4ICAQBiKvNcpS9aVn58UbUgRLNgOkjhzd5qby/s0bV1XHT7te7rmfoPeB1wypP4XMt6Sfz1hiQcBGTnpbox4/HPkHHGgpJ5RFdFeCUYj4oqIB+MWOqpnQxKIu2f4a2TqgoW2zdvxk9eO9kdoTbxU4xQn/Y6/Wovw29B9nCiMRwa39ZGScDRMQMTbesd/6lJYtSZyjNls2Guxv4kCy3ekFktXQzsUXIrm+Yvhe68+dPgKe26S1xLNRt3kAR30HM5kB3vM8jTGiqubOe6W6YfcX4XoVfmwVfttk2BLPl0u/SXt/SsRHWuYzJ48AUXkK6vd3HR5FG39YSvEZ1Tlf9GRmR2uXO/TnnZiGd+cyjLgAPGtjg1oq0MdzlIFsoFe9cN/XVGjkmRYZ7FzdiSn6IQWUyyoGmFN5B7Q6ZdBMAb58Z3jcTwzmkkHZlfqpUSoK+Hpah515SgjwfY5s9g8vEqefWVmLlYGAiDkfaTYUie53wCXBC+xBJBL7VJnaxqmTKWwM5cRx5uZyOUs6ZQT7CKD1SDk1+C7PAevGKNFTatFn4puITVgQ0NFiIf7ZKOy1w8Zf5aVk0vP3gfOg3SK38RgD81iLTPWr07XTfMZBTaTUr+ph6hxtwSIhHVFsF6n8adl5RynuYDfCCts5E9mOGLqC7ruMKRoOIBOPEwGS5/wIhMO7UEgQ==\n-----END CERTIFICATE-----"
+        public_key = load_pem_hcert_dsc(dsc)
+        assert public_key.alg == -37
+
+    def test_helpers_hcert_load_pem_hcert_dsc_with_invalid_cert(self):
+        dsc = "xxx"
+        with pytest.raises(ValueError) as err:
+            load_pem_hcert_dsc(dsc)
+            pytest.fail("load_pem_hcert_dsc() should fail.")
+        assert "Invalid PEM data." in str(err.value)
+
+    def test_helpers_hcert_load_pem_hcert_with_COSEKey_from_pem(self):
+        dsc = "-----BEGIN CERTIFICATE-----\nMIIEFzCCAf8CAhI8MA0GCSqGSIb3DQEBBAUAMIGDMQswCQYDVQQGEwJYWDEaMBgGA1UECAwRRXVyb3BlYW4gQ29tbWlzb24xETAPBgNVBAcMCEJydXNzZWxzMQ4wDAYDVQQKDAVESUdJVDEUMBIGA1UECwwLUGVuIFRlc3RpbmcxHzAdBgNVBAMMFlBlbiBUZXN0ZXJzIEFDQyAoQ1NDQSkwHhcNMjEwNTA3MTM0MTE0WhcNMjIwNTA3MTM0MTE0WjAeMQswCQYDVQQGEwJYWDEPMA0GA1UEAwwGUm9iZXJ0MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqrScBZXVoF4+UcbE8+eRVMsDjvdA9CvxE+f077zYJ6/xaVzNooafTvWI/QHCxNKT8diNoo1uylhvbvCY1sWsjPwCFkTJE49LGm5IetPRHX9zKTsd+fyMj2+yQxx3tkj6d9jO6hmozJhjxSMGvV0IyXIv3fsXHH3kOHpT43mf9MxFBYua4Qxci0RgGYCIJSwZk9jiHRKAFFiDf5hMcqmcezzcMDJc17FhJ7TenqbtzVfr3L9yzZLURqDylVeOit/w5PGyN+KhJRGjPqReqreaFGQsviy3VVf0wKfKMOovHobj7+DYBpyXFuUKE6u0P+3NQfnwwzt6bxLasHwhSmwCCwIDAQABMA0GCSqGSIb3DQEBBAUAA4ICAQBiKvNcpS9aVn58UbUgRLNgOkjhzd5qby/s0bV1XHT7te7rmfoPeB1wypP4XMt6Sfz1hiQcBGTnpbox4/HPkHHGgpJ5RFdFeCUYj4oqIB+MWOqpnQxKIu2f4a2TqgoW2zdvxk9eO9kdoTbxU4xQn/Y6/Wovw29B9nCiMRwa39ZGScDRMQMTbesd/6lJYtSZyjNls2Guxv4kCy3ekFktXQzsUXIrm+Yvhe68+dPgKe26S1xLNRt3kAR30HM5kB3vM8jTGiqubOe6W6YfcX4XoVfmwVfttk2BLPl0u/SXt/SsRHWuYzJ48AUXkK6vd3HR5FG39YSvEZ1Tlf9GRmR2uXO/TnnZiGd+cyjLgAPGtjg1oq0MdzlIFsoFe9cN/XVGjkmRYZ7FzdiSn6IQWUyyoGmFN5B7Q6ZdBMAb58Z3jcTwzmkkHZlfqpUSoK+Hpah515SgjwfY5s9g8vEqefWVmLlYGAiDkfaTYUie53wCXBC+xBJBL7VJnaxqmTKWwM5cRx5uZyOUs6ZQT7CKD1SDk1+C7PAevGKNFTatFn4puITVgQ0NFiIf7ZKOy1w8Zf5aVk0vP3gfOg3SK38RgD81iLTPWr07XTfMZBTaTUr+ph6hxtwSIhHVFsF6n8adl5RynuYDfCCts5E9mOGLqC7ruMKRoOIBOPEwGS5/wIhMO7UEgQ==\n-----END CERTIFICATE-----"
+        public_key = COSEKey.from_pem(dsc, alg="PS256")
+        assert public_key.alg == -37
+
+    def test_helpers_hcert_load_pem_hcert_dsc_with_unsupported_cert(self):
+        dsc = "-----BEGIN CERTIFICATE-----\nMIIBBDCBtwIUOcchiKGSdnTvMvPyRR41dCGs7LwwBQYDK2VwMCUxCzAJBgNVBAYTAkpQMRYwFAYDVQQDDA1oY2VydC5leGFtcGxlMB4XDTIxMDcwNTEzMTM1OVoXDTMxMDcwMzEzMTM1OVowJTELMAkGA1UEBhMCSlAxFjAUBgNVBAMMDWhjZXJ0LmV4YW1wbGUwKjAFBgMrZXADIQCF3lYyJUSPHn4Hauiri7/5Jqg807DnrBQk5p0B7Gm/rjAFBgMrZXADQQCWMCmiIWFhfIVw1nZwUZrzeFUps0WOU74WCFKHcxhIHtjr6cJqxdUqjf+wORxUqdqLT3xKrYcWZjqSEYHruJkP\n-----END CERTIFICATE-----"
+        with pytest.raises(ValueError) as err:
+            load_pem_hcert_dsc(dsc)
+            pytest.fail("load_pem_hcert_dsc() should fail.")
+        assert (
+            "Unsupported or unknown key type: <class 'cryptography.hazmat.backends.openssl.ed25519._Ed25519PublicKey'>."
+            in str(err.value)
+        )
