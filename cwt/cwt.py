@@ -133,9 +133,13 @@ class CWT(CBORProcessor):
             claims (Union[Claims, Dict[str, Any], Dict[int, Any], bytes]): A CWT
                 claims object, or a JWT claims object, text string or byte string.
             key (COSEKeyInterface): A COSE key used to generate a MAC for the claims.
-            recipients (List[RecipientInterface]): A list of recipient information structures.
-            tagged (bool): An indicator whether the response is wrapped by CWT tag(61)
-                or not.
+            nonce (bytes): A nonce for encryption.
+            recipients (Optional[List[RecipientInterface]]): A list of recipient
+                information structures.
+            signers (List[Signer]): A list of signer information structures for
+                multiple signer cases.
+            tagged (bool): An indicator whether the response is wrapped by CWT
+                tag(61) or not.
         Returns:
             bytes: A byte string of the encoded CWT.
         Raises:
@@ -180,9 +184,10 @@ class CWT(CBORProcessor):
             claims (Union[Claims, Dict[int, Any], bytes]): A CWT claims object or byte
                 string.
             key (COSEKeyInterface): A COSE key used to generate a MAC for the claims.
-            recipients (List[RecipientInterface]): A list of recipient information structures.
-            tagged (bool): An indicator whether the response is wrapped by CWT tag(61)
-                or not.
+            recipients (Optional[List[RecipientInterface]]): A list of recipient
+                information structures.
+            tagged (bool): An indicator whether the response is wrapped by CWT
+                tag(61) or not.
         Returns:
             bytes: A byte string of the encoded CWT.
         Raises:
@@ -213,15 +218,15 @@ class CWT(CBORProcessor):
         Encodes CWT with signing.
 
         Args:
-            claims (Claims, Union[Dict[int, Any], bytes]): A CWT claims object or byte
-                string.
-            key (Optional[COSEKeyInterface]): A COSE key or a list of the keys used to sign claims.
-               When the ``signers`` parameter is set, this ``key`` parameter will be ignored and
-               should not be set.
-            signers (List[Signer]): A list of signer information objects for multiple
-                signer cases.
-            tagged (bool): An indicator whether the response is wrapped by CWT tag(61)
-                or not.
+            claims (Claims, Union[Dict[int, Any], bytes]): A CWT claims object or
+                byte string.
+            key (Optional[COSEKeyInterface]): A COSE key or a list of the keys
+               used to sign claims. When the ``signers`` parameter is set, this
+               ``key`` parameter will be ignored and should not be set.
+            signers (List[Signer]): A list of signer information structures for
+                multiple signer cases.
+            tagged (bool): An indicator whether the response is wrapped by CWT
+                tag(61) or not.
         Returns:
             bytes: A byte string of the encoded CWT.
         Raises:
@@ -253,13 +258,14 @@ class CWT(CBORProcessor):
         Encodes CWT with encryption.
 
         Args:
-            claims (Claims, Union[Dict[int, Any], bytes]): A CWT claims object or byte
-                string.
+            claims (Claims, Union[Dict[int, Any], bytes]): A CWT claims object or
+                byte string.
             key (COSEKeyInterface): A COSE key used to encrypt the claims.
             nonce (bytes): A nonce for encryption.
-            recipients (List[RecipientInterface]): A list of recipient information structures.
-            tagged (bool): An indicator whether the response is wrapped by CWT tag(61)
-                or not.
+            recipients (List[RecipientInterface]): A list of recipient information
+                structures.
+            tagged (bool): An indicator whether the response is wrapped by CWT
+                tag(61) or not.
         Returns:
             bytes: A byte string of the encoded CWT.
         Raises:
@@ -300,8 +306,8 @@ class CWT(CBORProcessor):
 
         Args:
             data (bytes): A byte string of an encoded CWT.
-            keys (Union[COSEKeyInterface, List[COSEKeyInterface]]): A COSE key or a list of the keys
-                used to verify and decrypt the encoded CWT.
+            keys (Union[COSEKeyInterface, List[COSEKeyInterface]]): A COSE key
+                or a list of the keys used to verify and decrypt the encoded CWT.
             no_verify (bool): An indicator whether token verification is skiped
                 or not.
         Returns:
