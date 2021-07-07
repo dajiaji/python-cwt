@@ -57,6 +57,10 @@ class COSE(CBORProcessor):
 
     @property
     def alg_auto_inclusion(self) -> bool:
+        """
+        If this property is True, an encode_and_*() function will automatically
+        set the ``alg`` parameter in the header from the COSEKey argument.
+        """
         return self._alg_auto_inclusion
 
     @alg_auto_inclusion.setter
@@ -66,6 +70,10 @@ class COSE(CBORProcessor):
 
     @property
     def kid_auto_inclusion(self) -> bool:
+        """
+        If this property is True, an encode_and_*() function will automatically
+        set the ``kid`` parameter in the header from the COSEKey argument.
+        """
         return self._kid_auto_inclusion
 
     @kid_auto_inclusion.setter
@@ -75,6 +83,11 @@ class COSE(CBORProcessor):
 
     @property
     def verify_kid(self) -> bool:
+        """
+        If this property is True, the decode() function will perform the verification
+        and decoding process only if the ``kid`` of the COSE data to be decoded and
+        one of the ``kid``s in the key list given as an argument match exact.
+        """
         return self._verify_kid
 
     @verify_kid.setter
@@ -177,20 +190,25 @@ class COSE(CBORProcessor):
 
         Args:
             payload (bytes): A content to be signed.
-            key (COSEKeyInterface): A signing key for single signer cases. When the ``signers``
-                parameter is set, this ``key`` will be ignored and should not be set.
-            protected (Optional[Union[dict, bytes]]): Parameters that are to be cryptographically
+            key (Optional[COSEKeyInterface]): A signing key for single signer
+                cases. When the ``signers`` parameter is set, this ``key`` will
+                be ignored and should not be set.
+            protected (Optional[Union[dict, bytes]]): Parameters that are to be
+                cryptographically protected.
+            unprotected (Optional[dict]): Parameters that are not cryptographically
                 protected.
-            unprotected (Optional[dict]): Parameters that are not cryptographically protected.
-            signers (Optional[List[Signer]]): A list of signer information objects for multiple
-                signer cases.
-            external_aad(bytes): External additional authenticated data supplied by application.
-            out(str): An output format. Only ``"cbor2/CBORTag"`` can be used. If ``"cbor2/CBORTag"``
-                is specified. This function will return encoded data as
-                `cbor2 <https://cbor2.readthedocs.io/en/stable/>`_'s ``CBORTag`` object.
-                If any other value is specified, it will return encoded data as bytes.
+            signers (List[Signer]): A list of signer information objects for
+                multiple signer cases.
+            external_aad(bytes): External additional authenticated data supplied
+                by application.
+            out(str): An output format. Only ``"cbor2/CBORTag"`` can be used. If
+                ``"cbor2/CBORTag"`` is specified. This function will return encoded
+                data as `cbor2 <https://cbor2.readthedocs.io/en/stable/>`_'s
+                ``CBORTag`` object. If any other value is specified, it will return
+                encoded data as bytes.
         Returns:
-            Union[bytes, CBORTag]: A byte string of the encoded COSE or a cbor2.CBORTag object.
+            Union[bytes, CBORTag]: A byte string of the encoded COSE or a
+                cbor2.CBORTag object.
         Raises:
             ValueError: Invalid arguments.
             EncodeError: Failed to encode data.
@@ -246,18 +264,23 @@ class COSE(CBORProcessor):
         Args:
             payload (bytes): A content to be encrypted.
             key (COSEKeyInterface): A COSE key as an encryption key.
-            protected (Optional[Union[dict, bytes]]): Parameters that are to be cryptographically
+            protected (Optional[Union[dict, bytes]]): Parameters that are to be
+                cryptographically protected.
+            unprotected (Optional[dict]): Parameters that are not cryptographically
                 protected.
-            unprotected (Optional[dict]): Parameters that are not cryptographically protected.
             nonce (bytes): A nonce for encryption.
-            recipients (Optional[List[RecipientInterface]]): A list of recipient information structures.
-            external_aad(bytes): External additional authenticated data supplied by application.
-            out(str): An output format. Only ``"cbor2/CBORTag"`` can be used. If ``"cbor2/CBORTag"``
-                is specified. This function will return encoded data as
-                `cbor2 <https://cbor2.readthedocs.io/en/stable/>`_'s ``CBORTag`` object.
-                If any other value is specified, it will return encoded data as bytes.
+            recipients (Optional[List[RecipientInterface]]): A list of recipient
+                information structures.
+            external_aad(bytes): External additional authenticated data supplied
+                by application.
+            out(str): An output format. Only ``"cbor2/CBORTag"`` can be used. If
+                ``"cbor2/CBORTag"`` is specified. This function will return encoded
+                data as `cbor2 <https://cbor2.readthedocs.io/en/stable/>`_'s
+                ``CBORTag`` object. If any other value is specified, it will return
+                encoded data as bytes.
         Returns:
-            Union[bytes, CBORTag]: A byte string of the encoded COSE or a cbor2.CBORTag object.
+            Union[bytes, CBORTag]: A byte string of the encoded COSE or a
+                cbor2.CBORTag object.
         Raises:
             ValueError: Invalid arguments.
             EncodeError: Failed to encode data.

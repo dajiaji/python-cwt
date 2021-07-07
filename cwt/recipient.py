@@ -36,11 +36,13 @@ class Recipient:
         sender_key: Optional[COSEKeyInterface] = None,
     ) -> RecipientInterface:
         """
-        Create a recipient from a CBOR-like dictionary with numeric keys.
+        Creates a recipient from a CBOR-like dictionary with numeric keys.
 
         Args:
             protected (dict): Parameters that are to be cryptographically protected.
             unprotected (dict): Parameters that are not cryptographically protected.
+            ciphertext (List[Any]): A cipher text.
+            sender_key (Optional[COSEKeyInterface]): A sender key as COSEKey.
         Returns:
             RecipientInterface: A recipient object.
         Raises:
@@ -69,7 +71,7 @@ class Recipient:
     @classmethod
     def from_jwk(cls, data: Union[str, bytes, Dict[str, Any]]) -> RecipientInterface:
         """
-        Create a recipient from JWK-like data.
+        Creates a recipient from JWK-like data.
 
         Args:
             data (Union[str, bytes, Dict[str, Any]]): JSON-formatted recipient data.
@@ -141,6 +143,17 @@ class Recipient:
 
     @classmethod
     def from_list(cls, recipient: List[Any]) -> RecipientInterface:
+        """
+        Creates a recipient from a raw COSE array data.
+
+        Args:
+            data (Union[str, bytes, Dict[str, Any]]): JSON-formatted recipient data.
+        Returns:
+            RecipientInterface: A recipient object.
+        Raises:
+            ValueError: Invalid arguments.
+            DecodeError: Failed to decode the key data.
+        """
         if not isinstance(recipient, list) or (
             len(recipient) != 3 and len(recipient) != 4
         ):

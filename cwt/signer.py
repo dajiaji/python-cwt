@@ -65,10 +65,10 @@ class Signer(CBORProcessor):
         signature: bytes = b"",
     ):
         """
-        Create a signer information object (COSE_Signature).
+        Creates a signer information object (COSE_Signature).
 
         Args:
-            key (COSEKey): A signature key for the signer.
+            cose_key (COSEKey): A signature key for the signer.
             protected (Union[dict, bytes]): Parameters that are to be cryptographically
                 protected.
             unprotected (dict): Parameters that are not cryptographically protected.
@@ -89,7 +89,7 @@ class Signer(CBORProcessor):
     @classmethod
     def from_jwk(cls, data: Union[str, bytes, Dict[str, Any]]):
         """
-        Create a signer information object (COSE_Signature) from JWK.
+        Creates a signer information object (COSE_Signature) from JWK.
         The ``alg`` in the JWK will be included in the protected header,
         and the ``kid`` in the JWT will be include in the unprotected header.
         If you want to include any other parameters in the protected/unprotected
@@ -128,7 +128,7 @@ class Signer(CBORProcessor):
         kid: Union[bytes, str] = b"",
     ):
         """
-        Create a signer information object (COSE_Signature) from PEM-formatted key.
+        Creates a signer information object (COSE_Signature) from PEM-formatted key.
         The ``alg`` in the JWK will be included in the protected header,
         and the ``kid`` in the JWT will be include in the unprotected header.
         If you want to include any other parameters in the protected/unprotected

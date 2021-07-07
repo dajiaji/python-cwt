@@ -71,8 +71,7 @@ class Claims:
     @classmethod
     def new(cls, claims: Dict[int, Any], private_claim_names: Dict[str, int] = {}):
         """
-        Create a Claims object from a CBOR-like(Dict[int, Any]) claim object.
-
+        Creates a Claims object from a CBOR-like(Dict[int, Any]) claim object.
 
         Args:
             claims (Dict[str, Any]): A CBOR-like(Dict[int, Any]) claim object.
@@ -115,7 +114,6 @@ class Claims:
                 The claim key should be less than -65536 but you  can use the
                 numbers other than pre-registered numbers listed in
                 `IANA Registry <https://www.iana.org/assignments/cose/cose.xhtml>`_.
-
 
         Returns:
             Claims: A CWT claims object.
@@ -242,4 +240,10 @@ class Claims:
         return self._claims.get(int_key, None) if int_key != 0 else None
 
     def to_dict(self) -> Dict[int, Any]:
+        """
+        Returns a raw claim object.
+
+        Returns:
+            Any: The value of the raw claim.
+        """
         return self._claims

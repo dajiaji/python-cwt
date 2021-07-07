@@ -92,10 +92,16 @@ class RecipientInterface(CBORProcessor):
 
     @property
     def kid(self) -> bytes:
+        """
+        The key identifier.
+        """
         return self._kid
 
     @property
     def alg(self) -> int:
+        """
+        The algorithm that is used with the key.
+        """
         return self._alg
 
     @property
