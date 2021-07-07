@@ -86,7 +86,7 @@ class COSE(CBORProcessor):
         """
         If this property is True, the decode() function will perform the verification
         and decoding process only if the ``kid`` of the COSE data to be decoded and
-        one of the ``kid``s in the key list given as an argument match exact.
+        one of the ``kid`` s in the key list given as an argument match exact.
         """
         return self._verify_kid
 
