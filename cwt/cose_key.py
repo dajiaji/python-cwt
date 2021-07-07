@@ -38,7 +38,7 @@ class COSEKey:
     @staticmethod
     def new(params: Dict[int, Any]) -> COSEKeyInterface:
         """
-        Create a COSE key from a CBOR-like dictionary with numeric keys.
+        Creates a COSE key from a CBOR-like dictionary with numeric keys.
 
         Args:
             params (Dict[int, Any]): A CBOR-like dictionary with numeric keys
@@ -87,14 +87,16 @@ class COSEKey:
         key_ops: Optional[Union[List[int], List[str]]] = None,
     ) -> COSEKeyInterface:
         """
-        Create a COSE key from a symmetric key.
+        Creates a COSE key from a symmetric key.
 
         Args:
             key (Union[bytes, str]): A key bytes or string.
-            alg (Union[int, str]): An algorithm label(int) or name(str). Supported ``alg`` are listed
-                in `Supported COSE Algorithms <https://python-cwt.readthedocs.io/en/stable/algorithms.html>`_.
+            alg (Union[int, str]): An algorithm label(int) or name(str).
+                Supported ``alg`` are listed in
+                `Supported COSE Algorithms <https://python-cwt.readthedocs.io/en/stable/algorithms.html>`_.
             kid (Union[bytes, str]): A key identifier.
-            key_ops (Union[List[int], List[str]]): A list of key operation values. Following values can be used:
+            key_ops (Union[List[int], List[str]]): A list of key operation values.
+                Following values can be used:
                 ``1("sign")``, ``2("verify")``, ``3("encrypt")``, ``4("decrypt")``, ``5("wrap key")``,
                 ``6("unwrap key")``, ``7("derive key")``, ``8("derive bits")``,
                 ``9("MAC create")``, ``10("MAC verify")``
@@ -137,7 +139,7 @@ class COSEKey:
     @classmethod
     def from_bytes(cls, key_data: bytes) -> COSEKeyInterface:
         """
-        Create a COSE key from CBOR-formatted key data.
+        Creates a COSE key from CBOR-formatted key data.
 
         Args:
             key_data (bytes): CBOR-formatted key data.
@@ -153,7 +155,7 @@ class COSEKey:
     @classmethod
     def from_jwk(cls, data: Union[str, bytes, Dict[str, Any]]) -> COSEKeyInterface:
         """
-        Create a COSE key from JWK (JSON Web Key).
+        Creates a COSE key from JWK (JSON Web Key).
 
         Args:
             jwk (Union[str, bytes, Dict[str, Any]]): JWK-formatted key data.
@@ -174,7 +176,7 @@ class COSEKey:
         key_ops: Optional[Union[List[int], List[str]]] = None,
     ) -> COSEKeyInterface:
         """
-        Create a COSE key from PEM-formatted key data.
+        Creates a COSE key from PEM-formatted key data.
 
         Args:
             key_data (bytes): A PEM-formatted key data.

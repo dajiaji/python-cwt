@@ -26,10 +26,13 @@ class EncryptedCOSEKey(CBORProcessor):
 
         Args:
             key: COSEKeyInterface: A key to be encrypted.
-            encryption_key: COSEKeyInterface: An encryption key to encrypt the target COSE key.
+            encryption_key: COSEKeyInterface: An encryption key to encrypt the
+                target COSE key.
             nonce (bytes): A nonce for encryption.
+            tagged (bool): An indicator whether the response is wrapped by CWT
+                tag(61) or not.
         Returns:
-            List[Any]: A COSE_Encrypt0 structure of the target COSE key.
+            Union[List[Any], bytes]: A COSE_Encrypt0 structure of the target COSE key.
         Raises:
             ValueError: Invalid arguments.
             EncodeError: Failed to encrypt the COSE key.
