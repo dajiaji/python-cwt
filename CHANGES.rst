@@ -4,6 +4,11 @@ Changes
 Unreleased
 ----------
 
+Version 1.3.1
+--------------
+
+Released 2021-07-07
+
 - Fix docstring for CWT, COSE, etc. `#158 <https://github.com/dajiaji/python-cwt/pull/158>`__
 - Add PS256 support for hcert. `#156 <https://github.com/dajiaji/python-cwt/pull/156>`__
 
