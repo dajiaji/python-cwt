@@ -1,16 +1,15 @@
 import json
 import os
-
-from base45 import b45decode
-import requests
 import zlib
+
+import requests
+from base45 import b45decode
 
 import cwt
 from cwt import load_pem_hcert_dsc
 
 
 class Verifier:
-
     def __init__(self, base_url: str, trustlist_store_path: str):
         self._base_url = base_url
         self._trustlist_store_path = trustlist_store_path
