@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 
+- Add sample of EUDCC verifier. `#160 <https://github.com/dajiaji/python-cwt/pull/160>`__
+
 Version 1.3.1
 --------------
 
