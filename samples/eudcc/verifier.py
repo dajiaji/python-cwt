@@ -41,7 +41,7 @@ class Verifier:
             if status == 204:
                 break
             if status != 200:
-                raise Exception("Received %d from signercertificateUpdate" % status)
+                raise Exception(f"Received {status} from signercertificateUpdate")
 
             x_resume_token = r.headers["X-RESUME-TOKEN"]
             self._trustlist.append(
@@ -55,7 +55,7 @@ class Verifier:
         # Filter expired/revoked DSCs
         r = requests.get(self._base_url + "/signercertificateStatus")
         if r.status_code != 200:
-            raise Exception("Received %d from signercertificateStatus" % r.status_code)
+            raise Exception(f"Received {r.status_code} from signercertificateStatus")
         active_kids = r.json()
         self._dscs = []
         for v in self._trustlist:
