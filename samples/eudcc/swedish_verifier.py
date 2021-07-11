@@ -2,14 +2,15 @@ import json
 import os
 import zlib
 
+import jwt
 import requests
 from base45 import b45decode
 
 import cwt
-from cwt import load_pem_hcert_dsc
+from cwt import COSEKey
 
 
-class Verifier:
+class SwedishVerifier:
     def __init__(self, base_url: str, trustlist_store_path: str):
         self._base_url = base_url
         self._trustlist_store_path = trustlist_store_path
@@ -22,53 +23,39 @@ class Verifier:
         return cls(base_url, trustlist_store_path)
 
     def refresh_trustlist(self):
-        status = 200
-        headers = None
-
-        # Get new DSCs
-        x_resume_token = (
-            self._trustlist[len(self._trustlist) - 1]["x_resume_token"]
-            if self._trustlist
-            else ""
-        )
-        while status == 200:
-            if x_resume_token:
-                headers = {"X-RESUME-TOKEN": x_resume_token}
-            r = requests.get(
-                self._base_url + "/signercertificateUpdate", headers=headers
-            )
-            status = r.status_code
-            if status == 204:
-                break
-            if status != 200:
-                raise Exception(f"Received {status} from signercertificateUpdate")
-
-            x_resume_token = r.headers["X-RESUME-TOKEN"]
-            self._trustlist.append(
-                {
-                    "x_kid": r.headers["X-KID"],
-                    "x_resume_token": x_resume_token,
-                    "dsc": r.text,
-                }
-            )
-
-        # Filter expired/revoked DSCs
-        r = requests.get(self._base_url + "/signercertificateStatus")
-        if r.status_code != 200:
-            raise Exception(f"Received {r.status_code} from signercertificateStatus")
-        active_kids = r.json()
         self._dscs = []
-        for v in self._trustlist:
-            if v["x_kid"] not in active_kids:
-                continue
-            dsc = f"-----BEGIN CERTIFICATE-----\n{v['dsc']}\n-----END CERTIFICATE-----"
-            self._dscs.append(load_pem_hcert_dsc(dsc))
+        self._trustlist = []
+
+        # Get a trust-list signer certificate.
+        r = requests.get(self._base_url + "/cert")
+        if r.status_code != 200:
+            raise Exception(f"Received {r.status_code} from /cert")
+        key = r.text
+        cose_key = COSEKey.from_pem(key)
+
+        # Get DSCs
+        r = requests.get(self._base_url + "/trust-list")
+        if r.status_code != 200:
+            raise Exception(f"Received {r.status_code} from /trust-list")
+        decoded = jwt.decode(
+            r.text,
+            cose_key.key,
+            algorithms=["ES256"],
+            options={"verify_aud": False},
+        )
+        for v in decoded["dsc_trust_list"].values():
+            for k in v["keys"]:
+                if "use" in k and k["use"] == "enc":
+                    # Workaround for Swedish DSC.
+                    del k["use"]
+                if k["kty"] == "RSA":
+                    k["alg"] = "PS256"
+                self._dscs.append(COSEKey.from_jwk(k))
+            self._trustlist.append(k)
 
         # Update trustlist store.
         with open(self._trustlist_store_path, "w") as f:
-            json.dump(
-                [v for v in self._trustlist if v["x_kid"] in active_kids], f, indent=4
-            )
+            json.dump(self._trustlist, f, indent=4)
         return
 
     def verify_and_decode(self, eudcc: bytes) -> bytes:
@@ -84,6 +71,7 @@ class Verifier:
         try:
             with open(self._trustlist_store_path) as f:
                 self._trustlist = json.load(f)
+            self._dscs = [COSEKey.from_jwk(k) for k in self._trustlist]
         except Exception as err:
             if type(err) != FileNotFoundError:
                 raise err
@@ -92,7 +80,7 @@ class Verifier:
 
 
 # An endpoint of Digital Green Certificate Verifier Service compliant with:
-# https://eu-digital-green-certificates.github.io/dgca-verifier-service/
+# https://github.com/DIGGSweden/dgc-trust/blob/main/specifications/trust-list.md
 BASE_URL = os.environ["CWT_SAMPLES_EUDCC_BASE_URL"]
 
 # e.g., "./dscs.json"
@@ -105,7 +93,7 @@ BASE45_FORMATTED_EUDCC = b"HC1:NCFOXN%TS3DH3ZSUZK+.V0ETD%65NL-AH-R6IOOK.IR9B+9G4
 # )
 
 if __name__ == "__main__":
-    v = Verifier.new(BASE_URL, TRUSTLIST_STORE_PATH)
+    v = SwedishVerifier.new(BASE_URL, TRUSTLIST_STORE_PATH)
     v.refresh_trustlist()
     try:
         res = v.verify_and_decode(BASE45_FORMATTED_EUDCC)  # or RAW_EUDCC
