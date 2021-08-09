@@ -246,7 +246,7 @@ class TestRecipient:
 
     def test_recipient_from_jwk_with_dict(self):
         recipient = Recipient.from_jwk(
-                {"kty": "oct", "kid": b"01", "alg": "A128KW", "key_ops": ["wrapKey"]}
+            {"kty": "oct", "kid": b"01", "alg": "A128KW", "key_ops": ["wrapKey"]}
         )
         assert isinstance(recipient, RecipientInterface)
         assert recipient.alg == -3
