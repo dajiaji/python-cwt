@@ -501,6 +501,15 @@ class TestCOSEKey:
         except Exception:
             pytest.fail("from_jwk should not fail.")
 
+    def test_key_builder_from_jwk_with_byte_formatted_kid(self):
+        try:
+            with open(key_path("public_key_ed25519.json")) as key_file:
+                obj = json.loads(key_file.read())
+                obj["kid"] = b"01"
+                COSEKey.from_jwk(obj)
+        except Exception:
+            pytest.fail("from_jwk should not fail.")
+
     def test_key_builder_from_jwk_with_key_ops(self):
         try:
             with open(key_path("public_key_ed25519.json")) as key_file:
@@ -580,7 +589,7 @@ class TestCOSEKey:
         [
             ({}, "kty not found."),
             ({"kty": "xxx"}, "Unknown kty: xxx."),
-            ({"kty": "OKP", "kid": 123}, "kid should be str."),
+            ({"kty": "OKP", "kid": 123}, "kid should be str or bytes."),
             ({"kty": "OKP", "kid": "123", "alg": 123}, "alg should be str."),
             ({"kty": "OKP", "alg": 123}, "alg should be str."),
             (

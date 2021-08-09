@@ -205,9 +205,12 @@ def jwk_to_cose_key_params(data: Union[str, bytes, Dict[str, Any]]) -> Dict[int,
 
     # kid
     if "kid" in jwk:
-        if not isinstance(jwk["kid"], str):
-            raise ValueError("kid should be str.")
-        cose_key[2] = jwk["kid"].encode("utf-8")
+        if not isinstance(jwk["kid"], (str, bytes)):
+            raise ValueError("kid should be str or bytes.")
+        if isinstance(jwk["kid"], str):
+            cose_key[2] = jwk["kid"].encode("utf-8")
+        else:
+            cose_key[2] = jwk["kid"]
 
     # alg
     if "alg" in jwk:

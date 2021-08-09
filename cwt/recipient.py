@@ -110,9 +110,12 @@ class Recipient:
 
         # kid
         if "kid" in recipient:
-            if not isinstance(recipient["kid"], str):
-                raise ValueError("kid should be str.")
-            unprotected[4] = recipient["kid"].encode("utf-8")
+            if not isinstance(recipient["kid"], (str, bytes)):
+                raise ValueError("kid should be str or bytes.")
+            if isinstance(recipient["kid"], str):
+                unprotected[4] = recipient["kid"].encode("utf-8")
+            else:
+                unprotected[4] = recipient["kid"]
 
         # salt
         if "salt" in recipient:

@@ -244,6 +244,14 @@ class TestRecipient:
         assert isinstance(recipient, RecipientInterface)
         assert recipient.alg == -3
 
+    def test_recipient_from_jwk_with_dict(self):
+        recipient = Recipient.from_jwk(
+                {"kty": "oct", "kid": b"01", "alg": "A128KW", "key_ops": ["wrapKey"]}
+        )
+        assert isinstance(recipient, RecipientInterface)
+        assert recipient.alg == -3
+        assert recipient.kid == b"01"
+
     def test_recipient_from_jwk_with_context(self):
         recipient = Recipient.from_jwk(
             {
@@ -361,11 +369,11 @@ class TestRecipient:
             ),
             (
                 {"alg": "direct", "kid": 123},
-                "kid should be str.",
+                "kid should be str or bytes.",
             ),
             (
                 {"kty": "oct", "alg": "A128KW", "kid": 123},
-                "kid should be str.",
+                "kid should be str or bytes.",
             ),
             (
                 {"kty": "oct", "alg": "A128KW", "salt": 123},
