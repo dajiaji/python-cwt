@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Add support for byte-formatted kid on from_jwk(). `#165 <https://github.com/dajiaji/python-cwt/pull/165>`__
 - Add sample of EUDCC verifier. `#160 <https://github.com/dajiaji/python-cwt/pull/160>`__
 
 Version 1.3.1
