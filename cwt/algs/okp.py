@@ -200,7 +200,7 @@ class OKPKey(COSEKeyInterface):
 
         cose_key[1] = COSE_KEY_TYPES["OKP"]
         cose_key[-1] = 6  # Ed25519
-        if isinstance(k, Ed25519PublicKey) or isinstance(k, Ed25519PrivateKey):
+        if isinstance(k, (Ed25519PublicKey, Ed25519PrivateKey)):
             cose_key[-1] = 6  # Ed25519
             if isinstance(k, Ed25519PublicKey):
                 cose_key[-2] = k.public_bytes(Encoding.Raw, PublicFormat.Raw)
@@ -211,7 +211,7 @@ class OKPKey(COSEKeyInterface):
                 cose_key[-4] = k.private_bytes(
                     Encoding.Raw, PrivateFormat.Raw, NoEncryption()
                 )
-        elif isinstance(k, Ed448PublicKey) or isinstance(k, Ed448PrivateKey):
+        elif isinstance(k, (Ed448PublicKey, Ed448PrivateKey)):
             cose_key[-1] = 7  # Ed448
             if isinstance(k, Ed448PublicKey):
                 cose_key[-2] = k.public_bytes(Encoding.Raw, PublicFormat.Raw)
@@ -222,7 +222,7 @@ class OKPKey(COSEKeyInterface):
                 cose_key[-4] = k.private_bytes(
                     Encoding.Raw, PrivateFormat.Raw, NoEncryption()
                 )
-        elif isinstance(k, X25519PublicKey) or isinstance(k, X25519PrivateKey):
+        elif isinstance(k, (X25519PublicKey, X25519PrivateKey)):
             cose_key[-1] = 4  # X25519
             if isinstance(k, X25519PublicKey):
                 cose_key[-2] = k.public_bytes(Encoding.Raw, PublicFormat.Raw)
@@ -233,7 +233,7 @@ class OKPKey(COSEKeyInterface):
                 cose_key[-4] = k.private_bytes(
                     Encoding.Raw, PrivateFormat.Raw, NoEncryption()
                 )
-        elif isinstance(k, X448PublicKey) or isinstance(k, X448PrivateKey):
+        elif isinstance(k, (X448PublicKey, X448PrivateKey)):
             cose_key[-1] = 5  # X448
             if isinstance(k, X448PublicKey):
                 cose_key[-2] = k.public_bytes(Encoding.Raw, PublicFormat.Raw)
