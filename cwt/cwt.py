@@ -28,7 +28,10 @@ class CWT(CBORProcessor):
     CBOR_TAG = 61
 
     def __init__(
-        self, expires_in: int = CWT_DEFAULT_EXPIRES_IN, leeway: int = CWT_DEFAULT_LEEWAY
+        self,
+        expires_in: int = CWT_DEFAULT_EXPIRES_IN,
+        leeway: int = CWT_DEFAULT_LEEWAY,
+        ca_certs: str = "",
     ):
         if not isinstance(expires_in, int):
             raise ValueError("expires_in should be int.")
@@ -43,13 +46,19 @@ class CWT(CBORProcessor):
         self._leeway = leeway
 
         self._cose = COSE(
-            kid_auto_inclusion=True, alg_auto_inclusion=True, verify_kid=True
+            kid_auto_inclusion=True,
+            alg_auto_inclusion=True,
+            verify_kid=True,
+            ca_certs=ca_certs,
         )
         self._claim_names: Dict[str, int] = {}
 
     @classmethod
     def new(
-        cls, expires_in: int = CWT_DEFAULT_EXPIRES_IN, leeway: int = CWT_DEFAULT_LEEWAY
+        cls,
+        expires_in: int = CWT_DEFAULT_EXPIRES_IN,
+        leeway: int = CWT_DEFAULT_LEEWAY,
+        ca_certs: str = "",
     ):
         """
         Constructor.
@@ -59,6 +68,10 @@ class CWT(CBORProcessor):
                 (default value: ``3600``).
             leeway(int): The default leeway in seconds for validating
                 ``exp`` and ``nbf`` (default value: ``60``).
+            ca_certs(str): The path to a file which contains a concatenated list
+                of trusted root certificates. You should specify private CA
+                certificates in your target system. There should be no need to
+                use the public CA certificates for the Web PKI.
 
         Examples:
 
@@ -69,8 +82,17 @@ class CWT(CBORProcessor):
             ...     {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"},
             ...     key,
             ... )
+
+
+            >>> from cwt import CWT, COSEKey
+            >>> ctx = CWT.new(expires_in=3600*24, leeway=10, ca_certs="/path/to/ca_certs")
+            >>> key = COSEKey.from_pem(alg="ES256")
+            >>> token = ctx.encode(
+            ...     {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"},
+            ...     key,
+            ... )
         """
-        return cls(expires_in, leeway)
+        return cls(expires_in, leeway, ca_certs)
 
     @property
     def expires_in(self) -> int:

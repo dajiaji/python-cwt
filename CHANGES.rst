@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 
+- Add support for x5c. `#174 <https://github.com/dajiaji/python-cwt/pull/174>`__
+
 Version 1.3.2
 --------------
 

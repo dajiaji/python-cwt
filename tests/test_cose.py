@@ -227,6 +227,12 @@ class TestCOSE:
             pytest.fail("COSE() should fail.")
         assert "verify_kid should be bool." in str(err.value)
 
+    def test_cose_constructor_with_invalid_ca_certs(self):
+        with pytest.raises(ValueError) as err:
+            COSE.new(ca_certs=b"xxx")
+            pytest.fail("COSE() should fail.")
+        assert "ca_certs should be str." in str(err.value)
+
     @pytest.mark.parametrize(
         "invalid, msg",
         [
@@ -766,6 +772,16 @@ class TestCOSE:
             private_key = COSEKey.from_pem(key_file.read())
         encoded = ctx.encode_and_sign(b"Hello world!", private_key)
         decoded = ctx.decode(encoded, [key1, key2])
+        assert decoded == b"Hello world!"
+
+    def test_cose_decode_signature1_with_ca_certs_without_kid(self):
+        with open(key_path("cert_es256.pem")) as key_file:
+            public_key = COSEKey.from_pem(key_file.read())
+        with open(key_path("private_key_cert_es256.pem")) as key_file:
+            private_key = COSEKey.from_pem(key_file.read())
+        ctx = COSE.new(alg_auto_inclusion=True, ca_certs=key_path("cacert.pem"))
+        encoded = ctx.encode_and_sign(b"Hello world!", private_key)
+        decoded = ctx.decode(encoded, [public_key])
         assert decoded == b"Hello world!"
 
     def test_cose_decode_signature1_with_different_multiple_keys(self, ctx):

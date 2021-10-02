@@ -181,6 +181,26 @@ class COSEKeyInterface(CBORProcessor):
         """
         raise NotImplementedError
 
+    def validate_certificate(self, ca_certs: List[bytes]) -> bool:
+        """
+        Validate a certificate bound to the key with given trusted CA
+        certificates if the key has `x5c` parameter.
+
+        Args:
+            ca_certs(List[bytes]): A list of DER-formatted trusted root CA
+                certificates which contains a concatenated list of trusted root
+                certificates. You should specify private CA certificates in your
+                target system. There should be no need to use the public CA
+                certificates for the Web PKI.
+        Returns:
+            bool: The indicator whether the validation is done or not.
+        Raises:
+            NotImplementedError: Not implemented.
+            ValueError: Invalid arguments.
+            VerifyError: Failed to verify.
+        """
+        raise NotImplementedError
+
     def encrypt(self, msg: bytes, nonce: bytes, aad: bytes) -> bytes:
         """
         Encrypts the specified message.

@@ -24,10 +24,11 @@ from ..const import (
 from ..cose_key_interface import COSEKeyInterface
 from ..exceptions import EncodeError, VerifyError
 from ..utils import i2osp, os2ip, to_cis
+from .asymmetric import AsymmetricKey
 from .symmetric import AESCCMKey, AESGCMKey, ChaCha20Key, HMACKey
 
 
-class EC2Key(COSEKeyInterface):
+class EC2Key(AsymmetricKey):
 
     _ACCEPTABLE_PUBLIC_KEY_OPS = [
         COSE_KEY_OPERATION_VALUES["verify"],

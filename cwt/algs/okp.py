@@ -34,10 +34,11 @@ from ..const import (  # COSE_KEY_LEN,
 from ..cose_key_interface import COSEKeyInterface
 from ..exceptions import EncodeError, VerifyError
 from ..utils import to_cis
+from .asymmetric import AsymmetricKey
 from .symmetric import AESCCMKey, AESGCMKey, ChaCha20Key, HMACKey
 
 
-class OKPKey(COSEKeyInterface):
+class OKPKey(AsymmetricKey):
 
     _ACCEPTABLE_PUBLIC_KEY_OPS = [
         COSE_KEY_OPERATION_VALUES["verify"],
