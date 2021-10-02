@@ -19,7 +19,6 @@ import cwt
 from cwt import COSE, COSEKey, DecodeError, EncodeError, Recipient, VerifyError
 from cwt.recipient_interface import RecipientInterface
 from cwt.signer import Signer
-from cwt.utils import base64url_decode
 
 from .utils import key_path
 

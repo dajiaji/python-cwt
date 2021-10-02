@@ -8,20 +8,14 @@ Tests for COSE.
 """
 
 import base64
-import datetime
-from secrets import token_bytes
 
 import cbor2
 import pytest
-from cbor2 import CBORTag
 
-import cwt
-from cwt import COSE, COSEKey, DecodeError, EncodeError, Recipient, VerifyError
+from cwt import COSE, COSEKey, Recipient
 from cwt.recipient_interface import RecipientInterface
 from cwt.signer import Signer
 from cwt.utils import base64url_decode
-
-from .utils import key_path
 
 
 @pytest.fixture(scope="session", autouse=True)
