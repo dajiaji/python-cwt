@@ -11,7 +11,7 @@ from secrets import token_bytes
 import pytest
 
 import cwt
-from cwt import CWT, Claims, COSEKey, EncryptedCOSEKey, load_pem_hcert_dsc
+from cwt import CWT, Claims, COSEKey, EncryptedCOSEKey, VerifyError, load_pem_hcert_dsc
 
 from .utils import key_path, now
 
@@ -182,6 +182,64 @@ class TestSample:
 
         decoded = cwt.decode(token, public_key)
         assert 1 in decoded and decoded[1] == "coaps://as.example"
+
+    def test_sample_readme_signed_cwt_es256_with_cert(self):
+        # with open(key_path("cacert.pem")) as f:
+        #     k1 = x509.load_pem_x509_certificate(f.read().encode("utf-8"))
+
+        # with open(key_path("cert_es256.pem")) as f:
+        #     k2 = x509.load_pem_x509_certificate(f.read().encode("utf-8"))
+
+        # x5c = [
+        #     base64url_encode(k1.public_bytes(serialization.Encoding.DER)).decode("utf-8"),
+        #     base64url_encode(k2.public_bytes(serialization.Encoding.DER)).decode("utf-8"),
+        # ]
+
+        with open(key_path("private_key_cert_es256.pem")) as f:
+            private_key = COSEKey.from_pem(f.read(), kid="P-256-01")
+
+        with open(key_path("cert_es256.json")) as f:
+            public_key = COSEKey.from_jwk(f.read())
+
+        token = cwt.encode(
+            {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
+        )
+
+        decoder = CWT.new(ca_certs=key_path("cacert.pem"))
+        decoded = decoder.decode(token, public_key)
+        assert 1 in decoded and decoded[1] == "coaps://as.example"
+
+    def test_sample_readme_signed_cwt_es256_with_cert_without_intermediates(self):
+        with open(key_path("private_key_cert_es256.pem")) as f:
+            private_key = COSEKey.from_pem(f.read(), kid="P-256-01")
+
+        with open(key_path("cert_es256_2.json")) as f:
+            public_key = COSEKey.from_jwk(f.read())
+
+        token = cwt.encode(
+            {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
+        )
+
+        decoder = CWT.new(ca_certs=key_path("cacert.pem"))
+        decoded = decoder.decode(token, public_key)
+        assert 1 in decoded and decoded[1] == "coaps://as.example"
+
+    def test_sample_readme_signed_cwt_es256_with_another_ca_cert(self):
+        with open(key_path("private_key_cert_es256.pem")) as f:
+            private_key = COSEKey.from_pem(f.read(), kid="P-256-01")
+
+        with open(key_path("cert_es256.json")) as f:
+            public_key = COSEKey.from_jwk(f.read())
+
+        token = cwt.encode(
+            {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
+        )
+
+        decoder = CWT.new(ca_certs=key_path("cacert_2.pem"))
+        with pytest.raises(VerifyError) as err:
+            decoder.decode(token, public_key)
+            pytest.fail("decode() should fail.")
+        assert "Failed to validate the certificate bound to the key." in str(err.value)
 
     def test_sample_readme_signed_cwt_es384_old(self):
         with open(key_path("private_key_es384.pem")) as key_file:

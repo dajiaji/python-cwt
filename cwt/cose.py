@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional, Union
 
+from asn1crypto import pem
 from cbor2 import CBORTag
 
 from .cbor_processor import CBORProcessor
@@ -22,6 +23,7 @@ class COSE(CBORProcessor):
         alg_auto_inclusion: bool = False,
         kid_auto_inclusion: bool = False,
         verify_kid: bool = False,
+        ca_certs: str = "",
     ):
         if not isinstance(alg_auto_inclusion, bool):
             raise ValueError("alg_auto_inclusion should be bool.")
@@ -35,12 +37,22 @@ class COSE(CBORProcessor):
             raise ValueError("verify_kid should be bool.")
         self._verify_kid = verify_kid
 
+        self._ca_certs = []
+        if ca_certs:
+            if not isinstance(ca_certs, str):
+                raise ValueError("ca_certs should be str.")
+            self._trust_roots: List[bytes] = []
+            with open(ca_certs, "rb") as f:
+                for _, _, der_bytes in pem.unarmor(f.read(), multiple=True):
+                    self._ca_certs.append(der_bytes)
+
     @classmethod
     def new(
         cls,
         alg_auto_inclusion: bool = False,
         kid_auto_inclusion: bool = False,
         verify_kid: bool = False,
+        ca_certs: str = "",
     ):
         """
         Constructor.
@@ -52,8 +64,12 @@ class COSE(CBORProcessor):
                 in a proper header bucket automatically or not.
             verify_kid(bool): The indicator whether ``kid`` verification is mandatory or
                 not.
+            ca_certs(str): The path to a file which contains a concatenated list
+                of trusted root certificates. You should specify private CA
+                certificates in your target system. There should be no need to
+                use the public CA certificates for the Web PKI.
         """
-        return cls(alg_auto_inclusion, kid_auto_inclusion, verify_kid)
+        return cls(alg_auto_inclusion, kid_auto_inclusion, verify_kid, ca_certs)
 
     @property
     def alg_auto_inclusion(self) -> bool:
@@ -487,6 +503,8 @@ class COSE(CBORProcessor):
                     if k.kid != kid:
                         continue
                     try:
+                        if self._ca_certs:
+                            k.validate_certificate(self._ca_certs)
                         k.verify(to_be_signed, data.value[3])
                         return data.value[2]
                     except Exception as e:
@@ -494,6 +512,8 @@ class COSE(CBORProcessor):
                 raise err
             for i, k in enumerate(keys):
                 try:
+                    if self._ca_certs:
+                        k.validate_certificate(self._ca_certs)
                     k.verify(to_be_signed, data.value[3])
                     return data.value[2]
                 except Exception as e:

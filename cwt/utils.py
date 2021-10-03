@@ -283,4 +283,12 @@ def jwk_to_cose_key_params(data: Union[str, bytes, Dict[str, Any]]) -> Dict[int,
         if use != 0:
             cose_key[4] = []
             cose_key[4].append(use)
+    if "x5c" in jwk:
+        if not isinstance(jwk["x5c"], list):
+            raise ValueError("x5c should be a list of str.")
+        cose_key[33] = []
+        for v in jwk["x5c"]:
+            if not isinstance(v, str):
+                raise ValueError("x5c should be a list of str.")
+            cose_key[33].append(base64url_decode(v))
     return cose_key

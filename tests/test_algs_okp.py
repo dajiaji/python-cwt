@@ -3,6 +3,7 @@ Tests for OKPKey.
 """
 import cbor2
 import pytest
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from cwt.algs.okp import OKPKey
 from cwt.cose_key import COSEKey
@@ -36,6 +37,7 @@ class TestOKPKey:
         )
         assert private_key.kty == 1
         assert private_key.kid is None
+        assert isinstance(private_key.key, Ed25519PrivateKey)
         assert private_key.alg == -8
         assert private_key.crv == 6
         assert len(private_key.key_ops) == 2
@@ -208,6 +210,31 @@ class TestOKPKey:
             public_key_obj[-2]
             == b'"B\xe6sI%\xbcC\x17bw\x870\xa0\x01\xe9\xe3\xe8\x86\xbc\x80\xc0\x03\xd5{jQI\xf7\xc8\r\x8e\x8d\xae7\x985eW\xe4\x9f\x9f\x1b\x83U\xd8\xea\x14\xef\xb0\xbc\xf0\r&\xbf\x12'
         )
+
+    def test_okp_key_validate_certificate_with_empty_ca_certs(self):
+        public_key = OKPKey(
+            {
+                1: 1,
+                3: -8,
+                -1: 6,
+                -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+            }
+        )
+        with pytest.raises(ValueError) as err:
+            public_key.validate_certificate(ca_certs=[])
+            pytest.fail("validate_certificate() should fail.")
+        assert "ca_certs should be set." in str(err.value)
+
+    def test_okp_key_validate_certificate_without_x5c(self):
+        public_key = OKPKey(
+            {
+                1: 1,
+                3: -8,
+                -1: 6,
+                -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+            }
+        )
+        assert public_key.validate_certificate(ca_certs=[b"xxxxx"]) is False
 
     @pytest.mark.parametrize(
         "alg",
@@ -511,6 +538,18 @@ class TestOKPKey:
                     4: [7, 8],
                 },
                 "Invalid key_ops for public key.",
+            ),
+            (
+                {
+                    1: 1,
+                    3: -25,
+                    -1: 4,
+                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    -4: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
+                    33: 123,
+                    4: [7, 8],
+                },
+                "x5c(33) should be bytes(bstr) or list.",
             ),
             (
                 {

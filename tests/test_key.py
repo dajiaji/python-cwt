@@ -57,6 +57,9 @@ class TestCOSEKeyInterface:
         with pytest.raises(NotImplementedError):
             key.derive_key([], b"material")
             pytest.fail("COSEKeyInterface.derive_key() should fail.")
+        with pytest.raises(NotImplementedError):
+            key.validate_certificate("/path/to/ca_certs")
+            pytest.fail("COSEKeyInterface.validate_certificate() should fail.")
 
     def test_cose_key_constructor_with_alg_and_iv(self):
         key = COSEKeyInterface({1: 1, 2: b"123", 3: 1, 5: b"aabbccddee"})

@@ -626,6 +626,28 @@ class TestCOSEKey:
                 },
                 "use and key_ops are conflicted each other.",
             ),
+            (
+                {
+                    "kty": "OKP",
+                    "kid": "123",
+                    "crv": "Ed25519",
+                    "use": "sig",
+                    "key_ops": ["verify"],
+                    "x5c": 123,
+                },
+                "x5c should be a list of str.",
+            ),
+            (
+                {
+                    "kty": "OKP",
+                    "kid": "123",
+                    "crv": "Ed25519",
+                    "use": "sig",
+                    "key_ops": ["verify"],
+                    "x5c": [123],
+                },
+                "x5c should be a list of str.",
+            ),
             # (
             #     {"kty": "oct", "kid": "123"},
             #     "k is not found or invalid format.",
