@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 
+- Add py.typed for PEP561. `#176 <https://github.com/dajiaji/python-cwt/pull/176>`__
+
 Version 1.4.0
 -------------
 
