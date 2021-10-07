@@ -1,5 +1,5 @@
 from calendar import timegm
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Union
 
 from cbor2 import CBORTag
@@ -408,7 +408,7 @@ class CWT(CBORProcessor):
         if not isinstance(claims, dict):
             raise DecodeError("Failed to decode.")
 
-        now = timegm(datetime.utcnow().utctimetuple())
+        now = timegm(datetime.now(tz=timezone.utc).utctimetuple())
         if 4 in claims:  # exp
             if isinstance(claims[4], int) or isinstance(claims[4], float):
                 if claims[4] < (now - self._leeway):
@@ -427,7 +427,7 @@ class CWT(CBORProcessor):
     def _set_default_value(self, claims: Union[Dict[int, Any], bytes]):
         if isinstance(claims, bytes):
             return
-        now = timegm(datetime.utcnow().utctimetuple())
+        now = timegm(datetime.now(tz=timezone.utc).utctimetuple())
         if 4 not in claims:
             claims[4] = now + self._expires_in
         if 5 not in claims:
