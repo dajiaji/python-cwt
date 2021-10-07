@@ -1,4 +1,4 @@
-# Python CWT
+# Python CWT - A Python implementation of CWT/COSE
 
 [![PyPI version](https://badge.fury.io/py/cwt.svg)](https://badge.fury.io/py/cwt)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/cwt)
@@ -50,6 +50,7 @@ See [Document](https://python-cwt.readthedocs.io/en/stable/) for details.
     - [CWT with User Settings (e.g., expires\_in)](#cwt-with-user-settings)
     - [CWT with User-Defined Claims](#cwt-with-user-defined-claims)
     - [CWT with PoP Key](#cwt-with-pop-key)
+    - [CWT with Private CA](#cwt-with-private-ca)
     - [CWT for EUDCC (EU Digital COVID Certificate)](#cwt-for-eudcc-eu-digital-covid-certificate)
 - [COSE Usage Examples](#cose-usage-examples)
     - [COSE MAC0](#cose-mac0)
@@ -430,6 +431,48 @@ extracted_pop_key.verify(msg, sig)
 
 [Usage Examples](https://python-cwt.readthedocs.io/en/stable/cwt_usage.html#cwt-with-pop-key)
 shows other examples which use other confirmation methods for PoP keys.
+
+### CWT with Private CA
+
+Python CWT supports the case of using an arbitrary private CA as a root of trust.
+In this case, a COSE message sender needs to specify the trust relationship chaining up to the root CA by using `x5chain` header parameter.
+On the other hand, a COSE message receiver needs to specify trusted root CAs by using `ca_certs` parameter of CWT/COSE constructor (`CWT.new()` or `COSE.new()`).
+
+```py
+import cwt
+from cwt import Claims, COSEKey
+
+# The sernder side:
+with open("./private_key_of_cert.pem")) as f:
+    private_key = COSEKey.from_pem(f.read(), kid="01")
+
+token = cwt.encode(
+    {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
+)
+
+# The recipient side:
+public_key = COSEKey.from_jwk(
+    {
+        "kty": "EC",
+        "use": "sig",
+        "crv": "P-256",
+        "kid": "P-256-01",
+        "x": "oONCv1QoiajIbcW21Dqy6EnGvBTuF26GU7dy6JzOfXk",
+        "y": "sl6k77K0TS36FW-TyEGLHY14ovZfdZ9DZWsbA8BTHGc",
+        "x5c": [
+          # The DER formatted X509 certificate which pairs with the private_key_of_cert.pem above.
+          "MIIClDCCAXygAwIBAgIBBDANBgkqhkiG9w0BAQsFADBmMQswCQYDVQQGEwJKUDEOMAwGA1UECAwFVG9reW8xEDAOBgNVBAoMB2RhamlhamkxEzARBgNVBAMMCnB5dGhvbi1jd3QxIDAeBgkqhkiG9w0BCQEWEWRhamlhamlAZ21haWwuY29tMB4XDTIxMTAwMzEzMDE1MFoXDTMxMTAwMTEzMDE1MFowZDELMAkGA1UEBhMCSlAxDjAMBgNVBAgMBVRva3lvMQ0wCwYDVQQKDAR0ZXN0MRUwEwYDVQQDDAx0ZXN0LmV4YW1wbGUxHzAdBgkqhkiG9w0BCQEWEHRlc3RAZXhhbXBsZS5jb20wWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASg40K_VCiJqMhtxbbUOrLoSca8FO4XboZTt3LonM59ebJepO-ytE0t-hVvk8hBix2NeKL2X3WfQ2VrGwPAUxxnoxowGDAJBgNVHRMEAjAAMAsGA1UdDwQEAwIE8DANBgkqhkiG9w0BAQsFAAOCAQEAZFfvFbaDk_DmG2cPGTwqwnFok1QnH2Tzkjk7p4vs1ycWzEDltkhyzcJxTSHoQGdykf7fG8NCrEqfi1G3hOyAtGxVIVcqsI-KIJCESp43zrNz5HsbwEY8l5rvcwohKGlE_idIFt5IuDTv7vsg_FaCIDeruw0NrXAACnLTwksawsxaCvtY12U0wsI2aC2Sb6V3HL-OLgcN6ZWzZ054L88JllckYnqJB8wCVBzzX2K2sZH3yeS39oRWZOVG6fwXsX4k0fHFx-Fn6KlrBU15pbjMLMn0ow0X3Y8e7FOgfkkph-N7e2SxceXNjrLiumOdclPm9yGSWoGsOJdId53dPvqAsQ",
+          # The root certificate which is used for signing the above certificate (optional).
+          "MIIDrzCCApegAwIBAgIUIK_CYzdq4BLLVXqSclNBgXy6mgswDQYJKoZIhvcNAQELBQAwZjELMAkGA1UEBhMCSlAxDjAMBgNVBAgMBVRva3lvMRAwDgYDVQQKDAdkYWppYWppMRMwEQYDVQQDDApweXRob24tY3d0MSAwHgYJKoZIhvcNAQkBFhFkYWppYWppQGdtYWlsLmNvbTAgFw0yMTEwMDIyMzU0NTZaGA8yMDcxMDkyMDIzNTQ1NlowZjELMAkGA1UEBhMCSlAxDjAMBgNVBAgMBVRva3lvMRAwDgYDVQQKDAdkYWppYWppMRMwEQYDVQQDDApweXRob24tY3d0MSAwHgYJKoZIhvcNAQkBFhFkYWppYWppQGdtYWlsLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANFg4sw-uPWbPBbkJuohXc89O0gaqG1H2i1wzxxka32XNKIdwrxOJvsB2eALo3q7dTqLKCgzrjdd5N07gi0KzqjoIXIXqKpV5tm0fP5gCzEOWgxySCfBJOJyyvO6WvYXdvukEBnL-48D8RSjQH9fQEju5RG0taFZE-0nQ7n3P0J-Q-OfBUEoRiHvCd8oUx0s-fBpKdfhMAbD1sGAQ9CokUFeWc49em8inNqia5xljBtSYo6_2Zx9eb7B53wvBC0EmtS4SRyksR2emlr6GxMj_EZW7hcTfZCM4V2JYXliuAEdxA0sB7q-WqLg4OvltBQxCBgTTEXRCzxj3XXZy7QyUacCAwEAAaNTMFEwHQYDVR0OBBYEFA9id2cL_Chjv6liRN3HD849TARsMB8GA1UdIwQYMBaAFA9id2cL_Chjv6liRN3HD849TARsMA8GA1UdEwEB_wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAArIej5eJN1OmD3l3ef9QzosCxKThNwqNY55CoSSC3IRl-IAXy9Lvx7cgiliwBgCv99RbXZ1ZnptTHC_1kzMzPhPg9pGKDowFP-rywaB9-NTuHTWQ4hkKDsru5dpf75ILNI5PTUi1iiBM7TdgSerpEVroUWZiOpGAdlKkmE1h4gkR6eQY9Q0IvVXwagy_PPoQ1XO1i5Hyg3aXeDZBgkE7AuW9uxtYQHzg8JG2TNko_yp497yf_Ew4t6KzGDhSa8L1euMPtclALDWFhgl6WmYsHOqAOsyZOLwpsifWa533wI9mtTvLEg8TFKMOdU0sbAoQSbrrI9m4QS7mzDLchngj3E"
+        ],
+        "alg": "ES256"
+    })
+
+# The recipient can specify trusted CAs as follows:
+decoder = CWT.new(ca_certs="/path/to/cacerts.pem")
+decoded = decoder.decode(token, public_key)
+assert 1 in decoded and decoded[1] == "coaps://as.example"
+```
 
 ### CWT for EUDCC (EU Digital COVID Certificate)
 
