@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 
+- Make public types explicit for PyLance. `#180 <https://github.com/dajiaji/python-cwt/pull/180>`__
+- Use datetime.now(tz=timezone.utc) instead of datetime.utcnow. `#179 <https://github.com/dajiaji/python-cwt/pull/179>`__
 - Add py.typed for PEP561. `#176 <https://github.com/dajiaji/python-cwt/pull/176>`__
 
 Version 1.4.0
