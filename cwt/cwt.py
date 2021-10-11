@@ -439,9 +439,60 @@ class CWT(CBORProcessor):
 
 # export
 _cwt = CWT()
-encode = _cwt.encode
-encode_and_mac = _cwt.encode_and_mac
-encode_and_sign = _cwt.encode_and_sign
-encode_and_encrypt = _cwt.encode_and_encrypt
-decode = _cwt.decode
-set_private_claim_names = _cwt.set_private_claim_names
+
+
+def encode(
+    claims: Union[Claims, Dict[str, Any], Dict[int, Any], bytes],
+    key: COSEKeyInterface,
+    nonce: bytes = b"",
+    recipients: Optional[List[RecipientInterface]] = None,
+    signers: List[Signer] = [],
+    tagged: bool = False,
+) -> bytes:
+
+    return _cwt.encode(claims, key, nonce, recipients, signers, tagged)
+
+
+def encode_and_mac(
+    claims: Union[Claims, Dict[int, Any], bytes],
+    key: COSEKeyInterface,
+    recipients: Optional[List[RecipientInterface]] = None,
+    tagged: bool = False,
+) -> bytes:
+
+    return _cwt.encode_and_mac(claims, key, recipients, tagged)
+
+
+def encode_and_sign(
+    claims: Union[Claims, Dict[int, Any], bytes],
+    key: Optional[COSEKeyInterface] = None,
+    signers: List[Signer] = [],
+    tagged: bool = False,
+) -> bytes:
+
+    return _cwt.encode_and_sign(claims, key, signers, tagged)
+
+
+def encode_and_encrypt(
+    claims: Union[Claims, Dict[int, Any], bytes],
+    key: COSEKeyInterface,
+    nonce: bytes = b"",
+    recipients: Optional[List[RecipientInterface]] = None,
+    tagged: bool = False,
+) -> bytes:
+
+    return _cwt.encode_and_encrypt(claims, key, nonce, recipients, tagged)
+
+
+def decode(
+    data: bytes,
+    keys: Union[COSEKeyInterface, List[COSEKeyInterface]],
+    no_verify: bool = False,
+) -> Union[Dict[int, Any], bytes]:
+
+    return _cwt.decode(data, keys, no_verify)
+
+
+def set_private_claim_names(claim_names: Dict[str, int]):
+
+    return _cwt.set_private_claim_names(claim_names)
