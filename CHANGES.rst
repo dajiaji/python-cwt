@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 
+- Add support for Python 3.10. `#183 <https://github.com/dajiaji/python-cwt/pull/183>`__
+
 Version 1.4.1
 -------------
 
