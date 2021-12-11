@@ -55,8 +55,5 @@ source = ["cwt", ".tox/*/site-packages"]
 [tool.coverage.report]
 show_missing = true
 
-[tool.flake8]
-ignore = "E203,E501,"
-
 [tool.mypy]
 ignore_missing_imports = true
