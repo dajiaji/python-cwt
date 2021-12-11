@@ -33,12 +33,8 @@ class AsymmetricKey(COSEKeyInterface):
 
         ctx = ValidationContext(trust_roots=ca_certs)
         try:
-            validator = CertificateValidator(
-                self._cert, self._intermediates, validation_context=ctx
-            )
+            validator = CertificateValidator(self._cert, self._intermediates, validation_context=ctx)
             validator.validate_usage(set(["digital_signature"]), extended_optional=True)
         except Exception as err:
-            raise VerifyError(
-                "Failed to validate the certificate bound to the key."
-            ) from err
+            raise VerifyError("Failed to validate the certificate bound to the key.") from err
         return True

@@ -178,9 +178,7 @@ class TestSigner:
 
     def test_signer_from_jwk_with_invalid_alg(self):
         with pytest.raises(ValueError) as err:
-            Signer.from_jwk(
-                {"kty": "oct", "alg": "HS256", "kid": "01", "k": "xxxxxxxxxx"}
-            )
+            Signer.from_jwk({"kty": "oct", "alg": "HS256", "kid": "01", "k": "xxxxxxxxxx"})
         assert "Unsupported or unknown alg for signature: 5." in str(err.value)
 
     def test_signer_from_jwt_with_invalid_key_ops(self):

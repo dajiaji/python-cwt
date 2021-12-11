@@ -17,23 +17,17 @@ class TestAESKeyWrap:
     """
 
     def test_aes_key_wrap_constructor_a128kw(self):
-        ctx = AESKeyWrap(
-            {1: -3}, {}, sender_key=COSEKey.from_symmetric_key(alg="A128KW")
-        )
+        ctx = AESKeyWrap({1: -3}, {}, sender_key=COSEKey.from_symmetric_key(alg="A128KW"))
         assert isinstance(ctx, AESKeyWrap)
         assert ctx.alg == -3
 
     def test_aes_key_wrap_constructor_a192kw(self):
-        ctx = AESKeyWrap(
-            {1: -4}, {}, sender_key=COSEKey.from_symmetric_key(alg="A192KW")
-        )
+        ctx = AESKeyWrap({1: -4}, {}, sender_key=COSEKey.from_symmetric_key(alg="A192KW"))
         assert isinstance(ctx, AESKeyWrap)
         assert ctx.alg == -4
 
     def test_aes_key_wrap_constructor_a256kw(self):
-        ctx = AESKeyWrap(
-            {1: -5}, {}, sender_key=COSEKey.from_symmetric_key(alg="A256KW")
-        )
+        ctx = AESKeyWrap({1: -5}, {}, sender_key=COSEKey.from_symmetric_key(alg="A256KW"))
         assert isinstance(ctx, AESKeyWrap)
         assert ctx.alg == -5
 
@@ -112,18 +106,14 @@ class TestAESKeyWrap:
 
     def test_aes_key_wrap_apply_with_invalid_key(self):
         key = COSEKey.from_symmetric_key(key="xxx", alg="HS256", kid="01")
-        ctx = AESKeyWrap(
-            {1: -3}, {}, sender_key=COSEKey.from_symmetric_key(alg="A128KW")
-        )
+        ctx = AESKeyWrap({1: -3}, {}, sender_key=COSEKey.from_symmetric_key(alg="A128KW"))
         with pytest.raises(EncodeError) as err:
             ctx.apply(key, context={"alg": "A128GCM"})
             pytest.fail("apply() should fail.")
         assert "Failed to wrap key." in str(err.value)
 
     def test_aes_key_wrap_apply_without_key(self):
-        ctx = AESKeyWrap(
-            {1: -3}, {}, sender_key=COSEKey.from_symmetric_key(alg="A128KW")
-        )
+        ctx = AESKeyWrap({1: -3}, {}, sender_key=COSEKey.from_symmetric_key(alg="A128KW"))
         with pytest.raises(ValueError) as err:
             ctx.apply()
             pytest.fail("apply() should fail.")
@@ -131,9 +121,7 @@ class TestAESKeyWrap:
 
     def test_aes_key_wrap_wrap_key_without_alg(self):
         key = COSEKey.from_symmetric_key(alg="A128GCM", kid="01")
-        ctx = AESKeyWrap(
-            {1: -3}, {}, sender_key=COSEKey.from_symmetric_key(alg="A128KW")
-        )
+        ctx = AESKeyWrap({1: -3}, {}, sender_key=COSEKey.from_symmetric_key(alg="A128KW"))
         with pytest.raises(ValueError) as err:
             ctx.extract(key=key)
             pytest.fail("extract() should fail.")
@@ -141,9 +129,7 @@ class TestAESKeyWrap:
 
     def test_aes_key_wrap_wrap_key_without_ciphertext(self):
         key = COSEKey.from_symmetric_key(alg="A128GCM", kid="01")
-        ctx = AESKeyWrap(
-            {1: -3}, {}, sender_key=COSEKey.from_symmetric_key(alg="A128KW")
-        )
+        ctx = AESKeyWrap({1: -3}, {}, sender_key=COSEKey.from_symmetric_key(alg="A128KW"))
         with pytest.raises(DecodeError) as err:
             ctx.extract(key=key, alg="A128GCM")
             pytest.fail("extract() should fail.")

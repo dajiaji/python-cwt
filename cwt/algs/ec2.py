@@ -92,9 +92,7 @@ class EC2Key(AsymmetricKey):
                         if not (set(self._key_ops) & set([1, 2])):
                             raise ValueError("Invalid key_ops for signing key.")
                         if set(self._key_ops) & set([7, 8]):
-                            raise ValueError(
-                                "Signing key should not be used for key derivation."
-                            )
+                            raise ValueError("Signing key should not be used for key derivation.")
                     else:
                         # public key for signing.
                         if 2 not in self._key_ops or len(self._key_ops) != 1:
@@ -114,14 +112,10 @@ class EC2Key(AsymmetricKey):
                         if not (set(self._key_ops) & set([7, 8])):
                             raise ValueError("Invalid key_ops for key derivation.")
                         if set(self._key_ops) & set([1, 2]):
-                            raise ValueError(
-                                "ECDHE key should not be used for signing."
-                            )
+                            raise ValueError("ECDHE key should not be used for signing.")
                     else:
                         # public key for key derivation.
-                        raise ValueError(
-                            "Public key for ECDHE should not have key_ops."
-                        )
+                        raise ValueError("Public key for ECDHE should not have key_ops.")
                 else:
                     if -2 not in params and -3 not in params:
                         # private key for key derivation.
@@ -134,9 +128,7 @@ class EC2Key(AsymmetricKey):
                 if set(self._key_ops) & set([1, 2]):
                     # private key for signing.
                     if set(self._key_ops) & set([7, 8]):
-                        raise ValueError(
-                            "EC2 Private key should not be used for both signing and key derivation."
-                        )
+                        raise ValueError("EC2 Private key should not be used for both signing and key derivation.")
                     if self._crv == 1:
                         self._alg = -7  # ES256
                     elif self._crv == 2:
@@ -198,9 +190,7 @@ class EC2Key(AsymmetricKey):
             raise ValueError("d(-4) should be bytes(bstr).")
         self._d = params[-4]
         if len(self._d) != len(self._x):
-            raise ValueError(
-                f"d(-4) should be {len(self._x)} bytes for curve {self._crv}"
-            )
+            raise ValueError(f"d(-4) should be {len(self._x)} bytes for curve {self._crv}")
         try:
             self._private_key = ec.EllipticCurvePrivateNumbers(
                 int.from_bytes(self._d, byteorder="big"), public_numbers
@@ -211,9 +201,7 @@ class EC2Key(AsymmetricKey):
         return
 
     @staticmethod
-    def to_cose_key(
-        k: Union[EllipticCurvePrivateKey, EllipticCurvePublicKey]
-    ) -> Dict[int, Any]:
+    def to_cose_key(k: Union[EllipticCurvePrivateKey, EllipticCurvePublicKey]) -> Dict[int, Any]:
         key_len: int = 32
         cose_key: Dict[int, Any] = {}
 
@@ -234,15 +222,9 @@ class EC2Key(AsymmetricKey):
             cose_key[-2] = k.public_numbers().x.to_bytes(key_len, byteorder="big")
             cose_key[-3] = k.public_numbers().y.to_bytes(key_len, byteorder="big")
             return cose_key
-        cose_key[-2] = (
-            k.public_key().public_numbers().x.to_bytes(key_len, byteorder="big")
-        )
-        cose_key[-3] = (
-            k.public_key().public_numbers().y.to_bytes(key_len, byteorder="big")
-        )
-        cose_key[-4] = k.private_numbers().private_value.to_bytes(
-            key_len, byteorder="big"
-        )
+        cose_key[-2] = k.public_key().public_numbers().x.to_bytes(key_len, byteorder="big")
+        cose_key[-3] = k.public_key().public_numbers().y.to_bytes(key_len, byteorder="big")
+        cose_key[-4] = k.private_numbers().private_value.to_bytes(key_len, byteorder="big")
         return cose_key
 
     @property
@@ -275,9 +257,7 @@ class EC2Key(AsymmetricKey):
         try:
             if self._private_key:
                 der_sig = self._os_to_der(self._private_key.curve.key_size, sig)
-                self._private_key.public_key().verify(
-                    der_sig, msg, ec.ECDSA(self._hash_alg())
-                )
+                self._private_key.public_key().verify(der_sig, msg, ec.ECDSA(self._hash_alg()))
             else:
                 der_sig = self._os_to_der(self._public_key.curve.key_size, sig)
                 self._public_key.verify(der_sig, msg, ec.ECDSA(self._hash_alg()))
@@ -309,11 +289,7 @@ class EC2Key(AsymmetricKey):
             self._validate_context(context)
 
         # Derive key.
-        self._key = (
-            self._private_key
-            if self._private_key
-            else ec.generate_private_key(self._crv_obj)
-        )
+        self._key = self._private_key if self._private_key else ec.generate_private_key(self._crv_obj)
         shared_key = self._key.exchange(ec.ECDH(), public_key.key)
         hkdf = HKDF(
             algorithm=self._hash_alg(),

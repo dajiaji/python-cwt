@@ -98,9 +98,7 @@ class ECDH_DirectHKDF(Direct):
             self._unprotected[-25] = self._applied_ctx[2][1]
 
         # Derive key.
-        derived_key = self._sender_key.derive_key(
-            self._applied_ctx, public_key=recipient_key
-        )
+        derived_key = self._sender_key.derive_key(self._applied_ctx, public_key=recipient_key)
         if self._alg in [-25, -26]:
             # ECDH-ES
             self._unprotected[-1] = self._to_cose_key(self._sender_key.key.public_key())

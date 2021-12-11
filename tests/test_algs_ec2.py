@@ -57,10 +57,7 @@ class TestEC2Key:
             == b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh'
         )
         public_key_obj = public_key.to_dict()
-        assert (
-            public_key_obj[-2]
-            == b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9"
-        )
+        assert public_key_obj[-2] == b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9"
         try:
             sig = private_key.sign(b"Hello world!")
             public_key.verify(b"Hello world!", sig)
@@ -755,10 +752,7 @@ class TestEC2Key:
         with pytest.raises(ValueError) as err:
             private_key.derive_key({"alg": invalid_alg}, public_key=pub_key)
             pytest.fail("derive_key() should fail.")
-        assert (
-            f"Unsupported or unknown alg for context information: {invalid_alg}."
-            in str(err.value)
-        )
+        assert f"Unsupported or unknown alg for context information: {invalid_alg}." in str(err.value)
 
     def test_ec2_key_derive_key_without_public_key(self):
         private_key = EC2Key(

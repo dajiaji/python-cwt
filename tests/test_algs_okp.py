@@ -53,8 +53,7 @@ class TestOKPKey:
         assert public_key.base_iv is None
         private_key_obj = private_key.to_dict()
         assert (
-            private_key_obj[-4]
-            == b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9"
+            private_key_obj[-4] == b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9"
         )
         public_key_obj = public_key.to_dict()
         assert (
@@ -151,8 +150,7 @@ class TestOKPKey:
         assert public_key.base_iv is None
         private_key_obj = private_key.to_dict()
         assert (
-            private_key_obj[-4]
-            == b"\xbe\xc2u\xa1~M6-\x08\x19\xdc\x06\x95\xd8\x9as\xbek\xf9Kf\xabrj\xe0\xb1\xaf\xe3\xc4?A\xce"
+            private_key_obj[-4] == b"\xbe\xc2u\xa1~M6-\x08\x19\xdc\x06\x95\xd8\x9as\xbek\xf9Kf\xabrj\xe0\xb1\xaf\xe3\xc4?A\xce"
         )
         public_key_obj = public_key.to_dict()
         assert (

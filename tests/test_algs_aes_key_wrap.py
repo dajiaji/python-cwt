@@ -37,9 +37,7 @@ class TestAESKeyWrap:
         with pytest.raises(ValueError) as err:
             AESKeyWrap({1: 4, 3: -3, 4: [1, 2]})
             pytest.fail("AESKeyWrap() should fail.")
-        assert "Unknown or not permissible key_ops(4) for AES key wrap: 1." in str(
-            err.value
-        )
+        assert "Unknown or not permissible key_ops(4) for AES key wrap: 1." in str(err.value)
 
     def test_aes_key_wrap_unwrap_key_with_invalid_alg(self):
         key = AESKeyWrap({1: 4, 3: -3})

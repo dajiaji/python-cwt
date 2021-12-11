@@ -29,7 +29,4 @@ class TestEncryptedCOSEKey:
         with pytest.raises(ValueError) as err:
             EncryptedCOSEKey.from_cose_key(pop_key, enc_key)
             pytest.fail("to_ should fail.")
-        assert (
-            "Nonce generation is not supported for the key. Set a nonce explicitly."
-            in str(err.value)
-        )
+        assert "Nonce generation is not supported for the key. Set a nonce explicitly." in str(err.value)

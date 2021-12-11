@@ -79,9 +79,7 @@ class OKPKey(AsymmetricKey):
             elif self._alg in [-26, -28]:
                 self._hash_alg = hashes.SHA512
             else:
-                raise ValueError(
-                    f"Unsupported or unknown alg used with X25519/X448: {self._alg}."
-                )
+                raise ValueError(f"Unsupported or unknown alg used with X25519/X448: {self._alg}.")
 
         # Validate alg and key_ops.
         if self._key_ops:
@@ -99,9 +97,7 @@ class OKPKey(AsymmetricKey):
                     if not (set(self._key_ops) & set([1, 2])):
                         raise ValueError("Invalid key_ops for signing key.")
                     if set(self._key_ops) & set([7, 8]):
-                        raise ValueError(
-                            "Signing key should not be used for key derivation."
-                        )
+                        raise ValueError("Signing key should not be used for key derivation.")
                 else:
                     # public key for signing.
                     if 2 not in self._key_ops or len(self._key_ops) != 1:
@@ -112,15 +108,11 @@ class OKPKey(AsymmetricKey):
                     if not (set(self._key_ops) & set([7, 8])):
                         raise ValueError("Invalid key_ops for key derivation.")
                     if set(self._key_ops) & set([1, 2]):
-                        raise ValueError(
-                            "Private key for ECDHE should not be used for signing."
-                        )
+                        raise ValueError("Private key for ECDHE should not be used for signing.")
                 else:
                     # public key for key derivation.
                     if self._key_ops:
-                        raise ValueError(
-                            "Public key for ECDHE should not have key_ops."
-                        )
+                        raise ValueError("Public key for ECDHE should not have key_ops.")
             else:
                 raise ValueError(f"Unsupported or unknown alg(3) for OKP: {self._alg}.")
         else:
@@ -129,9 +121,7 @@ class OKPKey(AsymmetricKey):
                 if set(self._key_ops) & set([1, 2]):
                     # private key for signing.
                     if set(self._key_ops) & set([7, 8]):
-                        raise ValueError(
-                            "OKP private key should not be used for both signing and key derivation."
-                        )
+                        raise ValueError("OKP private key should not be used for both signing and key derivation.")
                     self._alg = -8  # EdDSA
             else:
                 # public key.
@@ -206,45 +196,29 @@ class OKPKey(AsymmetricKey):
             if isinstance(k, Ed25519PublicKey):
                 cose_key[-2] = k.public_bytes(Encoding.Raw, PublicFormat.Raw)
             else:
-                cose_key[-2] = k.public_key().public_bytes(
-                    Encoding.Raw, PublicFormat.Raw
-                )
-                cose_key[-4] = k.private_bytes(
-                    Encoding.Raw, PrivateFormat.Raw, NoEncryption()
-                )
+                cose_key[-2] = k.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)
+                cose_key[-4] = k.private_bytes(Encoding.Raw, PrivateFormat.Raw, NoEncryption())
         elif isinstance(k, (Ed448PublicKey, Ed448PrivateKey)):
             cose_key[-1] = 7  # Ed448
             if isinstance(k, Ed448PublicKey):
                 cose_key[-2] = k.public_bytes(Encoding.Raw, PublicFormat.Raw)
             else:
-                cose_key[-2] = k.public_key().public_bytes(
-                    Encoding.Raw, PublicFormat.Raw
-                )
-                cose_key[-4] = k.private_bytes(
-                    Encoding.Raw, PrivateFormat.Raw, NoEncryption()
-                )
+                cose_key[-2] = k.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)
+                cose_key[-4] = k.private_bytes(Encoding.Raw, PrivateFormat.Raw, NoEncryption())
         elif isinstance(k, (X25519PublicKey, X25519PrivateKey)):
             cose_key[-1] = 4  # X25519
             if isinstance(k, X25519PublicKey):
                 cose_key[-2] = k.public_bytes(Encoding.Raw, PublicFormat.Raw)
             else:
-                cose_key[-2] = k.public_key().public_bytes(
-                    Encoding.Raw, PublicFormat.Raw
-                )
-                cose_key[-4] = k.private_bytes(
-                    Encoding.Raw, PrivateFormat.Raw, NoEncryption()
-                )
+                cose_key[-2] = k.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)
+                cose_key[-4] = k.private_bytes(Encoding.Raw, PrivateFormat.Raw, NoEncryption())
         elif isinstance(k, (X448PublicKey, X448PrivateKey)):
             cose_key[-1] = 5  # X448
             if isinstance(k, X448PublicKey):
                 cose_key[-2] = k.public_bytes(Encoding.Raw, PublicFormat.Raw)
             else:
-                cose_key[-2] = k.public_key().public_bytes(
-                    Encoding.Raw, PublicFormat.Raw
-                )
-                cose_key[-4] = k.private_bytes(
-                    Encoding.Raw, PrivateFormat.Raw, NoEncryption()
-                )
+                cose_key[-2] = k.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)
+                cose_key[-4] = k.private_bytes(Encoding.Raw, PrivateFormat.Raw, NoEncryption())
         else:
             raise ValueError("Unsupported or unknown key for OKP.")
         return cose_key
@@ -304,9 +278,7 @@ class OKPKey(AsymmetricKey):
             raise ValueError("Public key cannot be used for key derivation.")
         if not public_key:
             raise ValueError("public_key should be set.")
-        if not isinstance(public_key.key, X25519PublicKey) and not isinstance(
-            public_key.key, X448PublicKey
-        ):
+        if not isinstance(public_key.key, X25519PublicKey) and not isinstance(public_key.key, X448PublicKey):
             raise ValueError("public_key should be x25519/x448 public key.")
         # if self._alg not in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.values():
         #     raise ValueError(f"Invalid alg for key derivation: {self._alg}.")
@@ -321,11 +293,7 @@ class OKPKey(AsymmetricKey):
         if self._private_key:
             self._key = self._private_key
         else:
-            self._key = (
-                X25519PrivateKey.generate()
-                if self._crv == 4
-                else X448PrivateKey.generate()
-            )
+            self._key = X25519PrivateKey.generate() if self._crv == 4 else X448PrivateKey.generate()
         shared_key = self._key.exchange(public_key.key)
         hkdf = HKDF(
             algorithm=self._hash_alg(),

@@ -60,15 +60,9 @@ class MACAuthenticationKey(SymmetricKey):
         if not self._key_ops:
             self._key_ops = MACAuthenticationKey._ACCEPTABLE_KEY_OPS
             return
-        not_acceptable = [
-            ops
-            for ops in self._key_ops
-            if ops not in MACAuthenticationKey._ACCEPTABLE_KEY_OPS
-        ]
+        not_acceptable = [ops for ops in self._key_ops if ops not in MACAuthenticationKey._ACCEPTABLE_KEY_OPS]
         if not_acceptable:
-            raise ValueError(
-                f"Unknown or not permissible key_ops(4) for MACAuthenticationKey: {not_acceptable[0]}."
-            )
+            raise ValueError(f"Unknown or not permissible key_ops(4) for MACAuthenticationKey: {not_acceptable[0]}.")
 
 
 class ContentEncryptionKey(SymmetricKey):
@@ -86,15 +80,9 @@ class ContentEncryptionKey(SymmetricKey):
         if not self._key_ops:
             self._key_ops = ContentEncryptionKey._ACCEPTABLE_KEY_OPS
             return
-        not_acceptable = [
-            ops
-            for ops in self._key_ops
-            if ops not in ContentEncryptionKey._ACCEPTABLE_KEY_OPS
-        ]
+        not_acceptable = [ops for ops in self._key_ops if ops not in ContentEncryptionKey._ACCEPTABLE_KEY_OPS]
         if not_acceptable:
-            raise ValueError(
-                f"Unknown or not permissible key_ops(4) for ContentEncryptionKey: {not_acceptable[0]}."
-            )
+            raise ValueError(f"Unknown or not permissible key_ops(4) for ContentEncryptionKey: {not_acceptable[0]}.")
 
 
 class HMACKey(MACAuthenticationKey):
@@ -104,17 +92,15 @@ class HMACKey(MACAuthenticationKey):
         """ """
         super().__init__(params)
 
-        self._hash_alg = None
+        self._hash_alg = hashlib.sha256
         self._trunc = 0
 
         # Validate alg.
         if self._alg == 4:  # HMAC 256/64
-            self._hash_alg = hashlib.sha256
             self._trunc = 8
             if not self._key:
                 self._key = token_bytes(_CWT_DEFAULT_KEY_SIZE_HMAC256)
         elif self._alg == 5:  # HMAC 256/256
-            self._hash_alg = hashlib.sha256
             self._trunc = 32
             if not self._key:
                 self._key = token_bytes(_CWT_DEFAULT_KEY_SIZE_HMAC256)
@@ -160,72 +146,56 @@ class AESCCMKey(ContentEncryptionKey):
             if not self._key:
                 self._key = AESCCM.generate_key(bit_length=128)
             if len(self._key) != 16:
-                raise ValueError(
-                    "The length of AES-CCM-16-64-128 key should be 16 bytes."
-                )
+                raise ValueError("The length of AES-CCM-16-64-128 key should be 16 bytes.")
             self._cipher = AESCCM(self._key, tag_length=8)
             self._nonce_len = 13
         elif self._alg == 11:  # AES-CCM-16-64-256
             if not self._key:
                 self._key = AESCCM.generate_key(bit_length=256)
             if len(self._key) != 32:
-                raise ValueError(
-                    "The length of AES-CCM-16-64-256 key should be 32 bytes."
-                )
+                raise ValueError("The length of AES-CCM-16-64-256 key should be 32 bytes.")
             self._cipher = AESCCM(self._key, tag_length=8)
             self._nonce_len = 13
         elif self._alg == 12:  # AES-CCM-64-64-128
             if not self._key:
                 self._key = AESCCM.generate_key(bit_length=128)
             if len(self._key) != 16:
-                raise ValueError(
-                    "The length of AES-CCM-64-64-128 key should be 16 bytes."
-                )
+                raise ValueError("The length of AES-CCM-64-64-128 key should be 16 bytes.")
             self._cipher = AESCCM(self._key, tag_length=8)
             self._nonce_len = 7
         elif self._alg == 13:  # AES-CCM-64-64-256
             if not self._key:
                 self._key = AESCCM.generate_key(bit_length=256)
             if len(self._key) != 32:
-                raise ValueError(
-                    "The length of AES-CCM-64-64-256 key should be 32 bytes."
-                )
+                raise ValueError("The length of AES-CCM-64-64-256 key should be 32 bytes.")
             self._cipher = AESCCM(self._key, tag_length=8)
             self._nonce_len = 7
         elif self._alg == 30:  # AES-CCM-16-128-128
             if not self._key:
                 self._key = AESCCM.generate_key(bit_length=128)
             if len(self._key) != 16:
-                raise ValueError(
-                    "The length of AES-CCM-16-128-128 key should be 16 bytes."
-                )
+                raise ValueError("The length of AES-CCM-16-128-128 key should be 16 bytes.")
             self._cipher = AESCCM(self._key)
             self._nonce_len = 13
         elif self._alg == 31:  # AES-CCM-16-128-256
             if not self._key:
                 self._key = AESCCM.generate_key(bit_length=256)
             if len(self._key) != 32:
-                raise ValueError(
-                    "The length of AES-CCM-16-128-256 key should be 32 bytes."
-                )
+                raise ValueError("The length of AES-CCM-16-128-256 key should be 32 bytes.")
             self._cipher = AESCCM(self._key)
             self._nonce_len = 13
         elif self._alg == 32:  # AES-CCM-64-128-128
             if not self._key:
                 self._key = AESCCM.generate_key(bit_length=128)
             if len(self._key) != 16:
-                raise ValueError(
-                    "The length of AES-CCM-64-128-128 key should be 16 bytes."
-                )
+                raise ValueError("The length of AES-CCM-64-128-128 key should be 16 bytes.")
             self._cipher = AESCCM(self._key)
             self._nonce_len = 7
         elif self._alg == 33:  # AES-CCM-64-128-256
             if not self._key:
                 self._key = AESCCM.generate_key(bit_length=256)
             if len(self._key) != 32:
-                raise ValueError(
-                    "The length of AES-CCM-64-128-256 key should be 32 bytes."
-                )
+                raise ValueError("The length of AES-CCM-64-128-256 key should be 32 bytes.")
             self._cipher = AESCCM(self._key)
             self._nonce_len = 7
         else:
@@ -237,9 +207,7 @@ class AESCCMKey(ContentEncryptionKey):
     def encrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
         """ """
         if len(nonce) != self._nonce_len:
-            raise ValueError(
-                "The length of nonce should be %d bytes." % self._nonce_len
-            )
+            raise ValueError("The length of nonce should be %d bytes." % self._nonce_len)
         try:
             return self._cipher.encrypt(nonce, msg, aad)
         except Exception as err:
@@ -248,9 +216,7 @@ class AESCCMKey(ContentEncryptionKey):
     def decrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
         """ """
         if len(nonce) != self._nonce_len:
-            raise ValueError(
-                "The length of nonce should be %d bytes." % self._nonce_len
-            )
+            raise ValueError("The length of nonce should be %d bytes." % self._nonce_len)
         try:
             return self._cipher.decrypt(nonce, msg, aad)
         except Exception as err:
@@ -312,9 +278,7 @@ class ChaCha20Key(ContentEncryptionKey):
 
         # Validate alg.
         if self._alg != 24:  # ChaCha20/Poly1305
-            raise ValueError(
-                f"Unsupported or unknown alg(3) for ChaCha20: {self._alg}."
-            )
+            raise ValueError(f"Unsupported or unknown alg(3) for ChaCha20: {self._alg}.")
 
         if not self._key:
             self._key = ChaCha20Poly1305.generate_key()
@@ -371,13 +335,9 @@ class AESKeyWrap(SymmetricKey):
         if not self._key_ops:
             self._key_ops = AESKeyWrap._ACCEPTABLE_KEY_OPS
             return
-        not_acceptable = [
-            ops for ops in self._key_ops if ops not in AESKeyWrap._ACCEPTABLE_KEY_OPS
-        ]
+        not_acceptable = [ops for ops in self._key_ops if ops not in AESKeyWrap._ACCEPTABLE_KEY_OPS]
         if not_acceptable:
-            raise ValueError(
-                f"Unknown or not permissible key_ops(4) for AES key wrap: {not_acceptable[0]}."
-            )
+            raise ValueError(f"Unknown or not permissible key_ops(4) for AES key wrap: {not_acceptable[0]}.")
 
     def wrap_key(self, key_to_wrap: bytes) -> bytes:
         try:

@@ -108,9 +108,7 @@ class TestCWT:
     def test_cwt_encode_with_claims_object(self, ctx):
         key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
         token = ctx.encode(
-            Claims.from_json(
-                {"iss": "https://as.example", "sub": "someone", "cti": b"123"}
-            ),
+            Claims.from_json({"iss": "https://as.example", "sub": "someone", "cti": b"123"}),
             key,
         )
         decoded = ctx.decode(token, key)
@@ -135,9 +133,7 @@ class TestCWT:
 
     def test_cwt_encode_and_mac_with_default_alg(self, ctx):
         key = COSEKey.from_symmetric_key("mysecret", alg="HS256", kid="01")
-        token = ctx.encode_and_mac(
-            {1: "https://as.example", 2: "someone", 7: b"123"}, key
-        )
+        token = ctx.encode_and_mac({1: "https://as.example", 2: "someone", 7: b"123"}, key)
         decoded = ctx.decode(token, key)
         assert 1 in decoded and decoded[1] == "https://as.example"
         assert 2 in decoded and decoded[2] == "someone"
@@ -159,9 +155,7 @@ class TestCWT:
     )
     def test_cwt_encode_and_mac_with_valid_alg_hmac(self, ctx, alg):
         key = COSEKey.from_symmetric_key("mysecret", alg=alg, kid="01")
-        token = ctx.encode_and_mac(
-            {1: "https://as.example", 2: "someone", 7: b"123"}, key
-        )
+        token = ctx.encode_and_mac({1: "https://as.example", 2: "someone", 7: b"123"}, key)
         decoded = ctx.decode(token, key)
         assert 1 in decoded and decoded[1] == "https://as.example"
         assert 2 in decoded and decoded[2] == "someone"
@@ -181,9 +175,7 @@ class TestCWT:
 
     def test_cwt_encode_and_mac_with_recipient(self, ctx):
         recipient = RecipientInterface(unprotected={1: -6, 4: b"our-secret"})
-        key = COSEKey.from_symmetric_key(
-            "mysecret", alg="HMAC 256/64", kid="our-secret"
-        )
+        key = COSEKey.from_symmetric_key("mysecret", alg="HMAC 256/64", kid="our-secret")
         token = ctx.encode_and_mac(
             {1: "https://as.example", 2: "someone", 7: b"123"},
             key,
@@ -318,10 +310,7 @@ class TestCWT:
                 {1: "https://as.example", 2: "someone", 7: b"123"},
                 enc_key,
             )
-        assert (
-            "Nonce generation is not supported for the key. Set a nonce explicitly."
-            in str(err.value)
-        )
+        assert "Nonce generation is not supported for the key. Set a nonce explicitly." in str(err.value)
 
     @pytest.mark.parametrize(
         "alg",
@@ -387,9 +376,7 @@ class TestCWT:
         assert 7 in decoded and decoded[7] == b"123"
 
     def test_cwt_encode_and_encrypt_with_recipient_direct(self, ctx):
-        enc_key = COSEKey.from_symmetric_key(
-            token_bytes(16), alg="AES-CCM-16-64-128", kid="our-secret"
-        )
+        enc_key = COSEKey.from_symmetric_key(token_bytes(16), alg="AES-CCM-16-64-128", kid="our-secret")
         recipient = RecipientInterface(unprotected={1: -6, 4: b"our-secret"})
         token = ctx.encode_and_encrypt(
             {1: "https://as.example", 2: "someone", 7: b"123"},
@@ -413,9 +400,7 @@ class TestCWT:
             # ("private_key_x448.pem", "public_key_x448.pem"),
         ],
     )
-    def test_cwt_encode_and_sign_with_valid_alg(
-        self, ctx, private_key_path, public_key_path
-    ):
+    def test_cwt_encode_and_sign_with_valid_alg(self, ctx, private_key_path, public_key_path):
         with open(key_path(private_key_path)) as key_file:
             private_key = COSEKey.from_pem(key_file.read(), kid="01")
         with open(key_path(public_key_path)) as key_file:
@@ -526,9 +511,7 @@ class TestCWT:
 
     def test_cwt_decode_with_invalid_mac_key(self, ctx):
         key = COSEKey.from_symmetric_key("mysecret", alg="HS256", kid="01")
-        token = ctx.encode_and_mac(
-            {1: "https://as.example", 2: "someone", 7: b"123"}, key
-        )
+        token = ctx.encode_and_mac({1: "https://as.example", 2: "someone", 7: b"123"}, key)
         wrong_key = COSEKey.from_symmetric_key("xxxxxxxxxx", alg="HS256", kid="01")
         with pytest.raises(VerifyError) as err:
             res = ctx.decode(token, wrong_key)
@@ -551,12 +534,8 @@ class TestCWT:
         assert "Failed to decode." in str(err.value)
 
     def test_cwt_decode_with_invalid_enc_key(self, ctx):
-        enc_key = COSEKey.from_symmetric_key(
-            token_bytes(16), alg="AES-CCM-16-64-128", kid="01"
-        )
-        wrong_key = COSEKey.from_symmetric_key(
-            token_bytes(16), alg="AES-CCM-16-64-128", kid="01"
-        )
+        enc_key = COSEKey.from_symmetric_key(token_bytes(16), alg="AES-CCM-16-64-128", kid="01")
+        wrong_key = COSEKey.from_symmetric_key(token_bytes(16), alg="AES-CCM-16-64-128", kid="01")
         token = ctx.encode_and_encrypt(
             {1: "https://as.example", 2: "someone", 7: b"123"},
             enc_key,

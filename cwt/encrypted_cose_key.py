@@ -38,16 +38,12 @@ class EncryptedCOSEKey(CBORProcessor):
             EncodeError: Failed to encrypt the COSE key.
         """
         protected: Dict[int, Any] = {1: encryption_key.alg}
-        unprotected: Dict[int, Any] = (
-            {4: encryption_key.kid} if encryption_key.kid else {}
-        )
+        unprotected: Dict[int, Any] = {4: encryption_key.kid} if encryption_key.kid else {}
         if not nonce:
             try:
                 nonce = encryption_key.generate_nonce()
             except NotImplementedError:
-                raise ValueError(
-                    "Nonce generation is not supported for the key. Set a nonce explicitly."
-                )
+                raise ValueError("Nonce generation is not supported for the key. Set a nonce explicitly.")
         unprotected[5] = nonce
         b_payload = cbor2.dumps(key.to_dict())
         res: CBORTag = COSE().encode_and_encrypt(
@@ -61,9 +57,7 @@ class EncryptedCOSEKey(CBORProcessor):
         return res.value
 
     @staticmethod
-    def to_cose_key(
-        key: List[Any], encryption_key: COSEKeyInterface
-    ) -> COSEKeyInterface:
+    def to_cose_key(key: List[Any], encryption_key: COSEKeyInterface) -> COSEKeyInterface:
         """
         Returns an decrypted COSE key.
 

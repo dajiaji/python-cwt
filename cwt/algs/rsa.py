@@ -49,9 +49,7 @@ class RSAKey(AsymmetricKey):
         else:
             raise ValueError(f"Unsupported or unknown alg(3) for RSA: {params[3]}.")
         if params[3] in [-37, -38, -39]:
-            self._padding = padding.PSS(
-                mgf=padding.MGF1(self._hash()), salt_length=padding.PSS.MAX_LENGTH
-            )
+            self._padding = padding.PSS(mgf=padding.MGF1(self._hash()), salt_length=padding.PSS.MAX_LENGTH)
         else:
             self._padding = padding.PKCS1v15()
 
@@ -60,28 +58,16 @@ class RSAKey(AsymmetricKey):
             if not self._key_ops:
                 self._key_ops = RSAKey._ACCEPTABLE_PUBLIC_KEY_OPS
             else:
-                prohibited = [
-                    ops
-                    for ops in self._key_ops
-                    if ops not in RSAKey._ACCEPTABLE_PUBLIC_KEY_OPS
-                ]
+                prohibited = [ops for ops in self._key_ops if ops not in RSAKey._ACCEPTABLE_PUBLIC_KEY_OPS]
                 if prohibited:
-                    raise ValueError(
-                        f"Unknown or not permissible key_ops(4) for RSAKey: {prohibited[0]}."
-                    )
+                    raise ValueError(f"Unknown or not permissible key_ops(4) for RSAKey: {prohibited[0]}.")
         else:
             if not self._key_ops:
                 self._key_ops = RSAKey._ACCEPTABLE_PRIVATE_KEY_OPS
             else:
-                prohibited = [
-                    ops
-                    for ops in self._key_ops
-                    if ops not in RSAKey._ACCEPTABLE_PRIVATE_KEY_OPS
-                ]
+                prohibited = [ops for ops in self._key_ops if ops not in RSAKey._ACCEPTABLE_PRIVATE_KEY_OPS]
                 if prohibited:
-                    raise ValueError(
-                        f"Unknown or not permissible key_ops(4) for RSAKey: {prohibited[0]}."
-                    )
+                    raise ValueError(f"Unknown or not permissible key_ops(4) for RSAKey: {prohibited[0]}.")
 
         # Validate RSA specific parameters.
         if -1 not in params or not isinstance(params[-1], bytes):
@@ -97,9 +83,7 @@ class RSAKey(AsymmetricKey):
         if -3 not in params:  # the RSA private exponent d.
             private_props = [p for p in params.keys() if p in [-4, -5, -6, -7, -8]]
             if private_props:
-                raise ValueError(
-                    f"RSA public key should not have private parameter: {private_props[0]}."
-                )
+                raise ValueError(f"RSA public key should not have private parameter: {private_props[0]}.")
             self._key = public_numbers.public_key()
             return
 

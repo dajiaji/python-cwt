@@ -29,7 +29,7 @@ def i2osp(x: int, x_len: int) -> bytes:
     while x:
         digits.append(int(x % 256))
         x //= 256
-    for i in range(x_len - len(digits)):
+    for _ in range(x_len - len(digits)):
         digits.append(0)
     return bytes.fromhex("".join("%.2x" % x for x in digits[::-1]))
 
@@ -120,13 +120,8 @@ def to_cis(context: Dict[str, Any], recipient_alg: Optional[int] = None) -> List
     if "alg" not in context:
         raise ValueError("alg not found.")
     # if context["alg"] not in COSE_NAMED_ALGORITHMS_SUPPORTED:
-    if (
-        context["alg"] not in COSE_ALGORITHMS_CEK
-        and context["alg"] not in COSE_ALGORITHMS_MAC
-    ):
-        raise ValueError(
-            f'Unsupported or unknown alg for context information: {context["alg"]}.'
-        )
+    if context["alg"] not in COSE_ALGORITHMS_CEK and context["alg"] not in COSE_ALGORITHMS_MAC:
+        raise ValueError(f'Unsupported or unknown alg for context information: {context["alg"]}.')
     alg = COSE_NAMED_ALGORITHMS_SUPPORTED[context["alg"]]
     res.append(alg)
 
@@ -165,9 +160,7 @@ def to_cis(context: Dict[str, Any], recipient_alg: Optional[int] = None) -> List
     return res
 
 
-def to_cose_header(
-    data: Optional[dict] = None, algs: Dict[str, int] = {}
-) -> Dict[int, Any]:
+def to_cose_header(data: Optional[dict] = None, algs: Dict[str, int] = {}) -> Dict[int, Any]:
     if data is None:
         return {}
     res: Dict[int, Any] = {}

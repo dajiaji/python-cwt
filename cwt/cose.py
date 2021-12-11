@@ -142,9 +142,7 @@ class COSE(CBORProcessor):
             ValueError: Invalid arguments.
             EncodeError: Failed to encode data.
         """
-        p: Union[Dict[int, Any], bytes] = (
-            to_cose_header(protected) if not isinstance(protected, bytes) else protected
-        )
+        p: Union[Dict[int, Any], bytes] = to_cose_header(protected) if not isinstance(protected, bytes) else protected
         u = to_cose_header(unprotected)
 
         ctx = "MAC0" if not recipients else "MAC"
@@ -176,9 +174,7 @@ class COSE(CBORProcessor):
                 if self._kid_auto_inclusion and key.kid:
                     u[4] = key.kid
         else:
-            raise NotImplementedError(
-                "Algorithms other than direct are not supported for recipients."
-            )
+            raise NotImplementedError("Algorithms other than direct are not supported for recipients.")
 
         if isinstance(p, bytes):
             b_protected = p
@@ -229,9 +225,7 @@ class COSE(CBORProcessor):
             ValueError: Invalid arguments.
             EncodeError: Failed to encode data.
         """
-        p: Union[Dict[int, Any], bytes] = (
-            to_cose_header(protected) if not isinstance(protected, bytes) else protected
-        )
+        p: Union[Dict[int, Any], bytes] = to_cose_header(protected) if not isinstance(protected, bytes) else protected
         u = to_cose_header(unprotected)
 
         ctx = "Signature" if signers else "Signature1"
@@ -301,9 +295,7 @@ class COSE(CBORProcessor):
             ValueError: Invalid arguments.
             EncodeError: Failed to encode data.
         """
-        p: Union[Dict[int, Any], bytes] = (
-            to_cose_header(protected) if not isinstance(protected, bytes) else protected
-        )
+        p: Union[Dict[int, Any], bytes] = to_cose_header(protected) if not isinstance(protected, bytes) else protected
         u = to_cose_header(unprotected)
 
         ctx = "Encrypt0" if not recipients else "Encrypt"
@@ -312,9 +304,7 @@ class COSE(CBORProcessor):
             try:
                 nonce = key.generate_nonce()
             except NotImplementedError:
-                raise ValueError(
-                    "Nonce generation is not supported for the key. Set a nonce explicitly."
-                )
+                raise ValueError("Nonce generation is not supported for the key. Set a nonce explicitly.")
 
         # Encrypt0
         if not recipients:
@@ -344,9 +334,7 @@ class COSE(CBORProcessor):
                 u[4] = key.kid
             u[5] = nonce
         else:
-            raise NotImplementedError(
-                "Algorithms other than direct are not supported for recipients."
-            )
+            raise NotImplementedError("Algorithms other than direct are not supported for recipients.")
         if isinstance(p, bytes):
             b_protected = p
         else:
@@ -437,7 +425,7 @@ class COSE(CBORProcessor):
             aad = self._dumps(["Encrypt0", data.value[0], external_aad])
             nonce = unprotected.get(5, None)
             if kid:
-                for i, k in enumerate(keys):
+                for _, k in enumerate(keys):
                     if k.kid != kid:
                         continue
                     try:
@@ -445,7 +433,7 @@ class COSE(CBORProcessor):
                     except Exception as e:
                         err = e
                 raise err
-            for i, k in enumerate(keys):
+            for _, k in enumerate(keys):
                 try:
                     return k.decrypt(data.value[2], nonce, aad)
                 except Exception as e:
@@ -465,7 +453,7 @@ class COSE(CBORProcessor):
             kid = self._get_kid(protected, unprotected)
             msg = self._dumps(["MAC0", data.value[0], external_aad, data.value[2]])
             if kid:
-                for i, k in enumerate(keys):
+                for _, k in enumerate(keys):
                     if k.kid != kid:
                         continue
                     try:
@@ -474,7 +462,7 @@ class COSE(CBORProcessor):
                     except Exception as e:
                         err = e
                 raise err
-            for i, k in enumerate(keys):
+            for _, k in enumerate(keys):
                 try:
                     k.verify(msg, data.value[3])
                     return data.value[2]
@@ -484,9 +472,7 @@ class COSE(CBORProcessor):
 
         # MAC
         if data.tag == 97:
-            to_be_maced = self._dumps(
-                ["MAC", data.value[0], external_aad, data.value[2]]
-            )
+            to_be_maced = self._dumps(["MAC", data.value[0], external_aad, data.value[2]])
             rs = Recipients.from_list(data.value[4], self._verify_kid)
             mac_auth_key = rs.extract(keys, context, alg)
             mac_auth_key.verify(to_be_maced, data.value[3])
@@ -495,11 +481,9 @@ class COSE(CBORProcessor):
         # Signature1
         if data.tag == 18:
             kid = self._get_kid(protected, unprotected)
-            to_be_signed = self._dumps(
-                ["Signature1", data.value[0], external_aad, data.value[2]]
-            )
+            to_be_signed = self._dumps(["Signature1", data.value[0], external_aad, data.value[2]])
             if kid:
-                for i, k in enumerate(keys):
+                for _, k in enumerate(keys):
                     if k.kid != kid:
                         continue
                     try:
@@ -510,7 +494,7 @@ class COSE(CBORProcessor):
                     except Exception as e:
                         err = e
                 raise err
-            for i, k in enumerate(keys):
+            for _, k in enumerate(keys):
                 try:
                     if self._ca_certs:
                         k.validate_certificate(self._ca_certs)
@@ -532,12 +516,10 @@ class COSE(CBORProcessor):
             protected = self._loads(sig[0]) if sig[0] else b""
             unprotected = sig[1]
             if not isinstance(unprotected, dict):
-                raise ValueError(
-                    "unprotected header in signature structure should be dict."
-                )
+                raise ValueError("unprotected header in signature structure should be dict.")
             kid = self._get_kid(protected, unprotected)
             if kid:
-                for i, k in enumerate(keys):
+                for _, k in enumerate(keys):
                     if k.kid != kid:
                         continue
                     try:
@@ -555,7 +537,7 @@ class COSE(CBORProcessor):
                     except Exception as e:
                         err = e
                 continue
-            for i, k in enumerate(keys):
+            for _, k in enumerate(keys):
                 try:
                     to_be_signed = self._dumps(
                         [
@@ -572,9 +554,7 @@ class COSE(CBORProcessor):
                     err = e
         raise err
 
-    def _filter_by_key_ops(
-        self, keys: List[COSEKeyInterface], op: int
-    ) -> List[COSEKeyInterface]:
+    def _filter_by_key_ops(self, keys: List[COSEKeyInterface], op: int) -> List[COSEKeyInterface]:
         res: List[COSEKeyInterface] = []
         for k in keys:
             if op in k.key_ops:

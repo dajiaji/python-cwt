@@ -222,9 +222,7 @@ class CWT(CBORProcessor):
             claims = claims.to_dict()
         self._set_default_value(claims)
         b_claims = self._dumps(claims)
-        res = self._cose.encode_and_mac(
-            b_claims, key, {}, {}, recipients, out="cbor2/CBORTag"
-        )
+        res = self._cose.encode_and_mac(b_claims, key, {}, {}, recipients, out="cbor2/CBORTag")
         if tagged:
             return self._dumps(CBORTag(CWT.CBOR_TAG, res))
         return self._dumps(res)
@@ -261,9 +259,7 @@ class CWT(CBORProcessor):
             claims = claims.to_dict()
         self._set_default_value(claims)
         b_claims = self._dumps(claims)
-        res = self._cose.encode_and_sign(
-            b_claims, key, {}, {}, signers=signers, out="cbor2/CBORTag"
-        )
+        res = self._cose.encode_and_sign(b_claims, key, {}, {}, signers=signers, out="cbor2/CBORTag")
         if tagged:
             return self._dumps(CBORTag(CWT.CBOR_TAG, res))
         return self._dumps(res)
