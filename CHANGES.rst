@@ -4,6 +4,11 @@ Changes
 Unreleased
 ----------
 
+Version 1.5.0
+-------------
+
+Released 2021-12-11
+
 - Migrate to poetry. `#191 <https://github.com/dajiaji/python-cwt/pull/191>`__
 - Change max line length to 128. `#191 <https://github.com/dajiaji/python-cwt/pull/191>`__
 - Fix updated flake8 warning. `#191 <https://github.com/dajiaji/python-cwt/pull/191>`__
