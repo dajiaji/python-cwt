@@ -1,6 +1,49 @@
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta:__legacy__"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "cwt"
+version = "1.4.2"
+description = "A Python implementation of CWT/COSE."
+authors = ["Ajitomi Daisuke <dajiaji@gmail.com>"]
+readme = "README.md"
+repository = "https://github.com/dajiaji/cwt"
+
+include = [
+  ".pre-commit-config.yaml",
+  "CHANGES.rst",
+  "CODE_OF_CONDUCT.md",
+  "LICENSE",
+  "tox.ini",
+  "cwt/py.typed",
+]
+
+[tool.poetry.dependencies]
+python = "^3.6.1"
+asn1crypto = "^1.4.0"
+cbor2 = "^5.4.2"
+certvalidator = "^0.11.1"
+cryptography = "^36.0.0"
+Sphinx = {version = "^4.3.1", extras = ["docs"]}
+sphinx-autodoc-typehints = {version = "^1.12.0", extras = ["docs"]}
+sphinx-rtd-theme = {version = "^1.0.0", extras = ["docs"]}
+
+[tool.poetry.extras]
+docs = [
+  "Sphinx",
+  "sphinx-rtd-theme",
+  "sphinx-autodoc-typehints",
+]
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+pytest-cov = "^3.0.0"
+coverage = {extras = ["toml"], version = "^6.2"}
+tox = "^3.24.4"
+pre-commit = "^2.15.0"
+mypy = "^0.910"
+Sphinx = "^4.3.1"
 
 [tool.coverage.run]
 parallel = true
@@ -13,8 +56,8 @@ source = ["cwt", ".tox/*/site-packages"]
 [tool.coverage.report]
 show_missing = true
 
+[tool.flake8]
+ignore = "E203,E501,"
 
-[tool.isort]
-profile = "black"
-atomic = true
-combine_as_imports = true
+[tool.mypy]
+ignore_missing_imports = true
