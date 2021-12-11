@@ -79,9 +79,7 @@ class Signer(CBORProcessor):
             ValueError: Invalid arguments.
         """
         p: Union[Dict[int, Any], bytes] = (
-            to_cose_header(protected, algs=COSE_ALGORITHMS_SIGNATURE)
-            if isinstance(protected, dict)
-            else protected
+            to_cose_header(protected, algs=COSE_ALGORITHMS_SIGNATURE) if isinstance(protected, dict) else protected
         )
         u = to_cose_header(unprotected, algs=COSE_ALGORITHMS_SIGNATURE)
         return cls(cose_key, p, u, signature)
@@ -110,9 +108,7 @@ class Signer(CBORProcessor):
 
         # alg
         if cose_key.alg not in COSE_ALGORITHMS_SIGNATURE.values():
-            raise ValueError(
-                f"Unsupported or unknown alg for signature: {cose_key.alg}."
-            )
+            raise ValueError(f"Unsupported or unknown alg for signature: {cose_key.alg}.")
         protected[1] = cose_key.alg
 
         # kid

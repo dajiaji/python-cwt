@@ -61,9 +61,7 @@ class COSEKey:
         if params[1] == 3:
             return RSAKey(params)
         if params[1] == 4:
-            if 3 not in params or (
-                not isinstance(params[3], int) and not isinstance(params[3], str)
-            ):
+            if 3 not in params or (not isinstance(params[3], int) and not isinstance(params[3], str)):
                 raise ValueError("alg(3) should be int or str(tstr).")
             if params[3] in [1, 2, 3]:
                 return AESGCMKey(params)
@@ -251,9 +249,7 @@ class COSEKey:
                 params[-7] = uint_to_bytes(priv_nums.dmq1)  # dQ
                 params[-8] = uint_to_bytes(priv_nums.iqmp)  # qInv
 
-        elif isinstance(k, EllipticCurvePrivateKey) or isinstance(
-            k, EllipticCurvePublicKey
-        ):
+        elif isinstance(k, EllipticCurvePrivateKey) or isinstance(k, EllipticCurvePublicKey):
             if alg:
                 if isinstance(alg, str):
                     if alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT:

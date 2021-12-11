@@ -212,9 +212,7 @@ class RecipientInterface(CBORProcessor):
         """
         raise NotImplementedError
 
-    def _to_cose_key(
-        self, k: Union[EllipticCurvePublicKey, X25519PublicKey, X448PublicKey]
-    ) -> Dict[int, Any]:
+    def _to_cose_key(self, k: Union[EllipticCurvePublicKey, X25519PublicKey, X448PublicKey]) -> Dict[int, Any]:
         if isinstance(k, EllipticCurvePublicKey):
             return EC2Key.to_cose_key(k)
         return OKPKey.to_cose_key(k)

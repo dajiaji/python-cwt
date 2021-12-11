@@ -540,17 +540,13 @@ class TestCOSEKey:
             ("private_key_rsa.json", "public_key_rsa.json"),
         ],
     )
-    def test_key_builder_from_jwk_with_encode_and_sign(
-        self, private_key_path, public_key_path
-    ):
+    def test_key_builder_from_jwk_with_encode_and_sign(self, private_key_path, public_key_path):
         with open(key_path(private_key_path)) as key_file:
             private_key = COSEKey.from_jwk(key_file.read())
         with open(key_path(public_key_path)) as key_file:
             public_key = COSEKey.from_jwk(key_file.read())
         token = cwt.encode_and_sign(
-            Claims.from_json(
-                {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}
-            ),
+            Claims.from_json({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}),
             private_key,
         )
         # token = cwt.encode(

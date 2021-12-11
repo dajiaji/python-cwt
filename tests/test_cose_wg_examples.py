@@ -107,12 +107,7 @@ class TestCOSE:
             unprotected={4: b"11"},
             external_aad=bytes.fromhex("11aa22bb33cc44dd55006699"),
         )
-        assert (
-            ctx.decode(
-                encoded, key, external_aad=bytes.fromhex("11aa22bb33cc44dd55006699")
-            )
-            == b"This is the content."
-        )
+        assert ctx.decode(encoded, key, external_aad=bytes.fromhex("11aa22bb33cc44dd55006699")) == b"This is the content."
         assert (
             ctx.decode(
                 bytes.fromhex(cwt_str),
@@ -197,10 +192,7 @@ class TestCOSE:
             protected={3: 0},
         )
         assert ctx.decode(encoded, signer.cose_key) == b"This is the content."
-        assert (
-            ctx.decode(bytes.fromhex(cwt_str), signer.cose_key)
-            == b"This is the content."
-        )
+        assert ctx.decode(bytes.fromhex(cwt_str), signer.cose_key) == b"This is the content."
 
     def test_cose_wg_examples_eddsa_01(self):
         cwt_str = "D8628443A10300A054546869732069732074686520636F6E74656E742E818343A10127A104423131584077F3EACD11852C4BF9CB1D72FABE6B26FBA1D76092B2B5B7EC83B83557652264E69690DBC1172DDC0BF88411C0D25A507FDB247A20C40D5E245FABD3FC9EC106"
@@ -209,18 +201,10 @@ class TestCOSE:
                 "kty": "OKP",
                 "kid": "11",
                 "crv": "Ed25519",
-                "x": base64.urlsafe_b64encode(
-                    bytes.fromhex(
-                        "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
-                    )
-                )
+                "x": base64.urlsafe_b64encode(bytes.fromhex("d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"))
                 .replace(b"=", b"")
                 .decode("ascii"),
-                "d": base64.urlsafe_b64encode(
-                    bytes.fromhex(
-                        "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60"
-                    )
-                )
+                "d": base64.urlsafe_b64encode(bytes.fromhex("9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60"))
                 .replace(b"=", b"")
                 .decode("ascii"),
             }
@@ -272,18 +256,10 @@ class TestCOSE:
                 "kty": "OKP",
                 "kid": "11",
                 "crv": "Ed25519",
-                "x": base64.urlsafe_b64encode(
-                    bytes.fromhex(
-                        "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
-                    )
-                )
+                "x": base64.urlsafe_b64encode(bytes.fromhex("d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"))
                 .replace(b"=", b"")
                 .decode("ascii"),
-                "d": base64.urlsafe_b64encode(
-                    bytes.fromhex(
-                        "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60"
-                    )
-                )
+                "d": base64.urlsafe_b64encode(bytes.fromhex("9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60"))
                 .replace(b"=", b"")
                 .decode("ascii"),
             }
@@ -411,9 +387,7 @@ class TestCOSE:
 
     def test_cose_wg_examples_rfc8152_c_3_2(self):
         cwt_str = "D8608443A1010AA1054D89F52F65A1C580933B5261A76C581C753548A19B1307084CA7B2056924ED95F2E3B17006DFE931B687B847818343A10129A2335061616262636364646565666667676868044A6F75722D73656372657440"
-        recipient = Recipient.new(
-            {1: -10}, {-20: b"aabbccddeeffgghh", 4: b"our-secret"}
-        )
+        recipient = Recipient.new({1: -10}, {-20: b"aabbccddeeffgghh", 4: b"our-secret"})
         material = COSEKey.from_symmetric_key(
             key=base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
             alg="A256GCM",
@@ -452,9 +426,7 @@ class TestCOSE:
 
     def test_cose_wg_examples_rfc8152_c_3_2_with_json(self):
         cwt_str = "D8608443A1010AA1054D89F52F65A1C580933B5261A76C581C753548A19B1307084CA7B2056924ED95F2E3B17006DFE931B687B847818343A10129A2335061616262636364646565666667676868044A6F75722D73656372657440"
-        recipient = Recipient.new(
-            {1: -10}, {-20: b"aabbccddeeffgghh", 4: b"our-secret"}
-        )
+        recipient = Recipient.new({1: -10}, {-20: b"aabbccddeeffgghh", 4: b"our-secret"})
         context = {
             "alg": "AES-CCM-16-64-128",
             "apu": {
@@ -572,9 +544,7 @@ class TestCOSE:
                 "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",
             }
         )
-        assert b"This is the content." == ctx.decode(
-            encoded, priv_key, context={"alg": "A128GCM"}
-        )
+        assert b"This is the content." == ctx.decode(encoded, priv_key, context={"alg": "A128GCM"})
 
     def test_cose_wg_examples_ecdh_wrap_p256_ss_wrap_128_01(self):
         # The sender side:
@@ -623,6 +593,4 @@ class TestCOSE:
                 "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",
             }
         )
-        assert b"This is the content." == ctx.decode(
-            encoded, priv_key, context={"alg": "A128GCM"}
-        )
+        assert b"This is the content." == ctx.decode(encoded, priv_key, context={"alg": "A128GCM"})

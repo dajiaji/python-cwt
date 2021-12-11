@@ -34,17 +34,11 @@ class Claims:
                 for c in claims[3]:
                     if not isinstance(c, str):
                         raise ValueError("aud(3) should be str or list[str].")
-        if 4 in claims and not (
-            isinstance(claims[4], int) or isinstance(claims[4], float)
-        ):
+        if 4 in claims and not (isinstance(claims[4], int) or isinstance(claims[4], float)):
             raise ValueError("exp(4) should be int or float.")
-        if 5 in claims and not (
-            isinstance(claims[5], int) or isinstance(claims[5], float)
-        ):
+        if 5 in claims and not (isinstance(claims[5], int) or isinstance(claims[5], float)):
             raise ValueError("nbf(5) should be int or float.")
-        if 6 in claims and not (
-            isinstance(claims[6], int) or isinstance(claims[6], float)
-        ):
+        if 6 in claims and not (isinstance(claims[6], int) or isinstance(claims[6], float)):
             raise ValueError("iat(6) should be int or float.")
         if 7 in claims and not isinstance(claims[7], bytes):
             raise ValueError("cti(7) should be bytes.")
@@ -61,9 +55,7 @@ class Claims:
                 if not isinstance(claims[8][3], bytes):
                     raise ValueError("kid in cnf(8) should be bytes.")
             else:
-                raise ValueError(
-                    "cnf(8) should include COSE_Key, Encrypted_COSE_Key, or kid."
-                )
+                raise ValueError("cnf(8) should include COSE_Key, Encrypted_COSE_Key, or kid.")
         self._claims = claims
         self._claim_names = claim_names
         return

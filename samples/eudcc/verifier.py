@@ -26,17 +26,11 @@ class Verifier:
         headers = None
 
         # Get new DSCs
-        x_resume_token = (
-            self._trustlist[len(self._trustlist) - 1]["x_resume_token"]
-            if self._trustlist
-            else ""
-        )
+        x_resume_token = self._trustlist[len(self._trustlist) - 1]["x_resume_token"] if self._trustlist else ""
         while status == 200:
             if x_resume_token:
                 headers = {"X-RESUME-TOKEN": x_resume_token}
-            r = requests.get(
-                self._base_url + "/signercertificateUpdate", headers=headers
-            )
+            r = requests.get(self._base_url + "/signercertificateUpdate", headers=headers)
             status = r.status_code
             if status == 204:
                 break
@@ -66,9 +60,7 @@ class Verifier:
 
         # Update trustlist store.
         with open(self._trustlist_store_path, "w") as f:
-            json.dump(
-                [v for v in self._trustlist if v["x_kid"] in active_kids], f, indent=4
-            )
+            json.dump([v for v in self._trustlist if v["x_kid"] in active_kids], f, indent=4)
         return
 
     def verify_and_decode(self, eudcc: bytes) -> bytes:

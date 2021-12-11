@@ -157,9 +157,7 @@ class Recipient:
             ValueError: Invalid arguments.
             DecodeError: Failed to decode the key data.
         """
-        if not isinstance(recipient, list) or (
-            len(recipient) != 3 and len(recipient) != 4
-        ):
+        if not isinstance(recipient, list) or (len(recipient) != 3 and len(recipient) != 4):
             raise ValueError("Invalid recipient format.")
         if not isinstance(recipient[0], bytes):
             raise ValueError("protected header should be bytes.")

@@ -69,7 +69,7 @@ class TestClaims:
         for k, v in claims.items():
             assert v == expected[k]
             assert isinstance(v, type(expected[k]))
-        len(claims) == len(expected)
+        assert len(claims) == len(expected)
 
     @pytest.mark.parametrize(
         "json",

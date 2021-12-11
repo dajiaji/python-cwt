@@ -75,9 +75,7 @@ class TestCOSESample:
             key=mac_key,
             recipients=[r],
         )
-        assert b"Hello world!" == ctx.decode(
-            encoded, shared_key, context={"alg": "HS256"}
-        )
+        assert b"Hello world!" == ctx.decode(encoded, shared_key, context={"alg": "HS256"})
 
     def test_cose_usage_examples_cose_mac_aes_key_wrap(self):
 
@@ -142,9 +140,7 @@ class TestCOSESample:
                 "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",
             }
         )
-        assert b"Hello world!" == ctx.decode(
-            encoded, priv_key, context={"alg": "HS256"}
-        )
+        assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "HS256"})
 
     def test_cose_usage_examples_cose_mac_ecdh_direct_hkdf_x25519(self):
 
@@ -181,9 +177,7 @@ class TestCOSESample:
                 "d": "vsJ1oX5NNi0IGdwGldiac75r-Utmq3Jq4LGv48Q_Qc4",
             }
         )
-        assert b"Hello world!" == ctx.decode(
-            encoded, priv_key, context={"alg": "HS256"}
-        )
+        assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "HS256"})
 
     def test_cose_usage_examples_cose_mac_ecdh_direct_hkdf_x448(self):
 
@@ -220,9 +214,7 @@ class TestCOSESample:
                 "d": "rJJRG3nshyCtd9CgXld8aNaB9YXKR0UOi7zj7hApg9YH4XdBO0G8NcAFNz_uPH2GnCZVcSDgV5c",
             }
         )
-        assert b"Hello world!" == ctx.decode(
-            encoded, priv_key, context={"alg": "HS256"}
-        )
+        assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "HS256"})
 
     def test_cose_usage_examples_cose_mac_ecdh_ss_a128kw(self):
 
@@ -267,9 +259,7 @@ class TestCOSESample:
                 "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",
             }
         )
-        assert b"Hello world!" == ctx.decode(
-            encoded, priv_key, context={"alg": "HS256"}
-        )
+        assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "HS256"})
 
     def test_cose_usage_examples_cose_encrypt0(self):
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
@@ -354,9 +344,7 @@ class TestCOSESample:
             key=enc_key,
             recipients=[r],
         )
-        assert b"Hello world!" == ctx.decode(
-            encoded, shared_key, context={"alg": "A256GCM"}
-        )
+        assert b"Hello world!" == ctx.decode(encoded, shared_key, context={"alg": "A256GCM"})
 
     def test_cose_usage_examples_cose_encrypt_aes_key_wrap_a128kw(self):
         # A key to wrap
@@ -419,9 +407,7 @@ class TestCOSESample:
                 "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",
             }
         )
-        assert b"Hello world!" == ctx.decode(
-            encoded, priv_key, context={"alg": "A128GCM"}
-        )
+        assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "A128GCM"})
 
     def test_cose_usage_examples_cose_encrypt_ecdh_direct_hkdf_x25519(self):
 
@@ -458,9 +444,7 @@ class TestCOSESample:
                 "d": "vsJ1oX5NNi0IGdwGldiac75r-Utmq3Jq4LGv48Q_Qc4",
             }
         )
-        assert b"Hello world!" == ctx.decode(
-            encoded, priv_key, context={"alg": "A128GCM"}
-        )
+        assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "A128GCM"})
 
     def test_cose_usage_examples_cose_encrypt_ecdh_direct_hkdf_x448(self):
 
@@ -497,9 +481,7 @@ class TestCOSESample:
                 "d": "rJJRG3nshyCtd9CgXld8aNaB9YXKR0UOi7zj7hApg9YH4XdBO0G8NcAFNz_uPH2GnCZVcSDgV5c",
             }
         )
-        assert b"Hello world!" == ctx.decode(
-            encoded, priv_key, context={"alg": "A128GCM"}
-        )
+        assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "A128GCM"})
 
     def test_cose_usage_examples_cose_encrypt_ecdh_ss_a128kw(self):
 
@@ -546,9 +528,7 @@ class TestCOSESample:
                 "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",
             }
         )
-        assert b"Hello world!" == ctx.decode(
-            encoded, priv_key, context={"alg": "A128GCM"}
-        )
+        assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "A128GCM"})
 
     def test_cose_usage_examples_cose_signature1(self):
 
@@ -631,9 +611,7 @@ class TestCOSESample:
                 "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",
             }
         )
-        assert b"Hello world!" == ctx.decode(
-            encoded, priv_key, context={"alg": "A128GCM"}
-        )
+        assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "A128GCM"})
 
     def test_cose_usage_examples_cose_signature(self):
 

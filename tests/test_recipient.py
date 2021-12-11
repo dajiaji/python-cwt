@@ -117,9 +117,7 @@ class TestRecipientInterface:
         assert len(res) == 3
 
     def test_recipient_constructor_with_alg_a128kw_with_iv(self):
-        r = RecipientInterface(
-            protected={1: -3}, unprotected={4: b"our-secret", 5: b"aabbccddee"}
-        )
+        r = RecipientInterface(protected={1: -3}, unprotected={4: b"our-secret", 5: b"aabbccddee"})
         assert isinstance(r, RecipientInterface)
         assert r.alg == -3
         assert isinstance(r.protected, dict)
@@ -190,9 +188,7 @@ class TestRecipientInterface:
             ),
         ],
     )
-    def test_recipient_constructor_with_invalid_args(
-        self, protected, unprotected, ciphertext, recipients, msg
-    ):
+    def test_recipient_constructor_with_invalid_args(self, protected, unprotected, ciphertext, recipients, msg):
         with pytest.raises(ValueError) as err:
             RecipientInterface(protected, unprotected, ciphertext, recipients)
             pytest.fail("RecipientInterface() should fail.")
@@ -238,16 +234,12 @@ class TestRecipient:
         assert recipient.alg == -6
 
     def test_recipient_from_jwk_with_dict(self):
-        recipient = Recipient.from_jwk(
-            {"kty": "oct", "alg": "A128KW", "key_ops": ["wrapKey"]}
-        )
+        recipient = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "key_ops": ["wrapKey"]})
         assert isinstance(recipient, RecipientInterface)
         assert recipient.alg == -3
 
     def test_recipient_from_jwk_with_dict_and_with_byte_formatted_kid(self):
-        recipient = Recipient.from_jwk(
-            {"kty": "oct", "kid": b"01", "alg": "A128KW", "key_ops": ["wrapKey"]}
-        )
+        recipient = Recipient.from_jwk({"kty": "oct", "kid": b"01", "alg": "A128KW", "key_ops": ["wrapKey"]})
         assert isinstance(recipient, RecipientInterface)
         assert recipient.alg == -3
         assert recipient.kid == b"01"
@@ -418,9 +410,7 @@ class TestRecipients:
         assert isinstance(r, Recipients)
 
     def test_recipients_constructor_with_recipient_alg_direct(self):
-        key = COSEKey.from_symmetric_key(
-            "mysecret", alg="HMAC 256/64", kid="our-secret"
-        )
+        key = COSEKey.from_symmetric_key("mysecret", alg="HMAC 256/64", kid="our-secret")
         r = Recipients([Recipient.new(unprotected={1: -6, 4: b"our-secret"})])
         key = r.extract([key])
         assert key.kty == 4
@@ -518,9 +508,7 @@ class TestRecipients:
         assert key.kid == b"03"
 
     def test_recipients_extract_with_different_kid(self):
-        key = COSEKey.from_symmetric_key(
-            "mysecret", alg="HMAC 256/64", kid="our-secret"
-        )
+        key = COSEKey.from_symmetric_key("mysecret", alg="HMAC 256/64", kid="our-secret")
         r = Recipients([RecipientInterface(unprotected={1: -6, 4: b"your-secret"})])
         with pytest.raises(ValueError) as err:
             r.extract([key])
@@ -529,17 +517,13 @@ class TestRecipients:
 
     def test_recipients_from_list(self):
         try:
-            Recipients.from_list(
-                [[cbor2.dumps({1: -10}), {-20: b"aabbccddeefff"}, b""]]
-            )
+            Recipients.from_list([[cbor2.dumps({1: -10}), {-20: b"aabbccddeefff"}, b""]])
         except Exception:
             pytest.fail("from_list() should not fail.")
 
     def test_recipients_from_list_with_empty_recipients(self):
         try:
-            Recipients.from_list(
-                [[cbor2.dumps({1: -10}), {-20: b"aabbccddeefff"}, b"", []]]
-            )
+            Recipients.from_list([[cbor2.dumps({1: -10}), {-20: b"aabbccddeefff"}, b"", []]])
         except Exception:
             pytest.fail("from_list() should not fail.")
 

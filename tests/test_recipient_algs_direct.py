@@ -130,9 +130,7 @@ class TestDirectHKDF:
             ),
         ],
     )
-    def test_direct_hkdf_constructor_with_invalid_arg(
-        self, protected, unprotected, msg
-    ):
+    def test_direct_hkdf_constructor_with_invalid_arg(self, protected, unprotected, msg):
         with pytest.raises(ValueError) as err:
             DirectHKDF(protected, unprotected)
             pytest.fail("DirectHKDF() should fail.")

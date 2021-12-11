@@ -34,7 +34,5 @@ class CBORProcessor:
         if not isinstance(context[2], list) or len(context[2]) != 3:
             raise ValueError("PartyVInfo should be list(size=3).")
         # SuppPubInfo
-        if not isinstance(context[3], list) or (
-            len(context[3]) != 2 and len(context[3]) != 3
-        ):
+        if not isinstance(context[3], list) or (len(context[3]) != 2 and len(context[3]) != 3):
             raise ValueError("SuppPubInfo should be list(size=2 or 3).")

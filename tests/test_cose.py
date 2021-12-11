@@ -170,9 +170,7 @@ class TestCOSE:
         assert b"Hello world!" == ctx.decode(encoded, sig_key)
 
     def test_cose_encode_and_decode_mac0_with_verify_kid(self):
-        ctx = COSE.new(
-            alg_auto_inclusion=True, kid_auto_inclusion=True, verify_kid=True
-        )
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True, verify_kid=True)
 
         # MAC0
         mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
@@ -180,9 +178,7 @@ class TestCOSE:
         assert b"Hello world!" == ctx.decode(encoded, mac_key)
 
     def test_cose_encode_and_decode_mac0_without_kid_with_verify_kid(self):
-        ctx = COSE.new(
-            alg_auto_inclusion=True, kid_auto_inclusion=True, verify_kid=True
-        )
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True, verify_kid=True)
 
         # MAC0
         mac_key = COSEKey.from_symmetric_key(alg="HS256")
@@ -262,9 +258,7 @@ class TestCOSE:
                 recipients=[RecipientInterface(unprotected={1: 0, 4: b"our-secret"})],
             )
             pytest.fail("encode_and_mac should fail.")
-        assert "Algorithms other than direct are not supported for recipients." in str(
-            err.value
-        )
+        assert "Algorithms other than direct are not supported for recipients." in str(err.value)
 
     def test_cose_encode_and_encrypt_with_recipient_has_unsupported_alg(self, ctx):
         key = COSEKey.from_jwk(
@@ -284,9 +278,7 @@ class TestCOSE:
                 recipients=[RecipientInterface(unprotected={1: 0, 4: b"our-secret"})],
             )
             pytest.fail("encode_and_encrypt should fail.")
-        assert "Algorithms other than direct are not supported for recipients." in str(
-            err.value
-        )
+        assert "Algorithms other than direct are not supported for recipients." in str(err.value)
 
     def test_cose_encode_and_mac_with_invalid_payload(self, ctx):
         key = COSEKey.from_symmetric_key(alg="HS256")
@@ -507,7 +499,7 @@ class TestCOSE:
         key2 = COSEKey.from_symmetric_key(alg="HS256", kid="01")
         key3 = COSEKey.from_symmetric_key(alg="HS256", kid="02")
         encoded = ctx.encode_and_mac(b"Hello world!", key2)
-        b"Hello world!" == ctx.decode(encoded, [key1, key2, key3])
+        assert b"Hello world!" == ctx.decode(encoded, [key1, key2, key3])
 
     def test_cose_decode_mac_with_multiple_keys_without_kid(self, ctx):
         key = COSEKey.from_symmetric_key(alg="HS256")
@@ -525,7 +517,7 @@ class TestCOSE:
 
         shared_key1 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material1})
         shared_key3 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material3})
-        b"Hello world!" == ctx.decode(encoded, keys=[shared_key3, shared_key1])
+        assert b"Hello world!" == ctx.decode(encoded, keys=[shared_key3, shared_key1])
 
     def test_cose_decode_mac_with_multiple_keys_with_verify_kid(self):
         ctx = COSE.new(alg_auto_inclusion=True, verify_kid=True)
@@ -535,23 +527,15 @@ class TestCOSE:
         material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
         material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
 
-        r1 = Recipient.from_jwk(
-            {"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1}
-        )
-        r2 = Recipient.from_jwk(
-            {"kid": "02", "kty": "oct", "alg": "A128KW", "k": material2}
-        )
+        r1 = Recipient.from_jwk({"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1})
+        r2 = Recipient.from_jwk({"kid": "02", "kty": "oct", "alg": "A128KW", "k": material2})
         r1.apply(key)
         r2.apply(key)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2, r1])
 
-        shared_key1 = COSEKey.from_jwk(
-            {"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1}
-        )
-        shared_key3 = COSEKey.from_jwk(
-            {"kid": "03", "kty": "oct", "alg": "A128KW", "k": material3}
-        )
+        shared_key1 = COSEKey.from_jwk({"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1})
+        shared_key3 = COSEKey.from_jwk({"kid": "03", "kty": "oct", "alg": "A128KW", "k": material3})
 
         assert b"Hello world!" == ctx.decode(encoded, keys=[shared_key3, shared_key1])
 
@@ -574,12 +558,8 @@ class TestCOSE:
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2, r1])
 
-        shared_key1 = COSEKey.from_jwk(
-            {"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1}
-        )
-        shared_key3 = COSEKey.from_jwk(
-            {"kid": "03", "kty": "oct", "alg": "A128KW", "k": material3}
-        )
+        shared_key1 = COSEKey.from_jwk({"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1})
+        shared_key3 = COSEKey.from_jwk({"kid": "03", "kty": "oct", "alg": "A128KW", "k": material3})
 
         assert b"Hello world!" == ctx.decode(encoded, keys=[shared_key3, shared_key1])
 
@@ -623,12 +603,8 @@ class TestCOSE:
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2, r1])
 
-        shared_key1 = COSEKey.from_jwk(
-            {"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1}
-        )
-        shared_key3 = COSEKey.from_jwk(
-            {"kid": "02", "kty": "oct", "alg": "A128KW", "k": material3}
-        )
+        shared_key1 = COSEKey.from_jwk({"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1})
+        shared_key3 = COSEKey.from_jwk({"kid": "02", "kty": "oct", "alg": "A128KW", "k": material3})
 
         with pytest.raises(ValueError) as err:
             ctx.decode(encoded, keys=[shared_key3, shared_key1])
@@ -643,19 +619,13 @@ class TestCOSE:
         material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
         material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
 
-        r2 = Recipient.from_jwk(
-            {"kid": "03", "kty": "oct", "alg": "A128KW", "k": material2}
-        )
+        r2 = Recipient.from_jwk({"kid": "03", "kty": "oct", "alg": "A128KW", "k": material2})
         r2.apply(key)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2])
 
-        shared_key1 = COSEKey.from_jwk(
-            {"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1}
-        )
-        shared_key3 = COSEKey.from_jwk(
-            {"kid": "03", "kty": "oct", "alg": "A128KW", "k": material3}
-        )
+        shared_key1 = COSEKey.from_jwk({"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1})
+        shared_key3 = COSEKey.from_jwk({"kid": "03", "kty": "oct", "alg": "A128KW", "k": material3})
 
         with pytest.raises(DecodeError) as err:
             ctx.decode(encoded, keys=[shared_key1, shared_key3])
@@ -670,19 +640,13 @@ class TestCOSE:
         material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
         material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
 
-        r2 = Recipient.from_jwk(
-            {"kid": "03", "kty": "oct", "alg": "A128KW", "k": material2}
-        )
+        r2 = Recipient.from_jwk({"kid": "03", "kty": "oct", "alg": "A128KW", "k": material2})
         r2.apply(key)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2])
 
-        shared_key1 = COSEKey.from_jwk(
-            {"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1}
-        )
-        shared_key3 = COSEKey.from_jwk(
-            {"kid": "02", "kty": "oct", "alg": "A128KW", "k": material3}
-        )
+        shared_key1 = COSEKey.from_jwk({"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1})
+        shared_key3 = COSEKey.from_jwk({"kid": "02", "kty": "oct", "alg": "A128KW", "k": material3})
 
         with pytest.raises(ValueError) as err:
             ctx.decode(encoded, keys=[shared_key1, shared_key3])
@@ -743,23 +707,15 @@ class TestCOSE:
         material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
         material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
 
-        r1 = Recipient.from_jwk(
-            {"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1}
-        )
-        r2 = Recipient.from_jwk(
-            {"kid": "02", "kty": "oct", "alg": "A128KW", "k": material2}
-        )
+        r1 = Recipient.from_jwk({"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1})
+        r2 = Recipient.from_jwk({"kid": "02", "kty": "oct", "alg": "A128KW", "k": material2})
         r1.apply(key)
         r2.apply(key)
 
         encoded = ctx.encode_and_encrypt(b"Hello world!", key, recipients=[r2, r1])
 
-        shared_key1 = COSEKey.from_jwk(
-            {"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1}
-        )
-        shared_key3 = COSEKey.from_jwk(
-            {"kid": "03", "kty": "oct", "alg": "A128KW", "k": material3}
-        )
+        shared_key1 = COSEKey.from_jwk({"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1})
+        shared_key3 = COSEKey.from_jwk({"kid": "03", "kty": "oct", "alg": "A128KW", "k": material3})
 
         assert b"Hello world!" == ctx.decode(encoded, keys=[shared_key3, shared_key1])
 
@@ -947,9 +903,7 @@ class TestCOSE:
     def test_cose_decode_ecdh_es_hkdf_256_without_context(self):
         with open(key_path("public_key_es256.pem")) as key_file:
             public_key = COSEKey.from_pem(key_file.read(), kid="01")
-        recipient = Recipient.from_jwk(
-            {"kty": "EC", "crv": "P-256", "alg": "ECDH-ES+HKDF-256"}
-        )
+        recipient = Recipient.from_jwk({"kty": "EC", "crv": "P-256", "alg": "ECDH-ES+HKDF-256"})
         enc_key = recipient.apply(recipient_key=public_key, context={"alg": "A128GCM"})
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_encrypt(
@@ -969,9 +923,7 @@ class TestCOSE:
         with open(key_path("public_key_es256.pem")) as key_file:
             public_key = COSEKey.from_pem(key_file.read(), kid="01")
         enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
-        recipient = Recipient.from_jwk(
-            {"kty": "EC", "crv": "P-256", "alg": "ECDH-ES+A128KW"}
-        )
+        recipient = Recipient.from_jwk({"kty": "EC", "crv": "P-256", "alg": "ECDH-ES+A128KW"})
         recipient.apply(enc_key, recipient_key=public_key, context={"alg": "A128GCM"})
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_encrypt(

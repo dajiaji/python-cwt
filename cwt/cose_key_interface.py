@@ -31,9 +31,7 @@ class COSEKeyInterface(CBORProcessor):
             raise ValueError(f"Unknown kty: {params[1]}")
         if isinstance(params[1], str) and params[1] not in COSE_KEY_TYPES:
             raise ValueError(f"Unknown kty: {params[1]}")
-        self._kty: int = (
-            params[1] if isinstance(params[1], int) else COSE_KEY_TYPES[params[1]]
-        )
+        self._kty: int = params[1] if isinstance(params[1], int) else COSE_KEY_TYPES[params[1]]
 
         # kid
         if 2 in params and not isinstance(params[2], bytes):
@@ -45,16 +43,9 @@ class COSEKeyInterface(CBORProcessor):
         if 3 in params:
             if not isinstance(params[3], int) and not isinstance(params[3], str):
                 raise ValueError("alg(3) should be int or str(tstr).")
-            if (
-                isinstance(params[3], str)
-                and params[3] not in COSE_NAMED_ALGORITHMS_SUPPORTED
-            ):
+            if isinstance(params[3], str) and params[3] not in COSE_NAMED_ALGORITHMS_SUPPORTED:
                 raise ValueError(f"Unsupported or unknown alg(3): {params[3]}.")
-            self._alg = (
-                params[3]
-                if isinstance(params[3], int)
-                else COSE_NAMED_ALGORITHMS_SUPPORTED[params[3]]
-            )
+            self._alg = params[3] if isinstance(params[3], int) else COSE_NAMED_ALGORITHMS_SUPPORTED[params[3]]
 
         # key_ops
         if 4 in params and not isinstance(params[4], list):
