@@ -37,11 +37,11 @@ And then, you can use it as follows:
 {1: 'coaps://as.example', 2: 'dajiaji', 7: b'123', 4: 1620088759, 5: 1620085159, 6: 1620085159}
 ```
 
-See [Document](https://python-cwt.readthedocs.io/en/stable/) for details.
+See [Documentation](https://python-cwt.readthedocs.io/en/stable/) for details.
 
 ## Index
 
-- [Installing](#installing)
+- [Installation](#installation)
 - [CWT Usage Examples](#cwt-usage-examples)
     - [MACed CWT](#maced-cwt)
     - [Signed CWT](#signed-cwt)
@@ -74,8 +74,9 @@ See [Document](https://python-cwt.readthedocs.io/en/stable/) for details.
 - [Supported COSE Algorithms](#supported-cose-algorithms)
 - [Referenced Specifications](#referenced-specifications)
 - [Tests](#tests)
+- [Contributing](#contributing)
 
-## Installing
+## Installation
 
 Install with pip:
 
@@ -1045,15 +1046,15 @@ assert b"Hello world!" == ctx.decode(encoded, pub_key)
 ```
 ## API Reference
 
-See [Document](https://python-cwt.readthedocs.io/en/stable/api.html).
+See [Documentation](https://python-cwt.readthedocs.io/en/stable/api.html).
 
 ## Supported CWT Claims
 
-See [Document](https://python-cwt.readthedocs.io/en/stable/claims.html).
+See [Documentation](https://python-cwt.readthedocs.io/en/stable/claims.html).
 
 ## Supported COSE Algorithms
 
-See [Document](https://python-cwt.readthedocs.io/en/stable/algorithms.html).
+See [Documentation](https://python-cwt.readthedocs.io/en/stable/algorithms.html).
 
 ## Referenced Specifications
 
@@ -1074,3 +1075,7 @@ You can run tests from the project root after cloning with:
 ```sh
 $ tox
 ```
+
+## Contributing
+
+We welcome all kind of contributions, filing issues, suggesting new features or sending PRs.
