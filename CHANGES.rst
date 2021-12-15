@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 
+- Use the default salt length for PS256/384/512 instead of the max length. `#195 <https://github.com/dajiaji/python-cwt/pull/195>`__
+
 Version 1.5.0
 -------------
 

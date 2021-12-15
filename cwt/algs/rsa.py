@@ -30,6 +30,7 @@ class RSAKey(AsymmetricKey):
         self._key: Any = None
         self._hash: Any = None
         self._padding: Any = None
+        salt_len: Any = padding.PSS.MAX_LENGTH
 
         # Validate kty.
         if params[1] != 3:
@@ -42,14 +43,17 @@ class RSAKey(AsymmetricKey):
             raise ValueError(f"Unsupported or unknown alg(3) for RSA: {params[3]}.")
         if params[3] == -259 or params[3] == -39:
             self._hash = hashes.SHA512
+            salt_len = 64
         elif params[3] == -258 or params[3] == -38:
             self._hash = hashes.SHA384
+            salt_len = 48
         elif params[3] == -257 or params[3] == -37:
             self._hash = hashes.SHA256
+            salt_len = 32
         else:
             raise ValueError(f"Unsupported or unknown alg(3) for RSA: {params[3]}.")
         if params[3] in [-37, -38, -39]:
-            self._padding = padding.PSS(mgf=padding.MGF1(self._hash()), salt_length=padding.PSS.MAX_LENGTH)
+            self._padding = padding.PSS(mgf=padding.MGF1(self._hash()), salt_length=salt_len)
         else:
             self._padding = padding.PKCS1v15()
 
