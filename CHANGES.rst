@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- Refine pyproject.toml. `#202 <https://github.com/dajiaji/python-cwt/pull/202>`__
 - Add poetry.lock. `#202 <https://github.com/dajiaji/python-cwt/pull/202>`__
 
 Version 1.5.1

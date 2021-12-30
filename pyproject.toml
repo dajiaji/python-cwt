@@ -11,12 +11,16 @@ readme = "README.md"
 repository = "https://github.com/dajiaji/cwt"
 
 include = [
-  ".pre-commit-config.yaml",
   "CHANGES.rst",
-  "CODE_OF_CONDUCT.md",
-  "LICENSE",
+  "docs",
+  "poetry.lock",
+  "samples",
+  "tests",
   "tox.ini",
-  "cwt/py.typed",
+]
+
+exclude = [
+  "docs/_build",
 ]
 
 [tool.poetry.dependencies]
@@ -32,8 +36,8 @@ sphinx-rtd-theme = {version = "^1.0.0", extras = ["docs"]}
 [tool.poetry.extras]
 docs = [
   "Sphinx",
-  "sphinx-rtd-theme",
   "sphinx-autodoc-typehints",
+  "sphinx-rtd-theme",
 ]
 
 [tool.poetry.dev-dependencies]
