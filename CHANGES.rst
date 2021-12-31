@@ -4,6 +4,11 @@ Changes
 Unreleased
 ----------
 
+Version 1.5.2
+-------------
+
+Released 2021-12-31
+
 - Refine github action. `#202 <https://github.com/dajiaji/python-cwt/pull/202>`__
 - Refine tox.ini. `#202 <https://github.com/dajiaji/python-cwt/pull/202>`__
 - Use pytest-cov instead of coverage. `#202 <https://github.com/dajiaji/python-cwt/pull/202>`__
