@@ -4,6 +4,15 @@ Changes
 Unreleased
 ----------
 
+Version 1.5.3
+-------------
+
+Released 2022-01-01
+
+- Add 2022 to copyright and license. `#205 <https://github.com/dajiaji/python-cwt/pull/205>`__
+- Fix link to homepage on PyPI. `#204 <https://github.com/dajiaji/python-cwt/pull/204>`__
+- Add license information to PyPI. `#204 <https://github.com/dajiaji/python-cwt/pull/204>`__
+
 Version 1.5.2
 -------------
 
