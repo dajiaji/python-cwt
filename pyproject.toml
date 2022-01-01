@@ -7,8 +7,9 @@ name = "cwt"
 version = "1.5.2"
 description = "A Python implementation of CWT/COSE."
 authors = ["Ajitomi Daisuke <dajiaji@gmail.com>"]
+license = "MIT"
 readme = "README.md"
-repository = "https://github.com/dajiaji/cwt"
+repository = "https://github.com/dajiaji/python-cwt"
 
 include = [
   "CHANGES.rst",
