@@ -16,16 +16,16 @@ from .helpers.hcert import load_pem_hcert_dsc
 from .recipient import Recipient
 from .signer import Signer
 
-__version__ = "1.5.2"
+__version__ = "1.5.3"
 __title__ = "cwt"
 __description__ = "A Python implementation of CWT/COSE"
 __url__ = "https://python-cwt.readthedocs.io"
 __uri__ = __url__
 __doc__ = __description__ + " <" + __uri__ + ">"
-__author__ = "AJITOMI Daisuke"
+__author__ = "Ajitomi Daisuke"
 __email__ = "ajitomi@gmail.com"
 __license__ = "MIT"
-__copyright__ = "Copyright 2021 AJITOMI Daisuke"
+__copyright__ = "Copyright 2021-2022 Ajitomi Daisuke"
 __all__ = [
     "encode",
     "encode_and_mac",
