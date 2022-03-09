@@ -8,7 +8,7 @@ python-versions = "*"
 
 [[package]]
 name = "asn1crypto"
-version = "1.4.0"
+version = "1.5.0"
 description = "Fast ASN.1 parser and serializer with definitions for private keys, public keys, certificates, CRL, OCSP, CMS, PKCS#3, PKCS#7, PKCS#8, PKCS#12, PKCS#5, X.509 and TSP"
 category = "main"
 optional = false
@@ -719,8 +719,8 @@ alabaster = [
     {file = "alabaster-0.7.12.tar.gz", hash = "sha256:a661d72d58e6ea8a57f7a86e37d86716863ee5e92788398526d58b26a4e4dc02"},
 ]
 asn1crypto = [
-    {file = "asn1crypto-1.4.0-py2.py3-none-any.whl", hash = "sha256:4bcdf33c861c7d40bdcd74d8e4dd7661aac320fcdf40b9a3f95b4ee12fde2fa8"},
-    {file = "asn1crypto-1.4.0.tar.gz", hash = "sha256:f4f6e119474e58e04a2b1af817eb585b4fd72bdd89b998624712b5c99be7641c"},
+    {file = "asn1crypto-1.5.0-py2.py3-none-any.whl", hash = "sha256:ccbaa8c9c80fb8c10146d52d8c17bc1c13e04c17c0dabe8d636a7be2e3c51df8"},
+    {file = "asn1crypto-1.5.0.tar.gz", hash = "sha256:2c9eb1b1635425bcadf94749bbcd83bfa8b0a912661bad6106466521d484d62b"},
 ]
 atomicwrites = [
     {file = "atomicwrites-1.4.0-py2.py3-none-any.whl", hash = "sha256:6d1784dea7c0c8d4a5172b6c620f40b6e4cbfdf96d783691f2e1302a7b88e197"},
