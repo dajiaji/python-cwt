@@ -4,6 +4,21 @@ Changes
 Unreleased
 ----------
 
+Version 1.5.4
+-------------
+
+Released 2022-04-03
+
+- Update dependencies.
+    - Bump pre-commit from 0.930 to 0.942. `#221 <https://github.com/dajiaji/python-cwt/pull/221>`__.
+    - Bump sphinx from 4.3.2 to 4.5.0. `#220 <https://github.com/dajiaji/python-cwt/pull/220>`__.
+    - Bump asn1crypto from 1.4.0 to 1.5.1. `#218 <https://github.com/dajiaji/python-cwt/pull/218>`__.
+    - Bump cryptography from 36.0.1 to 36.0. `#217 <https://github.com/dajiaji/python-cwt/pull/217>`__.
+    - Bump pytest from 6.2.5 to 7.0.1. `#213 <https://github.com/dajiaji/python-cwt/pull/213>`__.
+    - Bump cbor2 from 5.4.2 to 5.4.2.post1. `#211 <https://github.com/dajiaji/python-cwt/pull/211>`__.
+- Add pre-commit hooks for checking json, toml and yaml files. `#207 <https://github.com/dajiaji/python-cwt/pull/208>`__
+- Migrate mypy to pre-commit. `#206 <https://github.com/dajiaji/python-cwt/pull/206>`__
+
 Version 1.5.3
 -------------
 

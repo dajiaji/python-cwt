@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "cwt"
-version = "1.5.3"
+version = "1.5.4"
 description = "A Python implementation of CWT/COSE."
 authors = ["Ajitomi Daisuke <dajiaji@gmail.com>"]
 license = "MIT"
