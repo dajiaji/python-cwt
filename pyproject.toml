@@ -30,7 +30,7 @@ asn1crypto = "^1.4.0"
 cbor2 = "^5.4.2"
 certvalidator = "^0.11.1"
 cryptography = ">=36,<38"
-Sphinx = {version = "^4.3.1", extras = ["docs"]}
+Sphinx = {version = ">=4.3.1,<6.0.0", extras = ["docs"]}
 sphinx-autodoc-typehints = {version = "^1.12.0", extras = ["docs"]}
 sphinx-rtd-theme = {version = "^1.0.0", extras = ["docs"]}
 
