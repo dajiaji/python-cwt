@@ -4,18 +4,33 @@ Changes
 Unreleased
 ----------
 
+Version 1.5.6
+-------------
+
+Released 2022-08-10
+
+- Update dependencies.
+    - Bump cryptography to 37.0.4. `#239 <https://github.com/dajiaji/python-cwt/pull/239>`__
+- Update dev dependencies.
+    - Bump pre-commit/flake8 to 5.0.4. `#244 <https://github.com/dajiaji/python-cwt/pull/244>`__
+    - Bump sphinx to 5.1.1. `#242 <https://github.com/dajiaji/python-cwt/pull/242>`__
+    - Bump pre-commit/mirrors-mypy to 0.971. `#240 <https://github.com/dajiaji/python-cwt/pull/240>`__
+    - Bump pre-commit/black to 22.6.0. `#238 <https://github.com/dajiaji/python-cwt/pull/238>`__
+    - Bump tox to 3.25.1. `#237 <https://github.com/dajiaji/python-cwt/pull/237>`__
+- Drop support for Python3.6. `#236 <https://github.com/dajiaji/python-cwt/pull/236>`__
+
 Version 1.5.5
 -------------
 
 Released 2022-06-18
 
 - Update dependencies.
-    - Bump cryptography to 37.0.2 `#228 <https://github.com/dajiaji/python-cwt/pull/228>`__.
+    - Bump cryptography to 37.0.2 `#228 <https://github.com/dajiaji/python-cwt/pull/228>`__
 - Update dev dependencies.
-    - Bump sphinx to 5.0.2. `#233 <https://github.com/dajiaji/python-cwt/pull/233>`__.
-    - Bump pre-commit/mirrors-mypy to 0.961. `#232 <https://github.com/dajiaji/python-cwt/pull/232>`__.
-    - Bump pre-commit/pre-commit-hooks to 4.3.0. `#232 <https://github.com/dajiaji/python-cwt/pull/232>`__.
-    - Bump tox to 3.25.0. `#224 <https://github.com/dajiaji/python-cwt/pull/224>`__.
+    - Bump sphinx to 5.0.2. `#233 <https://github.com/dajiaji/python-cwt/pull/233>`__
+    - Bump pre-commit/mirrors-mypy to 0.961. `#232 <https://github.com/dajiaji/python-cwt/pull/232>`__
+    - Bump pre-commit/pre-commit-hooks to 4.3.0. `#232 <https://github.com/dajiaji/python-cwt/pull/232>`__
+    - Bump tox to 3.25.0. `#224 <https://github.com/dajiaji/python-cwt/pull/224>`__
 
 Version 1.5.4
 -------------
@@ -23,13 +38,13 @@ Version 1.5.4
 Released 2022-04-03
 
 - Update dependencies.
-    - Bump asn1crypto from 1.4.0 to 1.5.1. `#218 <https://github.com/dajiaji/python-cwt/pull/218>`__.
-    - Bump cryptography from 36.0.1 to 36.0.2. `#217 <https://github.com/dajiaji/python-cwt/pull/217>`__.
-    - Bump cbor2 from 5.4.2 to 5.4.2.post1. `#211 <https://github.com/dajiaji/python-cwt/pull/211>`__.
+    - Bump asn1crypto from 1.4.0 to 1.5.1. `#218 <https://github.com/dajiaji/python-cwt/pull/218>`__
+    - Bump cryptography from 36.0.1 to 36.0.2. `#217 <https://github.com/dajiaji/python-cwt/pull/217>`__
+    - Bump cbor2 from 5.4.2 to 5.4.2.post1. `#211 <https://github.com/dajiaji/python-cwt/pull/211>`__
 - Update dev dependencies.
-    - Bump pre-commit/mirrors-mypy from 0.930 to 0.942. `#221 <https://github.com/dajiaji/python-cwt/pull/221>`__.
-    - Bump sphinx from 4.3.2 to 4.5.0. `#220 <https://github.com/dajiaji/python-cwt/pull/220>`__.
-    - Bump pytest from 6.2.5 to 7.0.1. `#213 <https://github.com/dajiaji/python-cwt/pull/213>`__.
+    - Bump pre-commit/mirrors-mypy from 0.930 to 0.942. `#221 <https://github.com/dajiaji/python-cwt/pull/221>`__
+    - Bump sphinx from 4.3.2 to 4.5.0. `#220 <https://github.com/dajiaji/python-cwt/pull/220>`__
+    - Bump pytest from 6.2.5 to 7.0.1. `#213 <https://github.com/dajiaji/python-cwt/pull/213>`__
 - Add pre-commit hooks for checking json, toml and yaml files. `#207 <https://github.com/dajiaji/python-cwt/pull/208>`__
 - Migrate mypy to pre-commit. `#206 <https://github.com/dajiaji/python-cwt/pull/206>`__
 
