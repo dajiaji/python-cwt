@@ -4,6 +4,20 @@ Changes
 Unreleased
 ----------
 
+Version 1.5.7
+-------------
+
+Released 2022-10-08
+
+- Update dependencies.
+    - Bump cryptography to 38.0.1. `#248 <https://github.com/dajiaji/python-cwt/pull/248>`__
+- Update dev dependencies.
+    - Bump pre-commit/mirrors-mypy to 0.981. `#254 <https://github.com/dajiaji/python-cwt/pull/254>`__
+    - Bump sphinx to 5.2.3. `#253 <https://github.com/dajiaji/python-cwt/pull/253>`__
+    - Bump pytest-cov to 4.0.0. `#252 <https://github.com/dajiaji/python-cwt/pull/252>`__
+    - Bump tox to 3.26.0. `#249 <https://github.com/dajiaji/python-cwt/pull/249>`__
+    - Bump pre-commit/black to 22.8.0. `#246 <https://github.com/dajiaji/python-cwt/pull/246>`__
+
 Version 1.5.6
 -------------
 
