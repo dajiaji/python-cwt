@@ -6,6 +6,7 @@ import pytest
 
 from cwt.algs.ec2 import EC2Key
 from cwt.cose_key import COSEKey
+from cwt.cose_key_interface import HPKECipherSuite
 from cwt.exceptions import VerifyError
 
 from .utils import key_path
@@ -809,3 +810,55 @@ class TestEC2Key:
         with pytest.raises(ValueError) as err:
             EC2Key.to_cose_key(private_key.key)
         assert "Unsupported or unknown key for EC2." in str(err.value)
+
+    def test_ec2_key_hpke(self):
+        suite = HPKECipherSuite(kem=0x0010, kdf=0x0001, aead=0x0001)
+        priv_key = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        )
+        pub_key = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+        enc, ciphertext = pub_key.seal(suite, b"Hello world!")
+        plaintext = priv_key.open(suite, enc, ciphertext)
+        assert plaintext == b"Hello world!"
+
+    def test_ec2_key_hpke_with_alg_hpke(self):
+        suite = HPKECipherSuite(kem=0x0010, kdf=0x0001, aead=0x0001)
+        priv_key = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "alg": "HPKE",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        )
+        pub_key = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "alg": "HPKE",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+        enc, ciphertext = pub_key.seal(suite, b"Hello world!")
+        plaintext = priv_key.open(suite, enc, ciphertext)
+        assert plaintext == b"Hello world!"

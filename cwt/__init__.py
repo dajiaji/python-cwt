@@ -1,6 +1,7 @@
 from .claims import Claims
 from .cose import COSE
 from .cose_key import COSEKey
+from .cose_key_interface import HPKECipherSuite
 from .cwt import (
     CWT,
     decode,
@@ -37,6 +38,7 @@ __all__ = [
     "COSE",
     "COSEKey",
     "EncryptedCOSEKey",
+    "HPKECipherSuite",
     "Claims",
     "Recipient",
     "Signer",

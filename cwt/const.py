@@ -147,6 +147,10 @@ COSE_ALGORITHMS_KEY_WRAP = {
     # etc.
 }
 
+COSE_ALGORITHMS_HPKE = {
+    "HPKE": -1,  # HPKE
+}
+
 COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP_SS = {
     "ECDH-SS+A256KW": -34,  # ECDH SS w/ Concat KDF and AES Key Wrap w/ 256-bit key
     "ECDH-SS+A192KW": -33,  # ECDH SS w/ Concat KDF and AES Key Wrap w/ 192-bit key
@@ -334,6 +338,7 @@ COSE_ALGORITHMS_RECIPIENT = {
     **COSE_ALGORITHMS_CKDM,
     **COSE_ALGORITHMS_KEY_WRAP,
     **COSE_ALGORITHMS_CKDM_KEY_AGREEMENT,
+    **COSE_ALGORITHMS_HPKE,
 }
 
 # COSE Algorithms for Symmetric Keys.

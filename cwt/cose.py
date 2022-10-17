@@ -5,7 +5,7 @@ from cbor2 import CBORTag
 
 from .cbor_processor import CBORProcessor
 from .const import COSE_ALGORITHMS_RECIPIENT
-from .cose_key_interface import COSEKeyInterface
+from .cose_key_interface import COSEKeyInterface, HPKECipherSuite
 from .recipient_interface import RecipientInterface
 from .recipients import Recipients
 from .signer import Signer
@@ -300,12 +300,6 @@ class COSE(CBORProcessor):
 
         ctx = "Encrypt0" if not recipients else "Encrypt"
 
-        if not nonce:
-            try:
-                nonce = key.generate_nonce()
-            except NotImplementedError:
-                raise ValueError("Nonce generation is not supported for the key. Set a nonce explicitly.")
-
         # Encrypt0
         if not recipients:
             if isinstance(p, bytes):
@@ -316,10 +310,21 @@ class COSE(CBORProcessor):
                 b_protected = self._dumps(p) if p else b""
             if self._kid_auto_inclusion and key.kid:
                 u[4] = key.kid
-            u[5] = nonce
             enc_structure = [ctx, b_protected, external_aad]
             aad = self._dumps(enc_structure)
-            ciphertext = key.encrypt(payload, nonce, aad)
+            ciphertext: bytes = b""
+            if p[1] == -1:  # HPKE
+                suite = HPKECipherSuite(u[-4][1], u[-4][5], u[-4][2])
+                enc, ciphertext = key.seal(suite, payload, aad)
+                u[-4][3] = enc
+            else:
+                if not nonce:
+                    try:
+                        nonce = key.generate_nonce()
+                    except NotImplementedError:
+                        raise ValueError("Nonce generation is not supported for the key. Set a nonce explicitly.")
+                u[5] = nonce
+                ciphertext = key.encrypt(payload, nonce, aad)
             res = CBORTag(16, [b_protected, u, ciphertext])
             return res if out == "cbor2/CBORTag" else self._dumps(res)
 
@@ -332,6 +337,11 @@ class COSE(CBORProcessor):
                 p[1] = key.alg
             if self._kid_auto_inclusion and key.kid:
                 u[4] = key.kid
+            if not nonce:
+                try:
+                    nonce = key.generate_nonce()
+                except NotImplementedError:
+                    raise ValueError("Nonce generation is not supported for the key. Set a nonce explicitly.")
             u[5] = nonce
         else:
             raise NotImplementedError("Algorithms other than direct are not supported for recipients.")
@@ -429,6 +439,12 @@ class COSE(CBORProcessor):
                     if k.kid != kid:
                         continue
                     try:
+                        if alg == -1:  # HPKE
+                            hsi = unprotected.get(-4, None)
+                            if hsi is None:
+                                raise ValueError("HPKE sender information not found.")
+                            suite = HPKECipherSuite(hsi[1], hsi[5], hsi[2])
+                            return k.open(suite, hsi[3], data.value[2], aad)
                         return k.decrypt(data.value[2], nonce, aad)
                     except Exception as e:
                         err = e

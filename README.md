@@ -61,6 +61,8 @@ See [Documentation](https://python-cwt.readthedocs.io/en/stable/) for details.
         - [Direct key Agreement](#direct-key-agreement-for-mac)
         - [Key Agreement with Key Wrap](#key-agreement-with-key-wrap-for-mac)
     - [COSE Encrypt0](#cose-encrypt0)
+        - [Encryption with ChaCha20/Poly1305](#encryption-with-chacha20-poly1305)
+        - [COSE-HPKE](#cose-hpke)
     - [COSE Encrypt](#cose-encrypt)
         - [Direct Key Distribution](#direct-key-distribution-for-encryption)
         - [Direct Key with KDF](#direct-key-with-kdf-for-encryption)
@@ -769,7 +771,9 @@ assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "HS256"}
 
 ### COSE Encrypt0
 
-Create a COSE Encrypt0 message, verify and decode it as follows:
+#### Encryption with ChaCha20/Poly1305
+
+Create a COSE Encrypt0 message and decrypt it as follows:
 
 ```py
 from cwt import COSE, COSEKey
@@ -778,6 +782,59 @@ enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
 ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
 encoded = ctx.encode_and_encrypt(b"Hello world!", enc_key)
 decoded = ctx.decode(encoded, enc_key)
+```
+
+#### COSE-HPKE
+
+Create a COSE-HPKE Encrypt0 message and decrypt it as follows:
+
+```py
+from cwt import COSE, COSEKey, Signer
+
+# The sender side:
+# Load the recipient public key.
+rpk = COSEKey.from_jwk(
+    {
+        "kty": "EC",
+        "kid": "01",
+        "crv": "P-256",
+        "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+        "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+    })
+
+# Encode COSE Encrypt0 message with HPKE.
+sender = COSE.new()
+encoded = sender.encode_and_encrypt(
+    b"Hello world!",
+    rpk,
+    protected={
+        1: -1,  # alg: "HPKE"
+    },
+    unprotected={
+        4: b"01",      # kid: "01"
+        # HPKE sender information
+        -4: {
+            1: 0x0010, # kem: DHKEM(P-256, HKDF-SHA256)
+            5: 0x0001, # kdf: HKDF-SHA256
+            2: 0x0001, # aead: AES-128-GCM
+        }
+    })
+
+# The recipient side:
+# Load the recipient private key.
+rsk = COSEKey.from_jwk(
+    {
+        "kty": "EC",
+        "kid": "01",
+        "crv": "P-256",
+        "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+        "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+        "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+    })
+
+# Decode COSE Encrypt0 message with HPKE.
+recipient = COSE.new()
+assert b"Hello world!" == recipient.decode(encoded, rsk)
 ```
 
 ### COSE Encrypt
@@ -1044,6 +1101,7 @@ pub_key = COSEKey.from_jwk(
 )
 assert b"Hello world!" == ctx.decode(encoded, pub_key)
 ```
+
 ## API Reference
 
 See [Documentation](https://python-cwt.readthedocs.io/en/stable/api.html).
