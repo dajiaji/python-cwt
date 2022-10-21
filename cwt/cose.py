@@ -301,6 +301,7 @@ class COSE(CBORProcessor):
         ctx = "Encrypt0" if not recipients else "Encrypt"
 
         # Encrypt0
+        ciphertext: bytes = b""
         if not recipients:
             if isinstance(p, bytes):
                 b_protected = p
@@ -312,7 +313,6 @@ class COSE(CBORProcessor):
                 u[4] = key.kid
             enc_structure = [ctx, b_protected, external_aad]
             aad = self._dumps(enc_structure)
-            ciphertext: bytes = b""
             if p[1] == -1:  # HPKE
                 suite = HPKECipherSuite(u[-4][1], u[-4][5], u[-4][2])
                 enc, ciphertext = key.seal(suite, payload, aad)
@@ -329,30 +329,40 @@ class COSE(CBORProcessor):
             return res if out == "cbor2/CBORTag" else self._dumps(res)
 
         # Encrypt
-        recs = []
-        for rec in recipients:
-            recs.append(rec.to_list())
-        if recipients[0].alg in COSE_ALGORITHMS_RECIPIENT.values():
+        if recipients[0].alg not in COSE_ALGORITHMS_RECIPIENT.values():
+            raise NotImplementedError("Algorithms other than direct are not supported for recipients.")
+
+        if key is not None:
             if not isinstance(p, bytes) and self._alg_auto_inclusion:
                 p[1] = key.alg
             if self._kid_auto_inclusion and key.kid:
                 u[4] = key.kid
+
+        if isinstance(p, bytes):
+            b_protected = p
+        else:
+            b_protected = self._dumps(p) if p else b""
+
+        enc_structure = [ctx, b_protected, external_aad]
+        aad = self._dumps(enc_structure)
+        if 1 in p and p[1] == -1:  # HPKE
+            if -4 in u:
+                suite = HPKECipherSuite(u[-4][1], u[-4][5], u[-4][2])
+                enc, ciphertext = key.seal(suite, payload, aad)
+                u[-4][3] = enc
+        else:
             if not nonce:
                 try:
                     nonce = key.generate_nonce()
                 except NotImplementedError:
                     raise ValueError("Nonce generation is not supported for the key. Set a nonce explicitly.")
             u[5] = nonce
-        else:
-            raise NotImplementedError("Algorithms other than direct are not supported for recipients.")
-        if isinstance(p, bytes):
-            b_protected = p
-        else:
-            b_protected = self._dumps(p) if p else b""
-        enc_structure = [ctx, b_protected, external_aad]
-        aad = self._dumps(enc_structure)
-        ciphertext = key.encrypt(payload, nonce, aad)
+            ciphertext = key.encrypt(payload, nonce, aad)
         cose_enc: List[Any] = [b_protected, u, ciphertext]
+
+        recs = []
+        for rec in recipients:
+            recs.append(rec.to_list(payload, aad))
         cose_enc.append(recs)
         res = CBORTag(96, cose_enc)
         return res if out == "cbor2/CBORTag" else self._dumps(res)
@@ -459,10 +469,12 @@ class COSE(CBORProcessor):
         # Encrypt
         if data.tag == 96:
             aad = self._dumps(["Encrypt", data.value[0], external_aad])
-            nonce = unprotected.get(5, None)
             rs = Recipients.from_list(data.value[3], self._verify_kid)
-            enc_key = rs.extract(keys, context, alg)
-            return enc_key.decrypt(data.value[2], nonce, aad)
+            if alg == -1:  # HPKE
+                return rs.open(keys, aad)
+            nonce = unprotected.get(5, None)
+            k = rs.extract(keys, context, alg)
+            return k.decrypt(data.value[2], nonce, aad)
 
         # MAC0
         if data.tag == 17:

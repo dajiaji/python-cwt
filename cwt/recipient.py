@@ -7,6 +7,7 @@ from .const import (  # COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP,
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT,
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT,
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP,
+    COSE_ALGORITHMS_HPKE,
     COSE_ALGORITHMS_KEY_WRAP,
     COSE_ALGORITHMS_RECIPIENT,
 )
@@ -17,6 +18,7 @@ from .recipient_algs.direct_hkdf import DirectHKDF
 from .recipient_algs.direct_key import DirectKey
 from .recipient_algs.ecdh_aes_key_wrap import ECDH_AESKeyWrap
 from .recipient_algs.ecdh_direct_hkdf import ECDH_DirectHKDF
+from .recipient_algs.hpke import HPKE
 from .recipient_interface import RecipientInterface
 from .utils import parse_apu, parse_apv, to_cose_header
 
@@ -66,6 +68,8 @@ class Recipient:
             return ECDH_DirectHKDF(p, u, ciphertext, recipients, sender_key)
         if alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP.values():
             return ECDH_AESKeyWrap(p, u, ciphertext, recipients, sender_key)
+        if alg in COSE_ALGORITHMS_HPKE.values():
+            return HPKE(p, u, ciphertext, recipients)  # TODO sender_key
         raise ValueError(f"Unsupported or unknown alg(1): {alg}.")
 
     @classmethod

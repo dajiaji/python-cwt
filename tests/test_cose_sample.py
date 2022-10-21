@@ -305,7 +305,7 @@ class TestCOSESample:
 
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
-            b"Hello world!",
+            b"This is the content.",
             rpk,
             protected={
                 1: -1,  # alg: "HPKE"
@@ -321,6 +321,8 @@ class TestCOSESample:
             },
         )
 
+        # print(encoded.hex())
+
         # The recipient side:
         rsk = COSEKey.from_jwk(
             {
@@ -334,7 +336,7 @@ class TestCOSESample:
             }
         )
         recipient = COSE.new()
-        assert b"Hello world!" == recipient.decode(encoded, rsk)
+        assert b"This is the content." == recipient.decode(encoded, rsk)
 
     def test_cose_usage_examples_cose_encrypt(self):
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
@@ -370,6 +372,59 @@ class TestCOSESample:
         assert b"Hello world!" == ctx.decode(encoded3, enc_key)
 
         assert encoded == encoded2 == encoded3
+
+    def test_cose_usage_examples_cose_encrypt_hpke(self):
+
+        # The sender side:
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+        r = Recipient.new(
+            protected={
+                1: -1,  # alg: "HPKE"
+            },
+            unprotected={
+                4: b"01",  # kid: "01"
+                # HPKE sender information
+                -4: {
+                    1: 0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
+                    5: 0x0001,  # kdf: HKDF-SHA256
+                    2: 0x0001,  # aead: AES-128-GCM
+                },
+            },
+        )
+        r.apply(recipient_key=rpk)
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            b"",
+            protected={
+                1: -1,  # alg: "HPKE"
+            },
+            recipients=[r],
+        )
+
+        # print(encoded.hex())
+
+        # The recipient side:
+        rsk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        )
+        recipient = COSE.new()
+        assert b"This is the content." == recipient.decode(encoded, rsk)
 
     def test_cose_usage_examples_cose_encrypt_direct_hkdf_sha_256(self):
 

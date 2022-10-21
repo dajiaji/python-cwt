@@ -32,7 +32,7 @@ class Recipients:
         alg: int = 0,
     ) -> COSEKeyInterface:
         """
-        Decodes an appropriate key from recipients or keys privided as a parameter ``keys``.
+        Decodes an appropriate key from recipients or keys provided as a parameter ``keys``.
         """
         if not self._recipients:
             raise ValueError("No recipients.")
@@ -52,6 +52,36 @@ class Recipients:
             for k in keys:
                 try:
                     return r.extract(k, alg=alg, context=context)
+                except Exception as e:
+                    err = e
+        raise err
+
+    def open(
+        self,
+        keys: List[COSEKeyInterface],
+        aad: bytes = b"",
+    ) -> bytes:
+        """
+        Does HPKE-based decryption for the supplied payload.
+        """
+        if not self._recipients:
+            raise ValueError("No recipients.")
+        err: Exception = ValueError("key is not found.")
+        for r in self._recipients:
+            if not r.kid and self._verify_kid:
+                raise ValueError("kid should be specified in recipient.")
+            if r.kid:
+                for k in keys:
+                    if k.kid != r.kid:
+                        continue
+                    try:
+                        return r.open(k, aad)
+                    except Exception as e:
+                        err = e
+                continue
+            for k in keys:
+                try:
+                    return r.open(k, aad)
                 except Exception as e:
                     err = e
         raise err
