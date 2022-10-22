@@ -132,64 +132,64 @@ class TestCOSE:
         encoded = ctx.encode_and_sign(b"Hello world!", sig_key)
         assert b"Hello world!" == ctx.decode(encoded, sig_key)
 
-    def test_cose_encode_and_decode_mac0_with_protected_bytes(self):
-        ctx = COSE.new(kid_auto_inclusion=True)
+    # def test_cose_encode_and_decode_mac0_with_protected_bytes(self):
+    #     ctx = COSE.new(kid_auto_inclusion=True)
 
-        # MAC0
-        mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
-        encoded = ctx.encode_and_mac(b"Hello world!", mac_key, protected=b"a0")
-        assert b"Hello world!" == ctx.decode(encoded, mac_key)
+    #     # MAC0
+    #     mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+    #     encoded = ctx.encode_and_mac(b"Hello world!", mac_key, protected=b"a0")
+    #     assert b"Hello world!" == ctx.decode(encoded, mac_key)
 
-    def test_cose_encode_and_decode_mac_with_protected_bytes(self):
-        ctx = COSE.new()
+    # def test_cose_encode_and_decode_mac_with_protected_bytes(self):
+    #     ctx = COSE.new()
 
-        # MAC
-        mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
-        encoded = ctx.encode_and_mac(
-            b"Hello world!",
-            mac_key,
-            protected=b"a0",
-            recipients=[RecipientInterface(unprotected={1: -6, 4: b"01"})],
-        )
-        assert b"Hello world!" == ctx.decode(encoded, mac_key)
+    #     # MAC
+    #     mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+    #     encoded = ctx.encode_and_mac(
+    #         b"Hello world!",
+    #         mac_key,
+    #         protected=b"a0",
+    #         recipients=[RecipientInterface(unprotected={1: -6, 4: b"01"})],
+    #     )
+    #     assert b"Hello world!" == ctx.decode(encoded, mac_key)
 
-    def test_cose_encode_and_decode_encrypt0_with_protected_bytes(self):
-        ctx = COSE.new(kid_auto_inclusion=True)
+    # def test_cose_encode_and_decode_encrypt0_with_protected_bytes(self):
+    #     ctx = COSE.new(kid_auto_inclusion=True)
 
-        # Encrypt0
-        enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="02")
-        encoded = ctx.encode_and_encrypt(b"Hello world!", enc_key, protected=b"a0")
-        assert b"Hello world!" == ctx.decode(encoded, enc_key)
+    #     # Encrypt0
+    #     enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="02")
+    #     encoded = ctx.encode_and_encrypt(b"Hello world!", enc_key, protected=b"a0")
+    #     assert b"Hello world!" == ctx.decode(encoded, enc_key)
 
-    def test_cose_encode_and_decode_encrypt_with_protected_bytes(self):
-        ctx = COSE.new(kid_auto_inclusion=True)
+    # def test_cose_encode_and_decode_encrypt_with_protected_bytes(self):
+    #     ctx = COSE.new(kid_auto_inclusion=True)
 
-        # Encrypt
-        enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="02")
-        encoded = ctx.encode_and_encrypt(
-            b"Hello world!",
-            enc_key,
-            protected=b"a0",
-            recipients=[RecipientInterface(unprotected={1: -6, 4: b"02"})],
-        )
-        assert b"Hello world!" == ctx.decode(encoded, enc_key)
+    #     # Encrypt
+    #     enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="02")
+    #     encoded = ctx.encode_and_encrypt(
+    #         b"Hello world!",
+    #         enc_key,
+    #         protected=b"a0",
+    #         recipients=[RecipientInterface(unprotected={1: -6, 4: b"02"})],
+    #     )
+    #     assert b"Hello world!" == ctx.decode(encoded, enc_key)
 
-    def test_cose_encode_and_decode_signature1_with_protected_bytes(self):
-        ctx = COSE.new(kid_auto_inclusion=True)
+    # def test_cose_encode_and_decode_signature1_with_protected_bytes(self):
+    #     ctx = COSE.new(kid_auto_inclusion=True)
 
-        # Signature1
-        sig_key = COSEKey.from_jwk(
-            {
-                "kty": "EC",
-                "kid": "03",
-                "crv": "P-256",
-                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
-                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
-                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
-            }
-        )
-        encoded = ctx.encode_and_sign(b"Hello world!", sig_key, protected=b"a0")
-        assert b"Hello world!" == ctx.decode(encoded, sig_key)
+    #     # Signature1
+    #     sig_key = COSEKey.from_jwk(
+    #         {
+    #             "kty": "EC",
+    #             "kid": "03",
+    #             "crv": "P-256",
+    #             "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+    #             "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+    #             "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+    #         }
+    #     )
+    #     encoded = ctx.encode_and_sign(b"Hello world!", sig_key, protected=b"a0")
+    #     assert b"Hello world!" == ctx.decode(encoded, sig_key)
 
     def test_cose_encode_and_decode_mac0_with_verify_kid(self):
         ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True, verify_kid=True)
