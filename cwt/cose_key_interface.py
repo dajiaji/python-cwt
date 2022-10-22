@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from .cbor_processor import CBORProcessor
 from .const import (
@@ -6,6 +6,7 @@ from .const import (
     COSE_KEY_TYPES,
     COSE_NAMED_ALGORITHMS_SUPPORTED,
 )
+from .hpke_cipher_suite import HPKECipherSuite
 
 
 class COSEKeyInterface(CBORProcessor):
@@ -216,6 +217,39 @@ class COSEKeyInterface(CBORProcessor):
         Args:
             msg (bytes): An encrypted message.
             nonce (bytes): A nonce for encryption.
+            aad (bytes): Additional authenticated data.
+        Returns:
+            bytes: The byte string of the decrypted data.
+        Raises:
+            NotImplementedError: Not implemented.
+            ValueError: Invalid arguments.
+            DecodeError: Failed to decrypt the message.
+        """
+        raise NotImplementedError
+
+    def seal(self, suite: HPKECipherSuite, msg: bytes, aad: bytes = b"") -> Tuple[bytes, bytes]:
+        """
+        Encrypts the specified message with HPKE.
+
+        Args:
+            msg (bytes): A message to be encrypted.
+            aad (bytes): Additional authenticated data.
+        Returns:
+            Tuple[bytes, bytes]: The encapsulation key and the ciphertext respectively.
+        Raises:
+            NotImplementedError: Not implemented.
+            ValueError: Invalid arguments.
+            EncodeError: Failed to encrypt the message.
+        """
+        raise NotImplementedError
+
+    def open(self, suite: HPKECipherSuite, enc: bytes, msg: bytes, aad: bytes = b"") -> bytes:
+        """
+        Decrypts the specified message with HPKE.
+
+        Args:
+            enc (bytes): An encapsulated key.
+            msg (bytes): An encrypted message.
             aad (bytes): Additional authenticated data.
         Returns:
             bytes: The byte string of the decrypted data.

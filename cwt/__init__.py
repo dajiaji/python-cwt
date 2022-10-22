@@ -13,6 +13,7 @@ from .cwt import (
 from .encrypted_cose_key import EncryptedCOSEKey
 from .exceptions import CWTError, DecodeError, EncodeError, VerifyError
 from .helpers.hcert import load_pem_hcert_dsc
+from .hpke_cipher_suite import HPKECipherSuite
 from .recipient import Recipient
 from .signer import Signer
 
@@ -37,6 +38,7 @@ __all__ = [
     "COSE",
     "COSEKey",
     "EncryptedCOSEKey",
+    "HPKECipherSuite",
     "Claims",
     "Recipient",
     "Signer",

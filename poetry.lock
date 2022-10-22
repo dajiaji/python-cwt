@@ -375,6 +375,17 @@ python-versions = ">=3.6"
 plugins = ["importlib-metadata"]
 
 [[package]]
+name = "pyhpke"
+version = "0.1.1"
+description = "HPKE implementation"
+category = "main"
+optional = false
+python-versions = ">=3.7,<4.0"
+
+[package.dependencies]
+cryptography = ">=3.4.7,<39"
+
+[[package]]
 name = "pyparsing"
 version = "3.0.9"
 description = "pyparsing module - Classes and methods to define and execute parsing grammars"
@@ -740,7 +751,7 @@ docs = ["Sphinx", "sphinx-autodoc-typehints", "sphinx-rtd-theme"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "e63272b11fd12ca9e39473f8a5c44b2761b73cdb034e0f10c4bee109f3fb651a"
+content-hash = "5e43d41bc7d823557a4af7633f9533bdad3dd99eb051215e56ad154fc4a11d04"
 
 [metadata.files]
 alabaster = [
@@ -845,6 +856,7 @@ pycparser = [
     {file = "pycparser-2.21.tar.gz", hash = "sha256:e644fdec12f7872f86c58ff790da456218b10f863970249516d60a5eaca77206"},
 ]
 pygments = []
+pyhpke = []
 pyparsing = []
 pytest = []
 pytest-cov = []

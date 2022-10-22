@@ -9,7 +9,8 @@ Tests for Recipient.
 import cbor2
 import pytest
 
-from cwt import COSEKey, Recipient
+from cwt import COSE, COSEKey, Recipient
+from cwt.exceptions import DecodeError
 from cwt.recipient_interface import RecipientInterface
 from cwt.recipients import Recipients
 
@@ -46,6 +47,60 @@ def context():
     }
 
 
+@pytest.fixture(scope="session", autouse=True)
+def rpk1():
+    return COSEKey.from_jwk(
+        {
+            "kty": "EC",
+            "kid": "01",
+            "crv": "P-256",
+            "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+            "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+        }
+    )
+
+
+@pytest.fixture(scope="session", autouse=True)
+def rpk2():
+    return COSEKey.from_jwk(
+        {
+            "kty": "EC",
+            "kid": "02",
+            "crv": "P-256",
+            "x": "-eZXC6nV-xgthy8zZMCN8pcYSeE2XfWWqckA2fsxHPc",
+            "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
+        }
+    )
+
+
+@pytest.fixture(scope="session", autouse=True)
+def rsk1():
+    return COSEKey.from_jwk(
+        {
+            "kty": "EC",
+            "kid": "01",
+            "crv": "P-256",
+            "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+            "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+        }
+    )
+
+
+@pytest.fixture(scope="session", autouse=True)
+def rsk2():
+    return COSEKey.from_jwk(
+        {
+            "kty": "EC",
+            "kid": "02",
+            "crv": "P-256",
+            "x": "-eZXC6nV-xgthy8zZMCN8pcYSeE2XfWWqckA2fsxHPc",
+            "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
+            "d": "kwibx3gas6Kz1V2fyQHKSnr-ybflddSjN0eOnbmLmyo",
+        }
+    )
+
+
 class TestRecipientInterface:
     """
     Tests for RecipientInterface.
@@ -68,6 +123,9 @@ class TestRecipientInterface:
         with pytest.raises(NotImplementedError):
             r.extract(k)
             pytest.fail("extract() should fail.")
+        with pytest.raises(NotImplementedError):
+            r.open(k, b"")
+            pytest.fail("open() should fail.")
         res = r.to_list()
         assert len(res) == 3
         assert res[0] == b""
@@ -572,5 +630,141 @@ class TestRecipients:
     def test_recipients_from_list_with_invalid_args(self, invalid, msg):
         with pytest.raises(ValueError) as err:
             Recipients.from_list(invalid)
-            pytest.fail("extract() should fail.")
+            pytest.fail("from_list() should fail.")
         assert msg in str(err.value)
+
+    def test_recipients_open_without_key(self):
+        r = RecipientInterface(protected={1: -1}, unprotected={4: b"01", -4: {1: 0x0010, 5: 0x0001, 2: 0x0001}})
+        rs = Recipients([r])
+        with pytest.raises(ValueError) as err:
+            rs.open([])
+            pytest.fail("open() should fail.")
+        assert "key is not found." in str(err.value)
+
+    def test_recipients_open_with_empty_recipients(self, rsk1):
+        rs = Recipients([])
+        with pytest.raises(ValueError) as err:
+            rs.open([rsk1])
+            pytest.fail("open() should fail.")
+        assert "No recipients." in str(err.value)
+
+    def test_recipients_open_with_rpk_without_kid(self, rsk1, rsk2):
+        r = Recipient.new(protected={1: -1}, unprotected={-4: {1: 0x0010, 5: 0x0001, 2: 0x0001}})
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                # "kid": "02",
+                "crv": "P-256",
+                "x": "-eZXC6nV-xgthy8zZMCN8pcYSeE2XfWWqckA2fsxHPc",
+                "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
+            }
+        )
+        r.apply(recipient_key=rpk)
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            b"",
+            protected={
+                1: -1,  # alg: "HPKE"
+            },
+            recipients=[r],
+        )
+        recipient = COSE.new()
+        assert b"This is the content." == recipient.decode(encoded, [rsk1, rsk2])
+
+    def test_recipients_open_with_verify_kid_and_rpk_without_kid(self, rsk1, rsk2):
+        r = Recipient.new(protected={1: -1}, unprotected={-4: {1: 0x0010, 5: 0x0001, 2: 0x0001}})
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                # "kid": "02",
+                "crv": "P-256",
+                "x": "-eZXC6nV-xgthy8zZMCN8pcYSeE2XfWWqckA2fsxHPc",
+                "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
+            }
+        )
+        r.apply(recipient_key=rpk)
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            b"",
+            protected={
+                1: -1,  # alg: "HPKE"
+            },
+            recipients=[r],
+        )
+        recipient = COSE.new(verify_kid=True)
+        with pytest.raises(ValueError) as err:
+            recipient.decode(encoded, [rsk1])
+            pytest.fail("decode() should fail.")
+        assert "kid should be specified in recipient." in str(err.value)
+
+    def test_recipients_open_failed_with_rpk_without_kid(self, rsk1):
+        r = Recipient.new(protected={1: -1}, unprotected={-4: {1: 0x0010, 5: 0x0001, 2: 0x0001}})
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                # "kid": "02",
+                "crv": "P-256",
+                "x": "-eZXC6nV-xgthy8zZMCN8pcYSeE2XfWWqckA2fsxHPc",
+                "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
+            }
+        )
+        r.apply(recipient_key=rpk)
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            b"",
+            protected={
+                1: -1,  # alg: "HPKE"
+            },
+            recipients=[r],
+        )
+        recipient = COSE.new()
+        with pytest.raises(DecodeError) as err:
+            recipient.decode(encoded, [rsk1])
+            pytest.fail("decode() should fail.")
+        assert "Failed to decrypt." in str(err.value)
+
+    def test_recipients_open_with_multiple_rsks(self, rpk2, rsk1, rsk2):
+        r = Recipient.new(protected={1: -1}, unprotected={4: b"02", -4: {1: 0x0010, 5: 0x0001, 2: 0x0001}})
+        r.apply(recipient_key=rpk2)
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            b"",
+            protected={
+                1: -1,  # alg: "HPKE"
+            },
+            recipients=[r],
+        )
+        recipient = COSE.new()
+        assert b"This is the content." == recipient.decode(encoded, [rsk1, rsk2])
+
+    def test_recipients_open_with_invalid_rsk(self, rpk1):
+        r = Recipient.new(protected={1: -1}, unprotected={4: b"02", -4: {1: 0x0010, 5: 0x0001, 2: 0x0001}})
+        r.apply(recipient_key=rpk1)
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            b"",
+            protected={
+                1: -1,  # alg: "HPKE"
+            },
+            recipients=[r],
+        )
+        invalid_rsk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "02",
+                "crv": "P-256",
+                "x": "-eZXC6nV-xgthy8zZMCN8pcYSeE2XfWWqckA2fsxHPc",
+                "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
+                "d": "kwibx3gas6Kz1V2fyQHKSnr-ybflddSjN0eOnbmLmyo",
+            }
+        )
+        recipient = COSE.new()
+        with pytest.raises(DecodeError) as err:
+            recipient.decode(encoded, [invalid_rsk])
+            pytest.fail("decode() should fail.")
+        assert "Failed to decrypt." in str(err.value)

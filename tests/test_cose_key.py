@@ -12,7 +12,7 @@ import pytest
 
 import cwt
 from cwt import Claims, COSEKey
-from cwt.cose_key_interface import COSEKeyInterface
+from cwt.cose_key_interface import COSEKeyInterface, HPKECipherSuite
 
 from .utils import key_path
 
@@ -114,6 +114,12 @@ class TestCOSEKey:
     )
     def test_key_builder_from_symmetric_key_with_key_ops(self, alg, key_ops, expected):
         k = COSEKey.from_symmetric_key(alg=alg, key_ops=key_ops)
+        with pytest.raises(NotImplementedError):
+            k.seal(HPKECipherSuite(0x0010, 0x0001, 0x0001), b"")
+            pytest.fail("open() should fail.")
+        with pytest.raises(NotImplementedError):
+            k.open(HPKECipherSuite(0x0010, 0x0001, 0x0001), b"", b"")
+            pytest.fail("seal() should fail.")
         assert len(k.key_ops) == len(key_ops)
         for ops in k.key_ops:
             assert ops in expected

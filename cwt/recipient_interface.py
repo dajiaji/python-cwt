@@ -132,10 +132,13 @@ class RecipientInterface(CBORProcessor):
         """
         return self._recipients
 
-    def to_list(self) -> List[Any]:
+    def to_list(self, payload: bytes = b"", aad: bytes = b"") -> List[Any]:
         """
         Returns the recipient information as a COSE recipient structure.
 
+        Args:
+            payload (Optional[bytes]): The payload to be encrypted.
+            aad (Optional[bytes]): Additional authenticated data.
         Returns:
             List[Any]: The recipient structure.
         """
@@ -147,7 +150,7 @@ class RecipientInterface(CBORProcessor):
 
         children = []
         for recipient in self._recipients:
-            children.append(recipient.to_list())
+            children.append(recipient.to_list(payload, aad))
         res.append(children)
         return res
 
@@ -172,7 +175,7 @@ class RecipientInterface(CBORProcessor):
             key (Optional[COSEKeyInterface]): The external key to
                 be used for preparing the key.
             recipient_key (Optional[COSEKeyInterface]): The external public
-                key provided by the recipient used for ECDH key agreement.
+                key provided by the recipient used for ECDH key agreement, etc.
             salt (Optional[bytes]): A salt used for deriving a key.
             context (Optional[Union[List[Any], Dict[str, Any]]]): Context
                 information structure.
@@ -206,6 +209,25 @@ class RecipientInterface(CBORProcessor):
         Returns:
             COSEKeyInterface: An extracted key which is used for decrypting
                 or verifying a payload message.
+        Raises:
+            ValueError: Invalid arguments.
+            DecodeError: Failed to decode(e.g., unwrap, derive) the key.
+        """
+        raise NotImplementedError
+
+    def open(
+        self,
+        key: COSEKeyInterface,
+        aad: bytes,
+    ) -> bytes:
+        """
+        Does a HPKE-based decryption.
+
+        Args:
+            key (COSEKeyInterface): The recipient private key.
+            aad (bytes): Additional authenticated data.
+        Returns:
+            bytes: The decrypted plain text.
         Raises:
             ValueError: Invalid arguments.
             DecodeError: Failed to decode(e.g., unwrap, derive) the key.
