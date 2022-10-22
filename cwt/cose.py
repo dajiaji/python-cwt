@@ -215,7 +215,7 @@ class COSE(CBORProcessor):
         self,
         payload: bytes,
         key: COSEKeyInterface,
-        protected: Optional[Union[dict, bytes]] = None,
+        protected: Optional[dict] = None,
         unprotected: Optional[dict] = None,
         recipients: Optional[List[RecipientInterface]] = None,
         external_aad: bytes = b"",
@@ -227,8 +227,7 @@ class COSE(CBORProcessor):
         Args:
             payload (bytes): A content to be MACed.
             key (COSEKeyInterface): A COSE key as a MAC Authentication key.
-            protected (Optional[Union[dict, bytes]]): Parameters that are to be cryptographically
-                protected.
+            protected (Optional[dict]): Parameters that are to be cryptographically protected.
             unprotected (Optional[dict]): Parameters that are not cryptographically protected.
             recipients (Optional[List[RecipientInterface]]): A list of recipient information structures.
             external_aad(bytes): External additional authenticated data supplied by application.
@@ -242,17 +241,14 @@ class COSE(CBORProcessor):
             ValueError: Invalid arguments.
             EncodeError: Failed to encode data.
         """
-        p: Union[Dict[int, Any], bytes] = to_cose_header(protected) if not isinstance(protected, bytes) else protected
+        # p: Union[Dict[int, Any], bytes] = to_cose_header(protected) if not isinstance(protected, bytes) else protected
+        p = to_cose_header(protected)
         u = to_cose_header(unprotected)
-        if isinstance(p, dict) and self._alg_auto_inclusion:
+        if self._alg_auto_inclusion:
             p[1] = key.alg
         if self._kid_auto_inclusion and key.kid:
             u[4] = key.kid
-        b_protected = b""
-        if isinstance(p, bytes):
-            b_protected = p
-        else:
-            b_protected = self._dumps(p) if p else b""
+        b_protected = self._dumps(p) if p else b""
 
         # MAC0
         if not recipients:
