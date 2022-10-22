@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional, Union
 
-from ..cose_key_interface import COSEKeyInterface, HPKECipherSuite
+from ..cose_key_interface import COSEKeyInterface
+from ..hpke_cipher_suite import HPKECipherSuite
 from ..recipient_interface import RecipientInterface
 
 

@@ -4,8 +4,6 @@ Tests for HPKE.
 
 import pytest
 
-# from cwt.cose_key import COSEKey
-# from cwt.exceptions import DecodeError, EncodeError
 from cwt.recipient_algs.hpke import HPKE
 
 

@@ -23,8 +23,9 @@ from ..const import (
     COSE_KEY_OPERATION_VALUES,
     COSE_KEY_TYPES,
 )
-from ..cose_key_interface import COSEKeyInterface, HPKECipherSuite
+from ..cose_key_interface import COSEKeyInterface
 from ..exceptions import DecodeError, EncodeError, VerifyError
+from ..hpke_cipher_suite import HPKECipherSuite
 from ..utils import i2osp, os2ip, to_cis
 from .asymmetric import AsymmetricKey
 from .symmetric import AESCCMKey, AESGCMKey, ChaCha20Key, HMACKey

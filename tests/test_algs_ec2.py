@@ -6,8 +6,8 @@ import pytest
 
 from cwt.algs.ec2 import EC2Key
 from cwt.cose_key import COSEKey
-from cwt.cose_key_interface import HPKECipherSuite
 from cwt.exceptions import VerifyError
+from cwt.hpke_cipher_suite import HPKECipherSuite
 
 from .utils import key_path
 
