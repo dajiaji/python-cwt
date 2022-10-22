@@ -787,6 +787,8 @@ decoded = ctx.decode(encoded, enc_key)
 
 #### COSE-HPKE (Encrypt0)
 
+**Experimental Implementation. DO NOT USE for production.**
+
 Create a COSE-HPKE Encrypt0 message and decrypt it as follows:
 
 ```py
@@ -1027,6 +1029,8 @@ assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "A128GCM
 ```
 
 #### COSE-HPKE (Encrypt)
+
+**Experimental Implementation. DO NOT USE for production.**
 
 Create a COSE-HPKE Encrypt message and decrypt it as follows:
 
