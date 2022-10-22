@@ -419,7 +419,6 @@ class COSE(CBORProcessor):
         else:
             raise ValueError(f"Unsupported or unknown CBOR tag({data.tag}).")
 
-        # ???
         protected: Union[Dict[int, Any], bytes] = self._loads(data.value[0]) if data.value[0] else b""
         unprotected = data.value[1]
         if not isinstance(unprotected, dict):
@@ -441,11 +440,6 @@ class COSE(CBORProcessor):
                         if not isinstance(protected, bytes) and alg == -1:  # HPKE
                             hpke = HPKE(protected, unprotected, data.value[2])
                             return hpke.open(k, aad)
-                            # hsi = unprotected.get(-4, None)
-                            # if hsi is None:
-                            #     raise ValueError("HPKE sender information not found.")
-                            # suite = HPKECipherSuite(hsi[1], hsi[5], hsi[2])
-                            # return k.open(suite, hsi[3], data.value[2], aad)
                         return k.decrypt(data.value[2], nonce, aad)
                     except Exception as e:
                         err = e
