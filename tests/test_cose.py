@@ -153,26 +153,26 @@ class TestCOSE:
         )
         assert b"Hello world!" == ctx.decode(encoded, mac_key)
 
-    def test_cose_encode_and_decode_encrypt0_with_protected_bytes(self):
-        ctx = COSE.new(kid_auto_inclusion=True)
+    # def test_cose_encode_and_decode_encrypt0_with_protected_bytes(self):
+    #     ctx = COSE.new(kid_auto_inclusion=True)
 
-        # Encrypt0
-        enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="02")
-        encoded = ctx.encode_and_encrypt(b"Hello world!", enc_key, protected=b"a0")
-        assert b"Hello world!" == ctx.decode(encoded, enc_key)
+    #     # Encrypt0
+    #     enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="02")
+    #     encoded = ctx.encode_and_encrypt(b"Hello world!", enc_key, protected=b"a0")
+    #     assert b"Hello world!" == ctx.decode(encoded, enc_key)
 
-    def test_cose_encode_and_decode_encrypt_with_protected_bytes(self):
-        ctx = COSE.new(kid_auto_inclusion=True)
+    # def test_cose_encode_and_decode_encrypt_with_protected_bytes(self):
+    #     ctx = COSE.new(kid_auto_inclusion=True)
 
-        # Encrypt
-        enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="02")
-        encoded = ctx.encode_and_encrypt(
-            b"Hello world!",
-            enc_key,
-            protected=b"a0",
-            recipients=[RecipientInterface(unprotected={1: -6, 4: b"02"})],
-        )
-        assert b"Hello world!" == ctx.decode(encoded, enc_key)
+    #     # Encrypt
+    #     enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="02")
+    #     encoded = ctx.encode_and_encrypt(
+    #         b"Hello world!",
+    #         enc_key,
+    #         protected=b"a0",
+    #         recipients=[RecipientInterface(unprotected={1: -6, 4: b"02"})],
+    #     )
+    #     assert b"Hello world!" == ctx.decode(encoded, enc_key)
 
     def test_cose_encode_and_decode_signature1_with_protected_bytes(self):
         ctx = COSE.new(kid_auto_inclusion=True)

@@ -116,7 +116,7 @@ class COSE(CBORProcessor):
         self,
         payload: bytes,
         key: Optional[COSEKeyInterface] = None,
-        protected: Optional[Union[dict, bytes]] = None,
+        protected: Optional[dict] = None,
         unprotected: Optional[dict] = None,
         nonce: bytes = b"",
         recipients: Optional[List[RecipientInterface]] = None,
@@ -129,8 +129,8 @@ class COSE(CBORProcessor):
         Args:
             payload (bytes): A content to be encrypted.
             key (Optional[COSEKeyInterface]): A COSE key as an encryption key.
-            protected (Optional[Union[dict, bytes]]): Parameters that are to be
-                cryptographically protected.
+            protected (Optional[dict]): Parameters that are to be cryptographically
+                protected.
             unprotected (Optional[dict]): Parameters that are not cryptographically
                 protected.
             nonce (bytes): A nonce for encryption.
@@ -150,32 +150,28 @@ class COSE(CBORProcessor):
             ValueError: Invalid arguments.
             EncodeError: Failed to encode data.
         """
-        p: Union[Dict[int, Any], bytes] = to_cose_header(protected) if not isinstance(protected, bytes) else protected
+        p = to_cose_header(protected)
         u = to_cose_header(unprotected)
         if key is not None:
-            if not isinstance(p, bytes) and self._alg_auto_inclusion:
+            if self._alg_auto_inclusion:
                 p[1] = key.alg
             if self._kid_auto_inclusion and key.kid:
                 u[4] = key.kid
-            if isinstance(p, bytes) or 1 not in p or p[1] != -1:  # not HPKE
+            if 1 not in p or p[1] != -1:  # not HPKE
                 if not nonce:
                     try:
                         nonce = key.generate_nonce()
                     except NotImplementedError:
                         raise ValueError("Nonce generation is not supported for the key. Set a nonce explicitly.")
                 u[5] = nonce
-        b_protected = b""
-        if isinstance(p, bytes):
-            b_protected = p
-        else:
-            b_protected = self._dumps(p) if p else b""
+        b_protected = self._dumps(p) if p else b""
         ciphertext: bytes = b""
 
         # Encrypt0
         if not recipients:
             enc_structure = ["Encrypt0", b_protected, external_aad]
             aad = self._dumps(enc_structure)
-            if not isinstance(p, bytes) and 1 in p and p[1] == -1:  # HPKE
+            if 1 in p and p[1] == -1:  # HPKE
                 hpke = HPKE(p, u)
                 hpke.apply(recipient_key=key)
                 res = CBORTag(16, hpke.to_list(payload, aad))
@@ -197,7 +193,7 @@ class COSE(CBORProcessor):
         for rec in recipients:
             recs.append(rec.to_list(payload, aad))
 
-        if not isinstance(p, bytes) and 1 in p and p[1] == -1:  # HPKE
+        if 1 in p and p[1] == -1:  # HPKE
             if -4 in u:
                 # hpke = HPKE(p, u)
                 # hpke.apply(recipient_key=key)
