@@ -33,8 +33,7 @@ class HPKE(RecipientInterface):
         return self._recipient_key
 
     def to_list(self, payload: bytes = b"", aad: bytes = b"") -> List[Any]:
-        enc, ciphertext = self._recipient_key.seal(self._suite, payload, aad)
-        self._ciphertext = ciphertext
+        enc, self._ciphertext = self._recipient_key.seal(self._suite, payload, aad)
         self._unprotected[-4][3] = enc
         return super().to_list(payload, aad)
 

@@ -6,6 +6,7 @@ from cbor2 import CBORTag
 from .cbor_processor import CBORProcessor
 from .const import COSE_ALGORITHMS_RECIPIENT
 from .cose_key_interface import COSEKeyInterface, HPKECipherSuite
+from .recipient_algs.hpke import HPKE
 from .recipient_interface import RecipientInterface
 from .recipients import Recipients
 from .signer import Signer
@@ -297,34 +298,33 @@ class COSE(CBORProcessor):
         """
         p: Union[Dict[int, Any], bytes] = to_cose_header(protected) if not isinstance(protected, bytes) else protected
         u = to_cose_header(unprotected)
-
-        ctx = "Encrypt0" if not recipients else "Encrypt"
-
-        # Encrypt0
-        ciphertext: bytes = b""
-        if not recipients:
-            if isinstance(p, bytes):
-                b_protected = p
-            else:
-                if self._alg_auto_inclusion:
-                    p[1] = key.alg
-                b_protected = self._dumps(p) if p else b""
+        if key is not None:
+            if not isinstance(p, bytes) and self._alg_auto_inclusion:
+                p[1] = key.alg
             if self._kid_auto_inclusion and key.kid:
                 u[4] = key.kid
-            enc_structure = [ctx, b_protected, external_aad]
+        if isinstance(p, bytes):
+            b_protected = p
+        else:
+            b_protected = self._dumps(p) if p else b""
+        ciphertext: bytes = b""
+
+        # Encrypt0
+        if not recipients:
+            enc_structure = ["Encrypt0", b_protected, external_aad]
             aad = self._dumps(enc_structure)
-            if p[1] == -1:  # HPKE
-                suite = HPKECipherSuite(u[-4][1], u[-4][5], u[-4][2])
-                enc, ciphertext = key.seal(suite, payload, aad)
-                u[-4][3] = enc
-            else:
-                if not nonce:
-                    try:
-                        nonce = key.generate_nonce()
-                    except NotImplementedError:
-                        raise ValueError("Nonce generation is not supported for the key. Set a nonce explicitly.")
-                u[5] = nonce
-                ciphertext = key.encrypt(payload, nonce, aad)
+            if not isinstance(p, bytes) and p[1] == -1:  # HPKE
+                hpke = HPKE(p, u)
+                hpke.apply(recipient_key=key)
+                res = CBORTag(16, hpke.to_list(payload, aad))
+                return res if out == "cbor2/CBORTag" else self._dumps(res)
+            if not nonce:
+                try:
+                    nonce = key.generate_nonce()
+                except NotImplementedError:
+                    raise ValueError("Nonce generation is not supported for the key. Set a nonce explicitly.")
+            u[5] = nonce
+            ciphertext = key.encrypt(payload, nonce, aad)
             res = CBORTag(16, [b_protected, u, ciphertext])
             return res if out == "cbor2/CBORTag" else self._dumps(res)
 
@@ -332,24 +332,19 @@ class COSE(CBORProcessor):
         if recipients[0].alg not in COSE_ALGORITHMS_RECIPIENT.values():
             raise NotImplementedError("Algorithms other than direct are not supported for recipients.")
 
-        if key is not None:
-            if not isinstance(p, bytes) and self._alg_auto_inclusion:
-                p[1] = key.alg
-            if self._kid_auto_inclusion and key.kid:
-                u[4] = key.kid
-
-        if isinstance(p, bytes):
-            b_protected = p
-        else:
-            b_protected = self._dumps(p) if p else b""
-
-        enc_structure = [ctx, b_protected, external_aad]
+        enc_structure = ["Encrypt", b_protected, external_aad]
         aad = self._dumps(enc_structure)
-        if 1 in p and p[1] == -1:  # HPKE
+        recs = []
+        for rec in recipients:
+            recs.append(rec.to_list(payload, aad))
+
+        if not isinstance(p, bytes) and 1 in p and p[1] == -1:  # HPKE
             if -4 in u:
-                suite = HPKECipherSuite(u[-4][1], u[-4][5], u[-4][2])
-                enc, ciphertext = key.seal(suite, payload, aad)
-                u[-4][3] = enc
+                hpke = HPKE(p, u)
+                hpke.apply(recipient_key=key)
+                msg = hpke.to_list(payload, aad)
+                msg.append(recs)
+                return res if out == "cbor2/CBORTag" else self._dumps(CBORTag(16, msg))
         else:
             if not nonce:
                 try:
@@ -359,10 +354,6 @@ class COSE(CBORProcessor):
             u[5] = nonce
             ciphertext = key.encrypt(payload, nonce, aad)
         cose_enc: List[Any] = [b_protected, u, ciphertext]
-
-        recs = []
-        for rec in recipients:
-            recs.append(rec.to_list(payload, aad))
         cose_enc.append(recs)
         res = CBORTag(96, cose_enc)
         return res if out == "cbor2/CBORTag" else self._dumps(res)
