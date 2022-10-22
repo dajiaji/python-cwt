@@ -62,13 +62,14 @@ See [Documentation](https://python-cwt.readthedocs.io/en/stable/) for details.
         - [Key Agreement with Key Wrap](#key-agreement-with-key-wrap-for-mac)
     - [COSE Encrypt0](#cose-encrypt0)
         - [Encryption with ChaCha20/Poly1305](#encryption-with-chacha20-poly1305)
-        - [COSE-HPKE](#cose-hpke)
+        - [COSE-HPKE (Encrypt0)](#cose-hpke-encrypt0)
     - [COSE Encrypt](#cose-encrypt)
         - [Direct Key Distribution](#direct-key-distribution-for-encryption)
         - [Direct Key with KDF](#direct-key-with-kdf-for-encryption)
         - [AES Key Wrap](#aes-key-wrap-for-encryption)
         - [Direct key Agreement](#direct-key-agreement-for-encryption)
         - [Key Agreement with Key Wrap](#key-agreement-with-key-wrap-for-encryption)
+        - [COSE-HPKE (Encrypt)](#cose-hpke-encrypt)
     - [COSE Signature1](#cose-signature1)
     - [COSE Signature](#cose-signature)
 - [API Reference](#api-reference)
@@ -784,15 +785,14 @@ encoded = ctx.encode_and_encrypt(b"Hello world!", enc_key)
 decoded = ctx.decode(encoded, enc_key)
 ```
 
-#### COSE-HPKE
+#### COSE-HPKE (Encrypt0)
 
 Create a COSE-HPKE Encrypt0 message and decrypt it as follows:
 
 ```py
-from cwt import COSE, COSEKey, Signer
+from cwt import COSE, COSEKey
 
 # The sender side:
-# Load the recipient public key.
 rpk = COSEKey.from_jwk(
     {
         "kty": "EC",
@@ -800,28 +800,29 @@ rpk = COSEKey.from_jwk(
         "crv": "P-256",
         "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
         "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
-    })
+    }
+)
 
-# Encode COSE Encrypt0 message with HPKE.
 sender = COSE.new()
 encoded = sender.encode_and_encrypt(
-    b"Hello world!",
+    b"This is the content.",
     rpk,
     protected={
         1: -1,  # alg: "HPKE"
     },
     unprotected={
-        4: b"01",      # kid: "01"
-        # HPKE sender information
-        -4: {
-            1: 0x0010, # kem: DHKEM(P-256, HKDF-SHA256)
-            5: 0x0001, # kdf: HKDF-SHA256
-            2: 0x0001, # aead: AES-128-GCM
-        }
-    })
+        4: b"01",  # kid: "01"
+        -4: {  # HPKE sender information
+            1: 0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
+            5: 0x0001,  # kdf: HKDF-SHA256
+            2: 0x0001,  # aead: AES-128-GCM
+        },
+    },
+)
+
+# print(encoded.hex())
 
 # The recipient side:
-# Load the recipient private key.
 rsk = COSEKey.from_jwk(
     {
         "kty": "EC",
@@ -830,11 +831,10 @@ rsk = COSEKey.from_jwk(
         "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
         "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
         "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
-    })
-
-# Decode COSE Encrypt0 message with HPKE.
+    }
+)
 recipient = COSE.new()
-assert b"Hello world!" == recipient.decode(encoded, rsk)
+assert b"This is the content." == recipient.decode(encoded, rsk)
 ```
 
 ### COSE Encrypt
@@ -1024,6 +1024,62 @@ priv_key = COSEKey.from_jwk(
     }
 )
 assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "A128GCM"})
+```
+
+#### COSE-HPKE (Encrypt)
+
+Create a COSE-HPKE Encrypt message and decrypt it as follows:
+
+```py
+from cwt import COSE, COSEKey, Recipient
+
+# The sender side:
+rpk = COSEKey.from_jwk(
+    {
+        "kty": "EC",
+        "kid": "01",
+        "crv": "P-256",
+        "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+        "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+    }
+)
+r = Recipient.new(
+    protected={
+        1: -1,  # alg: "HPKE"
+    },
+    unprotected={
+        4: b"01",  # kid: "01"
+        -4: {  # HPKE sender information
+            1: 0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
+            5: 0x0001,  # kdf: HKDF-SHA256
+            2: 0x0001,  # aead: AES-128-GCM
+        },
+    },
+)
+r.apply(recipient_key=rpk)
+sender = COSE.new()
+encoded = sender.encode_and_encrypt(
+    b"This is the content.",
+    b"",
+    protected={
+        1: -1,  # alg: "HPKE"
+    },
+    recipients=[r],
+)
+
+# The recipient side:
+rsk = COSEKey.from_jwk(
+    {
+        "kty": "EC",
+        "kid": "01",
+        "crv": "P-256",
+        "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+        "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+        "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+    }
+)
+recipient = COSE.new()
+assert b"This is the content." == recipient.decode(encoded, rsk)
 ```
 
 ### COSE Signature1
