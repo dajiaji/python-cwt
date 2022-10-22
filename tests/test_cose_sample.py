@@ -403,7 +403,6 @@ class TestCOSESample:
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
-            b"",
             protected={
                 1: -1,  # alg: "HPKE"
             },
