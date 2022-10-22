@@ -150,7 +150,7 @@ class EC2Key(AsymmetricKey):
                 if 2 in self._key_ops:
                     if len(self._key_ops) > 1:
                         raise ValueError("Invalid key_ops for public key.")
-                else:
+                elif not (set(self._key_ops) & set([7, 8])):
                     raise ValueError("Invalid key_ops for public key.")
 
         if self._alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_ES.values():
@@ -281,12 +281,8 @@ class EC2Key(AsymmetricKey):
             raise ValueError("Private key cannot be used for HPKE encryption.")
 
         ctx = self._create_hpke_context(suite)
-        try:
-            enc, sender = ctx.setup_send(self._public_key, b"")  # TODO: Add support for info
-            ct = sender.aead.seal(aad, msg)
-            return enc, ct
-        except Exception as err:
-            raise EncodeError("Failed to encrypt.") from err
+        enc, sender = ctx.setup_send(self._public_key, b"")  # TODO: Add support for info
+        return enc, sender.aead.seal(aad, msg)
 
     def open(self, suite: HPKECipherSuite, enc: bytes, msg: bytes, aad: bytes = b"") -> bytes:
         # if self._alg != -1:
@@ -367,8 +363,8 @@ class EC2Key(AsymmetricKey):
                 return pyhpke.Suite__DHKEM_P256_HKDF_SHA256__HKDF_SHA256__AES_128_GCM
             if suite.kdf == 0x0001 and suite.aead == 0x0003:
                 return pyhpke.Suite__DHKEM_P256_HKDF_SHA256__HKDF_SHA256__ChaCha20Poly1305
-            if suite.kdf == 0x0003 and suite.aead == 0x0002:
-                return pyhpke.Suite__DHKEM_P521_HKDF_SHA512__HKDF_SHA512__AES_256_GCM
+            if suite.kdf == 0x0003 and suite.aead == 0x0001:
+                return pyhpke.Suite__DHKEM_P256_HKDF_SHA256__HKDF_SHA512__AES_128_GCM
             raise ValueError("Unsupported kdf/aead combination.")
         elif self._crv == 2:
             if suite.kem != 0x0011:
@@ -378,6 +374,6 @@ class EC2Key(AsymmetricKey):
             if suite.kem != 0x0012:
                 raise ValueError("KEM id should be 0x0012.")
             if suite.kdf == 0x0001 and suite.aead == 0x0001:
-                return pyhpke.Suite__DHKEM_P256_HKDF_SHA256__HKDF_SHA256__AES_128_GCM
+                return pyhpke.Suite__DHKEM_P521_HKDF_SHA512__HKDF_SHA512__AES_256_GCM
             raise ValueError("Unsupported kdf/aead combination.")
         raise ValueError("Invalid crv for HPKE.")

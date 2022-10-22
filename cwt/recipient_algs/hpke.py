@@ -15,7 +15,15 @@ class HPKE(RecipientInterface):
         super().__init__(protected, unprotected, ciphertext, recipients)
 
         if self._alg != -1:
-            raise ValueError("alg(-1) not found.")
+            raise ValueError("alg should be HPKE(-1).")
+        if -4 not in unprotected:
+            raise ValueError("HPKE sender information(-4) not found.")
+        if 1 not in unprotected[-4]:
+            raise ValueError("kem id(1) not found in HPKE sender information(-4).")
+        if 5 not in unprotected[-4]:
+            raise ValueError("kdf id(5) not found in HPKE sender information(-4).")
+        if 2 not in unprotected[-4]:
+            raise ValueError("aead id(2) not found in HPKE sender information(-4).")
         self._suite = HPKECipherSuite(unprotected[-4][1], unprotected[-4][5], unprotected[-4][2])
         return
 
