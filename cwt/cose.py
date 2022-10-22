@@ -112,152 +112,6 @@ class COSE(CBORProcessor):
         self._verify_kid = verify_kid
         return
 
-    def encode_and_mac(
-        self,
-        payload: bytes,
-        key: COSEKeyInterface,
-        protected: Optional[Union[dict, bytes]] = None,
-        unprotected: Optional[dict] = None,
-        recipients: Optional[List[RecipientInterface]] = None,
-        external_aad: bytes = b"",
-        out: str = "",
-    ) -> Union[bytes, CBORTag]:
-        """
-        Encodes data with MAC.
-
-        Args:
-            payload (bytes): A content to be MACed.
-            key (COSEKeyInterface): A COSE key as a MAC Authentication key.
-            protected (Optional[Union[dict, bytes]]): Parameters that are to be cryptographically
-                protected.
-            unprotected (Optional[dict]): Parameters that are not cryptographically protected.
-            recipients (Optional[List[RecipientInterface]]): A list of recipient information structures.
-            external_aad(bytes): External additional authenticated data supplied by application.
-            out(str): An output format. Only ``"cbor2/CBORTag"`` can be used. If ``"cbor2/CBORTag"``
-                is specified. This function will return encoded data as
-                `cbor2 <https://cbor2.readthedocs.io/en/stable/>`_'s ``CBORTag`` object.
-                If any other value is specified, it will return encoded data as bytes.
-        Returns:
-            Union[bytes, CBORTag]: A byte string of the encoded COSE or a cbor2.CBORTag object.
-        Raises:
-            ValueError: Invalid arguments.
-            EncodeError: Failed to encode data.
-        """
-        p: Union[Dict[int, Any], bytes] = to_cose_header(protected) if not isinstance(protected, bytes) else protected
-        u = to_cose_header(unprotected)
-
-        ctx = "MAC0" if not recipients else "MAC"
-        b_protected = b""
-
-        # MAC0
-        if not recipients:
-            if isinstance(p, bytes):
-                b_protected = p
-            else:
-                if self._alg_auto_inclusion:
-                    p[1] = key.alg
-                b_protected = self._dumps(p)
-            if self._kid_auto_inclusion and key.kid:
-                u[4] = key.kid
-            mac_structure = [ctx, b_protected, external_aad, payload]
-            tag = key.sign(self._dumps(mac_structure))
-            res = CBORTag(17, [b_protected, u, payload, tag])
-            return res if out == "cbor2/CBORTag" else self._dumps(res)
-
-        # MAC
-        recs = []
-        for rec in recipients:
-            recs.append(rec.to_list())
-        if recipients[0].alg in COSE_ALGORITHMS_RECIPIENT.values():
-            if not isinstance(p, bytes):
-                if self._alg_auto_inclusion:
-                    p[1] = key.alg
-                if self._kid_auto_inclusion and key.kid:
-                    u[4] = key.kid
-        else:
-            raise NotImplementedError("Algorithms other than direct are not supported for recipients.")
-
-        if isinstance(p, bytes):
-            b_protected = p
-        else:
-            b_protected = self._dumps(p) if p else b""
-        mac_structure = [ctx, b_protected, external_aad, payload]
-        tag = key.sign(self._dumps(mac_structure))
-        cose_mac: List[Any] = [b_protected, u, payload, tag]
-        cose_mac.append(recs)
-        res = CBORTag(97, cose_mac)
-        return res if out == "cbor2/CBORTag" else self._dumps(res)
-
-    def encode_and_sign(
-        self,
-        payload: bytes,
-        key: Optional[COSEKeyInterface] = None,
-        protected: Optional[Union[dict, bytes]] = None,
-        unprotected: Optional[dict] = None,
-        signers: List[Signer] = [],
-        external_aad: bytes = b"",
-        out: str = "",
-    ) -> Union[bytes, CBORTag]:
-        """
-        Encodes data with signing.
-
-        Args:
-            payload (bytes): A content to be signed.
-            key (Optional[COSEKeyInterface]): A signing key for single signer
-                cases. When the ``signers`` parameter is set, this ``key`` will
-                be ignored and should not be set.
-            protected (Optional[Union[dict, bytes]]): Parameters that are to be
-                cryptographically protected.
-            unprotected (Optional[dict]): Parameters that are not cryptographically
-                protected.
-            signers (List[Signer]): A list of signer information objects for
-                multiple signer cases.
-            external_aad(bytes): External additional authenticated data supplied
-                by application.
-            out(str): An output format. Only ``"cbor2/CBORTag"`` can be used. If
-                ``"cbor2/CBORTag"`` is specified. This function will return encoded
-                data as `cbor2 <https://cbor2.readthedocs.io/en/stable/>`_'s
-                ``CBORTag`` object. If any other value is specified, it will return
-                encoded data as bytes.
-        Returns:
-            Union[bytes, CBORTag]: A byte string of the encoded COSE or a
-                cbor2.CBORTag object.
-        Raises:
-            ValueError: Invalid arguments.
-            EncodeError: Failed to encode data.
-        """
-        p: Union[Dict[int, Any], bytes] = to_cose_header(protected) if not isinstance(protected, bytes) else protected
-        u = to_cose_header(unprotected)
-
-        ctx = "Signature" if signers else "Signature1"
-        if not signers and key is not None:
-            if isinstance(p, dict) and self._alg_auto_inclusion:
-                p[1] = key.alg
-            if self._kid_auto_inclusion and key.kid:
-                u[4] = key.kid
-
-        b_protected = b""
-        if isinstance(p, bytes):
-            b_protected = p
-        else:
-            b_protected = self._dumps(p) if p else b""
-
-        # Signature1
-        if not signers and key is not None:
-            sig_structure = [ctx, b_protected, external_aad, payload]
-            sig = key.sign(self._dumps(sig_structure))
-            res = CBORTag(18, [b_protected, u, payload, sig])
-            return res if out == "cbor2/CBORTag" else self._dumps(res)
-
-        # Signature
-        sigs = []
-        for s in signers:
-            sig_structure = [ctx, b_protected, s.protected, external_aad, payload]
-            s.sign(self._dumps(sig_structure))
-            sigs.append([s.protected, s.unprotected, s.signature])
-        res = CBORTag(98, [b_protected, u, payload, sigs])
-        return res if out == "cbor2/CBORTag" else self._dumps(res)
-
     def encode_and_encrypt(
         self,
         payload: bytes,
@@ -310,6 +164,7 @@ class COSE(CBORProcessor):
                     except NotImplementedError:
                         raise ValueError("Nonce generation is not supported for the key. Set a nonce explicitly.")
                 u[5] = nonce
+        b_protected = b""
         if isinstance(p, bytes):
             b_protected = p
         else:
@@ -337,6 +192,7 @@ class COSE(CBORProcessor):
 
         enc_structure = ["Encrypt", b_protected, external_aad]
         aad = self._dumps(enc_structure)
+
         recs = []
         for rec in recipients:
             recs.append(rec.to_list(payload, aad))
@@ -353,9 +209,143 @@ class COSE(CBORProcessor):
             if key is None:
                 raise ValueError("key should be set.")
             ciphertext = key.encrypt(payload, nonce, aad)
+
         cose_enc: List[Any] = [b_protected, u, ciphertext]
         cose_enc.append(recs)
         res = CBORTag(96, cose_enc)
+        return res if out == "cbor2/CBORTag" else self._dumps(res)
+
+    def encode_and_mac(
+        self,
+        payload: bytes,
+        key: COSEKeyInterface,
+        protected: Optional[Union[dict, bytes]] = None,
+        unprotected: Optional[dict] = None,
+        recipients: Optional[List[RecipientInterface]] = None,
+        external_aad: bytes = b"",
+        out: str = "",
+    ) -> Union[bytes, CBORTag]:
+        """
+        Encodes data with MAC.
+
+        Args:
+            payload (bytes): A content to be MACed.
+            key (COSEKeyInterface): A COSE key as a MAC Authentication key.
+            protected (Optional[Union[dict, bytes]]): Parameters that are to be cryptographically
+                protected.
+            unprotected (Optional[dict]): Parameters that are not cryptographically protected.
+            recipients (Optional[List[RecipientInterface]]): A list of recipient information structures.
+            external_aad(bytes): External additional authenticated data supplied by application.
+            out(str): An output format. Only ``"cbor2/CBORTag"`` can be used. If ``"cbor2/CBORTag"``
+                is specified. This function will return encoded data as
+                `cbor2 <https://cbor2.readthedocs.io/en/stable/>`_'s ``CBORTag`` object.
+                If any other value is specified, it will return encoded data as bytes.
+        Returns:
+            Union[bytes, CBORTag]: A byte string of the encoded COSE or a cbor2.CBORTag object.
+        Raises:
+            ValueError: Invalid arguments.
+            EncodeError: Failed to encode data.
+        """
+        p: Union[Dict[int, Any], bytes] = to_cose_header(protected) if not isinstance(protected, bytes) else protected
+        u = to_cose_header(unprotected)
+        if isinstance(p, dict) and self._alg_auto_inclusion:
+            p[1] = key.alg
+        if self._kid_auto_inclusion and key.kid:
+            u[4] = key.kid
+        b_protected = b""
+        if isinstance(p, bytes):
+            b_protected = p
+        else:
+            b_protected = self._dumps(p) if p else b""
+
+        # MAC0
+        if not recipients:
+            mac_structure = ["MAC0", b_protected, external_aad, payload]
+            tag = key.sign(self._dumps(mac_structure))
+            res = CBORTag(17, [b_protected, u, payload, tag])
+            return res if out == "cbor2/CBORTag" else self._dumps(res)
+
+        # MAC
+        if recipients[0].alg not in COSE_ALGORITHMS_RECIPIENT.values():
+            raise NotImplementedError("Algorithms other than direct are not supported for recipients.")
+
+        mac_structure = ["MAC", b_protected, external_aad, payload]
+        tag = key.sign(self._dumps(mac_structure))
+
+        recs = []
+        for rec in recipients:
+            recs.append(rec.to_list())
+
+        cose_mac: List[Any] = [b_protected, u, payload, tag]
+        cose_mac.append(recs)
+        res = CBORTag(97, cose_mac)
+        return res if out == "cbor2/CBORTag" else self._dumps(res)
+
+    def encode_and_sign(
+        self,
+        payload: bytes,
+        key: Optional[COSEKeyInterface] = None,
+        protected: Optional[Union[dict, bytes]] = None,
+        unprotected: Optional[dict] = None,
+        signers: List[Signer] = [],
+        external_aad: bytes = b"",
+        out: str = "",
+    ) -> Union[bytes, CBORTag]:
+        """
+        Encodes data with signing.
+
+        Args:
+            payload (bytes): A content to be signed.
+            key (Optional[COSEKeyInterface]): A signing key for single signer
+                cases. When the ``signers`` parameter is set, this ``key`` will
+                be ignored and should not be set.
+            protected (Optional[Union[dict, bytes]]): Parameters that are to be
+                cryptographically protected.
+            unprotected (Optional[dict]): Parameters that are not cryptographically
+                protected.
+            signers (List[Signer]): A list of signer information objects for
+                multiple signer cases.
+            external_aad(bytes): External additional authenticated data supplied
+                by application.
+            out(str): An output format. Only ``"cbor2/CBORTag"`` can be used. If
+                ``"cbor2/CBORTag"`` is specified. This function will return encoded
+                data as `cbor2 <https://cbor2.readthedocs.io/en/stable/>`_'s
+                ``CBORTag`` object. If any other value is specified, it will return
+                encoded data as bytes.
+        Returns:
+            Union[bytes, CBORTag]: A byte string of the encoded COSE or a
+                cbor2.CBORTag object.
+        Raises:
+            ValueError: Invalid arguments.
+            EncodeError: Failed to encode data.
+        """
+        p: Union[Dict[int, Any], bytes] = to_cose_header(protected) if not isinstance(protected, bytes) else protected
+        u = to_cose_header(unprotected)
+        if key is not None:
+            if isinstance(p, dict) and self._alg_auto_inclusion:
+                p[1] = key.alg
+            if self._kid_auto_inclusion and key.kid:
+                u[4] = key.kid
+        b_protected = b""
+        if isinstance(p, bytes):
+            b_protected = p
+        else:
+            b_protected = self._dumps(p) if p else b""
+
+        # Signature1
+        if not signers and key is not None:
+            sig_structure = ["Signature1", b_protected, external_aad, payload]
+            sig = key.sign(self._dumps(sig_structure))
+            res = CBORTag(18, [b_protected, u, payload, sig])
+            return res if out == "cbor2/CBORTag" else self._dumps(res)
+
+        # Signature
+        sigs = []
+        for s in signers:
+            sig_structure = ["Signature", b_protected, s.protected, external_aad, payload]
+            s.sign(self._dumps(sig_structure))
+            sigs.append([s.protected, s.unprotected, s.signature])
+        res = CBORTag(98, [b_protected, u, payload, sigs])
         return res if out == "cbor2/CBORTag" else self._dumps(res)
 
     def decode(
