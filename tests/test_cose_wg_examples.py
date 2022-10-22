@@ -81,7 +81,7 @@ class TestCOSE:
         encoded = ctx.encode_and_sign(
             b"This is the content.",
             key,
-            protected=bytes.fromhex("a0"),
+            # protected=bytes.fromhex("a0"),
             unprotected={1: -7, 4: b"11"},
         )
         assert ctx.decode(encoded, key) == b"This is the content."
@@ -133,7 +133,7 @@ class TestCOSE:
         encoded = ctx.encode_and_sign(
             b"This is the content.",
             signers=[signer],
-            protected=bytes.fromhex("a0"),
+            # protected=bytes.fromhex("a0"),
         )
         assert ctx.decode(encoded, signer.cose_key) == b"This is the content."
         # assert ctx.decode(bytes.fromhex(cwt_str), key) == b"This is the content."

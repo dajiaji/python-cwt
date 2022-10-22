@@ -241,7 +241,6 @@ class COSE(CBORProcessor):
             ValueError: Invalid arguments.
             EncodeError: Failed to encode data.
         """
-        # p: Union[Dict[int, Any], bytes] = to_cose_header(protected) if not isinstance(protected, bytes) else protected
         p = to_cose_header(protected)
         u = to_cose_header(unprotected)
         if self._alg_auto_inclusion:
@@ -277,7 +276,7 @@ class COSE(CBORProcessor):
         self,
         payload: bytes,
         key: Optional[COSEKeyInterface] = None,
-        protected: Optional[Union[dict, bytes]] = None,
+        protected: Optional[dict] = None,
         unprotected: Optional[dict] = None,
         signers: List[Signer] = [],
         external_aad: bytes = b"",
@@ -291,10 +290,8 @@ class COSE(CBORProcessor):
             key (Optional[COSEKeyInterface]): A signing key for single signer
                 cases. When the ``signers`` parameter is set, this ``key`` will
                 be ignored and should not be set.
-            protected (Optional[Union[dict, bytes]]): Parameters that are to be
-                cryptographically protected.
-            unprotected (Optional[dict]): Parameters that are not cryptographically
-                protected.
+            protected (Optional[dict]): Parameters that are to be cryptographically protected.
+            unprotected (Optional[dict]): Parameters that are not cryptographically protected.
             signers (List[Signer]): A list of signer information objects for
                 multiple signer cases.
             external_aad(bytes): External additional authenticated data supplied
@@ -311,18 +308,14 @@ class COSE(CBORProcessor):
             ValueError: Invalid arguments.
             EncodeError: Failed to encode data.
         """
-        p: Union[Dict[int, Any], bytes] = to_cose_header(protected) if not isinstance(protected, bytes) else protected
+        p = to_cose_header(protected)
         u = to_cose_header(unprotected)
         if key is not None:
-            if isinstance(p, dict) and self._alg_auto_inclusion:
+            if self._alg_auto_inclusion:
                 p[1] = key.alg
             if self._kid_auto_inclusion and key.kid:
                 u[4] = key.kid
-        b_protected = b""
-        if isinstance(p, bytes):
-            b_protected = p
-        else:
-            b_protected = self._dumps(p) if p else b""
+        b_protected = self._dumps(p) if p else b""
 
         # Signature1
         if not signers and key is not None:

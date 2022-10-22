@@ -174,22 +174,22 @@ class TestCOSE:
     #     )
     #     assert b"Hello world!" == ctx.decode(encoded, enc_key)
 
-    def test_cose_encode_and_decode_signature1_with_protected_bytes(self):
-        ctx = COSE.new(kid_auto_inclusion=True)
+    # def test_cose_encode_and_decode_signature1_with_protected_bytes(self):
+    #     ctx = COSE.new(kid_auto_inclusion=True)
 
-        # Signature1
-        sig_key = COSEKey.from_jwk(
-            {
-                "kty": "EC",
-                "kid": "03",
-                "crv": "P-256",
-                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
-                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
-                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
-            }
-        )
-        encoded = ctx.encode_and_sign(b"Hello world!", sig_key, protected=b"a0")
-        assert b"Hello world!" == ctx.decode(encoded, sig_key)
+    #     # Signature1
+    #     sig_key = COSEKey.from_jwk(
+    #         {
+    #             "kty": "EC",
+    #             "kid": "03",
+    #             "crv": "P-256",
+    #             "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+    #             "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+    #             "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+    #         }
+    #     )
+    #     encoded = ctx.encode_and_sign(b"Hello world!", sig_key, protected=b"a0")
+    #     assert b"Hello world!" == ctx.decode(encoded, sig_key)
 
     def test_cose_encode_and_decode_mac0_with_verify_kid(self):
         ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True, verify_kid=True)
