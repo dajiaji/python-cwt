@@ -261,7 +261,7 @@ class COSE(CBORProcessor):
     def encode_and_encrypt(
         self,
         payload: bytes,
-        key: COSEKeyInterface,
+        key: Optional[COSEKeyInterface] = None,
         protected: Optional[Union[dict, bytes]] = None,
         unprotected: Optional[dict] = None,
         nonce: bytes = b"",
@@ -274,7 +274,7 @@ class COSE(CBORProcessor):
 
         Args:
             payload (bytes): A content to be encrypted.
-            key (COSEKeyInterface): A COSE key as an encryption key.
+            key (Optional[COSEKeyInterface]): A COSE key as an encryption key.
             protected (Optional[Union[dict, bytes]]): Parameters that are to be
                 cryptographically protected.
             unprotected (Optional[dict]): Parameters that are not cryptographically
@@ -303,29 +303,30 @@ class COSE(CBORProcessor):
                 p[1] = key.alg
             if self._kid_auto_inclusion and key.kid:
                 u[4] = key.kid
+            if isinstance(p, bytes) or 1 not in p or p[1] != -1:  # not HPKE
+                if not nonce:
+                    try:
+                        nonce = key.generate_nonce()
+                    except NotImplementedError:
+                        raise ValueError("Nonce generation is not supported for the key. Set a nonce explicitly.")
+                u[5] = nonce
         if isinstance(p, bytes):
             b_protected = p
         else:
             b_protected = self._dumps(p) if p else b""
         ciphertext: bytes = b""
 
-        if isinstance(p, bytes) or 1 not in p or p[1] != -1:  # not HPKE
-            if not nonce:
-                try:
-                    nonce = key.generate_nonce()
-                except NotImplementedError:
-                    raise ValueError("Nonce generation is not supported for the key. Set a nonce explicitly.")
-            u[5] = nonce
-
         # Encrypt0
         if not recipients:
             enc_structure = ["Encrypt0", b_protected, external_aad]
             aad = self._dumps(enc_structure)
-            if not isinstance(p, bytes) and p[1] == -1:  # HPKE
+            if not isinstance(p, bytes) and 1 in p and p[1] == -1:  # HPKE
                 hpke = HPKE(p, u)
                 hpke.apply(recipient_key=key)
                 res = CBORTag(16, hpke.to_list(payload, aad))
                 return res if out == "cbor2/CBORTag" else self._dumps(res)
+            if key is None:
+                raise ValueError("key should be set.")
             ciphertext = key.encrypt(payload, nonce, aad)
             res = CBORTag(16, [b_protected, u, ciphertext])
             return res if out == "cbor2/CBORTag" else self._dumps(res)
@@ -349,6 +350,8 @@ class COSE(CBORProcessor):
                 # return res if out == "cbor2/CBORTag" else self._dumps(CBORTag(16, msg))
                 raise ValueError("HPKE sender information should not appear on the Layer-1 of Encrypt(96) message.")
         else:
+            if key is None:
+                raise ValueError("key should be set.")
             ciphertext = key.encrypt(payload, nonce, aad)
         cose_enc: List[Any] = [b_protected, u, ciphertext]
         cose_enc.append(recs)

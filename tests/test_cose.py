@@ -80,6 +80,15 @@ class TestCOSE:
         encoded = ctx.encode_and_encrypt(b"Hello world!", enc_key)
         assert b"Hello world!" == ctx.decode(encoded, enc_key)
 
+    def test_cose_encode_and_decode_encrypt0_with_options_without_key(self):
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+
+        # Encrypt0
+        with pytest.raises(ValueError) as err:
+            ctx.encode_and_encrypt(b"Hello world!")
+            pytest.fail("encode_and_encrypt should fail.")
+        assert "key should be set." in str(err.value)
+
     def test_cose_encode_and_decode_encrypt_with_options(self):
         ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
 
@@ -92,6 +101,19 @@ class TestCOSE:
             recipients=[rec],
         )
         assert b"Hello world!" == ctx.decode(encoded, enc_key)
+
+    def test_cose_encode_and_decode_encrypt_with_options_without_key(self):
+        ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+
+        # Encrypt
+        rec = Recipient.from_jwk({"alg": "direct", "kid": "02"})
+        with pytest.raises(ValueError) as err:
+            ctx.encode_and_encrypt(
+                b"Hello world!",
+                recipients=[rec],
+            )
+            pytest.fail("encode_and_encrypt should fail.")
+        assert "key should be set." in str(err.value)
 
     def test_cose_encode_and_decode_signature1_with_options(self):
         ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
