@@ -102,9 +102,14 @@ Create a COSE MAC0 message, verify and decode it as follows:
 from cwt import COSE, COSEKey
 
 mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
-ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
-encoded = ctx.encode_and_mac(b"Hello world!", mac_key)
-assert b"Hello world!" == ctx.decode(encoded, mac_key)
+
+# The sender side:
+sender = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+encoded = sender.encode_and_mac(b"Hello world!", mac_key)
+
+# The recipient side:
+recipient = COSE.new()
+assert b"Hello world!" == recipient.decode(encoded, mac_key)
 ```
 
 Following two samples are other ways of writing the above example:
@@ -115,8 +120,13 @@ from cwt import COSE, COSEKey
 mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
 
 # The sender side:
-sender = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
-encoded = sender.encode_and_mac(b"Hello world!", mac_key)
+sender = COSE.new()
+encoded = sender.encode_and_mac(
+    b"Hello world!",
+    mac_key,
+    protected={"alg": "HS256"},
+    unprotected={"kid": "01"},
+)
 
 # The recipient side:
 recipient = COSE.new()
