@@ -128,11 +128,9 @@ class COSE(CBORProcessor):
 
         Args:
             payload (bytes): A content to be encrypted.
-            key (Optional[COSEKeyInterface]): A COSE key as an encryption key.
-            protected (Optional[dict]): Parameters that are to be cryptographically
-                protected.
-            unprotected (Optional[dict]): Parameters that are not cryptographically
-                protected.
+            key (Optional[COSEKeyInterface]): A content encryption key as COSEKey.
+            protected (Optional[dict]): Parameters that are to be cryptographically protected.
+            unprotected (Optional[dict]): Parameters that are not cryptographically protected.
             nonce (bytes): A nonce for encryption.
             recipients (Optional[List[RecipientInterface]]): A list of recipient
                 information structures.
@@ -180,6 +178,8 @@ class COSE(CBORProcessor):
                 raise ValueError("key should be set.")
             ciphertext = key.encrypt(payload, nonce, aad)
             res = CBORTag(16, [b_protected, u, ciphertext])
+            # rec = Recipien.new(p, u)
+            # res = CBORTag(16, rec.to_list(payload, aad, nonce=nonce))
             return res if out == "cbor2/CBORTag" else self._dumps(res)
 
         # Encrypt
@@ -190,21 +190,18 @@ class COSE(CBORProcessor):
         aad = self._dumps(enc_structure)
 
         recs = []
+        is_hpke = True
         for rec in recipients:
+            if rec.alg != -1:
+                is_hpke = False
             recs.append(rec.to_list(payload, aad))
 
         if 1 in p and p[1] == -1:  # HPKE
-            if -4 in u:
-                # hpke = HPKE(p, u)
-                # hpke.apply(recipient_key=key)
-                # msg = hpke.to_list(payload, aad)
-                # msg.append(recs)
-                # return res if out == "cbor2/CBORTag" else self._dumps(CBORTag(16, msg))
-                raise ValueError("HPKE sender information should not appear on the Layer-1 of Encrypt(96) message.")
-        else:
-            if key is None:
-                raise ValueError("key should be set.")
+            raise ValueError("alg for the first layer should not be HPKE.")
+        if key is not None:
             ciphertext = key.encrypt(payload, nonce, aad)
+        elif is_hpke is False:
+            raise ValueError("key should be set.")
 
         cose_enc: List[Any] = [b_protected, u, ciphertext]
         cose_enc.append(recs)
@@ -433,11 +430,8 @@ class COSE(CBORProcessor):
         if data.tag == 96:
             aad = self._dumps(["Encrypt", data.value[0], external_aad])
             rs = Recipients.from_list(data.value[3], self._verify_kid)
-            if alg == -1:  # HPKE
-                return rs.open(keys, aad)
-            nonce = unprotected.get(5, None)
-            k = rs.extract(keys, context, alg)
-            return k.decrypt(data.value[2], nonce, aad)
+            nonce = unprotected.get(5, b"")
+            return rs.decrypt(keys, aad, alg, context, data.value[2], nonce)
 
         # MAC0
         if data.tag == 17:

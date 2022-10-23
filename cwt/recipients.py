@@ -56,13 +56,18 @@ class Recipients:
                     err = e
         raise err
 
-    def open(
+    def decrypt(
         self,
         keys: List[COSEKeyInterface],
         aad: bytes = b"",
+        alg: int = 0,
+        context: Optional[Union[Dict[str, Any], List[Any]]] = None,
+        payload: bytes = b"",
+        nonce: bytes = b"",
     ) -> bytes:
+
         """
-        Does HPKE-based decryption for the supplied payload.
+        Decrypts the supplied payload.
         """
         if not self._recipients:
             raise ValueError("No recipients.")
@@ -75,13 +80,19 @@ class Recipients:
                     if k.kid != r.kid:
                         continue
                     try:
-                        return r.open(k, aad)
+                        return (
+                            r.open(k, aad)
+                            if r.alg == -1
+                            else r.extract(k, alg=alg, context=context).decrypt(payload, nonce, aad)
+                        )
                     except Exception as e:
                         err = e
                 continue
             for k in keys:
                 try:
-                    return r.open(k, aad)
+                    return (
+                        r.open(k, aad) if r.alg == -1 else r.extract(k, alg=alg, context=context).decrypt(payload, nonce, aad)
+                    )
                 except Exception as e:
                     err = e
         raise err

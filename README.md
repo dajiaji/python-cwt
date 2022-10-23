@@ -42,16 +42,6 @@ See [Documentation](https://python-cwt.readthedocs.io/en/stable/) for details.
 ## Index
 
 - [Installation](#installation)
-- [CWT Usage Examples](#cwt-usage-examples)
-    - [MACed CWT](#maced-cwt)
-    - [Signed CWT](#signed-cwt)
-    - [Encrypted CWT](#encrypted-cwt)
-    - [Nested CWT](#nested-cwt)
-    - [CWT with User Settings (e.g., expires\_in)](#cwt-with-user-settings)
-    - [CWT with User-Defined Claims](#cwt-with-user-defined-claims)
-    - [CWT with PoP Key](#cwt-with-pop-key)
-    - [CWT with Private CA](#cwt-with-private-ca)
-    - [CWT for EUDCC (EU Digital COVID Certificate)](#cwt-for-eudcc-eu-digital-covid-certificate)
 - [COSE Usage Examples](#cose-usage-examples)
     - [COSE MAC0](#cose-mac0)
     - [COSE MAC](#cose-mac)
@@ -72,6 +62,16 @@ See [Documentation](https://python-cwt.readthedocs.io/en/stable/) for details.
         - [COSE-HPKE (Encrypt)](#cose-hpke-encrypt)
     - [COSE Signature1](#cose-signature1)
     - [COSE Signature](#cose-signature)
+- [CWT Usage Examples](#cwt-usage-examples)
+    - [MACed CWT](#maced-cwt)
+    - [Signed CWT](#signed-cwt)
+    - [Encrypted CWT](#encrypted-cwt)
+    - [Nested CWT](#nested-cwt)
+    - [CWT with User Settings (e.g., expires\_in)](#cwt-with-user-settings)
+    - [CWT with User-Defined Claims](#cwt-with-user-defined-claims)
+    - [CWT with PoP Key](#cwt-with-pop-key)
+    - [CWT with Private CA](#cwt-with-private-ca)
+    - [CWT for EUDCC (EU Digital COVID Certificate)](#cwt-for-eudcc-eu-digital-covid-certificate)
 - [API Reference](#api-reference)
 - [Supported CWT Claims](#supported-cwt-claims)
 - [Supported COSE Algorithms](#supported-cose-algorithms)
@@ -85,6 +85,646 @@ Install with pip:
 
 ```
 pip install cwt
+```
+
+## COSE Usage Examples
+
+Followings are typical and basic examples which create various types of COSE messages, verify and decode them.
+
+See [API Reference](https://python-cwt.readthedocs.io/en/stable/api.html#cwt.COSE) and
+[COSE Usage Examples on document](https://python-cwt.readthedocs.io/en/stable/cose_usage.html) for more details.
+
+### COSE MAC0
+
+Create a COSE MAC0 message, verify and decode it as follows:
+
+```py
+from cwt import COSE, COSEKey
+
+mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+encoded = ctx.encode_and_mac(b"Hello world!", mac_key)
+assert b"Hello world!" == ctx.decode(encoded, mac_key)
+```
+
+Following two samples are other ways of writing the above example:
+
+```py
+from cwt import COSE, COSEKey
+
+mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+
+# The sender side:
+sender = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+encoded = sender.encode_and_mac(b"Hello world!", mac_key)
+
+# The recipient side:
+recipient = COSE.new()
+assert b"Hello world!" == recipient.decode(encoded, mac_key)
+```
+
+```py
+from cwt import COSE, COSEKey
+
+mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+
+# The sender side:
+sender = COSE.new()
+encoded = ctx.encode_and_mac(
+    b"Hello world!",
+    mac_key,
+    protected={1: 5},
+    unprotected={4: b"01"},
+)
+
+# The recipient side:
+recipient = COSE.new()
+assert b"Hello world!" == recipient.decode(encoded, mac_key)
+```
+
+### COSE MAC
+
+#### Direct Key Distribution for MAC
+
+The direct key distribution shares a MAC key between the sender and the recipient that is used directly.
+The follwing example shows the simplest way to make a COSE MAC message, verify and decode it with the direct
+key distribution method.
+
+```py
+from cwt import COSE, COSEKey, Recipient
+
+mac_key = COSEKey.from_symmetric_key(alg="HS512", kid="01")
+
+# The sender side:
+r = Recipient.from_jwk({"alg": "direct"})
+r.apply(mac_key)
+
+sender = COSE.new()
+encoded = sender.encode_and_mac(b"Hello world!", mac_key, recipients=[r])
+
+# The recipient side:
+recipient = COSE.new()
+assert b"Hello world!" == recipient.decode(encoded, mac_key)
+```
+
+#### Direct Key with KDF for MAC
+
+
+```py
+from secrets import token_bytes
+from cwt import COSE, COSEKey, Recipient
+
+shared_material = token_bytes(32)
+shared_key = COSEKey.from_symmetric_key(shared_material, kid="01")
+
+# The sender side:
+r = Recipient.from_jwk(
+    {
+        "kty": "oct",
+        "alg": "direct+HKDF-SHA-256",
+        "salt": "aabbccddeeffgghh",
+    },
+)
+mac_key = r.apply(shared_key, context={"alg": "HS256"})
+sender = COSE.new(alg_auto_inclusion=True)
+encoded = sender.encode_and_mac(
+    b"Hello world!",
+    key=mac_key,
+    recipients=[r],
+)
+
+# The recipient side:
+recipient = COSE.new()
+assert b"Hello world!" == recipient.decode(encoded, shared_key, context={"alg": "HS256"})
+```
+
+#### AES Key Wrap for MAC
+
+The AES key wrap algorithm can be used to wrap a MAC key as follows:
+
+```py
+from cwt import COSE, COSEKey, Recipient
+
+# The sender side:
+mac_key = COSEKey.from_symmetric_key(alg="HS512")
+r = Recipient.from_jwk(
+    {
+        "kty": "oct",
+        "alg": "A128KW",
+        "kid": "01",
+        "k": "hJtXIZ2uSN5kbQfbtTNWbg",  # A shared wrapping key
+    },
+)
+r.apply(mac_key)
+sender = COSE.new(alg_auto_inclusion=True)
+encoded = sender.encode_and_mac(b"Hello world!", key=mac_key, recipients=[r])
+
+# The recipient side:
+recipient = COSE.new()
+shared_key = COSEKey.from_jwk(
+    {
+        "kty": "oct",
+        "alg": "A128KW",
+        "kid": "01",
+        "k": "hJtXIZ2uSN5kbQfbtTNWbg",
+    },
+)
+assert b"Hello world!" == recipient.decode(encoded, shared_key)
+```
+
+#### Direct Key Agreement for MAC
+
+The direct key agreement methods can be used to create a shared secret. A KDF (Key Distribution Function) is then
+applied to the shared secret to derive a key to be used to protect the data.
+The follwing example shows a simple way to make a COSE Encrypt message, verify and decode it with the direct key
+agreement methods (``ECDH-ES+HKDF-256`` with various curves).
+
+```py
+from cwt import COSE, COSEKey, Recipient
+
+# The sender side:
+# The following key is provided by the recipient in advance.
+pub_key = COSEKey.from_jwk(
+    {
+        "kty": "EC",
+        "kid": "01",
+        "crv": "P-256",
+        "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
+        "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
+    }
+)
+r = Recipient.from_jwk(
+    {
+        "kty": "EC",
+        "alg": "ECDH-ES+HKDF-256",
+        "crv": "P-256",
+    },
+)
+mac_key = r.apply(recipient_key=pub_key, context={"alg": "HS256"})
+sender = COSE.new(alg_auto_inclusion=True)
+encoded = sender.encode_and_mac(
+    b"Hello world!",
+    key=mac_key,
+    recipients=[r],
+)
+
+# The recipient side:
+# The following key is the private key of the above pub_key.
+priv_key = COSEKey.from_jwk(
+    {
+        "kty": "EC",
+        "alg": "ECDH-ES+HKDF-256",
+        "kid": "01",
+        "crv": "P-256",
+        "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
+        "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
+        "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",
+    }
+)
+recipient = COSE.new()
+# The enc_key will be derived in decode() with priv_key and
+# the sender's public key which is conveyed as the recipient
+# information structure in the COSE Encrypt message (encoded).
+assert b"Hello world!" == recipient.decode(encoded, priv_key, context={"alg": "HS256"})
+```
+
+#### Key Agreement with Key Wrap for MAC
+
+
+```py
+from cwt import COSE, COSEKey, Recipient
+
+# The sender side:
+r = Recipient.from_jwk(
+    {
+        "kty": "OKP",
+        "alg": "ECDH-ES+HKDF-256",
+        "crv": "X25519",
+    },
+)
+pub_key = COSEKey.from_jwk(
+    {
+        "kty": "OKP",
+        "alg": "ECDH-ES+HKDF-256",
+        "kid": "01",
+        "crv": "X25519",
+        "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
+    }
+)
+mac_key = r.apply(recipient_key=pub_key, context={"alg": "HS256"})
+sender = COSE.new(alg_auto_inclusion=True)
+encoded = sender.encode_and_mac(
+    b"Hello world!",
+    key=mac_key,
+    recipients=[r],
+)
+
+# The recipient side:
+recipient = COSE.new()
+priv_key = COSEKey.from_jwk(
+    {
+        "kty": "OKP",
+        "alg": "ECDH-ES+HKDF-256",
+        "kid": "01",
+        "crv": "X25519",
+        "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
+        "d": "vsJ1oX5NNi0IGdwGldiac75r-Utmq3Jq4LGv48Q_Qc4",
+    }
+)
+assert b"Hello world!" == recipient.decode(encoded, priv_key, context={"alg": "HS256"})
+```
+
+
+### COSE Encrypt0
+
+#### Encryption with ChaCha20/Poly1305
+
+Create a COSE Encrypt0 message and decrypt it as follows:
+
+```py
+from cwt import COSE, COSEKey
+
+enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
+
+# The sender side:
+nonce = enc_key.generate_nonce()
+sender = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+encoded = sender.encode_and_encrypt(b"Hello world!", enc_key, nonce=nonce)
+
+# The recipient side:
+recipient = COSE.new()
+assert b"Hello world!" == recipient.decode(encoded, enc_key)
+```
+
+#### COSE-HPKE (Encrypt0)
+
+**Experimental Implementation. DO NOT USE for production.**
+
+Create a COSE-HPKE Encrypt0 message and decrypt it as follows:
+
+```py
+from cwt import COSE, COSEKey
+
+# The sender side:
+rpk = COSEKey.from_jwk(
+    {
+        "kty": "EC",
+        "kid": "01",
+        "crv": "P-256",
+        "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+        "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+    }
+)
+
+sender = COSE.new()
+encoded = sender.encode_and_encrypt(
+    b"This is the content.",
+    rpk,
+    protected={
+        1: -1,  # alg: "HPKE"
+    },
+    unprotected={
+        4: b"01",  # kid: "01"
+        -4: {  # HPKE sender information
+            1: 0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
+            5: 0x0001,  # kdf: HKDF-SHA256
+            2: 0x0001,  # aead: AES-128-GCM
+        },
+    },
+)
+
+# print(encoded.hex())
+
+# The recipient side:
+rsk = COSEKey.from_jwk(
+    {
+        "kty": "EC",
+        "kid": "01",
+        "crv": "P-256",
+        "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+        "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+        "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+    }
+)
+recipient = COSE.new()
+assert b"This is the content." == recipient.decode(encoded, rsk)
+```
+
+### COSE Encrypt
+
+#### Direct Key Distribution for encryption
+
+The direct key distribution shares a MAC key between the sender and the recipient that is used directly.
+The follwing example shows the simplest way to make a COSE MAC message, verify and decode it with the direct
+key distribution method.
+
+```py
+from cwt import COSE, COSEKey, Recipient
+
+enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
+
+# The sender side:
+nonce = enc_key.generate_nonce()
+r = Recipient.from_jwk({"alg": "direct"})
+r.apply(enc_key)
+
+sender = COSE.new()
+encoded = sender.encode_and_encrypt(
+    b"Hello world!",
+    enc_key,
+    nonce=nonce,
+    recipients=[r],
+)
+
+# The recipient side:
+recipient = COSE.new()
+assert b"Hello world!" == recipient.decode(encoded, enc_key)
+```
+
+#### Direct Key with KDF for encryption
+
+
+```py
+from cwt import COSE, COSEKey, Recipient
+
+shared_material = token_bytes(32)
+shared_key = COSEKey.from_symmetric_key(shared_material, kid="01")
+
+# The sender side:
+r = Recipient.from_jwk(
+    {
+        "kty": "oct",
+        "alg": "direct+HKDF-SHA-256",
+        "salt": "aabbccddeeffgghh",
+    },
+)
+enc_key = r.apply(shared_key, context={"alg": "A256GCM"})
+sender = COSE.new(alg_auto_inclusion=True)
+encoded = sender.encode_and_encrypt(
+    b"Hello world!",
+    key=enc_key,
+    recipients=[r],
+)
+
+# The recipient side:
+recipient = COSE.new()
+assert b"Hello world!" == recipient.decode(encoded, shared_key, context={"alg": "A256GCM"})
+```
+
+#### AES Key Wrap for encryption
+
+The AES key wrap algorithm can be used to wrap a MAC key as follows:
+
+```py
+from cwt import COSE, COSEKey, Recipient
+
+# A key to be wrapped
+enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
+
+# The sender side:
+r = Recipient.from_jwk(
+    {
+        "kty": "oct",
+        "alg": "A128KW",
+        "kid": "01",
+        "k": "hJtXIZ2uSN5kbQfbtTNWbg",  # A shared wrapping key
+    },
+)
+r.apply(enc_key)
+sender = COSE.new(alg_auto_inclusion=True)
+encoded = sender.encode_and_encrypt(b"Hello world!", key=enc_key, recipients=[r])
+
+# The recipient side:
+recipient = COSE.new()
+shared_key = COSEKey.from_jwk(
+    {
+        "kty": "oct",
+        "alg": "A128KW",
+        "kid": "01",
+        "k": "hJtXIZ2uSN5kbQfbtTNWbg",
+    },
+)
+assert b"Hello world!" == recipient.decode(encoded, shared_key)
+```
+
+#### Direct Key Agreement for encryption
+
+The direct key agreement methods can be used to create a shared secret. A KDF (Key Distribution Function) is then
+applied to the shared secret to derive a key to be used to protect the data.
+The follwing example shows a simple way to make a COSE Encrypt message, verify and decode it with the direct key
+agreement methods (``ECDH-ES+HKDF-256`` with various curves).
+
+```py
+from cwt import COSE, COSEKey, Recipient
+
+# The sender side:
+r = Recipient.from_jwk(
+    {
+        "kty": "EC",
+        "alg": "ECDH-ES+HKDF-256",
+        "crv": "P-256",
+    },
+)
+pub_key = COSEKey.from_jwk(
+    {
+        "kty": "EC",
+        "kid": "01",
+        "crv": "P-256",
+        "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
+        "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
+    }
+)
+enc_key = r.apply(recipient_key=pub_key, context={"alg": "A128GCM"})
+sender = COSE.new(alg_auto_inclusion=True)
+encoded = sender.encode_and_encrypt(
+    b"Hello world!",
+    key=enc_key,
+    recipients=[r],
+)
+
+# The recipient side:
+recipient = COSE.new()
+priv_key = COSEKey.from_jwk(
+    {
+        "kty": "EC",
+        "alg": "ECDH-ES+HKDF-256",
+        "kid": "01",
+        "crv": "P-256",
+        "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
+        "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
+        "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",
+    }
+)
+assert b"Hello world!" == recipient.decode(encoded, priv_key, context={"alg": "A128GCM"})
+```
+
+#### Key Agreement with Key Wrap for encryption
+
+```py
+from cwt import COSE, COSEKey, Recipient
+
+# The sender side:
+r = Recipient.from_jwk(
+    {
+        "kty": "OKP",
+        "alg": "ECDH-ES+HKDF-256",
+        "crv": "X25519",
+    },
+)
+pub_key = COSEKey.from_jwk(
+    {
+        "kty": "OKP",
+        "alg": "ECDH-ES+HKDF-256",
+        "kid": "01",
+        "crv": "X25519",
+        "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
+    }
+)
+enc_key = r.apply(recipient_key=pub_key, context={"alg": "A128GCM"})
+sender = COSE.new(alg_auto_inclusion=True)
+encoded = sender.encode_and_encrypt(
+    b"Hello world!",
+    key=enc_key,
+    recipients=[r],
+)
+
+# The recipient side:
+recipient = COSE.new()
+priv_key = COSEKey.from_jwk(
+    {
+        "kty": "OKP",
+        "alg": "ECDH-ES+HKDF-256",
+        "kid": "01",
+        "crv": "X25519",
+        "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
+        "d": "vsJ1oX5NNi0IGdwGldiac75r-Utmq3Jq4LGv48Q_Qc4",
+    }
+)
+assert b"Hello world!" == recipient.decode(encoded, priv_key, context={"alg": "A128GCM"})
+```
+
+#### COSE-HPKE (Encrypt)
+
+**Experimental Implementation. DO NOT USE for production.**
+
+Create a COSE-HPKE Encrypt message and decrypt it as follows:
+
+```py
+from cwt import COSE, COSEKey, Recipient
+
+# The sender side:
+rpk = COSEKey.from_jwk(
+    {
+        "kty": "EC",
+        "kid": "01",
+        "crv": "P-256",
+        "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+        "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+    }
+)
+r = Recipient.new(
+    protected={
+        1: -1,  # alg: "HPKE"
+    },
+    unprotected={
+        4: b"01",  # kid: "01"
+        -4: {  # HPKE sender information
+            1: 0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
+            5: 0x0001,  # kdf: HKDF-SHA256
+            2: 0x0001,  # aead: AES-128-GCM
+        },
+    },
+)
+r.apply(recipient_key=rpk)
+sender = COSE.new()
+encoded = sender.encode_and_encrypt(
+    b"This is the content.",
+    recipients=[r],
+)
+
+# The recipient side:
+rsk = COSEKey.from_jwk(
+    {
+        "kty": "EC",
+        "kid": "01",
+        "crv": "P-256",
+        "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+        "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+        "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+    }
+)
+recipient = COSE.new()
+assert b"This is the content." == recipient.decode(encoded, rsk)
+```
+
+### COSE Signature1
+
+Create a COSE Signature1 message, verify and decode it as follows:
+
+```py
+from cwt import COSE, COSEKey, Signer
+
+# The sender side:
+priv_key = COSEKey.from_jwk(
+    {
+        "kty": "EC",
+        "kid": "01",
+        "crv": "P-256",
+        "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+        "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+        "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+    }
+)
+sender = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+encoded = sender.encode_and_sign(b"Hello world!", priv_key)
+
+# The recipient side:
+pub_key = COSEKey.from_jwk(
+    {
+        "kty": "EC",
+        "kid": "01",
+        "crv": "P-256",
+        "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+        "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+    }
+)
+recipient = COSE.new()
+assert b"Hello world!" == recipient.decode(encoded, pub_key)
+```
+
+### COSE Signature
+
+Create a COSE Signature message, verify and decode it as follows:
+
+```py
+from cwt import COSE, COSEKey, Signer
+
+# The sender side:
+signer = Signer.from_jwk(
+    {
+        "kty": "EC",
+        "kid": "01",
+        "crv": "P-256",
+        "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+        "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+        "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+    },
+)
+sender = COSE.new()
+encoded = sender.encode_and_sign(b"Hello world!", signers=[signer])
+
+# The recipient side:
+recipient = COSE.new()
+pub_key = COSEKey.from_jwk(
+    {
+        "kty": "EC",
+        "kid": "01",
+        "crv": "P-256",
+        "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+        "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+    }
+)
+assert b"Hello world!" == recipient.decode(encoded, pub_key)
 ```
 
 ## CWT Usage Examples
@@ -528,637 +1168,6 @@ claims = Claims.new(decoded)
 #     'ver': '1.0.0',
 #     'dob': '1998-02-26',
 # }
-```
-
-## COSE Usage Examples
-
-Followings are typical and basic examples which create various types of COSE messages, verify and decode them.
-
-See [API Reference](https://python-cwt.readthedocs.io/en/stable/api.html#cwt.COSE) and
-[COSE Usage Examples on document](https://python-cwt.readthedocs.io/en/stable/cose_usage.html) for more details.
-
-### COSE MAC0
-
-Create a COSE MAC0 message, verify and decode it as follows:
-
-```py
-from cwt import COSE, COSEKey
-
-mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
-ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
-encoded = ctx.encode_and_mac(b"Hello world!", mac_key)
-assert b"Hello world!" == ctx.decode(encoded, mac_key)
-```
-
-Following two samples are other ways of writing the above example:
-
-```py
-from cwt import COSE, COSEKey
-
-mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
-ctx = COSE.new()
-encoded = ctx.encode_and_mac(
-    b"Hello world!",
-    mac_key,
-    protected={"alg": "HS256"},
-    unprotected={"kid": "01"},
-)
-assert b"Hello world!" == ctx.decode(encoded, mac_key)
-```
-
-```py
-from cwt import COSE, COSEKey
-
-mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
-ctx = COSE.new()
-encoded = ctx.encode_and_mac(
-    b"Hello world!",
-    mac_key,
-    protected={1: 5},
-    unprotected={4: b"01"},
-)
-assert b"Hello world!" == ctx.decode(encoded, mac_key)
-```
-
-### COSE MAC
-
-#### Direct Key Distribution for MAC
-
-The direct key distribution shares a MAC key between the sender and the recipient that is used directly.
-The follwing example shows the simplest way to make a COSE MAC message, verify and decode it with the direct
-key distribution method.
-
-```py
-from cwt import COSE, COSEKey, Recipient
-
-# The sender makes a COSE MAC message as follows:
-mac_key = COSEKey.from_symmetric_key(alg="HS512", kid="01")
-r = Recipient.from_jwk({"alg": "direct"})
-r.apply(mac_key)
-ctx = COSE.new()
-encoded = ctx.encode_and_mac(b"Hello world!", mac_key, recipients=[r])
-
-# The recipient has the same MAC key and can verify and decode it:
-assert b"Hello world!" == ctx.decode(encoded, mac_key)
-```
-
-#### Direct Key with KDF for MAC
-
-
-```py
-from secrets import token_bytes
-from cwt import COSE, COSEKey, Recipient
-
-shared_material = token_bytes(32)
-shared_key = COSEKey.from_symmetric_key(shared_material, kid="01")
-
-# The sender side:
-r = Recipient.from_jwk(
-    {
-        "kty": "oct",
-        "alg": "direct+HKDF-SHA-256",
-    },
-)
-mac_key = r.apply(shared_key, context={"alg": "HS256"})
-ctx = COSE.new(alg_auto_inclusion=True)
-encoded = ctx.encode_and_mac(
-    b"Hello world!",
-    key=mac_key,
-    recipients=[r],
-)
-
-# The recipient side:
-assert b"Hello world!" == ctx.decode(encoded, shared_key, context={"alg": "HS256"})
-```
-
-#### AES Key Wrap for MAC
-
-The AES key wrap algorithm can be used to wrap a MAC key as follows:
-
-```py
-from cwt import COSE, COSEKey, Recipient
-
-# The sender side:
-mac_key = COSEKey.from_symmetric_key(alg="HS512")
-r = Recipient.from_jwk(
-    {
-        "kid": "01",
-        "alg": "A128KW",
-        "k": "hJtXIZ2uSN5kbQfbtTNWbg",  # A shared wrapping key
-    },
-)
-r.apply(mac_key)
-ctx = COSE.new(alg_auto_inclusion=True)
-encoded = ctx.encode_and_mac(b"Hello world!", key=mac_key, recipients=[r])
-
-# The recipient side:
-shared_key = COSEKey.from_jwk(
-    {
-        "kid": "01",
-        "kty": "oct",
-        "alg": "A128KW",
-        "k": "hJtXIZ2uSN5kbQfbtTNWbg",
-    },
-)
-assert b"Hello world!" == ctx.decode(encoded, shared_key)
-```
-
-#### Direct Key Agreement for MAC
-
-The direct key agreement methods can be used to create a shared secret. A KDF (Key Distribution Function) is then
-applied to the shared secret to derive a key to be used to protect the data.
-The follwing example shows a simple way to make a COSE Encrypt message, verify and decode it with the direct key
-agreement methods (``ECDH-ES+HKDF-256`` with various curves).
-
-```py
-from cwt import COSE, COSEKey, Recipient
-
-# The sender side:
-r = Recipient.from_jwk(
-    {
-        "kty": "EC",
-        "alg": "ECDH-ES+HKDF-256",
-        "crv": "P-256",
-    },
-)
-# The following key is provided by the recipient in advance.
-pub_key = COSEKey.from_jwk(
-    {
-        "kid": "01",
-        "kty": "EC",
-        "alg": "ECDH-ES+HKDF-256",
-        "crv": "P-256",
-        "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
-        "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
-    }
-)
-mac_key = r.apply(recipient_key=pub_key, context={"alg": "HS256"})
-ctx = COSE.new(alg_auto_inclusion=True)
-encoded = ctx.encode_and_mac(
-    b"Hello world!",
-    key=mac_key,
-    recipients=[r],
-)
-
-# The recipient side:
-# The following key is the private key of the above pub_key.
-priv_key = COSEKey.from_jwk(
-    {
-        "kid": "01",
-        "kty": "EC",
-        "alg": "ECDH-ES+HKDF-256",
-        "crv": "P-256",
-        "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
-        "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
-        "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",
-    }
-)
-# The enc_key will be derived in decode() with priv_key and
-# the sender's public key which is conveyed as the recipient
-# information structure in the COSE Encrypt message (encoded).
-assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "HS256"})
-```
-
-#### Key Agreement with Key Wrap for MAC
-
-
-```py
-from cwt import COSE, COSEKey, Recipient
-
-# The sender side:
-mac_key = COSEKey.from_symmetric_key(alg="HS256")
-r = Recipient.from_jwk(
-    {
-        "kty": "EC",
-        "alg": "ECDH-SS+A128KW",
-        "crv": "P-256",
-        "x": "7cvYCcdU22WCwW1tZXR8iuzJLWGcd46xfxO1XJs-SPU",
-        "y": "DzhJXgz9RI6TseNmwEfLoNVns8UmvONsPzQDop2dKoo",
-        "d": "Uqr4fay_qYQykwcNCB2efj_NFaQRRQ-6fHZm763jt5w",
-    }
-)
-pub_key = COSEKey.from_jwk(
-    {
-        "kid": "meriadoc.brandybuck@buckland.example",
-        "kty": "EC",
-        "crv": "P-256",
-        "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
-        "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
-    }
-)
-r.apply(mac_key, recipient_key=pub_key, context={"alg": "HS256"})
-ctx = COSE.new(alg_auto_inclusion=True)
-encoded = ctx.encode_and_mac(
-    b"Hello world!",
-    key=mac_key,
-    recipients=[r],
-)
-
-# The recipient side:
-priv_key = COSEKey.from_jwk(
-    {
-        "kid": "meriadoc.brandybuck@buckland.example",
-        "kty": "EC",
-        "crv": "P-256",
-        "alg": "ECDH-SS+A128KW",
-        "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
-        "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
-        "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",
-    }
-)
-assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "HS256"})
-```
-
-
-### COSE Encrypt0
-
-#### Encryption with ChaCha20/Poly1305
-
-Create a COSE Encrypt0 message and decrypt it as follows:
-
-```py
-from cwt import COSE, COSEKey
-
-enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
-ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
-encoded = ctx.encode_and_encrypt(b"Hello world!", enc_key)
-decoded = ctx.decode(encoded, enc_key)
-```
-
-#### COSE-HPKE (Encrypt0)
-
-**Experimental Implementation. DO NOT USE for production.**
-
-Create a COSE-HPKE Encrypt0 message and decrypt it as follows:
-
-```py
-from cwt import COSE, COSEKey
-
-# The sender side:
-rpk = COSEKey.from_jwk(
-    {
-        "kty": "EC",
-        "kid": "01",
-        "crv": "P-256",
-        "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
-        "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
-    }
-)
-
-sender = COSE.new()
-encoded = sender.encode_and_encrypt(
-    b"This is the content.",
-    rpk,
-    protected={
-        1: -1,  # alg: "HPKE"
-    },
-    unprotected={
-        4: b"01",  # kid: "01"
-        -4: {  # HPKE sender information
-            1: 0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
-            5: 0x0001,  # kdf: HKDF-SHA256
-            2: 0x0001,  # aead: AES-128-GCM
-        },
-    },
-)
-
-# print(encoded.hex())
-
-# The recipient side:
-rsk = COSEKey.from_jwk(
-    {
-        "kty": "EC",
-        "kid": "01",
-        "crv": "P-256",
-        "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
-        "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
-        "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
-    }
-)
-recipient = COSE.new()
-assert b"This is the content." == recipient.decode(encoded, rsk)
-```
-
-### COSE Encrypt
-
-#### Direct Key Distribution for encryption
-
-The direct key distribution shares a MAC key between the sender and the recipient that is used directly.
-The follwing example shows the simplest way to make a COSE MAC message, verify and decode it with the direct
-key distribution method.
-
-```py
-from cwt import COSE, COSEKey, Recipient
-
-enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
-
-# The sender side:
-nonce = enc_key.generate_nonce()
-r = Recipient.from_jwk({"alg": "direct"})
-r.apply(enc_key)
-ctx = COSE.new()
-encoded = ctx.encode_and_encrypt(
-    b"Hello world!",
-    enc_key,
-    nonce=nonce,
-    recipients=[r],
-)
-
-# The recipient side:
-assert b"Hello world!" == ctx.decode(encoded, enc_key)
-```
-
-#### Direct Key with KDF for encryption
-
-
-```py
-from cwt import COSE, COSEKey, Recipient
-
-shared_material = token_bytes(32)
-shared_key = COSEKey.from_symmetric_key(shared_material, kid="01")
-
-# The sender side:
-r = Recipient.from_jwk(
-    {
-        "kty": "oct",
-        "alg": "direct+HKDF-SHA-256",
-    },
-)
-enc_key = r.apply(shared_key, context={"alg": "A256GCM"})
-ctx = COSE.new(alg_auto_inclusion=True)
-encoded = ctx.encode_and_encrypt(
-    b"Hello world!",
-    key=enc_key,
-    recipients=[r],
-)
-# The recipient side:
-assert b"Hello world!" == ctx.decode(encoded, shared_key, context={"alg": "A256GCM"})
-```
-
-#### AES Key Wrap for encryption
-
-The AES key wrap algorithm can be used to wrap a MAC key as follows:
-
-```py
-from cwt import COSE, COSEKey, Recipient
-
-# The sender side:
-r = Recipient.from_jwk(
-    {
-        "kid": "01",
-        "kty": "oct",
-        "alg": "A128KW",
-        "k": "hJtXIZ2uSN5kbQfbtTNWbg",  # A shared wrapping key
-    },
-)
-enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
-r.apply(enc_key)
-ctx = COSE.new(alg_auto_inclusion=True)
-encoded = ctx.encode_and_encrypt(b"Hello world!", key=enc_key, recipients=[r])
-
-# The recipient side:
-shared_key = COSEKey.from_jwk(
-    {
-        "kid": "01",
-        "kty": "oct",
-        "alg": "A128KW",
-        "k": "hJtXIZ2uSN5kbQfbtTNWbg",
-    },
-)
-assert b"Hello world!" == ctx.decode(encoded, shared_key)
-```
-
-#### Direct Key Agreement for encryption
-
-The direct key agreement methods can be used to create a shared secret. A KDF (Key Distribution Function) is then
-applied to the shared secret to derive a key to be used to protect the data.
-The follwing example shows a simple way to make a COSE Encrypt message, verify and decode it with the direct key
-agreement methods (``ECDH-ES+HKDF-256`` with various curves).
-
-```py
-from cwt import COSE, COSEKey, Recipient
-
-# The sender side:
-r = Recipient.from_jwk(
-    {
-        "kty": "OKP",
-        "alg": "ECDH-ES+HKDF-256",
-        "crv": "X25519",
-    },
-)
-pub_key = COSEKey.from_jwk(
-    {
-        "kid": "01",
-        "kty": "OKP",
-        "alg": "ECDH-ES+HKDF-256",
-        "crv": "X25519",
-        "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
-    }
-)
-enc_key = r.apply(recipient_key=pub_key, context={"alg": "A128GCM"})
-ctx = COSE.new(alg_auto_inclusion=True)
-encoded = ctx.encode_and_encrypt(
-    b"Hello world!",
-    key=enc_key,
-    recipients=[r],
-)
-
-# The recipient side:
-priv_key = COSEKey.from_jwk(
-    {
-        "kid": "01",
-        "kty": "OKP",
-        "alg": "ECDH-ES+HKDF-256",
-        "crv": "X25519",
-        "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
-        "d": "vsJ1oX5NNi0IGdwGldiac75r-Utmq3Jq4LGv48Q_Qc4",
-    }
-)
-assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "A128GCM"})
-```
-
-#### Key Agreement with Key Wrap for encryption
-
-```py
-from cwt import COSE, COSEKey, Recipient
-
-# The sender side:
-enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
-nonce = enc_key.generate_nonce()
-r = Recipient.from_jwk(
-    {
-        "kty": "EC",
-        "alg": "ECDH-SS+A128KW",
-        "crv": "P-256",
-        "x": "7cvYCcdU22WCwW1tZXR8iuzJLWGcd46xfxO1XJs-SPU",
-        "y": "DzhJXgz9RI6TseNmwEfLoNVns8UmvONsPzQDop2dKoo",
-        "d": "Uqr4fay_qYQykwcNCB2efj_NFaQRRQ-6fHZm763jt5w",
-    }
-)
-pub_key = COSEKey.from_jwk(
-    {
-        "kid": "meriadoc.brandybuck@buckland.example",
-        "kty": "EC",
-        "crv": "P-256",
-        "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
-        "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
-    }
-)
-r.apply(enc_key, recipient_key=pub_key, context={"alg": "A128GCM"})
-ctx = COSE.new(alg_auto_inclusion=True)
-encoded = ctx.encode_and_encrypt(
-    b"Hello world!",
-    key=enc_key,
-    nonce=nonce,
-    recipients=[r],
-)
-
-# The recipient side:
-priv_key = COSEKey.from_jwk(
-    {
-        "kid": "meriadoc.brandybuck@buckland.example",
-        "kty": "EC",
-        "alg": "ECDH-SS+A128KW",
-        "crv": "P-256",
-        "x": "Ze2loSV3wrroKUN_4zhwGhCqo3Xhu1td4QjeQ5wIVR0",
-        "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
-        "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",
-    }
-)
-assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "A128GCM"})
-```
-
-#### COSE-HPKE (Encrypt)
-
-**Experimental Implementation. DO NOT USE for production.**
-
-Create a COSE-HPKE Encrypt message and decrypt it as follows:
-
-```py
-from cwt import COSE, COSEKey, Recipient
-
-# The sender side:
-rpk = COSEKey.from_jwk(
-    {
-        "kty": "EC",
-        "kid": "01",
-        "crv": "P-256",
-        "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
-        "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
-    }
-)
-r = Recipient.new(
-    protected={
-        1: -1,  # alg: "HPKE"
-    },
-    unprotected={
-        4: b"01",  # kid: "01"
-        -4: {  # HPKE sender information
-            1: 0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
-            5: 0x0001,  # kdf: HKDF-SHA256
-            2: 0x0001,  # aead: AES-128-GCM
-        },
-    },
-)
-r.apply(recipient_key=rpk)
-sender = COSE.new()
-encoded = sender.encode_and_encrypt(
-    b"This is the content.",
-    protected={
-        1: -1,  # alg: "HPKE"
-    },
-    recipients=[r],
-)
-
-# The recipient side:
-rsk = COSEKey.from_jwk(
-    {
-        "kty": "EC",
-        "kid": "01",
-        "crv": "P-256",
-        "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
-        "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
-        "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
-    }
-)
-recipient = COSE.new()
-assert b"This is the content." == recipient.decode(encoded, rsk)
-```
-
-### COSE Signature1
-
-Create a COSE Signature1 message, verify and decode it as follows:
-
-```py
-from cwt import COSE, COSEKey, Signer
-
-# The sender side:
-signer = Signer.new(
-    cose_key=COSEKey.from_jwk(
-        {
-            "kid": "01",
-            "kty": "EC",
-            "crv": "P-256",
-            "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
-            "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
-            "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
-        }
-    ),
-    protected={"alg": "ES256"},
-    unprotected={"kid": "01"},
-)
-ctx = COSE.new()
-encoded = ctx.encode_and_sign(b"Hello world!", signers=[signer])
-
-# The recipient side:
-pub_key = COSEKey.from_jwk(
-    {
-        "kid": "01",
-        "kty": "EC",
-        "crv": "P-256",
-        "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
-        "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
-    }
-)
-assert b"Hello world!" == ctx.decode(encoded, pub_key)
-```
-
-### COSE Signature
-
-Create a COSE Signature message, verify and decode it as follows:
-
-```py
-from cwt import COSE, COSEKey, Signer
-
-# The sender side:
-signer = Signer.new(
-    cose_key=COSEKey.from_jwk(
-        {
-            "kid": "01",
-            "kty": "EC",
-            "crv": "P-256",
-            "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
-            "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
-            "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
-        }
-    ),
-    protected={1: -7},
-    unprotected={4: b"01"},
-)
-ctx = COSE.new()
-encoded = ctx.encode_and_sign(b"Hello world!", signers=[signer])
-
-# The recipient side:
-pub_key = COSEKey.from_jwk(
-    {
-        "kid": "01",
-        "kty": "EC",
-        "crv": "P-256",
-        "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
-        "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
-    }
-)
-assert b"Hello world!" == ctx.decode(encoded, pub_key)
 ```
 
 ## API Reference
