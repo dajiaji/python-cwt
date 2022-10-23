@@ -65,3 +65,16 @@ class AESKeyWrap(RecipientInterface):
             return COSEKey.from_symmetric_key(unwrapped, alg=alg, kid=self._kid)
         except Exception as err:
             raise DecodeError("Failed to decode key.") from err
+
+    def decrypt(
+        self,
+        key: COSEKeyInterface,
+        alg: Optional[int] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+        payload: bytes = b"",
+        nonce: bytes = b"",
+        aad: bytes = b"",
+        external_aad: bytes = b"",
+        aad_context: str = "Enc_Recipient",
+    ) -> bytes:
+        return self.extract(key, alg, context).decrypt(payload, nonce, aad)

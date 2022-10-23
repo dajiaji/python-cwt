@@ -124,7 +124,7 @@ class TestRecipientInterface:
             r.extract(k)
             pytest.fail("extract() should fail.")
         with pytest.raises(NotImplementedError):
-            r.open(k, b"")
+            r.decrypt(k)
             pytest.fail("open() should fail.")
         res = r.to_list()
         assert len(res) == 3

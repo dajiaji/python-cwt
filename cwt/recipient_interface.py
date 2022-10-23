@@ -132,13 +132,13 @@ class RecipientInterface(CBORProcessor):
         """
         return self._recipients
 
-    def to_list(self, payload: bytes = b"", aad: bytes = b"") -> List[Any]:
+    def to_list(self, payload: bytes = b"", external_aad: bytes = b"", aad_context: str = "") -> List[Any]:
         """
         Returns the recipient information as a COSE recipient structure.
 
         Args:
             payload (Optional[bytes]): The payload to be encrypted.
-            aad (Optional[bytes]): Additional authenticated data.
+            external_aad (Optional[bytes]): External additional authenticated data.
         Returns:
             List[Any]: The recipient structure.
         """
@@ -150,7 +150,7 @@ class RecipientInterface(CBORProcessor):
 
         children = []
         for recipient in self._recipients:
-            children.append(recipient.to_list(payload, aad))
+            children.append(recipient.to_list(payload, external_aad, aad_context))
         res.append(children)
         return res
 
@@ -215,17 +215,25 @@ class RecipientInterface(CBORProcessor):
         """
         raise NotImplementedError
 
-    def open(
+    def decrypt(
         self,
         key: COSEKeyInterface,
-        aad: bytes,
+        alg: Optional[int] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+        payload: bytes = b"",
+        nonce: bytes = b"",
+        aad: bytes = b"",
+        external_aad: bytes = b"",
+        aad_context: str = "Enc_Recipient",
     ) -> bytes:
         """
-        Does a HPKE-based decryption.
+        Decrypts the supplied payload.
 
         Args:
-            key (COSEKeyInterface): The recipient private key.
-            aad (bytes): Additional authenticated data.
+            key (COSEKeyInterface): The external key to be used for extracting the key.
+            alg (Optional[int]): The algorithm of the key extracted.
+            context (Optional[Union[List[Any], Dict[str, Any]]]): Context information structure.
+            external_aad (bytes): External additional authenticated data.
         Returns:
             bytes: The decrypted plain text.
         Raises:

@@ -158,6 +158,19 @@ class DirectHKDF(Direct):
         derived = hkdf.derive(key.key)
         return COSEKey.from_symmetric_key(derived, alg=context[0], kid=self._kid)
 
+    def decrypt(
+        self,
+        key: COSEKeyInterface,
+        alg: Optional[int] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+        payload: bytes = b"",
+        nonce: bytes = b"",
+        aad: bytes = b"",
+        external_aad: bytes = b"",
+        aad_context: str = "Enc_Recipient",
+    ) -> bytes:
+        return self.extract(key, alg, context).decrypt(payload, nonce, aad)
+
     def _apply_context(self, given: list) -> list:
         ctx = copy.deepcopy(self._default_ctx)
         for i, item in enumerate(given):
