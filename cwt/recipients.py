@@ -45,13 +45,13 @@ class Recipients:
                     if k.kid != r.kid:
                         continue
                     try:
-                        return r.extract(k, alg=alg, context=context)
+                        return r.extract(k, alg, context)
                     except Exception as e:
                         err = e
                 continue
             for k in keys:
                 try:
-                    return r.extract(k, alg=alg, context=context)
+                    return r.extract(k, alg, context)
                 except Exception as e:
                     err = e
         raise err
@@ -59,11 +59,12 @@ class Recipients:
     def decrypt(
         self,
         keys: List[COSEKeyInterface],
-        aad: bytes = b"",
         alg: int = 0,
         context: Optional[Union[Dict[str, Any], List[Any]]] = None,
         payload: bytes = b"",
         nonce: bytes = b"",
+        aad: bytes = b"",
+        external_aad: bytes = b"",
     ) -> bytes:
 
         """
@@ -80,19 +81,13 @@ class Recipients:
                     if k.kid != r.kid:
                         continue
                     try:
-                        return (
-                            r.open(k, aad)
-                            if r.alg == -1
-                            else r.extract(k, alg=alg, context=context).decrypt(payload, nonce, aad)
-                        )
+                        return r.decrypt(k, alg, context, payload, nonce, aad, external_aad)
                     except Exception as e:
                         err = e
                 continue
             for k in keys:
                 try:
-                    return (
-                        r.open(k, aad) if r.alg == -1 else r.extract(k, alg=alg, context=context).decrypt(payload, nonce, aad)
-                    )
+                    return r.decrypt(k, alg, context, payload, nonce, aad, external_aad)
                 except Exception as e:
                     err = e
         raise err

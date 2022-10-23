@@ -37,3 +37,16 @@ class DirectKey(Direct):
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ) -> COSEKeyInterface:
         return key
+
+    def decrypt(
+        self,
+        key: COSEKeyInterface,
+        alg: Optional[int] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+        payload: bytes = b"",
+        nonce: bytes = b"",
+        aad: bytes = b"",
+        external_aad: bytes = b"",
+        aad_context: str = "Enc_Recipient",
+    ) -> bytes:
+        return self.extract(key, alg, context).decrypt(payload, nonce, aad)

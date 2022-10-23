@@ -41,14 +41,24 @@ class HPKE(RecipientInterface):
         self._recipient_key = recipient_key
         return self._recipient_key
 
-    def to_list(self, payload: bytes = b"", aad: bytes = b"") -> List[Any]:
+    def to_list(self, payload: bytes = b"", external_aad: bytes = b"", aad_context: str = "Enc_Recipient") -> List[Any]:
+        enc_structure = [aad_context, self._dumps(self._protected), external_aad]
+        aad = self._dumps(enc_structure)
         enc, self._ciphertext = self._recipient_key.seal(self._suite, payload, aad)
         self._unprotected[-4][3] = enc
-        return super().to_list(payload, aad)
+        return super().to_list(payload, external_aad, aad_context)
 
-    def open(
+    def decrypt(
         self,
         key: COSEKeyInterface,
-        aad: bytes,
+        alg: Optional[int] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+        payload: bytes = b"",
+        nonce: bytes = b"",
+        aad: bytes = b"",
+        external_aad: bytes = b"",
+        aad_context: str = "Enc_Recipient",
     ) -> bytes:
+        enc_structure = [aad_context, self._dumps(self._protected), external_aad]
+        aad = self._dumps(enc_structure)
         return key.open(self._suite, self._unprotected[-4][3], self._ciphertext, aad)
