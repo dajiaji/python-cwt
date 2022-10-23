@@ -4,6 +4,23 @@ Changes
 Unreleased
 ----------
 
+Version 1.6.0
+-------------
+
+Released 2022-10-23
+
+- Fix additional authenticated data context. `#266 <https://github.com/dajiaji/python-cwt/pull/266>`__
+- Refine samples in README. `#265 <https://github.com/dajiaji/python-cwt/pull/265>`__
+- Drop support for binary protected header on COSE. `#252 <https://github.com/dajiaji/python-cwt/pull/262>`__
+- Make encode_and_encrypt key parameter optional. `#261 <https://github.com/dajiaji/python-cwt/pull/261>`__
+- Add COSE-HPKE experimantally. `#260 <https://github.com/dajiaji/python-cwt/pull/260>`__
+- Drop support for Python 3.6. `#259 <https://github.com/dajiaji/python-cwt/pull/259>`__
+- Update dependencies.
+    - Bump cryptography to 38.0.2. `#257 <https://github.com/dajiaji/python-cwt/pull/257>`__
+- Update dev dependencies.
+    - Bump pre-commit/mirrors-mypy to 0.982. `#256 <https://github.com/dajiaji/python-cwt/pull/256>`__
+    - Bump pre-commit/black to 22.10.0. `#256 <https://github.com/dajiaji/python-cwt/pull/256>`__
+
 Version 1.5.7
 -------------
 
