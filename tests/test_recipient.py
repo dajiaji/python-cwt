@@ -637,14 +637,14 @@ class TestRecipients:
         r = RecipientInterface(protected={1: -1}, unprotected={4: b"01", -4: {1: 0x0010, 5: 0x0001, 2: 0x0001}})
         rs = Recipients([r])
         with pytest.raises(ValueError) as err:
-            rs.open([])
+            rs.decrypt([])
             pytest.fail("open() should fail.")
         assert "key is not found." in str(err.value)
 
     def test_recipients_open_with_empty_recipients(self, rsk1):
         rs = Recipients([])
         with pytest.raises(ValueError) as err:
-            rs.open([rsk1])
+            rs.decrypt([rsk1])
             pytest.fail("open() should fail.")
         assert "No recipients." in str(err.value)
 
@@ -663,10 +663,9 @@ class TestRecipients:
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
-            b"",
-            protected={
-                1: -1,  # alg: "HPKE"
-            },
+            # protected={
+            #     1: -1,  # alg: "HPKE"
+            # },
             recipients=[r],
         )
         recipient = COSE.new()
@@ -687,10 +686,9 @@ class TestRecipients:
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
-            b"",
-            protected={
-                1: -1,  # alg: "HPKE"
-            },
+            # protected={
+            #     1: -1,  # alg: "HPKE"
+            # },
             recipients=[r],
         )
         recipient = COSE.new(verify_kid=True)
@@ -714,10 +712,9 @@ class TestRecipients:
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
-            b"",
-            protected={
-                1: -1,  # alg: "HPKE"
-            },
+            # protected={
+            #     1: -1,  # alg: "HPKE"
+            # },
             recipients=[r],
         )
         recipient = COSE.new()
@@ -732,10 +729,9 @@ class TestRecipients:
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
-            b"",
-            protected={
-                1: -1,  # alg: "HPKE"
-            },
+            # protected={
+            #     1: -1,  # alg: "HPKE"
+            # },
             recipients=[r],
         )
         recipient = COSE.new()
@@ -747,10 +743,9 @@ class TestRecipients:
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
-            b"",
-            protected={
-                1: -1,  # alg: "HPKE"
-            },
+            # protected={
+            #     1: -1,  # alg: "HPKE"
+            # },
             recipients=[r],
         )
         invalid_rsk = COSEKey.from_jwk(

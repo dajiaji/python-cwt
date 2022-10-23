@@ -171,7 +171,7 @@ class Recipient:
         if not isinstance(recipient[2], bytes):
             raise ValueError("ciphertext should be bytes.")
         if len(recipient) == 3:
-            return Recipient.new(protected, recipient[1], recipient[2])
+            return cls.new(protected, recipient[1], recipient[2])
         if not isinstance(recipient[3], list):
             raise ValueError("recipients should be list.")
         recipients: List[RecipientInterface] = []

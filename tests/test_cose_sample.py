@@ -447,9 +447,6 @@ class TestCOSESample:
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
-            # protected={
-            #     1: -1,  # alg: "HPKE"
-            # },
             recipients=[r],
         )
 
@@ -469,7 +466,7 @@ class TestCOSESample:
         recipient = COSE.new()
         assert b"This is the content." == recipient.decode(encoded, rsk)
 
-    def test_cose_usage_examples_cose_encrypt_hpke_with_layer_1_hsi(self):
+    def test_cose_usage_examples_cose_encrypt_hpke_with_1st_layer_hpke(self):
 
         # The sender side:
         rpk = COSEKey.from_jwk(
@@ -499,9 +496,9 @@ class TestCOSESample:
         with pytest.raises(ValueError) as err:
             sender.encode_and_encrypt(
                 b"This is the content.",
-                # protected={
-                #     1: -1,  # alg: "HPKE"
-                # },
+                protected={
+                    1: -1,  # alg: "HPKE"
+                },
                 unprotected={
                     4: b"xx",  # kid: "xx"
                     -4: {  # HPKE sender information
@@ -513,7 +510,7 @@ class TestCOSESample:
                 recipients=[r],
             )
             pytest.fail("encode_and_encrypt should fail.")
-        assert "HPKE sender information should not appear on the Layer-1 of Encrypt(96) message." in str(err.value)
+        assert "alg for the first layer should not be HPKE." in str(err.value)
 
     def test_cose_usage_examples_cose_encrypt_hpke_with_nonce(self):
 
@@ -545,7 +542,6 @@ class TestCOSESample:
         with pytest.raises(ValueError) as err:
             sender.encode_and_encrypt(
                 b"This is the content.",
-                b"",
                 protected={
                     1: -1,  # alg: "HPKE"
                 },
@@ -560,7 +556,7 @@ class TestCOSESample:
                 recipients=[r],
             )
             pytest.fail("encode_and_encrypt should fail.")
-        assert "HPKE sender information should not appear on the Layer-1 of Encrypt(96) message." in str(err.value)
+        assert "alg for the first layer should not be HPKE." in str(err.value)
 
     def test_cose_usage_examples_cose_encrypt_direct_hkdf_sha_256(self):
 
