@@ -21,11 +21,11 @@ class HPKE(RecipientInterface):
             raise ValueError("HPKE sender information(-4) not found.")
         if 1 not in unprotected[-4]:
             raise ValueError("kem id(1) not found in HPKE sender information(-4).")
-        if 5 not in unprotected[-4]:
-            raise ValueError("kdf id(5) not found in HPKE sender information(-4).")
         if 2 not in unprotected[-4]:
-            raise ValueError("aead id(2) not found in HPKE sender information(-4).")
-        self._suite = HPKECipherSuite(unprotected[-4][1], unprotected[-4][5], unprotected[-4][2])
+            raise ValueError("kdf id(2) not found in HPKE sender information(-4).")
+        if 3 not in unprotected[-4]:
+            raise ValueError("aead id(3) not found in HPKE sender information(-4).")
+        self._suite = HPKECipherSuite(unprotected[-4][1], unprotected[-4][2], unprotected[-4][3])
         return
 
     def apply(
@@ -45,7 +45,7 @@ class HPKE(RecipientInterface):
         enc_structure = [aad_context, self._dumps(self._protected), external_aad]
         aad = self._dumps(enc_structure)
         enc, self._ciphertext = self._recipient_key.seal(self._suite, payload, aad)
-        self._unprotected[-4][3] = enc
+        self._unprotected[-4][4] = enc
         return super().to_list(payload, external_aad, aad_context)
 
     def decrypt(
@@ -61,4 +61,4 @@ class HPKE(RecipientInterface):
     ) -> bytes:
         enc_structure = [aad_context, self._dumps(self._protected), external_aad]
         aad = self._dumps(enc_structure)
-        return key.open(self._suite, self._unprotected[-4][3], self._ciphertext, aad)
+        return key.open(self._suite, self._unprotected[-4][4], self._ciphertext, aad)

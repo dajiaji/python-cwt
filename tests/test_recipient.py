@@ -634,7 +634,7 @@ class TestRecipients:
         assert msg in str(err.value)
 
     def test_recipients_open_without_key(self):
-        r = RecipientInterface(protected={1: -1}, unprotected={4: b"01", -4: {1: 0x0010, 5: 0x0001, 2: 0x0001}})
+        r = RecipientInterface(protected={1: -1}, unprotected={4: b"01", -4: {1: 0x0010, 2: 0x0001, 3: 0x0001}})
         rs = Recipients([r])
         with pytest.raises(ValueError) as err:
             rs.decrypt([])
@@ -649,7 +649,7 @@ class TestRecipients:
         assert "No recipients." in str(err.value)
 
     def test_recipients_open_with_rpk_without_kid(self, rsk1, rsk2):
-        r = Recipient.new(protected={1: -1}, unprotected={-4: {1: 0x0010, 5: 0x0001, 2: 0x0001}})
+        r = Recipient.new(protected={1: -1}, unprotected={-4: {1: 0x0010, 2: 0x0001, 3: 0x0001}})
         rpk = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -672,7 +672,7 @@ class TestRecipients:
         assert b"This is the content." == recipient.decode(encoded, [rsk1, rsk2])
 
     def test_recipients_open_with_verify_kid_and_rpk_without_kid(self, rsk1, rsk2):
-        r = Recipient.new(protected={1: -1}, unprotected={-4: {1: 0x0010, 5: 0x0001, 2: 0x0001}})
+        r = Recipient.new(protected={1: -1}, unprotected={-4: {1: 0x0010, 2: 0x0001, 3: 0x0001}})
         rpk = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -698,7 +698,7 @@ class TestRecipients:
         assert "kid should be specified in recipient." in str(err.value)
 
     def test_recipients_open_failed_with_rpk_without_kid(self, rsk1):
-        r = Recipient.new(protected={1: -1}, unprotected={-4: {1: 0x0010, 5: 0x0001, 2: 0x0001}})
+        r = Recipient.new(protected={1: -1}, unprotected={-4: {1: 0x0010, 2: 0x0001, 3: 0x0001}})
         rpk = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -724,7 +724,7 @@ class TestRecipients:
         assert "Failed to decrypt." in str(err.value)
 
     def test_recipients_open_with_multiple_rsks(self, rpk2, rsk1, rsk2):
-        r = Recipient.new(protected={1: -1}, unprotected={4: b"02", -4: {1: 0x0010, 5: 0x0001, 2: 0x0001}})
+        r = Recipient.new(protected={1: -1}, unprotected={4: b"02", -4: {1: 0x0010, 2: 0x0001, 3: 0x0001}})
         r.apply(recipient_key=rpk2)
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
@@ -738,7 +738,7 @@ class TestRecipients:
         assert b"This is the content." == recipient.decode(encoded, [rsk1, rsk2])
 
     def test_recipients_open_with_invalid_rsk(self, rpk1):
-        r = Recipient.new(protected={1: -1}, unprotected={4: b"02", -4: {1: 0x0010, 5: 0x0001, 2: 0x0001}})
+        r = Recipient.new(protected={1: -1}, unprotected={4: b"02", -4: {1: 0x0010, 2: 0x0001, 3: 0x0001}})
         r.apply(recipient_key=rpk1)
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(

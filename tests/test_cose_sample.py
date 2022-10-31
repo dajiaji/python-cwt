@@ -354,8 +354,8 @@ class TestCOSESample:
                 4: b"01",  # kid: "01"
                 -4: {  # HPKE sender information
                     1: 0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
-                    5: 0x0001,  # kdf: HKDF-SHA256
-                    2: 0x0001,  # aead: AES-128-GCM
+                    2: 0x0001,  # kdf: HKDF-SHA256
+                    3: 0x0001,  # aead: AES-128-GCM
                 },
             },
         )
@@ -438,8 +438,8 @@ class TestCOSESample:
                 4: b"01",  # kid: "01"
                 -4: {  # HPKE sender information
                     1: 0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
-                    5: 0x0001,  # kdf: HKDF-SHA256
-                    2: 0x0001,  # aead: AES-128-GCM
+                    2: 0x0001,  # kdf: HKDF-SHA256
+                    3: 0x0001,  # aead: AES-128-GCM
                 },
             },
         )
@@ -486,8 +486,8 @@ class TestCOSESample:
                 4: b"01",  # kid: "01"
                 -4: {  # HPKE sender information
                     1: 0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
-                    5: 0x0001,  # kdf: HKDF-SHA256
-                    2: 0x0001,  # aead: AES-128-GCM
+                    2: 0x0001,  # kdf: HKDF-SHA256
+                    3: 0x0001,  # aead: AES-128-GCM
                 },
             },
         )
@@ -503,8 +503,8 @@ class TestCOSESample:
                     4: b"xx",  # kid: "xx"
                     -4: {  # HPKE sender information
                         1: 0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
-                        5: 0x0001,  # kdf: HKDF-SHA256
-                        2: 0x0001,  # aead: AES-128-GCM
+                        2: 0x0001,  # kdf: HKDF-SHA256
+                        3: 0x0001,  # aead: AES-128-GCM
                     },
                 },
                 recipients=[r],
@@ -532,8 +532,8 @@ class TestCOSESample:
                 4: b"01",  # kid: "01"
                 -4: {  # HPKE sender information
                     1: 0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
-                    5: 0x0001,  # kdf: HKDF-SHA256
-                    2: 0x0001,  # aead: AES-128-GCM
+                    2: 0x0001,  # kdf: HKDF-SHA256
+                    3: 0x0001,  # aead: AES-128-GCM
                 },
             },
         )
@@ -549,8 +549,8 @@ class TestCOSESample:
                     4: b"xx",  # kid: "xx"
                     -4: {  # HPKE sender information
                         1: 0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
-                        5: 0x0001,  # kdf: HKDF-SHA256
-                        2: 0x0001,  # aead: AES-128-GCM
+                        2: 0x0001,  # kdf: HKDF-SHA256
+                        3: 0x0001,  # aead: AES-128-GCM
                     },
                 },
                 recipients=[r],
