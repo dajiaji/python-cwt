@@ -4,6 +4,21 @@ Changes
 Unreleased
 ----------
 
+Version 1.6.1
+-------------
+
+Released 2022-11-02
+
+- Follow COSE-HPKE early version of draft-03. `#271 <https://github.com/dajiaji/python-cwt/pull/271>`__
+- Update dependencies.
+    - Bump cryptography to 38.0.3. `#274 <https://github.com/dajiaji/python-cwt/pull/274>`__
+    - Bump pyhpke to 0.2.0. `#270 <https://github.com/dajiaji/python-cwt/pull/270>`__
+- Update dev dependencies.
+    - Bump sphinx-autodoc-typehints to 1.19.5. `#273 <https://github.com/dajiaji/python-cwt/pull/273>`__
+    - Bump sphinx-rtd-theme to 1.1.0. `#272 <https://github.com/dajiaji/python-cwt/pull/272>`__
+    - Bump tox to 3.27.0. `#269 <https://github.com/dajiaji/python-cwt/pull/269>`__
+    - Bump pytest to 7.2.0. `#268 <https://github.com/dajiaji/python-cwt/pull/268>`__
+
 Version 1.6.0
 -------------
 
