@@ -33,7 +33,7 @@ cryptography = ">=36,<39"
 Sphinx = {version = ">=4.3.1,<6.0.0", extras = ["docs"]}
 sphinx-autodoc-typehints = {version = "^1.12.0", extras = ["docs"]}
 sphinx-rtd-theme = {version = "^1.0.0", extras = ["docs"]}
-pyhpke = ">=0.1.1,<0.3.0"
+pyhpke = ">=0.1.1,<0.4.0"
 
 [tool.poetry.extras]
 docs = [
