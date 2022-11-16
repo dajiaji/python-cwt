@@ -12,7 +12,7 @@ import pytest
 
 import cwt
 from cwt import Claims, COSEKey
-from cwt.cose_key_interface import COSEKeyInterface, HPKECipherSuite
+from cwt.cose_key_interface import COSEKeyInterface
 
 from .utils import key_path
 
@@ -73,56 +73,6 @@ class TestCOSEKey:
             assert k.kty == 4
         except Exception:
             pytest.fail("from_symmetric_key should not fail.")
-
-    @pytest.mark.parametrize(
-        "alg, key_ops, expected",
-        [
-            ("HMAC 256/64", [9, 10], [9, 10]),
-            ("HMAC 256/256", [9, 10], [9, 10]),
-            ("HMAC 384/384", [9, 10], [9, 10]),
-            ("HMAC 512/512", [9, 10], [9, 10]),
-            ("HMAC 256/64", [9], [9]),
-            ("HMAC 256/64", [10], [10]),
-            ("HMAC 256/64", ["MAC create", "MAC verify"], [9, 10]),
-            ("HMAC 256/64", ["MAC create"], [9]),
-            ("HMAC 256/64", ["MAC verify"], [10]),
-            ("A128GCM", [3, 4, 5, 6], [3, 4, 5, 6]),
-            ("A192GCM", [3, 4, 5, 6], [3, 4, 5, 6]),
-            ("A256GCM", [3, 4, 5, 6], [3, 4, 5, 6]),
-            ("A128GCM", [3, 4], [3, 4]),
-            ("A128GCM", [5, 6], [5, 6]),
-            ("A128GCM", ["encrypt", "decrypt"], [3, 4]),
-            ("A128GCM", ["wrap key", "unwrap key"], [5, 6]),
-            ("AES-CCM-16-64-128", [3, 4, 5, 6], [3, 4, 5, 6]),
-            ("AES-CCM-16-64-256", [3, 4, 5, 6], [3, 4, 5, 6]),
-            ("AES-CCM-64-64-128", [3, 4, 5, 6], [3, 4, 5, 6]),
-            ("AES-CCM-64-64-256", [3, 4, 5, 6], [3, 4, 5, 6]),
-            ("AES-CCM-16-128-128", [3, 4, 5, 6], [3, 4, 5, 6]),
-            ("AES-CCM-16-128-256", [3, 4, 5, 6], [3, 4, 5, 6]),
-            ("AES-CCM-64-128-128", [3, 4, 5, 6], [3, 4, 5, 6]),
-            ("AES-CCM-64-128-256", [3, 4, 5, 6], [3, 4, 5, 6]),
-            ("AES-CCM-16-64-128", [3, 4], [3, 4]),
-            ("AES-CCM-16-64-128", [5, 6], [5, 6]),
-            ("AES-CCM-16-64-128", ["encrypt", "decrypt"], [3, 4]),
-            ("AES-CCM-16-64-128", ["wrap key", "unwrap key"], [5, 6]),
-            ("ChaCha20/Poly1305", [3, 4, 5, 6], [3, 4, 5, 6]),
-            ("ChaCha20/Poly1305", [3, 4], [3, 4]),
-            ("ChaCha20/Poly1305", [5, 6], [5, 6]),
-            ("ChaCha20/Poly1305", ["encrypt", "decrypt"], [3, 4]),
-            ("ChaCha20/Poly1305", ["wrap key", "unwrap key"], [5, 6]),
-        ],
-    )
-    def test_key_builder_from_symmetric_key_with_key_ops(self, alg, key_ops, expected):
-        k = COSEKey.from_symmetric_key(alg=alg, key_ops=key_ops)
-        with pytest.raises(NotImplementedError):
-            k.seal(HPKECipherSuite(0x0010, 0x0001, 0x0001), b"")
-            pytest.fail("open() should fail.")
-        with pytest.raises(NotImplementedError):
-            k.open(HPKECipherSuite(0x0010, 0x0001, 0x0001), b"", b"")
-            pytest.fail("seal() should fail.")
-        assert len(k.key_ops) == len(key_ops)
-        for ops in k.key_ops:
-            assert ops in expected
 
     @pytest.mark.parametrize(
         "alg",

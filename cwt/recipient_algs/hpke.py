@@ -1,7 +1,8 @@
 from typing import Any, Dict, List, Optional, Union
 
+from pyhpke import AEADId, CipherSuite, KDFId, KEMId, KEMKey, KEMKeyInterface
+
 from ..cose_key_interface import COSEKeyInterface
-from ..hpke_cipher_suite import HPKECipherSuite
 from ..recipient_interface import RecipientInterface
 
 
@@ -25,7 +26,7 @@ class HPKE(RecipientInterface):
             raise ValueError("kdf id(2) not found in HPKE sender information(-4).")
         if 3 not in unprotected[-4]:
             raise ValueError("aead id(3) not found in HPKE sender information(-4).")
-        self._suite = HPKECipherSuite(unprotected[-4][1], unprotected[-4][2], unprotected[-4][3])
+        self._suite = CipherSuite.new(KEMId(unprotected[-4][1]), KDFId(unprotected[-4][2]), AEADId(unprotected[-4][3]))
         return
 
     def apply(
@@ -39,13 +40,16 @@ class HPKE(RecipientInterface):
             raise ValueError("recipient_key should be set.")
 
         self._recipient_key = recipient_key
+        self._kem_key = self._to_kem_key(recipient_key)
         return self._recipient_key
 
     def to_list(self, payload: bytes = b"", external_aad: bytes = b"", aad_context: str = "Enc_Recipient") -> List[Any]:
         enc_structure = [aad_context, self._dumps(self._protected), external_aad]
         aad = self._dumps(enc_structure)
-        enc, self._ciphertext = self._recipient_key.seal(self._suite, payload, aad)
+        # enc, self._ciphertext = self._recipient_key.seal(self._suite, payload, aad)
+        enc, sender = self._suite.create_sender_context(self._kem_key)
         self._unprotected[-4][4] = enc
+        self._ciphertext = sender.seal(payload, aad=aad)
         return super().to_list(payload, external_aad, aad_context)
 
     def decrypt(
@@ -61,4 +65,9 @@ class HPKE(RecipientInterface):
     ) -> bytes:
         enc_structure = [aad_context, self._dumps(self._protected), external_aad]
         aad = self._dumps(enc_structure)
-        return key.open(self._suite, self._unprotected[-4][4], self._ciphertext, aad)
+        # return key.open(self._suite, self._unprotected[-3][4], self._ciphertext, aad)
+        recipient = self._suite.create_recipient_context(self._unprotected[-4][4], self._to_kem_key(key))
+        return recipient.open(self._ciphertext, aad=aad)
+
+    def _to_kem_key(self, src: COSEKeyInterface) -> KEMKeyInterface:
+        return KEMKey.from_pyca_cryptography_key(src.key)
