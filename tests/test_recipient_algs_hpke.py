@@ -51,15 +51,15 @@ class TestHPKE:
             ),
             (
                 {-4: {1: 0xFFFF, 2: 0x0001, 3: 0x0001}},
-                "Unsupported or unknown KEM id: 65535.",
+                "65535 is not a valid KEMId",
             ),
             (
                 {-4: {1: 0x0010, 2: 0xFFFF, 3: 0x0001}},
-                "Unsupported or unknown KDF id: 65535.",
+                "65535 is not a valid KDFId",
             ),
             (
-                {-4: {1: 0x0010, 2: 0x0001, 3: 0xFFFF}},
-                "Unsupported or unknown AEAD id: 65535.",
+                {-4: {1: 0x0010, 2: 0x0001, 3: 0xFFFE}},
+                "65534 is not a valid AEADId",
             ),
         ],
     )
