@@ -4,6 +4,18 @@ Changes
 Unreleased
 ----------
 
+Version 1.6.2
+-------------
+
+Released 2022-11-16
+
+- Add support for COSE-HPKE DHKEM-X25519/X448 experimentally. `#282 <https://github.com/dajiaji/python-cwt/pull/282>`__
+- Update dependencies.
+    - Bump pyhpke to 0.4.0. `#281 <https://github.com/dajiaji/python-cwt/pull/281>`__
+- Update dev dependencies.
+    - Bump pre-commit/mirrors-mypy to 0.990. `#279 <https://github.com/dajiaji/python-cwt/pull/279>`__
+    - Bump sphinx-rtd-theme to 1.1.1. `#276 <https://github.com/dajiaji/python-cwt/pull/276>`__
+
 Version 1.6.1
 -------------
 
