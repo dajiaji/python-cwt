@@ -26,6 +26,7 @@ from cryptography.hazmat.primitives.serialization import (
 from ..const import (  # COSE_KEY_LEN,
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT,
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_ES,
+    COSE_ALGORITHMS_HPKE,
     COSE_ALGORITHMS_SIG_OKP,
     COSE_KEY_LEN,
     COSE_KEY_OPERATION_VALUES,
@@ -78,6 +79,8 @@ class OKPKey(AsymmetricKey):
                 self._hash_alg = hashes.SHA256
             elif self._alg in [-26, -28]:
                 self._hash_alg = hashes.SHA512
+            elif self._alg == -1:
+                self._hash_alg = hashes.SHA256 if self._crv == 4 else hashes.SHA512
             else:
                 raise ValueError(f"Unsupported or unknown alg used with X25519/X448: {self._alg}.")
 
@@ -113,6 +116,9 @@ class OKPKey(AsymmetricKey):
                     # public key for key derivation.
                     if self._key_ops:
                         raise ValueError("Public key for ECDHE should not have key_ops.")
+            elif self._alg in COSE_ALGORITHMS_HPKE.values():
+                if not (set(self._key_ops) & set([7, 8])):
+                    raise ValueError("Invalid key_ops for HPKE.")
             else:
                 raise ValueError(f"Unsupported or unknown alg(3) for OKP: {self._alg}.")
         else:

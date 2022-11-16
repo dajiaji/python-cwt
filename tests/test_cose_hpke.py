@@ -147,7 +147,6 @@ class TestCOSE_HPKE:
         rpk = COSEKey.from_jwk(
             {
                 "kty": "EC",
-                "use": "sig",
                 "crv": "P-521",
                 "kid": "01",
                 "x": "APkZitSJMJUMB-iPCt47sWu_CrnUHg6IAR4qjmHON-2u41Rjg6DNOS0LZYJJt-AVH5NgGVi8ElIfjo71b9HXCTOc",
@@ -176,12 +175,127 @@ class TestCOSE_HPKE:
         rsk = COSEKey.from_jwk(
             {
                 "kty": "EC",
-                "use": "sig",
                 "crv": "P-521",
                 "kid": "01",
                 "x": "APkZitSJMJUMB-iPCt47sWu_CrnUHg6IAR4qjmHON-2u41Rjg6DNOS0LZYJJt-AVH5NgGVi8ElIfjo71b9HXCTOc",
                 "y": "ASx-Cb--149HJ-e1KlSaY-1BOhwOdcTkxSt8BGbW7_hnGfzHsoXM3ywwNcp1Yad-FHUKwmCyMelMQEn2Rh4V2l3I",
                 "d": "ADYyo73ZKicOjwGDYQ_ybZKnVzdAcxGm9OVAxQjzgVM4jaS-Iwtkz90oLdDz3shgKlDgtRK2Aa9lMhqR94hBo4IE",
+            }
+        )
+        recipient = COSE.new()
+        assert b"This is the content." == recipient.decode(encoded, rsk)
+
+    @pytest.mark.parametrize(
+        "kdf, aead",
+        [
+            (0x0001, 0x0001),
+            (0x0001, 0x0002),
+            (0x0001, 0x0003),
+            (0x0002, 0x0001),
+            (0x0002, 0x0002),
+            (0x0002, 0x0003),
+            (0x0003, 0x0001),
+            (0x0003, 0x0002),
+            (0x0003, 0x0003),
+        ],
+    )
+    def test_cose_hpke_kem_0x0020(self, kdf, aead):
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "OKP",
+                "crv": "X25519",
+                "kid": "01",
+                "alg": "HPKE",
+                "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
+                "key_ops": ["deriveKey", "deriveBits"],
+            }
+        )
+
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            rpk,
+            protected={
+                1: -1,  # alg: "HPKE"
+            },
+            unprotected={
+                4: b"01",  # kid: "01"
+                -4: {  # HPKE sender information
+                    1: 0x0020,
+                    2: kdf,
+                    3: aead,
+                },
+            },
+        )
+
+        # The recipient side:
+        rsk = COSEKey.from_jwk(
+            {
+                "kty": "OKP",
+                "crv": "X25519",
+                "kid": "01",
+                "alg": "HPKE",
+                "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
+                "d": "vsJ1oX5NNi0IGdwGldiac75r-Utmq3Jq4LGv48Q_Qc4",
+                "key_ops": ["deriveKey", "deriveBits"],
+            }
+        )
+        recipient = COSE.new()
+        assert b"This is the content." == recipient.decode(encoded, rsk)
+
+    @pytest.mark.parametrize(
+        "kdf, aead",
+        [
+            (0x0001, 0x0001),
+            (0x0001, 0x0002),
+            (0x0001, 0x0003),
+            (0x0002, 0x0001),
+            (0x0002, 0x0002),
+            (0x0002, 0x0003),
+            (0x0003, 0x0001),
+            (0x0003, 0x0002),
+            (0x0003, 0x0003),
+        ],
+    )
+    def test_cose_hpke_kem_0x0021(self, kdf, aead):
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "OKP",
+                "crv": "X448",
+                "kid": "01",
+                "alg": "HPKE",
+                "x": "IkLmc0klvEMXYneHMKAB6ePohryAwAPVe2pRSffIDY6NrjeYNWVX5J-fG4NV2OoU77C88A0mvxI",
+                "key_ops": ["deriveKey"],
+            }
+        )
+
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            rpk,
+            protected={
+                1: -1,  # alg: "HPKE"
+            },
+            unprotected={
+                4: b"01",  # kid: "01"
+                -4: {  # HPKE sender information
+                    1: 0x0021,
+                    2: kdf,
+                    3: aead,
+                },
+            },
+        )
+
+        # The recipient side:
+        rsk = COSEKey.from_jwk(
+            {
+                "kty": "OKP",
+                "crv": "X448",
+                "kid": "01",
+                "alg": "HPKE",
+                "x": "IkLmc0klvEMXYneHMKAB6ePohryAwAPVe2pRSffIDY6NrjeYNWVX5J-fG4NV2OoU77C88A0mvxI",
+                "d": "rJJRG3nshyCtd9CgXld8aNaB9YXKR0UOi7zj7hApg9YH4XdBO0G8NcAFNz_uPH2GnCZVcSDgV5c",
+                "key_ops": ["deriveKey"],
             }
         )
         recipient = COSE.new()
