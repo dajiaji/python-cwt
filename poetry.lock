@@ -390,14 +390,17 @@ plugins = ["importlib-metadata"]
 
 [[package]]
 name = "pyhpke"
-version = "0.2.0"
-description = "HPKE implementation"
+version = "0.4.0"
+description = "A Python implementation of HPKE."
 category = "main"
 optional = false
-python-versions = ">=3.7,<4.0"
+python-versions = ">=3.7.0,<4.0.0"
 
 [package.dependencies]
-cryptography = ">=3.4.7,<39"
+cryptography = ">=36,<39"
+
+[package.extras]
+docs = ["Sphinx[docs] (>=4.3.2,<6.0.0)", "sphinx-autodoc-typehints[docs] (==1.19.5)", "sphinx-rtd-theme[docs] (>=1.0.0,<2.0.0)"]
 
 [[package]]
 name = "pyparsing"
@@ -778,7 +781,7 @@ docs = ["Sphinx", "sphinx-autodoc-typehints", "sphinx-rtd-theme"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "1b82ce637bf74b2eb208f4d594e835ceff176e0ad3d6130e1e5127ff5ed8c8a4"
+content-hash = "238f7f0bbb956b4a003e99706f1a4b113732b97693172f6e39448556c4a8c82d"
 
 [metadata.files]
 alabaster = [
@@ -1120,8 +1123,8 @@ pygments = [
     {file = "Pygments-2.13.0.tar.gz", hash = "sha256:56a8508ae95f98e2b9bdf93a6be5ae3f7d8af858b43e02c5a2ff083726be40c1"},
 ]
 pyhpke = [
-    {file = "pyhpke-0.2.0-py3-none-any.whl", hash = "sha256:e58771500403c698e9ed6613117f854e89a7ed8260e7ae784f3e1672997181b8"},
-    {file = "pyhpke-0.2.0.tar.gz", hash = "sha256:4c27ba004eda6308b00b2909cf06297dbca243cbb3f1c762ca3a808e3427ec53"},
+    {file = "pyhpke-0.4.0-py3-none-any.whl", hash = "sha256:64c6b35de1c5ca8e5825fe511c1358487c9d016f919e05bcf8640b87e6cfe5a2"},
+    {file = "pyhpke-0.4.0.tar.gz", hash = "sha256:c3480041941243eeb1aa11b205e1306a5b01a46cd15f1d94c269e5c869340e55"},
 ]
 pyparsing = [
     {file = "pyparsing-3.0.9-py3-none-any.whl", hash = "sha256:5026bae9a10eeaefb61dab2f09052b9f4307d44aee4eda64b309723d8d206bbc"},
