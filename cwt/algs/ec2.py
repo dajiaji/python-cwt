@@ -1,7 +1,6 @@
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Union
 
 import cryptography
-import pyhpke
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.ec import (
@@ -24,8 +23,7 @@ from ..const import (
     COSE_KEY_TYPES,
 )
 from ..cose_key_interface import COSEKeyInterface
-from ..exceptions import DecodeError, EncodeError, VerifyError
-from ..hpke_cipher_suite import HPKECipherSuite
+from ..exceptions import EncodeError, VerifyError
 from ..utils import i2osp, os2ip, to_cis
 from .asymmetric import AsymmetricKey
 from .symmetric import AESCCMKey, AESGCMKey, ChaCha20Key, HMACKey
@@ -275,28 +273,6 @@ class EC2Key(AsymmetricKey):
         except ValueError as err:
             raise VerifyError("Invalid signature.") from err
 
-    def seal(self, suite: HPKECipherSuite, msg: bytes, aad: bytes = b"") -> Tuple[bytes, bytes]:
-        # if self._alg != -1:
-        #     raise ValueError("alg should be HPKE(-1).");
-        if self._private_key is not None:
-            raise ValueError("Private key cannot be used for HPKE encryption.")
-
-        ctx = self._create_hpke_context(suite)
-        enc, sender = ctx.setup_send(self._public_key, b"")  # TODO: Add support for info
-        return enc, sender.aead.seal(aad, msg)
-
-    def open(self, suite: HPKECipherSuite, enc: bytes, msg: bytes, aad: bytes = b"") -> bytes:
-        # if self._alg != -1:
-        #     raise ValueError("alg should be HPKE(-1).");
-        if self._private_key is None:
-            raise ValueError("Public key cannot be used for HPKE decryption.")
-        ctx = self._create_hpke_context(suite)
-        try:
-            recipient = ctx.setup_recv(enc, self._private_key, b"")  # TODO: Add support for info
-            return recipient.aead.open(aad, msg)
-        except Exception as err:
-            raise DecodeError("Failed to decrypt.") from err
-
     def derive_key(
         self,
         context: Union[List[Any], Dict[str, Any]],
@@ -355,26 +331,3 @@ class EC2Key(AsymmetricKey):
         r = os2ip(sig[:num_bytes])
         s = os2ip(sig[num_bytes:])
         return encode_dss_signature(r, s)
-
-    def _create_hpke_context(self, suite: HPKECipherSuite) -> Any:
-        if self._crv == 1:
-            if suite.kem != 0x0010:
-                raise ValueError("KEM id should be 0x0010.")
-            if suite.kdf == 0x0001 and suite.aead == 0x0001:
-                return pyhpke.Suite__DHKEM_P256_HKDF_SHA256__HKDF_SHA256__AES_128_GCM
-            if suite.kdf == 0x0001 and suite.aead == 0x0003:
-                return pyhpke.Suite__DHKEM_P256_HKDF_SHA256__HKDF_SHA256__ChaCha20Poly1305
-            if suite.kdf == 0x0003 and suite.aead == 0x0001:
-                return pyhpke.Suite__DHKEM_P256_HKDF_SHA256__HKDF_SHA512__AES_128_GCM
-            raise ValueError("Unsupported kdf/aead combination.")
-        elif self._crv == 2:
-            if suite.kem != 0x0011:
-                raise ValueError("KEM id should be 0x0011.")
-            raise ValueError("Unsupported kdf/aead combination.")
-        elif self._crv == 3:
-            if suite.kem != 0x0012:
-                raise ValueError("KEM id should be 0x0012.")
-            if suite.kdf == 0x0001 and suite.aead == 0x0001:
-                return pyhpke.Suite__DHKEM_P521_HKDF_SHA512__HKDF_SHA512__AES_256_GCM
-            raise ValueError("Unsupported kdf/aead combination.")
-        raise ValueError("Invalid crv for HPKE.")

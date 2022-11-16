@@ -721,7 +721,7 @@ class TestRecipients:
         with pytest.raises(DecodeError) as err:
             recipient.decode(encoded, [rsk1])
             pytest.fail("decode() should fail.")
-        assert "Failed to decrypt." in str(err.value)
+        assert "Failed to open." in str(err.value)
 
     def test_recipients_open_with_multiple_rsks(self, rpk2, rsk1, rsk2):
         r = Recipient.new(protected={1: -1}, unprotected={4: b"02", -4: {1: 0x0010, 2: 0x0001, 3: 0x0001}})
@@ -762,4 +762,4 @@ class TestRecipients:
         with pytest.raises(DecodeError) as err:
             recipient.decode(encoded, [invalid_rsk])
             pytest.fail("decode() should fail.")
-        assert "Failed to decrypt." in str(err.value)
+        assert "Failed to open." in str(err.value)
