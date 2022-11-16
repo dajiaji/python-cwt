@@ -351,9 +351,18 @@ class TestOKPKey:
                     1: 1,
                     -1: 6,
                     -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    3: -999,
+                },
+                "Unsupported or unknown alg(3) for OKP: -999.",
+            ),
+            (
+                {
+                    1: 1,
+                    -1: 6,
+                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     3: -1,
                 },
-                "Unsupported or unknown alg(3) for OKP: -1.",
+                "Invalid key_ops for HPKE.",
             ),
             (
                 {1: 1, -1: 6, -2: "xxxxxxxxxxxxxxxx"},
