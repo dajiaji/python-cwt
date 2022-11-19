@@ -646,7 +646,7 @@ r = Recipient.new(
         },
     },
 )
-r.encode(enc_key.key, recipient_key=rpk)
+r.encode(enc_key.to_bytes(), recipient_key=rpk)
 sender = COSE.new()
 encoded = sender.encode_and_encrypt(
     b"This is the content.",

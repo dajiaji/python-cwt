@@ -444,7 +444,7 @@ class TestCOSESample:
                 },
             },
         )
-        r.encode(enc_key.key, recipient_key=rpk)
+        r.encode(enc_key.to_bytes(), recipient_key=rpk)
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
@@ -494,7 +494,7 @@ class TestCOSESample:
                 },
             },
         )
-        r.encode(enc_key.key, recipient_key=rpk)
+        r.encode(enc_key.to_bytes(), recipient_key=rpk)
         sender = COSE.new()
         with pytest.raises(ValueError) as err:
             sender.encode_and_encrypt(
@@ -541,7 +541,7 @@ class TestCOSESample:
                 },
             },
         )
-        r.encode(enc_key.key, recipient_key=rpk)
+        r.encode(enc_key.to_bytes(), recipient_key=rpk)
         sender = COSE.new()
         with pytest.raises(ValueError) as err:
             sender.encode_and_encrypt(
