@@ -4,6 +4,7 @@ Tests for HPKE.
 
 import pytest
 
+from cwt import COSEKey
 from cwt.recipient_algs.hpke import HPKE
 
 
@@ -18,9 +19,10 @@ class TestHPKE:
         assert ctx.alg == -1
 
     def test_recipient_algs_hpke_apply_without_recipient_key(self):
+        enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
         ctx = HPKE({1: -1}, {-4: {1: 0x0010, 2: 0x0001, 3: 0x0001}})
         with pytest.raises(ValueError) as err:
-            ctx.apply()
+            ctx.encode(enc_key.key)
             pytest.fail("apply should fail.")
         assert "recipient_key should be set." in str(err.value)
 

@@ -154,15 +154,56 @@ class RecipientInterface(CBORProcessor):
         res.append(children)
         return res
 
+    def encode(
+        self,
+        plaintext: bytes,
+        recipient_key: Optional[COSEKeyInterface] = None,
+        salt: Optional[bytes] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+        external_aad: bytes = b"",
+        aad_context: str = "Enc_Recipient",
+    ) -> Optional[COSEKeyInterface]:
+        """
+        Encodes a specified plaintext to a ciphertext with the recipient-specific
+        method (e.g., key wrapping, key agreement, or the combination of them)
+        and sets up the related information (context information or ciphertext)
+        in the recipient structure.
+        Therefore, it will be used by the sender of the recipient information
+        before calling COSE.encode_* functions with the Recipient object. The
+        key generated through this function will be set to ``key`` parameter
+        of COSE.encode_* functions.
+
+        Args:
+            plaintext (bytes): A plaing text to be encrypted. In most of the cases,
+                the plaintext is a byte string of a content encryption key.
+            recipient_key (Optional[COSEKeyInterface]): The external public
+                key provided by the recipient used for ECDH key agreement, HPKE, etc.
+            salt (Optional[bytes]): A salt used for deriving a key.
+            context (Optional[Union[List[Any], Dict[str, Any]]]): Context
+                information structure.
+            external_aad (bytes): External additional authenticated data for AEAD.
+            aad_context (bytes): An additional authenticated data context to build
+                an Enc_structure internally.
+        Returns:
+            Optional[COSEKeyInterface]: A generated key or passed-through key
+                which is used as ``key`` parameter of COSE.encode_* functions.
+        Raises:
+            ValueError: Invalid arguments.
+            EncodeError: Failed to encode(e.g., wrap, derive) the key.
+        """
+        raise NotImplementedError
+
     def apply(
         self,
         key: Optional[COSEKeyInterface] = None,
         recipient_key: Optional[COSEKeyInterface] = None,
         salt: Optional[bytes] = None,
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+        external_aad: bytes = b"",
+        aad_context: str = "Enc_Recipient",
     ) -> COSEKeyInterface:
         """
-        Applies a COSEKey as a material to prepare a MAC/encryption key with
+        [DEPRECATED] Applies a COSEKey as a material to prepare a MAC/encryption key with
         the recipient-specific method (e.g., key wrapping, key agreement,
         or the combination of them) and sets up the related information
         (context information or ciphertext) in the recipient structure.
@@ -179,6 +220,9 @@ class RecipientInterface(CBORProcessor):
             salt (Optional[bytes]): A salt used for deriving a key.
             context (Optional[Union[List[Any], Dict[str, Any]]]): Context
                 information structure.
+            external_aad (bytes): External additional authenticated data for AEAD.
+            aad_context (bytes): An additional authenticated data context to build
+                an Enc_structure internally.
         Returns:
             COSEKeyInterface: A generated key or passed-throug key which is used
                 as ``key`` parameter of COSE.encode_* functions.
@@ -233,7 +277,9 @@ class RecipientInterface(CBORProcessor):
             key (COSEKeyInterface): The external key to be used for extracting the key.
             alg (Optional[int]): The algorithm of the key extracted.
             context (Optional[Union[List[Any], Dict[str, Any]]]): Context information structure.
-            external_aad (bytes): External additional authenticated data.
+            external_aad (bytes): External additional authenticated data for AEAD.
+            aad_context (bytes): An additional authenticated data context to build
+                an Enc_structure internally.
         Returns:
             bytes: The decrypted plain text.
         Raises:

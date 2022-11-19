@@ -169,8 +169,8 @@ class COSE(CBORProcessor):
         if not recipients:
             if 1 in p and p[1] == -1:  # HPKE
                 hpke = HPKE(p, u)
-                hpke.apply(recipient_key=key)
-                res = CBORTag(16, hpke.to_list(payload, external_aad, "Encrypt0"))
+                hpke.encode(payload, recipient_key=key, external_aad=external_aad, aad_context="Encrypt0")
+                res = CBORTag(16, hpke.to_list())
                 return res if out == "cbor2/CBORTag" else self._dumps(res)
             if key is None:
                 raise ValueError("key should be set.")
@@ -412,7 +412,7 @@ class COSE(CBORProcessor):
                     try:
                         if not isinstance(protected, bytes) and alg == -1:  # HPKE
                             hpke = HPKE(protected, unprotected, data.value[2])
-                            return hpke.decrypt(k, external_aad=external_aad, aad_context="Encrypt0")
+                            return hpke.decode(k, external_aad=external_aad, aad_context="Encrypt0")
                         return k.decrypt(data.value[2], nonce, aad)
                     except Exception as e:
                         err = e
