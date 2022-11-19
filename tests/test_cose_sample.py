@@ -421,6 +421,7 @@ class TestCOSESample:
     def test_cose_usage_examples_cose_encrypt_hpke(self):
 
         # The sender side:
+        enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
         rpk = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -443,10 +444,11 @@ class TestCOSESample:
                 },
             },
         )
-        r.apply(recipient_key=rpk)
-        sender = COSE.new()
+        r.encode(enc_key.key, recipient_key=rpk)
+        sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
+            key=enc_key,
             recipients=[r],
         )
 
@@ -469,6 +471,7 @@ class TestCOSESample:
     def test_cose_usage_examples_cose_encrypt_hpke_with_1st_layer_hpke(self):
 
         # The sender side:
+        enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
         rpk = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -491,7 +494,7 @@ class TestCOSESample:
                 },
             },
         )
-        r.apply(recipient_key=rpk)
+        r.encode(enc_key.key, recipient_key=rpk)
         sender = COSE.new()
         with pytest.raises(ValueError) as err:
             sender.encode_and_encrypt(
@@ -515,6 +518,7 @@ class TestCOSESample:
     def test_cose_usage_examples_cose_encrypt_hpke_with_nonce(self):
 
         # The sender side:
+        enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
         rpk = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -537,7 +541,7 @@ class TestCOSESample:
                 },
             },
         )
-        r.apply(recipient_key=rpk)
+        r.encode(enc_key.key, recipient_key=rpk)
         sender = COSE.new()
         with pytest.raises(ValueError) as err:
             sender.encode_and_encrypt(

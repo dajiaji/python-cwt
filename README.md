@@ -623,6 +623,7 @@ Create a COSE-HPKE Encrypt message and decrypt it as follows:
 from cwt import COSE, COSEKey, Recipient
 
 # The sender side:
+enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
 rpk = COSEKey.from_jwk(
     {
         "kty": "EC",
@@ -645,10 +646,13 @@ r = Recipient.new(
         },
     },
 )
-r.apply(recipient_key=rpk)
+r.encode(enc_key.key, recipient_key=rpk)
 sender = COSE.new()
 encoded = sender.encode_and_encrypt(
     b"This is the content.",
+    protected={
+        1: 1,  # alg: "A128GCM"
+    },
     recipients=[r],
 )
 
