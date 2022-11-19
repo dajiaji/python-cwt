@@ -11,7 +11,7 @@ class TestCOSESample:
     """
 
     def test_cose_usage_examples_cose_mac0(self):
-        mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+        mac_key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
 
         # The sender side:
         sender = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
@@ -42,7 +42,7 @@ class TestCOSESample:
         assert encoded == encoded2 == encoded3
 
     def test_cose_usage_examples_cose_mac_direct(self):
-        mac_key = COSEKey.from_symmetric_key(alg="HS512", kid="01")
+        mac_key = COSEKey.generate_symmetric_key(alg="HS512", kid="01")
 
         # The sender side:
         r = Recipient.from_jwk({"alg": "direct"})
@@ -96,7 +96,7 @@ class TestCOSESample:
     def test_cose_usage_examples_cose_mac_aes_key_wrap(self):
 
         # The sender side:
-        mac_key = COSEKey.from_symmetric_key(alg="HS512")
+        mac_key = COSEKey.generate_symmetric_key(alg="HS512")
         r = Recipient.from_jwk(
             {
                 "kty": "oct",
@@ -253,7 +253,7 @@ class TestCOSESample:
     def test_cose_usage_examples_cose_mac_ecdh_ss_a128kw(self):
 
         # The sender side:
-        mac_key = COSEKey.from_symmetric_key(alg="HS256")
+        mac_key = COSEKey.generate_symmetric_key(alg="HS256")
         r = Recipient.from_jwk(
             {
                 "kty": "EC",
@@ -297,7 +297,7 @@ class TestCOSESample:
         assert b"Hello world!" == recipient.decode(encoded, priv_key, context={"alg": "HS256"})
 
     def test_cose_usage_examples_cose_encrypt0(self):
-        enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
+        enc_key = COSEKey.generate_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
 
         # The sender side:
         nonce = enc_key.generate_nonce()
@@ -378,7 +378,7 @@ class TestCOSESample:
         assert b"This is the content." == recipient.decode(encoded, rsk)
 
     def test_cose_usage_examples_cose_encrypt(self):
-        enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
+        enc_key = COSEKey.generate_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
 
         # The sender side:
         nonce = enc_key.generate_nonce()
@@ -421,7 +421,7 @@ class TestCOSESample:
     def test_cose_usage_examples_cose_encrypt_hpke(self):
 
         # The sender side:
-        enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
+        enc_key = COSEKey.generate_symmetric_key(alg="A128GCM")
         rpk = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -471,7 +471,7 @@ class TestCOSESample:
     def test_cose_usage_examples_cose_encrypt_hpke_with_1st_layer_hpke(self):
 
         # The sender side:
-        enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
+        enc_key = COSEKey.generate_symmetric_key(alg="A128GCM")
         rpk = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -518,7 +518,7 @@ class TestCOSESample:
     def test_cose_usage_examples_cose_encrypt_hpke_with_nonce(self):
 
         # The sender side:
-        enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
+        enc_key = COSEKey.generate_symmetric_key(alg="A128GCM")
         rpk = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -589,7 +589,7 @@ class TestCOSESample:
 
     def test_cose_usage_examples_cose_encrypt_aes_key_wrap_a128kw(self):
         # A key to wrap
-        enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
+        enc_key = COSEKey.generate_symmetric_key(alg="ChaCha20/Poly1305")
 
         # The sender side:
         r = Recipient.from_jwk(
@@ -743,7 +743,7 @@ class TestCOSESample:
     def test_cose_usage_examples_cose_encrypt_ecdh_ss_a128kw(self):
 
         # The sender side:
-        enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
+        enc_key = COSEKey.generate_symmetric_key(alg="A128GCM")
         nonce = enc_key.generate_nonce()
         r = Recipient.from_jwk(
             {
@@ -837,7 +837,7 @@ class TestCOSESample:
 
     def test_cose_usage_examples_cose_encrypt_ecdh_aes_key_wrap(self):
 
-        enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
+        enc_key = COSEKey.generate_symmetric_key(alg="A128GCM")
 
         # The sender side:
         r = Recipient.from_jwk(
