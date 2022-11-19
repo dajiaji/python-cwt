@@ -36,12 +36,25 @@ class HPKE(RecipientInterface):
         recipient_key: Optional[COSEKeyInterface] = None,
         salt: Optional[bytes] = None,
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+        external_aad: bytes = b"",
+        aad_context: str = "Enc_Recipient",
     ) -> COSEKeyInterface:
+        # if not key:
+        #     raise ValueError("key should be set.")
         if not recipient_key:
             raise ValueError("recipient_key should be set.")
-
+        # if recipient_key.kid:
+        #     self._protected[4] = key.kid
         self._recipient_key = recipient_key
         self._kem_key = self._to_kem_key(recipient_key)
+        # enc_structure = ["Enc_Recipient", self._dumps(self._protected), external_aad]
+        # aad = self._dumps(enc_structure)
+        # enc, sender = self._suite.create_sender_context(self._kem_key)
+        # self._unprotected[-4][4] = enc
+        # try:
+        #     self._ciphertext = sender.seal(key.key, aad=aad)
+        # except Exception as err:
+        #     raise EncodeError("Failed to seal.") from err
         return self._recipient_key
 
     def to_list(self, payload: bytes = b"", external_aad: bytes = b"", aad_context: str = "Enc_Recipient") -> List[Any]:

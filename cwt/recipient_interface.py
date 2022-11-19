@@ -160,6 +160,8 @@ class RecipientInterface(CBORProcessor):
         recipient_key: Optional[COSEKeyInterface] = None,
         salt: Optional[bytes] = None,
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+        external_aad: bytes = b"",
+        aad_context: str = "Enc_Recipient",
     ) -> COSEKeyInterface:
         """
         Applies a COSEKey as a material to prepare a MAC/encryption key with
@@ -179,6 +181,9 @@ class RecipientInterface(CBORProcessor):
             salt (Optional[bytes]): A salt used for deriving a key.
             context (Optional[Union[List[Any], Dict[str, Any]]]): Context
                 information structure.
+            external_aad (bytes): External additional authenticated data for AEAD.
+            aad_context (bytes): An additional authenticated data context to build
+                an Enc_structure internally.
         Returns:
             COSEKeyInterface: A generated key or passed-throug key which is used
                 as ``key`` parameter of COSE.encode_* functions.
@@ -233,7 +238,9 @@ class RecipientInterface(CBORProcessor):
             key (COSEKeyInterface): The external key to be used for extracting the key.
             alg (Optional[int]): The algorithm of the key extracted.
             context (Optional[Union[List[Any], Dict[str, Any]]]): Context information structure.
-            external_aad (bytes): External additional authenticated data.
+            external_aad (bytes): External additional authenticated data for AEAD.
+            aad_context (bytes): An additional authenticated data context to build
+                an Enc_structure internally.
         Returns:
             bytes: The decrypted plain text.
         Raises:

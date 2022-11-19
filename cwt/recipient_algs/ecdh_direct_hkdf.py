@@ -64,6 +64,8 @@ class ECDH_DirectHKDF(Direct):
         recipient_key: Optional[COSEKeyInterface] = None,
         salt: Optional[bytes] = None,
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+        external_aad: bytes = b"",
+        aad_context: str = "Enc_Recipient",
     ) -> COSEKeyInterface:
 
         if not self._sender_key:
