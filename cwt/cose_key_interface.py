@@ -104,6 +104,12 @@ class COSEKeyInterface(CBORProcessor):
         """
         raise NotImplementedError
 
+    def to_bytes(self) -> bytes:
+        """
+        Serializes the body of the key as a byte string.
+        """
+        raise NotImplementedError
+
     def to_dict(self) -> Dict[int, Any]:
         """
         Returns the CBOR-like structure (Dict[int, Any]) of the COSE key.

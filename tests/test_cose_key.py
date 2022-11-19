@@ -615,3 +615,14 @@ class TestCOSEKey:
             COSEKey.from_jwk(invalid)
             pytest.fail("from_jwk should fail.")
         assert msg in str(err.value)
+
+    def test_cose_key_interface(self):
+        ki = COSEKeyInterface({1: 4, 3: 1})
+        with pytest.raises(NotImplementedError) as err:
+            ki.key
+            pytest.fail("key should fail.")
+        assert "" == str(err.value)
+        with pytest.raises(NotImplementedError) as err:
+            ki.to_bytes()
+            pytest.fail("to_bytes should fail.")
+        assert "" == str(err.value)
