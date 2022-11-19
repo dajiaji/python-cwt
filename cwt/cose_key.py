@@ -77,6 +77,33 @@ class COSEKey:
         raise ValueError(f"Unsupported or unknown kty(1): {params[1]}.")
 
     @classmethod
+    def generate_symmetric_key(
+        cls,
+        alg: Union[int, str] = "",
+        kid: Union[bytes, str] = b"",
+        key_ops: Optional[Union[List[int], List[str]]] = None,
+    ) -> COSEKeyInterface:
+        """
+        Generates a symmetric COSE key from from a randomly genarated byte string.
+
+        Args:
+            alg (Union[int, str]): An algorithm label(int) or name(str).
+                Supported ``alg`` are listed in
+                `Supported COSE Algorithms <https://python-cwt.readthedocs.io/en/stable/algorithms.html>`_.
+            kid (Union[bytes, str]): A key identifier.
+            key_ops (Union[List[int], List[str]]): A list of key operation values.
+                Following values can be used:
+                ``1("sign")``, ``2("verify")``, ``3("encrypt")``, ``4("decrypt")``, ``5("wrap key")``,
+                ``6("unwrap key")``, ``7("derive key")``, ``8("derive bits")``,
+                ``9("MAC create")``, ``10("MAC verify")``
+        Returns:
+            COSEKeyInterface: A COSE key object.
+        Raises:
+            ValueError: Invalid arguments.
+        """
+        return cls.from_symmetric_key(b"", alg, kid, key_ops)
+
+    @classmethod
     def from_symmetric_key(
         cls,
         key: Union[bytes, str] = b"",

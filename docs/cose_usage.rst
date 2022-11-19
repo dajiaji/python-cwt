@@ -8,7 +8,7 @@ The following is a simple sample code using COSE API:
 
     >>> from cwt import COSE, COSEKey
     >>> ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
-    >>> mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+    >>> mac_key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
     >>> encoded = ctx.encode_and_mac(b"Hello world!", mac_key)
     >>> encoded.hex()
     'd18443a10105a1044230314c48656c6c6f20776f726c642158205d0b144add282ccaac32a02e0d5eec76928ccadf3623271eb48e9464e2ee03b2'
@@ -29,7 +29,7 @@ Create a COSE MAC0 message, verify and decode it as follows:
 
     from cwt import COSE, COSEKey
 
-    mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+    mac_key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
     ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
     encoded = ctx.encode_and_mac(b"Hello world!", mac_key)
     assert b"Hello world!" == ctx.decode(encoded, mac_key)
@@ -42,7 +42,7 @@ Following two samples are other ways of writing the above example:
 
     from cwt import COSE, COSEKey
 
-    mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+    mac_key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
     ctx = COSE.new()
     encoded = ctx.encode_and_mac(
         b"Hello world!",
@@ -56,7 +56,7 @@ Following two samples are other ways of writing the above example:
 
     from cwt import COSE, COSEKey
 
-    mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+    mac_key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
     ctx = COSE.new()
     encoded = ctx.encode_and_mac(
         b"Hello world!",
@@ -81,7 +81,7 @@ key distribution method.
     from cwt import COSE, COSEKey, Recipient
 
     # The sender makes a COSE MAC message as follows:
-    mac_key = COSEKey.from_symmetric_key(alg="HS512", kid="01")
+    mac_key = COSEKey.generate_symmetric_key(alg="HS512", kid="01")
     r = Recipient.from_jwk({"alg": "direct"})
     r.apply(mac_key)
     ctx = COSE.new()
@@ -98,7 +98,7 @@ Following samples are other ways of writing the above sample:
 
     # The sender side:
     # In contrast to from_jwk(), new() is low-level constructor.
-    mac_key = COSEKey.from_symmetric_key(alg="HS512", kid="01")
+    mac_key = COSEKey.generate_symmetric_key(alg="HS512", kid="01")
     r = Recipient.new(unprotected={"alg": "direct"})
     r.apply(mac_key)
     ctx = COSE.new()
@@ -113,7 +113,7 @@ Following samples are other ways of writing the above sample:
 
     # The sender side:
     # new() can accept following raw COSE header parameters.
-    mac_key = COSEKey.from_symmetric_key(alg="HS512", kid="01")
+    mac_key = COSEKey.generate_symmetric_key(alg="HS512", kid="01")
     r = Recipient.new(unprotected={1: 7})
     r.apply(mac_key)
     ctx = COSE.new()
@@ -161,7 +161,7 @@ The AES key wrap algorithm can be used to wrap a MAC key as follows:
     from cwt import COSE, COSEKey, Recipient
 
     # The sender side:
-    mac_key = COSEKey.from_symmetric_key(alg="HS512")
+    mac_key = COSEKey.generate_symmetric_key(alg="HS512")
     r = Recipient.from_jwk(
         {
             "kid": "01",
@@ -337,7 +337,7 @@ Key Agreement with Key Wrap
     from cwt import COSE, COSEKey, Recipient
 
     # The sender side:
-    mac_key = COSEKey.from_symmetric_key(alg="HS256")
+    mac_key = COSEKey.generate_symmetric_key(alg="HS256")
     r = Recipient.from_jwk(
         {
             "kty": "EC",
@@ -389,7 +389,7 @@ Create a COSE Encrypt0 message, verify and decode it as follows:
 
     from cwt import COSE, COSEKey
 
-    enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
+    enc_key = COSEKey.generate_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
 
     # The sender side:
     nonce = enc_key.generate_nonce()
@@ -407,7 +407,7 @@ Following two samples are other ways of writing the above example:
 
     from cwt import COSE, COSEKey
 
-    enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
+    enc_key = COSEKey.generate_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
 
     # The sender side:
     nonce = enc_key.generate_nonce()
@@ -427,7 +427,7 @@ Following two samples are other ways of writing the above example:
 
     from cwt import COSE, COSEKey
 
-    enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
+    enc_key = COSEKey.generate_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
 
     # The sender side:
     nonce = enc_key.generate_nonce()
@@ -457,7 +457,7 @@ key distribution method.
 
     from cwt import COSE, COSEKey, Recipient
 
-    enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
+    enc_key = COSEKey.generate_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
 
     # The sender side:
     nonce = enc_key.generate_nonce()
@@ -519,7 +519,7 @@ The AES key wrap algorithm can be used to wrap an encryption key as follows:
             "k": "hJtXIZ2uSN5kbQfbtTNWbg",  # A shared wrapping key
         },
     )
-    enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
+    enc_key = COSEKey.generate_symmetric_key(alg="ChaCha20/Poly1305")
     r.apply(enc_key)
     ctx = COSE.new(alg_auto_inclusion=True)
     encoded = ctx.encode_and_encrypt(b"Hello world!", key=enc_key, recipients=[r])
@@ -688,7 +688,7 @@ Key Agreement with Key Wrap
     from cwt import COSE, COSEKey, Recipient
 
     # The sender side:
-    enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
+    enc_key = COSEKey.generate_symmetric_key(alg="A128GCM")
     nonce = enc_key.generate_nonce()
     r = Recipient.from_jwk(
         {
