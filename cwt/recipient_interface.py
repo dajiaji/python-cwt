@@ -156,8 +156,7 @@ class RecipientInterface(CBORProcessor):
 
     def encode(
         self,
-        plaintext: bytes,
-        recipient_key: Optional[COSEKeyInterface] = None,
+        plaintext: bytes = b"",
         salt: Optional[bytes] = None,
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
         external_aad: bytes = b"",
@@ -176,8 +175,6 @@ class RecipientInterface(CBORProcessor):
         Args:
             plaintext (bytes): A plaing text to be encrypted. In most of the cases,
                 the plaintext is a byte string of a content encryption key.
-            recipient_key (Optional[COSEKeyInterface]): The external public
-                key provided by the recipient used for ECDH key agreement, HPKE, etc.
             salt (Optional[bytes]): A salt used for deriving a key.
             context (Optional[Union[List[Any], Dict[str, Any]]]): Context
                 information structure.

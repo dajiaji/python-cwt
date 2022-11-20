@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Union
 from ..const import COSE_KEY_OPERATION_VALUES
 from ..cose_key import COSEKey
 from ..cose_key_interface import COSEKeyInterface
-from ..exceptions import DecodeError, EncodeError
+from ..exceptions import DecodeError
 from ..recipient_interface import RecipientInterface
 
 
@@ -17,10 +17,12 @@ class AESKeyWrap(RecipientInterface):
         self,
         protected: Dict[int, Any],
         unprotected: Dict[int, Any],
-        sender_key: COSEKeyInterface,
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
+        sender_key: Optional[COSEKeyInterface] = None,
     ):
+        if sender_key is None:
+            raise ValueError("sender_key should be set.")
         if sender_key.alg not in [-3, -4, -5]:
             raise ValueError(f"Invalid alg in sender_key: {sender_key.alg}.")
         if 1 in protected and protected[1] != sender_key.alg:
@@ -33,7 +35,19 @@ class AESKeyWrap(RecipientInterface):
             sender_key.key_ops,
             sender_key.key,
         )
-        self._sender_key = sender_key
+        self._sender_key: COSEKeyInterface = sender_key
+
+    def encode(
+        self,
+        plaintext: bytes = b"",
+        salt: Optional[bytes] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+        external_aad: bytes = b"",
+        aad_context: str = "Enc_Recipient",
+    ) -> Optional[COSEKeyInterface]:
+
+        self._ciphertext = self._sender_key.wrap_key(plaintext)
+        return None
 
     def apply(
         self,
@@ -48,10 +62,7 @@ class AESKeyWrap(RecipientInterface):
             raise ValueError("key should be set.")
         if key.kid:
             self._protected[4] = key.kid
-        try:
-            self._ciphertext = self._sender_key.wrap_key(key.key)
-        except Exception as err:
-            raise EncodeError("Failed to wrap key.") from err
+        self._ciphertext = self._sender_key.wrap_key(key.key)
         return key
 
     def extract(

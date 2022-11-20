@@ -37,6 +37,7 @@ CWT_CLAIM_NAMES = {
 
 # COSE Header Parameters
 COSE_HEADER_PARAMETERS = {
+    "salt": -20,
     "alg": 1,
     "crit": 2,
     "cty": 3,

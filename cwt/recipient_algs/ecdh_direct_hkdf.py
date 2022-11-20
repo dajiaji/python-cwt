@@ -2,6 +2,8 @@ import copy
 from secrets import token_bytes
 from typing import Any, Dict, List, Optional, Union
 
+from ..algs.ec2 import EC2Key
+from ..algs.okp import OKPKey
 from ..const import COSE_KEY_OPERATION_VALUES
 from ..cose_key import COSEKey
 from ..cose_key_interface import COSEKeyInterface
@@ -22,10 +24,12 @@ class ECDH_DirectHKDF(Direct):
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
         sender_key: Optional[COSEKeyInterface] = None,
+        recipient_key: Optional[COSEKeyInterface] = None,
     ):
         super().__init__(protected, unprotected, ciphertext, recipients)
         self._sender_public_key: Any = None
         self._sender_key = sender_key
+        self._recipient_key = recipient_key
 
         self._salt = None
         if -20 in unprotected:
@@ -57,6 +61,65 @@ class ECDH_DirectHKDF(Direct):
                 self._sender_public_key = COSEKey.new(self.unprotected[-2])
         else:
             raise ValueError(f"Unknown alg(1) for ECDH with HKDF: {self._alg}.")
+
+    def encode(
+        self,
+        plaintext: bytes = b"",
+        salt: Optional[bytes] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+        external_aad: bytes = b"",
+        aad_context: str = "Enc_Recipient",
+    ) -> Optional[COSEKeyInterface]:
+
+        if not self._recipient_key:
+            raise ValueError("recipient_key should be set in advance.")
+        if not context:
+            raise ValueError("context should be set.")
+        ctx: list
+        if isinstance(context, dict):
+            alg = self._alg if isinstance(self._alg, int) else 0
+            ctx = to_cis(context, alg)
+        else:
+            self._validate_context(context)
+            ctx = context
+        self._applied_ctx = self._apply_context(ctx)
+
+        # Generate a salt automatically if both of a salt and a PartyU nonce are not specified.
+        if self._alg in [-27, -28]:  # ECDH-SS
+            if not salt and not self._salt and not self._applied_ctx[1][1]:
+                self._salt = token_bytes(32) if self._alg == -27 else token_bytes(64)
+                self._unprotected[-20] = self._salt
+            elif salt:
+                self._salt = salt
+                self._unprotected[-20] = self._salt
+
+        # PartyU nonce
+        if self._applied_ctx[1][1]:
+            self._unprotected[-22] = self._applied_ctx[1][1]
+        # PartyV nonce
+        if self._applied_ctx[2][1]:
+            self._unprotected[-25] = self._applied_ctx[2][1]
+
+        # Derive key.
+        if self._alg in [-25, -26]:
+            # ECDH-ES
+            if self._recipient_key.kty == 2:
+                self._sender_key = EC2Key({1: 2, -1: self._recipient_key.crv, 3: self._alg})
+            else:
+                # should drop this support.
+                self._sender_key = OKPKey({1: 1, -1: self._recipient_key.crv, 3: self._alg})
+        else:
+            # ECDH-SS (alg=-27 or -28)
+            if not self._sender_key:
+                raise ValueError("sender_key should be set in advance.")
+        derived_key = self._sender_key.derive_key(self._applied_ctx, public_key=self._recipient_key)
+        if self._alg in [-25, -26]:
+            # ECDH-ES
+            self._unprotected[-1] = self._to_cose_key(self._sender_key.key.public_key())
+        else:
+            # ECDH-SS (alg=-27 or -28)
+            self._unprotected[-2] = self._to_cose_key(self._sender_key.key.public_key())
+        return derived_key
 
     def apply(
         self,

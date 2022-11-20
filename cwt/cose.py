@@ -168,8 +168,8 @@ class COSE(CBORProcessor):
         # Encrypt0
         if not recipients:
             if 1 in p and p[1] == -1:  # HPKE
-                hpke = HPKE(p, u)
-                hpke.encode(payload, recipient_key=key, external_aad=external_aad, aad_context="Encrypt0")
+                hpke = HPKE(p, u, recipient_key=key)
+                hpke.encode(payload, external_aad=external_aad, aad_context="Encrypt0")
                 res = CBORTag(16, hpke.to_list())
                 return res if out == "cbor2/CBORTag" else self._dumps(res)
             if key is None:
