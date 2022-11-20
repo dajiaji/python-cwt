@@ -68,7 +68,7 @@ class TestCOSE:
         encoded = ctx.encode_and_mac(
             b"Hello world!",
             mac_key,
-            recipients=[RecipientInterface(unprotected={1: -6, 4: b"01"})],
+            recipients=[Recipient.new(unprotected={1: -6, 4: b"01"})],
         )
         assert b"Hello world!" == ctx.decode(encoded, mac_key)
 

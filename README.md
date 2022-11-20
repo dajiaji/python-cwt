@@ -30,7 +30,7 @@ And then, you can use it as follows:
 >>> import cwt
 >>> from cwt import COSEKey
 >>> key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
->>> token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
+>>> token = cwt.{"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
 >>> token.hex()
 'd18443a10105a05835a60172636f6170733a2f2f61732e657861'...
 >>> cwt.decode(token, key)
@@ -167,6 +167,7 @@ mac_key = COSEKey.generate_symmetric_key(alg="HS512", kid="01")
 
 # The sender side:
 r = Recipient.new(unprotected={"alg": "direct", "kid": mac_key.kid})
+// r = Recipient.new(unprotected={1: -6, 4: mac_key.kid}) // is also acceptable.
 
 sender = COSE.new()
 encoded = sender.encode_and_mac(b"Hello world!", mac_key, recipients=[r])
@@ -192,12 +193,12 @@ r = Recipient.new(
         "alg": "direct+HKDF-SHA-256",
         "salt": "aabbccddeeffgghh",
     },
+    context={"alg": "HS256"},
 )
-mac_key = r.encode(shared_key.to_bytes(), context={"alg": "HS256"})
 sender = COSE.new(alg_auto_inclusion=True)
 encoded = sender.encode_and_mac(
     b"Hello world!",
-    mac_key,
+    shared_key,
     recipients=[r],
 )
 
@@ -213,6 +214,8 @@ The AES key wrap algorithm can be used to wrap a MAC key as follows:
 ```py
 from cwt import COSE, COSEKey, Recipient
 
+# The sender side:
+mac_key = COSEKey.generate_symmetric_key(alg="HS512")
 enc_key = COSEKey.from_jwk(
     {
         "kty": "oct",
@@ -220,12 +223,8 @@ enc_key = COSEKey.from_jwk(
         "alg": "A128KW",
         "k": "hJtXIZ2uSN5kbQfbtTNWbg",  # A shared wrapping key
     }
-);
-
-# The sender side:
-mac_key = COSEKey.generate_symmetric_key(alg="HS512")
+)
 r = Recipient.new(unprotected={"alg": "A128KW"}, sender_key=enc_key)
-r.encode(mac_key.to_bytes())
 sender = COSE.new(alg_auto_inclusion=True)
 encoded = sender.encode_and_mac(b"Hello world!", mac_key, recipients=[r])
 
@@ -255,10 +254,16 @@ pub_key = COSEKey.from_jwk(
         "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
     }
 )
-r = Recipient.new({"alg": "ECDH-ES+HKDF-256"}, recipient_key=pub_key)
-mac_key = r.encode(context={"alg": "HS256"})
+r = Recipient.new(
+    unprotected={"alg": "ECDH-ES+HKDF-256"},
+    recipient_key=pub_key,
+    context={"alg": "HS256"},
+)
 sender = COSE.new(alg_auto_inclusion=True)
-encoded = sender.encode_and_mac(b"Hello world!", mac_key, recipients=[r])
+encoded = sender.encode_and_mac(
+    b"Hello world!",
+    recipients=[r],
+)
 
 # The recipient side:
 # The following key is the private key of the above pub_key.
@@ -286,9 +291,8 @@ assert b"Hello world!" == recipient.decode(encoded, priv_key, context={"alg": "H
 ```py
 from cwt import COSE, COSEKey, Recipient
 
-mac_key = COSEKey.generate_symmetric_key(alg="HS256")
-
 # The sender side:
+mac_key = COSEKey.generate_symmetric_key(alg="HS256")
 pub_key = COSEKey.from_jwk(
     {
         "kty": "EC",
@@ -299,8 +303,11 @@ pub_key = COSEKey.from_jwk(
         "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
     }
 )
-r = Recipient.new(unprotected={"alg": "ECDH-ES+A128KW"}, recipient_key=pub_key)
-r.encode(mac_key.to_bytes(), context={"alg": "HS256"})
+r = Recipient.new(
+    unprotected={"alg": "ECDH-ES+A128KW"},
+    recipient_key=pub_key,
+    context={"alg": "HS256"},
+)
 sender = COSE.new(alg_auto_inclusion=True)
 encoded = sender.encode_and_mac(
     b"Hello world!",
@@ -752,7 +759,7 @@ from cwt import Claims, COSEKey
 
 try:
     key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
-    token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
+    token = cwt.{"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
     decoded = cwt.decode(token, key)
 
     # If you want to treat the result like a JWT;
@@ -781,7 +788,7 @@ import cwt
 from cwt import COSEKey
 
 key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
-token = cwt.encode({1: "coaps://as.example", 2: "dajiaji", 7: b"123"}, key)
+token = cwt.{1: "coaps://as.example", 2: "dajiaji", 7: b"123"}, key)
 decoded = cwt.decode(token, key)
 ```
 
@@ -806,7 +813,7 @@ from cwt import COSEKey
 # The sender side:
 with open("./private_key.pem") as key_file:
     private_key = COSEKey.from_pem(key_file.read(), kid="01")
-token = cwt.encode(
+token = cwt.
     {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
 )
 
@@ -832,7 +839,7 @@ private_key = COSEKey.from_jwk({
     "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
     "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
 })
-token = cwt.encode(
+token = cwt.
     {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
 )
 
@@ -859,7 +866,7 @@ import cwt
 from cwt import COSEKey
 
 enc_key = COSEKey.generate_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
-token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, enc_key)
+token = cwt.{"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, enc_key)
 decoded = cwt.decode(token, enc_key)
 ```
 
@@ -880,12 +887,12 @@ enc_key = COSEKey.generate_symmetric_key(alg="ChaCha20/Poly1305", kid="enc-01")
 # Creates a CWT with ES256 signing.
 with open("./private_key.pem") as key_file:
     private_key = COSEKey.from_pem(key_file.read(), kid="sig-01")
-token = cwt.encode(
+token = cwt.
     {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
 )
 
 # Encrypts the signed CWT.
-nested = cwt.encode(token, enc_key)
+nested = cwt.token, enc_key)
 
 # Decrypts and verifies the nested CWT.
 with open("./public_key.pem") as key_file:
@@ -895,7 +902,7 @@ decoded = cwt.decode(nested, [enc_key, public_key])
 
 ### CWT with User Settings
 
-The `cwt` in `cwt.encode()` and `cwt.decode()` above is a global `CWT` class instance created
+The `cwt` in `cwt.)` and `cwt.decode()` above is a global `CWT` class instance created
 with default settings in advance. The default settings are as follows:
 - `expires_in`: `3600` seconds. This is the default lifetime in seconds of CWTs.
 - `leeway`: `60` seconds. This is the default leeway in seconds for validating `exp` and `nbf`.
@@ -907,7 +914,7 @@ from cwt import COSEKey, CWT
 
 key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
 mycwt = CWT.new(expires_in=3600*24, leeway=10)
-token = mycwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
+token = mycwt.{"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
 decoded = mycwt.decode(token, key)
 ```
 
@@ -924,7 +931,7 @@ from cwt import COSEKey
 # The sender side:
 with open("./private_key.pem") as key_file:
     private_key = COSEKey.from_pem(key_file.read(), kid="01")
-token = cwt.encode(
+token = cwt.
     {
         1: "coaps://as.example",  # iss
         2: "dajiaji",  # sub
@@ -970,7 +977,7 @@ my_claim_names = {
 }
 
 cwt.set_private_claim_names(my_claim_names)
-token = cwt.encode(
+token = cwt.
     {
         "iss": "coaps://as.example",
         "sub": "dajiaji",
@@ -1014,7 +1021,7 @@ with open("./private_key_of_issuer.pem") as key_file:
     private_key = COSEKey.from_pem(key_file.read(), kid="issuer-01")
 
 # Sets the PoP key to a CWT for the presenter.
-token = cwt.encode(
+token = cwt.
     {
         "iss": "coaps://as.example",
         "sub": "dajiaji",
@@ -1094,7 +1101,7 @@ from cwt import Claims, COSEKey
 with open("./private_key_of_cert.pem")) as f:
     private_key = COSEKey.from_pem(f.read(), kid="01")
 
-token = cwt.encode(
+token = cwt.
     {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
 )
 

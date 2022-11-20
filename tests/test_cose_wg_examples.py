@@ -13,7 +13,6 @@ import cbor2
 import pytest
 
 from cwt import COSE, COSEKey, Recipient
-from cwt.recipient_interface import RecipientInterface
 from cwt.signer import Signer
 from cwt.utils import base64url_decode
 
@@ -60,7 +59,7 @@ class TestCOSE:
         encoded = ctx.encode_and_mac(
             b"This is the content.",
             key=key,
-            recipients=[RecipientInterface(unprotected={1: -6, 4: b"our-secret"})],
+            recipients=[Recipient.new(unprotected={1: -6, 4: b"our-secret"})],
         )
         assert encoded == bytes.fromhex(cwt_str)
         assert ctx.decode(encoded, key) == b"This is the content."

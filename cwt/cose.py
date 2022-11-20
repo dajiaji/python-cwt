@@ -210,7 +210,7 @@ class COSE(CBORProcessor):
     def encode_and_mac(
         self,
         payload: bytes,
-        key: COSEKeyInterface,
+        key: Optional[COSEKeyInterface] = None,
         protected: Optional[dict] = None,
         unprotected: Optional[dict] = None,
         recipients: Optional[List[RecipientInterface]] = None,
@@ -239,14 +239,17 @@ class COSE(CBORProcessor):
         """
         p = to_cose_header(protected)
         u = to_cose_header(unprotected)
-        if self._alg_auto_inclusion:
-            p[1] = key.alg
-        if self._kid_auto_inclusion and key.kid:
-            u[4] = key.kid
+        if key is not None:
+            if self._alg_auto_inclusion:
+                p[1] = key.alg
+            if self._kid_auto_inclusion and key.kid:
+                u[4] = key.kid
         b_protected = self._dumps(p) if p else b""
 
         # MAC0
         if not recipients:
+            if key is None:
+                raise ValueError("key should be set.")
             mac_structure = ["MAC0", b_protected, external_aad, payload]
             tag = key.sign(self._dumps(mac_structure))
             res = CBORTag(17, [b_protected, u, payload, tag])
@@ -257,12 +260,17 @@ class COSE(CBORProcessor):
             raise NotImplementedError("Algorithms other than direct are not supported for recipients.")
 
         mac_structure = ["MAC", b_protected, external_aad, payload]
-        tag = key.sign(self._dumps(mac_structure))
 
         recs = []
+        b_key = key.to_bytes() if isinstance(key, COSEKeyInterface) else b""
         for rec in recipients:
+            derived_key = rec.encode(b_key, external_aad=external_aad)
+            key = derived_key if derived_key else key
             recs.append(rec.to_list())
 
+        if key is None:
+            raise ValueError("key should be set.")
+        tag = key.sign(self._dumps(mac_structure))
         cose_mac: List[Any] = [b_protected, u, payload, tag]
         cose_mac.append(recs)
         res = CBORTag(97, cose_mac)
