@@ -45,8 +45,7 @@ class TestCOSESample:
         mac_key = COSEKey.generate_symmetric_key(alg="HS512", kid="01")
 
         # The sender side:
-        r = Recipient.from_jwk({"alg": "direct"})
-        r.apply(mac_key)
+        r = Recipient.new(unprotected={"alg": "direct", "kid": mac_key.kid})
 
         sender = COSE.new()
         encoded = sender.encode_and_mac(b"Hello world!", mac_key, recipients=[r])
@@ -56,13 +55,11 @@ class TestCOSESample:
         assert b"Hello world!" == recipient.decode(encoded, mac_key)
 
         # variation
-        r2 = Recipient.new(unprotected={"alg": "direct"})
-        r2.apply(mac_key)
+        r2 = Recipient.new(unprotected={"alg": "direct", "kid": mac_key.kid})
         encoded2 = sender.encode_and_mac(b"Hello world!", mac_key, recipients=[r2])
         assert b"Hello world!" == recipient.decode(encoded2, mac_key)
 
-        r3 = Recipient.new(unprotected={1: -6})
-        r3.apply(mac_key)
+        r3 = Recipient.new(unprotected={1: -6, 4: mac_key.kid})
         encoded3 = sender.encode_and_mac(b"Hello world!", mac_key, recipients=[r3])
         assert b"Hello world!" == recipient.decode(encoded3, mac_key)
 
@@ -81,7 +78,7 @@ class TestCOSESample:
                 "salt": "aabbccddeeffgghh",
             },
         )
-        mac_key = r.apply(shared_key, context={"alg": "HS256"})
+        mac_key = r.encode(shared_key.to_bytes(), context={"alg": "HS256"})
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_mac(
             b"Hello world!",
@@ -105,7 +102,7 @@ class TestCOSESample:
                 "k": "hJtXIZ2uSN5kbQfbtTNWbg",  # A shared wrapping key
             },
         )
-        r.apply(mac_key)
+        r.encode(mac_key.to_bytes())
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_mac(b"Hello world!", key=mac_key, recipients=[r])
 
@@ -141,7 +138,7 @@ class TestCOSESample:
                 "crv": "P-256",
             },
         )
-        mac_key = r.apply(recipient_key=pub_key, context={"alg": "HS256"})
+        mac_key = r.encode(recipient_key=pub_key, context={"alg": "HS256"})
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_mac(
             b"Hello world!",
@@ -187,7 +184,7 @@ class TestCOSESample:
                 "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
             }
         )
-        mac_key = r.apply(recipient_key=pub_key, context={"alg": "HS256"})
+        mac_key = r.encode(recipient_key=pub_key, context={"alg": "HS256"})
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_mac(
             b"Hello world!",
@@ -228,7 +225,7 @@ class TestCOSESample:
                 "x": "IkLmc0klvEMXYneHMKAB6ePohryAwAPVe2pRSffIDY6NrjeYNWVX5J-fG4NV2OoU77C88A0mvxI",
             }
         )
-        mac_key = r.apply(recipient_key=pub_key, context={"alg": "HS256"})
+        mac_key = r.encode(recipient_key=pub_key, context={"alg": "HS256"})
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_mac(
             b"Hello world!",
@@ -273,7 +270,7 @@ class TestCOSESample:
                 "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
             }
         )
-        r.apply(mac_key, recipient_key=pub_key, context={"alg": "HS256"})
+        r.encode(mac_key.to_bytes(), recipient_key=pub_key, context={"alg": "HS256"})
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_mac(
             b"Hello world!",
@@ -382,8 +379,7 @@ class TestCOSESample:
 
         # The sender side:
         nonce = enc_key.generate_nonce()
-        r = Recipient.from_jwk({"alg": "direct"})
-        r.apply(enc_key)
+        r = Recipient.new(unprotected={"alg": "direct", "kid": enc_key.kid})
 
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
@@ -398,8 +394,7 @@ class TestCOSESample:
         assert b"Hello world!" == recipient.decode(encoded, enc_key)
 
         # variation
-        r = Recipient.new(unprotected={"alg": "direct"})
-        r.apply(enc_key)
+        r = Recipient.new(unprotected={1: -6, 4: enc_key.kid})
         encoded2 = sender.encode_and_encrypt(
             b"Hello world!",
             enc_key,
@@ -408,15 +403,7 @@ class TestCOSESample:
         )
         assert b"Hello world!" == recipient.decode(encoded2, enc_key)
 
-        encoded3 = sender.encode_and_encrypt(
-            b"Hello world!",
-            enc_key,
-            nonce=nonce,
-            recipients=[r],
-        )
-        assert b"Hello world!" == recipient.decode(encoded3, enc_key)
-
-        assert encoded == encoded2 == encoded3
+        assert encoded == encoded2
 
     def test_cose_usage_examples_cose_encrypt_hpke(self):
 
@@ -575,7 +562,7 @@ class TestCOSESample:
                 "salt": "aabbccddeeffgghh",
             },
         )
-        enc_key = r.apply(shared_key, context={"alg": "A256GCM"})
+        enc_key = r.encode(shared_key.to_bytes(), context={"alg": "A256GCM"})
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_encrypt(
             b"Hello world!",
@@ -600,7 +587,7 @@ class TestCOSESample:
                 "k": "hJtXIZ2uSN5kbQfbtTNWbg",  # A shared wrapping key
             },
         )
-        r.apply(enc_key)
+        r.encode(enc_key.to_bytes())
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_encrypt(b"Hello world!", key=enc_key, recipients=[r])
 
@@ -619,13 +606,6 @@ class TestCOSESample:
     def test_cose_usage_examples_cose_encrypt_ecdh_direct_hkdf_p256(self):
 
         # The sender side:
-        r = Recipient.from_jwk(
-            {
-                "kty": "EC",
-                "alg": "ECDH-ES+HKDF-256",
-                "crv": "P-256",
-            },
-        )
         pub_key = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -635,7 +615,8 @@ class TestCOSESample:
                 "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
             }
         )
-        enc_key = r.apply(recipient_key=pub_key, context={"alg": "A128GCM"})
+        r = Recipient.new(unprotected={"alg": "ECDH-ES+HKDF-256"}, recipient_key=pub_key)
+        enc_key = r.encode(context={"alg": "A128GCM"}, recipient_key=pub_key)
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_encrypt(
             b"Hello world!",
@@ -658,103 +639,11 @@ class TestCOSESample:
         )
         assert b"Hello world!" == recipient.decode(encoded, priv_key, context={"alg": "A128GCM"})
 
-    def test_cose_usage_examples_cose_encrypt_ecdh_direct_hkdf_x25519(self):
-
-        # The sender side:
-        r = Recipient.from_jwk(
-            {
-                "kty": "OKP",
-                "alg": "ECDH-ES+HKDF-256",
-                "crv": "X25519",
-            },
-        )
-        pub_key = COSEKey.from_jwk(
-            {
-                "kty": "OKP",
-                "alg": "ECDH-ES+HKDF-256",
-                "kid": "01",
-                "crv": "X25519",
-                "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
-            }
-        )
-        enc_key = r.apply(recipient_key=pub_key, context={"alg": "A128GCM"})
-        sender = COSE.new(alg_auto_inclusion=True)
-        encoded = sender.encode_and_encrypt(
-            b"Hello world!",
-            key=enc_key,
-            recipients=[r],
-        )
-
-        # The recipient side:
-        recipient = COSE.new()
-        priv_key = COSEKey.from_jwk(
-            {
-                "kty": "OKP",
-                "alg": "ECDH-ES+HKDF-256",
-                "kid": "01",
-                "crv": "X25519",
-                "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
-                "d": "vsJ1oX5NNi0IGdwGldiac75r-Utmq3Jq4LGv48Q_Qc4",
-            }
-        )
-        assert b"Hello world!" == recipient.decode(encoded, priv_key, context={"alg": "A128GCM"})
-
-    def test_cose_usage_examples_cose_encrypt_ecdh_direct_hkdf_x448(self):
-
-        # The sender side:
-        r = Recipient.from_jwk(
-            {
-                "kty": "OKP",
-                "alg": "ECDH-ES+HKDF-256",
-                "crv": "X448",
-            },
-        )
-        pub_key = COSEKey.from_jwk(
-            {
-                "kty": "OKP",
-                "alg": "ECDH-ES+HKDF-256",
-                "kid": "01",
-                "crv": "X448",
-                "x": "IkLmc0klvEMXYneHMKAB6ePohryAwAPVe2pRSffIDY6NrjeYNWVX5J-fG4NV2OoU77C88A0mvxI",
-            }
-        )
-        enc_key = r.apply(recipient_key=pub_key, context={"alg": "A128GCM"})
-        sender = COSE.new(alg_auto_inclusion=True)
-        encoded = sender.encode_and_encrypt(
-            b"Hello world!",
-            key=enc_key,
-            recipients=[r],
-        )
-
-        # The recipient side:
-        recipient = COSE.new()
-        priv_key = COSEKey.from_jwk(
-            {
-                "kty": "OKP",
-                "alg": "ECDH-ES+HKDF-256",
-                "kid": "01",
-                "crv": "X448",
-                "x": "IkLmc0klvEMXYneHMKAB6ePohryAwAPVe2pRSffIDY6NrjeYNWVX5J-fG4NV2OoU77C88A0mvxI",
-                "d": "rJJRG3nshyCtd9CgXld8aNaB9YXKR0UOi7zj7hApg9YH4XdBO0G8NcAFNz_uPH2GnCZVcSDgV5c",
-            }
-        )
-        assert b"Hello world!" == recipient.decode(encoded, priv_key, context={"alg": "A128GCM"})
-
     def test_cose_usage_examples_cose_encrypt_ecdh_ss_a128kw(self):
 
         # The sender side:
         enc_key = COSEKey.generate_symmetric_key(alg="A128GCM")
         nonce = enc_key.generate_nonce()
-        r = Recipient.from_jwk(
-            {
-                "kty": "EC",
-                "crv": "P-256",
-                "alg": "ECDH-SS+A128KW",
-                "x": "7cvYCcdU22WCwW1tZXR8iuzJLWGcd46xfxO1XJs-SPU",
-                "y": "DzhJXgz9RI6TseNmwEfLoNVns8UmvONsPzQDop2dKoo",
-                "d": "Uqr4fay_qYQykwcNCB2efj_NFaQRRQ-6fHZm763jt5w",
-            }
-        )
         pub_key = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -764,7 +653,18 @@ class TestCOSESample:
                 "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
             }
         )
-        r.apply(enc_key, recipient_key=pub_key, context={"alg": "A128GCM"})
+        priv_key = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "crv": "P-256",
+                "alg": "ECDH-SS+A128KW",
+                "x": "7cvYCcdU22WCwW1tZXR8iuzJLWGcd46xfxO1XJs-SPU",
+                "y": "DzhJXgz9RI6TseNmwEfLoNVns8UmvONsPzQDop2dKoo",
+                "d": "Uqr4fay_qYQykwcNCB2efj_NFaQRRQ-6fHZm763jt5w",
+            }
+        )
+        r = Recipient.new(unprotected={"alg": "ECDH-SS+A128KW"}, sender_key=priv_key)
+        r.encode(enc_key.to_bytes(), recipient_key=pub_key, context={"alg": "A128GCM"})
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_encrypt(
             b"Hello world!",
@@ -840,13 +740,6 @@ class TestCOSESample:
         enc_key = COSEKey.generate_symmetric_key(alg="A128GCM")
 
         # The sender side:
-        r = Recipient.from_jwk(
-            {
-                "kty": "EC",
-                "alg": "ECDH-ES+A128KW",
-                "crv": "P-256",
-            },
-        )
         pub_key = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -857,7 +750,8 @@ class TestCOSESample:
                 "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
             }
         )
-        r.apply(enc_key, recipient_key=pub_key, context={"alg": "A128GCM"})
+        r = Recipient.new(unprotected={"alg": "ECDH-ES+A128KW"})
+        r.encode(enc_key.to_bytes(), recipient_key=pub_key, context={"alg": "A128GCM"})
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_encrypt(
             b"Hello world!",

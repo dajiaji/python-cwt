@@ -25,6 +25,9 @@ class RawKey(COSEKeyInterface):
     def key(self) -> bytes:
         return self._key
 
+    def to_bytes(self) -> bytes:
+        return self._key
+
     def to_dict(self) -> Dict[int, Any]:
         res = super().to_dict()
         res[-1] = self._key

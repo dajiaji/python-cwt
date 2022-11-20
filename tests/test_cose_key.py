@@ -626,3 +626,7 @@ class TestCOSEKey:
             ki.to_bytes()
             pytest.fail("to_bytes should fail.")
         assert "" == str(err.value)
+        with pytest.raises(NotImplementedError) as err:
+            ki.crv
+            pytest.fail("crv should fail.")
+        assert "" == str(err.value)

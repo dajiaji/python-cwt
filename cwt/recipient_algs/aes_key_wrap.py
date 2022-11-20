@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Union
 from ..const import COSE_KEY_OPERATION_VALUES
 from ..cose_key import COSEKey
 from ..cose_key_interface import COSEKeyInterface
-from ..exceptions import DecodeError, EncodeError
+from ..exceptions import DecodeError
 from ..recipient_interface import RecipientInterface
 
 
@@ -35,6 +35,19 @@ class AESKeyWrap(RecipientInterface):
         )
         self._sender_key = sender_key
 
+    def encode(
+        self,
+        plaintext: bytes = b"",
+        recipient_key: Optional[COSEKeyInterface] = None,
+        salt: Optional[bytes] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+        external_aad: bytes = b"",
+        aad_context: str = "Enc_Recipient",
+    ) -> Optional[COSEKeyInterface]:
+
+        self._ciphertext = self._sender_key.wrap_key(plaintext)
+        return None
+
     def apply(
         self,
         key: Optional[COSEKeyInterface] = None,
@@ -48,10 +61,7 @@ class AESKeyWrap(RecipientInterface):
             raise ValueError("key should be set.")
         if key.kid:
             self._protected[4] = key.kid
-        try:
-            self._ciphertext = self._sender_key.wrap_key(key.key)
-        except Exception as err:
-            raise EncodeError("Failed to wrap key.") from err
+        self._ciphertext = self._sender_key.wrap_key(key.key)
         return key
 
     def extract(

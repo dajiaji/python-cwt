@@ -104,6 +104,13 @@ class COSEKeyInterface(CBORProcessor):
         """
         raise NotImplementedError
 
+    @property
+    def crv(self) -> int:
+        """
+        The curve (``crv`` parameter value) of the key.
+        """
+        raise NotImplementedError
+
     def to_bytes(self) -> bytes:
         """
         Serializes the body of the key as a byte string.

@@ -36,6 +36,7 @@ class Recipient:
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
         sender_key: Optional[COSEKeyInterface] = None,
+        recipient_key: Optional[COSEKeyInterface] = None,
     ) -> RecipientInterface:
         """
         Creates a recipient from a CBOR-like dictionary with numeric keys.

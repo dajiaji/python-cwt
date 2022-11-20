@@ -82,6 +82,55 @@ class DirectHKDF(Direct):
             raise VerifyError("Failed to verify key.") from err
         return
 
+    def encode(
+        self,
+        plaintext: bytes = b"",
+        recipient_key: Optional[COSEKeyInterface] = None,
+        salt: Optional[bytes] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+        external_aad: bytes = b"",
+        aad_context: str = "Enc_Recipient",
+    ) -> Optional[COSEKeyInterface]:
+
+        if not context:
+            raise ValueError("context should be set.")
+        ctx: list
+        if isinstance(context, dict):
+            alg = self._alg if isinstance(self._alg, int) else 0
+            ctx = to_cis(context, alg)
+        else:
+            self._validate_context(context)
+            ctx = context
+        self._applied_ctx = self._apply_context(ctx)
+
+        # Generate a salt automatically if both of a salt and a PartyU nonce are not specified.
+        if not salt and not self._salt and not self._applied_ctx[1][1]:
+            self._salt = token_bytes(32) if self._alg == -10 else token_bytes(64)
+            self._unprotected[-20] = self._salt
+        elif salt:
+            self._salt = salt
+            self._unprotected[-20] = self._salt
+
+        # PartyU nonce
+        if self._applied_ctx[1][1]:
+            self._unprotected[-22] = self._applied_ctx[1][1]
+        # PartyV nonce
+        if self._applied_ctx[2][1]:
+            self._unprotected[-25] = self._applied_ctx[2][1]
+
+        # Derive key.
+        try:
+            hkdf = HKDF(
+                algorithm=self._hash_alg,
+                length=COSE_KEY_LEN[self._applied_ctx[0]] // 8,
+                salt=self._salt,
+                info=self._dumps(self._applied_ctx),
+            )
+            derived = hkdf.derive(plaintext)
+            return COSEKey.from_symmetric_key(derived, self._applied_ctx[0], self._kid)
+        except Exception as err:
+            raise EncodeError("Failed to derive key.") from err
+
     def apply(
         self,
         key: Optional[COSEKeyInterface] = None,
