@@ -155,13 +155,6 @@ class COSE(CBORProcessor):
                 p[1] = key.alg
             if self._kid_auto_inclusion and key.kid:
                 u[4] = key.kid
-            if 1 not in p or p[1] != -1:  # not HPKE
-                if not nonce:
-                    try:
-                        nonce = key.generate_nonce()
-                    except NotImplementedError:
-                        raise ValueError("Nonce generation is not supported for the key. Set a nonce explicitly.")
-                u[5] = nonce
         b_protected = self._dumps(p) if p else b""
         ciphertext: bytes = b""
 
@@ -174,6 +167,12 @@ class COSE(CBORProcessor):
                 return res if out == "cbor2/CBORTag" else self._dumps(res)
             if key is None:
                 raise ValueError("key should be set.")
+            if not nonce:
+                try:
+                    nonce = key.generate_nonce()
+                except NotImplementedError:
+                    raise ValueError("Nonce generation is not supported for the key. Set a nonce explicitly.")
+            u[5] = nonce
             enc_structure = ["Encrypt0", b_protected, external_aad]
             aad = self._dumps(enc_structure)
             ciphertext = key.encrypt(payload, nonce, aad)
@@ -185,22 +184,24 @@ class COSE(CBORProcessor):
             raise NotImplementedError("Algorithms other than direct are not supported for recipients.")
 
         recs = []
-        is_hpke = True
+        b_key = key.to_bytes() if isinstance(key, COSEKeyInterface) else b""
+        cek: Optional[COSEKeyInterface] = None
         for rec in recipients:
-            if rec.alg != -1:
-                is_hpke = False
-            recs.append(rec.to_list(payload, external_aad))
+            derived_key = rec.encode(b_key, external_aad=external_aad)
+            cek = derived_key if derived_key else key
+            recs.append(rec.to_list())
 
-        if 1 in p and p[1] == -1:  # HPKE
-            raise ValueError("alg for the first layer should not be HPKE.")
-
-        if key is not None:
-            enc_structure = ["Encrypt", b_protected, external_aad]
-            aad = self._dumps(enc_structure)
-            ciphertext = key.encrypt(payload, nonce, aad)
-        elif is_hpke is False:
+        if cek is None:
             raise ValueError("key should be set.")
-
+        if not nonce:
+            try:
+                nonce = cek.generate_nonce()
+            except NotImplementedError:
+                raise ValueError("Nonce generation is not supported for the key. Set a nonce explicitly.")
+        u[5] = nonce
+        enc_structure = ["Encrypt", b_protected, external_aad]
+        aad = self._dumps(enc_structure)
+        ciphertext = cek.encrypt(payload, nonce, aad)
         cose_enc: List[Any] = [b_protected, u, ciphertext]
         cose_enc.append(recs)
         res = CBORTag(96, cose_enc)

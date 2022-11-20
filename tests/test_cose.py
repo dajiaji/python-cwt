@@ -925,12 +925,14 @@ class TestCOSE:
     def test_cose_decode_ecdh_es_hkdf_256_without_context(self):
         with open(key_path("public_key_es256.pem")) as key_file:
             public_key = COSEKey.from_pem(key_file.read(), kid="01")
-        recipient = Recipient.from_jwk({"kty": "EC", "crv": "P-256", "alg": "ECDH-ES+HKDF-256"})
-        enc_key = recipient.apply(recipient_key=public_key, context={"alg": "A128GCM"})
+        recipient = Recipient.new(
+            unprotected={"alg": "ECDH-ES+HKDF-256"},
+            recipient_key=public_key,
+            context={"alg": "A128GCM"},
+        )
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_encrypt(
             b"This is the content.",
-            key=enc_key,
             recipients=[recipient],
         )
 
@@ -945,8 +947,11 @@ class TestCOSE:
         with open(key_path("public_key_es256.pem")) as key_file:
             public_key = COSEKey.from_pem(key_file.read(), kid="01")
         enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
-        recipient = Recipient.from_jwk({"kty": "EC", "crv": "P-256", "alg": "ECDH-ES+A128KW"})
-        recipient.apply(enc_key, recipient_key=public_key, context={"alg": "A128GCM"})
+        recipient = Recipient.new(
+            unprotected={"alg": "ECDH-ES+A128KW"},
+            recipient_key=public_key,
+            context={"alg": "A128GCM"},
+        )
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_encrypt(
             b"This is the content.",

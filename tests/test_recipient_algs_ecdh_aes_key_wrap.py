@@ -106,15 +106,17 @@ class TestECDH_AESKeyWrap:
 
     def test_ecdh_aes_key_wrap_through_cose_api(self, recipient_public_key, recipient_private_key):
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
-        rec = Recipient.from_jwk({"kty": "EC", "crv": "P-256", "alg": "ECDH-ES+A128KW"})
-        rec.apply(enc_key, recipient_key=recipient_public_key, context={"alg": "A128GCM"})
+        rec = Recipient.new(
+            unprotected={"alg": "ECDH-ES+A128KW"},
+            recipient_key=recipient_public_key,
+            context={"alg": "A128GCM"},
+        )
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_encrypt(b"Hello world!", enc_key, recipients=[rec])
         assert b"Hello world!" == ctx.decode(encoded, recipient_private_key, context={"alg": "A128GCM"})
 
     def test_ecdh_aes_key_wrap_through_cose_api_without_kid(self):
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
-        rec = Recipient.from_jwk({"kty": "EC", "crv": "P-256", "alg": "ECDH-ES+A128KW"})
         pub_key = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -124,8 +126,13 @@ class TestECDH_AESKeyWrap:
                 "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
             }
         )
-        rec.apply(enc_key, recipient_key=pub_key, context={"alg": "A128GCM"})
+        rec = Recipient.new(
+            unprotected={"alg": "ECDH-ES+A128KW"},
+            recipient_key=pub_key,
+            context={"alg": "A128GCM"},
+        )
         ctx = COSE.new(alg_auto_inclusion=True)
+        encoded = ctx.encode_and_encrypt(b"Hello world!", enc_key, recipients=[rec])
         priv_key = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -137,7 +144,6 @@ class TestECDH_AESKeyWrap:
                 "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",
             }
         )
-        encoded = ctx.encode_and_encrypt(b"Hello world!", enc_key, recipients=[rec])
         assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "A128GCM"})
 
     def test_ecdh_aes_key_wrap_apply_without_key(self, sender_key_es):
@@ -205,9 +211,13 @@ class TestECDH_AESKeyWrap:
 
     def test_ecdh_aes_key_wrap_extract_with_invalid_recipient_private_key(self, recipient_public_key):
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
-        rec = Recipient.from_jwk({"kty": "EC", "crv": "P-256", "alg": "ECDH-ES+A128KW"})
-        rec.apply(enc_key, recipient_key=recipient_public_key, context={"alg": "A128GCM"})
+        rec = Recipient.new(
+            unprotected={"alg": "ECDH-ES+A128KW"},
+            recipient_key=recipient_public_key,
+            context={"alg": "A128GCM"},
+        )
         ctx = COSE.new(alg_auto_inclusion=True)
+        encoded = ctx.encode_and_encrypt(b"Hello world!", enc_key, recipients=[rec])
         recipient_private_key = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -219,7 +229,6 @@ class TestECDH_AESKeyWrap:
                 "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",
             }
         )
-        encoded = ctx.encode_and_encrypt(b"Hello world!", enc_key, recipients=[rec])
         with pytest.raises(DecodeError) as err:
             ctx.decode(encoded, recipient_private_key, context={"alg": "A128GCM"})
             pytest.fail("extract() should fail.")

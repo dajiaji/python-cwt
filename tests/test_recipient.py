@@ -685,13 +685,10 @@ class TestRecipients:
             }
         )
         r = Recipient.new(protected={1: -1}, unprotected={-4: {1: 0x0010, 2: 0x0001, 3: 0x0001}}, recipient_key=rpk)
-        r.encode(enc_key.key)
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
-            # protected={
-            #     1: -1,  # alg: "HPKE"
-            # },
+            enc_key,
             recipients=[r],
         )
         recipient = COSE.new(verify_kid=True)
@@ -716,9 +713,7 @@ class TestRecipients:
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
-            # protected={
-            #     1: -1,  # alg: "HPKE"
-            # },
+            enc_key,
             recipients=[r],
         )
         recipient = COSE.new()
@@ -746,13 +741,11 @@ class TestRecipients:
     def test_recipients_open_with_invalid_rsk(self, rpk1):
         enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
         r = Recipient.new(protected={1: -1}, unprotected={4: b"02", -4: {1: 0x0010, 2: 0x0001, 3: 0x0001}}, recipient_key=rpk1)
-        r.encode(enc_key.to_bytes())
+        # r.encode(enc_key.to_bytes())
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
-            # protected={
-            #     1: -1,  # alg: "HPKE"
-            # },
+            enc_key,
             recipients=[r],
         )
         invalid_rsk = COSEKey.from_jwk(

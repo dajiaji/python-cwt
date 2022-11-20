@@ -389,7 +389,7 @@ class TestCOSESample:
             },
             recipient_key=rpk,
         )
-        r.encode(enc_key.to_bytes())
+        # r.encode(enc_key.to_bytes())
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
@@ -459,8 +459,7 @@ class TestCOSESample:
                 recipients=[r],
             )
             pytest.fail("encode_and_encrypt should fail.")
-        assert "alg for the first layer should not be HPKE." in str(err.value)
-        # assert "key should be set." in str(err.value)
+        assert "key should be set." in str(err.value)
 
     def test_cose_usage_examples_cose_encrypt_hpke_with_nonce(self):
 
@@ -508,8 +507,7 @@ class TestCOSESample:
                 recipients=[r],
             )
             pytest.fail("encode_and_encrypt should fail.")
-        assert "alg for the first layer should not be HPKE." in str(err.value)
-        # assert "key should be set." in str(err.value)
+        assert "key should be set." in str(err.value)
 
     def test_cose_usage_examples_cose_encrypt_direct_hkdf_sha_256(self):
 
@@ -524,11 +522,10 @@ class TestCOSESample:
             },
             context={"alg": "A256GCM"},
         )
-        enc_key = r.encode(shared_key.to_bytes())
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_encrypt(
             b"Hello world!",
-            enc_key,
+            shared_key,
             recipients=[r],
         )
 

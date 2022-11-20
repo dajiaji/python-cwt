@@ -17,6 +17,15 @@ class DirectKey(Direct):
             raise ValueError("alg(1) should be direct(-6).")
         return
 
+    def encode(
+        self,
+        plaintext: bytes = b"",
+        salt: Optional[bytes] = None,
+        external_aad: bytes = b"",
+        aad_context: str = "Enc_Recipient",
+    ) -> Optional[COSEKeyInterface]:
+        return None
+
     def apply(
         self,
         key: Optional[COSEKeyInterface] = None,

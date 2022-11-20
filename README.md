@@ -446,12 +446,12 @@ r = Recipient.new(
         "alg": "direct+HKDF-SHA-256",
         "salt": "aabbccddeeffgghh",
     },
+    context={"alg": "A256GCM"},
 )
-enc_key = r.encode(shared_key.to_bytes(), context={"alg": "A256GCM"})
 sender = COSE.new(alg_auto_inclusion=True)
 encoded = sender.encode_and_encrypt(
     b"Hello world!",
-    key=enc_key,
+    shared_key,
     recipients=[r],
 )
 
@@ -483,7 +483,6 @@ r = Recipient.new(
     unprotected={"alg": "A128KW"},
     sender_key=wrapping_key,
 )
-r.encode(enc_key.to_bytes())
 sender = COSE.new(alg_auto_inclusion=True)
 encoded = sender.encode_and_encrypt(b"Hello world!", key=enc_key, recipients=[r])
 
@@ -520,12 +519,14 @@ pub_key = COSEKey.from_jwk(
         "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
     }
 )
-r = Recipient.new(unprotected={"alg": "ECDH-ES+HKDF-256"}, recipient_key=pub_key)
-enc_key = r.encode(context={"alg": "A128GCM"})
+r = Recipient.new(
+  unprotected={"alg": "ECDH-ES+HKDF-256"},
+  recipient_key=pub_key,
+  context={"alg": "A128GCM"},
+)
 sender = COSE.new(alg_auto_inclusion=True)
 encoded = sender.encode_and_encrypt(
     b"Hello world!",
-    key=enc_key,
     recipients=[r],
 )
 
@@ -572,8 +573,12 @@ s_priv_key = COSEKey.from_jwk(
         "d": "Uqr4fay_qYQykwcNCB2efj_NFaQRRQ-6fHZm763jt5w",
     }
 )
-r = Recipient.new(unprotected={"alg": "ECDH-SS+A128KW"}, sender_key=s_priv_key, recipient_key=r_pub_key)
-r.encode(enc_key.to_bytes(), context={"alg": "A128GCM"})
+r = Recipient.new(
+  unprotected={"alg": "ECDH-SS+A128KW"},
+  sender_key=s_priv_key,
+  recipient_key=r_pub_key,
+  context={"alg": "A128GCM"},
+)
 sender = COSE.new(alg_auto_inclusion=True)
 encoded = sender.encode_and_encrypt(
     b"Hello world!",
@@ -632,7 +637,6 @@ r = Recipient.new(
     },
     recipient_key=rpk,
 )
-r.encode(enc_key.to_bytes())
 sender = COSE.new()
 encoded = sender.encode_and_encrypt(
     b"This is the content.",
