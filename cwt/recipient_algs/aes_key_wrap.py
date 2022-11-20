@@ -41,7 +41,6 @@ class AESKeyWrap(RecipientInterface):
         self,
         plaintext: bytes = b"",
         salt: Optional[bytes] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
     ) -> Optional[COSEKeyInterface]:

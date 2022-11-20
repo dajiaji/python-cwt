@@ -25,11 +25,13 @@ class ECDH_DirectHKDF(Direct):
         recipients: List[Any] = [],
         sender_key: Optional[COSEKeyInterface] = None,
         recipient_key: Optional[COSEKeyInterface] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ):
         super().__init__(protected, unprotected, ciphertext, recipients)
         self._sender_public_key: Any = None
         self._sender_key = sender_key
         self._recipient_key = recipient_key
+        self._context = context
 
         self._salt = None
         if -20 in unprotected:
@@ -66,22 +68,21 @@ class ECDH_DirectHKDF(Direct):
         self,
         plaintext: bytes = b"",
         salt: Optional[bytes] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
     ) -> Optional[COSEKeyInterface]:
 
         if not self._recipient_key:
             raise ValueError("recipient_key should be set in advance.")
-        if not context:
-            raise ValueError("context should be set.")
+        if not self._context:
+            raise ValueError("context should be set in advance.")
         ctx: list
-        if isinstance(context, dict):
+        if isinstance(self._context, dict):
             alg = self._alg if isinstance(self._alg, int) else 0
-            ctx = to_cis(context, alg)
+            ctx = to_cis(self._context, alg)
         else:
-            self._validate_context(context)
-            ctx = context
+            self._validate_context(self._context)
+            ctx = self._context
         self._applied_ctx = self._apply_context(ctx)
 
         # Generate a salt automatically if both of a salt and a PartyU nonce are not specified.

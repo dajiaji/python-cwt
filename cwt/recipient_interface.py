@@ -158,7 +158,6 @@ class RecipientInterface(CBORProcessor):
         self,
         plaintext: bytes = b"",
         salt: Optional[bytes] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
     ) -> Optional[COSEKeyInterface]:
@@ -176,8 +175,6 @@ class RecipientInterface(CBORProcessor):
             plaintext (bytes): A plaing text to be encrypted. In most of the cases,
                 the plaintext is a byte string of a content encryption key.
             salt (Optional[bytes]): A salt used for deriving a key.
-            context (Optional[Union[List[Any], Dict[str, Any]]]): Context
-                information structure.
             external_aad (bytes): External additional authenticated data for AEAD.
             aad_context (bytes): An additional authenticated data context to build
                 an Enc_structure internally.

@@ -76,8 +76,9 @@ class TestCOSESample:
                 "alg": "direct+HKDF-SHA-256",
                 "salt": "aabbccddeeffgghh",
             },
+            context={"alg": "HS256"},
         )
-        mac_key = r.encode(shared_key.to_bytes(), context={"alg": "HS256"})
+        mac_key = r.encode(shared_key.to_bytes())
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_mac(
             b"Hello world!",
@@ -104,7 +105,7 @@ class TestCOSESample:
         r = Recipient.new(unprotected={"alg": "A128KW"}, sender_key=enc_key)
         r.encode(mac_key.to_bytes())
         sender = COSE.new(alg_auto_inclusion=True)
-        encoded = sender.encode_and_mac(b"Hello world!", key=mac_key, recipients=[r])
+        encoded = sender.encode_and_mac(b"Hello world!", mac_key, recipients=[r])
 
         # The recipient side:
         recipient = COSE.new()
@@ -123,8 +124,12 @@ class TestCOSESample:
                 "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
             }
         )
-        r = Recipient.new({"alg": "ECDH-ES+HKDF-256"}, recipient_key=pub_key)
-        mac_key = r.encode(context={"alg": "HS256"})
+        r = Recipient.new(
+            unprotected={"alg": "ECDH-ES+HKDF-256"},
+            recipient_key=pub_key,
+            context={"alg": "HS256"},
+        )
+        mac_key = r.encode()
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_mac(
             b"Hello world!",
@@ -178,8 +183,9 @@ class TestCOSESample:
             unprotected={"alg": "ECDH-SS+A128KW"},
             sender_key=priv_key,
             recipient_key=pub_key,
+            context={"alg": "HS256"},
         )
-        r.encode(mac_key.to_bytes(), context={"alg": "HS256"})
+        r.encode(mac_key.to_bytes())
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_mac(
             b"Hello world!",
@@ -216,8 +222,12 @@ class TestCOSESample:
                 "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
             }
         )
-        r = Recipient.new(unprotected={"alg": "ECDH-ES+A128KW"}, recipient_key=pub_key)
-        r.encode(mac_key.to_bytes(), context={"alg": "HS256"})
+        r = Recipient.new(
+            unprotected={"alg": "ECDH-ES+A128KW"},
+            recipient_key=pub_key,
+            context={"alg": "HS256"},
+        )
+        r.encode(mac_key.to_bytes())
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_mac(
             b"Hello world!",
@@ -450,6 +460,7 @@ class TestCOSESample:
             )
             pytest.fail("encode_and_encrypt should fail.")
         assert "alg for the first layer should not be HPKE." in str(err.value)
+        # assert "key should be set." in str(err.value)
 
     def test_cose_usage_examples_cose_encrypt_hpke_with_nonce(self):
 
@@ -498,6 +509,7 @@ class TestCOSESample:
             )
             pytest.fail("encode_and_encrypt should fail.")
         assert "alg for the first layer should not be HPKE." in str(err.value)
+        # assert "key should be set." in str(err.value)
 
     def test_cose_usage_examples_cose_encrypt_direct_hkdf_sha_256(self):
 
@@ -510,8 +522,9 @@ class TestCOSESample:
                 "alg": "direct+HKDF-SHA-256",
                 "salt": "aabbccddeeffgghh",
             },
+            context={"alg": "A256GCM"},
         )
-        enc_key = r.encode(shared_key.to_bytes(), context={"alg": "A256GCM"})
+        enc_key = r.encode(shared_key.to_bytes())
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_encrypt(
             b"Hello world!",
@@ -560,8 +573,12 @@ class TestCOSESample:
                 "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
             }
         )
-        r = Recipient.new(unprotected={"alg": "ECDH-ES+HKDF-256"}, recipient_key=pub_key)
-        enc_key = r.encode(context={"alg": "A128GCM"})
+        r = Recipient.new(
+            unprotected={"alg": "ECDH-ES+HKDF-256"},
+            recipient_key=pub_key,
+            context={"alg": "A128GCM"},
+        )
+        enc_key = r.encode()
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_encrypt(
             b"Hello world!",
@@ -608,8 +625,13 @@ class TestCOSESample:
                 "d": "Uqr4fay_qYQykwcNCB2efj_NFaQRRQ-6fHZm763jt5w",
             }
         )
-        r = Recipient.new(unprotected={"alg": "ECDH-SS+A128KW"}, sender_key=s_priv_key, recipient_key=r_pub_key)
-        r.encode(enc_key.to_bytes(), context={"alg": "A128GCM"})
+        r = Recipient.new(
+            unprotected={"alg": "ECDH-SS+A128KW"},
+            sender_key=s_priv_key,
+            recipient_key=r_pub_key,
+            context={"alg": "A128GCM"},
+        )
+        r.encode(enc_key.to_bytes())
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_encrypt(
             b"Hello world!",
@@ -695,8 +717,12 @@ class TestCOSESample:
                 "y": "HlLtdXARY_f55A3fnzQbPcm6hgr34Mp8p-nuzQCE0Zw",
             }
         )
-        r = Recipient.new(unprotected={"alg": "ECDH-ES+A128KW"}, recipient_key=pub_key)
-        r.encode(enc_key.to_bytes(), context={"alg": "A128GCM"})
+        r = Recipient.new(
+            unprotected={"alg": "ECDH-ES+A128KW"},
+            recipient_key=pub_key,
+            context={"alg": "A128GCM"},
+        )
+        r.encode(enc_key.to_bytes())
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_encrypt(
             b"Hello world!",

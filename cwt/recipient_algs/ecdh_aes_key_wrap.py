@@ -24,11 +24,13 @@ class ECDH_AESKeyWrap(RecipientInterface):
         recipients: List[Any] = [],
         sender_key: Optional[COSEKeyInterface] = None,
         recipient_key: Optional[COSEKeyInterface] = None,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ):
         super().__init__(protected, unprotected, ciphertext, recipients)
         self._sender_public_key: Any = None
         self._sender_key = sender_key
         self._recipient_key = recipient_key
+        self._context = context
 
         self._apu = [
             self.unprotected[-21] if -21 in self.unprotected else None,
@@ -56,15 +58,14 @@ class ECDH_AESKeyWrap(RecipientInterface):
         self,
         plaintext: bytes = b"",
         salt: Optional[bytes] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
     ) -> Optional[COSEKeyInterface]:
 
         if not self._recipient_key:
             raise ValueError("recipient_key should be set in advance.")
-        if not context:
-            raise ValueError("context should be set.")
+        if not self._context:
+            raise ValueError("context should be set in advance.")
         if self._alg in [-29, -30, -31]:
             # ECDH-ES
             self._sender_key = EC2Key({1: 2, -1: self._recipient_key.crv, 3: self._alg})
@@ -72,7 +73,7 @@ class ECDH_AESKeyWrap(RecipientInterface):
             # ECDH-SS (alg=-32, -33, -34)
             if not self._sender_key:
                 raise ValueError("sender_key should be set in advance.")
-        wrapping_key = self._sender_key.derive_key(context, public_key=self._recipient_key)
+        wrapping_key = self._sender_key.derive_key(self._context, public_key=self._recipient_key)
         if self._alg in [-29, -30, -31]:
             # ECDH-ES
             self._unprotected[-1] = self._to_cose_key(self._sender_key.key.public_key())
