@@ -24,10 +24,12 @@ class ECDH_DirectHKDF(Direct):
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
         sender_key: Optional[COSEKeyInterface] = None,
+        recipient_key: Optional[COSEKeyInterface] = None,
     ):
         super().__init__(protected, unprotected, ciphertext, recipients)
         self._sender_public_key: Any = None
         self._sender_key = sender_key
+        self._recipient_key = recipient_key
 
         self._salt = None
         if -20 in unprotected:
@@ -63,14 +65,13 @@ class ECDH_DirectHKDF(Direct):
     def encode(
         self,
         plaintext: bytes = b"",
-        recipient_key: Optional[COSEKeyInterface] = None,
         salt: Optional[bytes] = None,
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
     ) -> Optional[COSEKeyInterface]:
 
-        if not recipient_key:
+        if not self._recipient_key:
             raise ValueError("recipient_key should be set in advance.")
         if not context:
             raise ValueError("context should be set.")
@@ -102,16 +103,16 @@ class ECDH_DirectHKDF(Direct):
         # Derive key.
         if self._alg in [-25, -26]:
             # ECDH-ES
-            if recipient_key.kty == 2:
-                self._sender_key = EC2Key({1: 2, -1: recipient_key.crv, 3: self._alg})
+            if self._recipient_key.kty == 2:
+                self._sender_key = EC2Key({1: 2, -1: self._recipient_key.crv, 3: self._alg})
             else:
                 # should drop this support.
-                self._sender_key = OKPKey({1: 1, -1: recipient_key.crv, 3: self._alg})
+                self._sender_key = OKPKey({1: 1, -1: self._recipient_key.crv, 3: self._alg})
         else:
             # ECDH-SS (alg=-27 or -28)
             if not self._sender_key:
                 raise ValueError("sender_key should be set in advance.")
-        derived_key = self._sender_key.derive_key(self._applied_ctx, public_key=recipient_key)
+        derived_key = self._sender_key.derive_key(self._applied_ctx, public_key=self._recipient_key)
         if self._alg in [-25, -26]:
             # ECDH-ES
             self._unprotected[-1] = self._to_cose_key(self._sender_key.key.public_key())

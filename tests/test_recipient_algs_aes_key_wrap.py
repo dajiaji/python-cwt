@@ -58,6 +58,15 @@ class TestAESKeyWrap:
         assert isinstance(ctx, AESKeyWrap)
         assert ctx.alg == -5
 
+    def test_aes_key_wrap_constructor_without_sender_key(self):
+        with pytest.raises(ValueError) as err:
+            AESKeyWrap(
+                {1: -3},
+                {},
+            )
+            pytest.fail("AESKeyWrap() should fail.")
+        assert "sender_key should be set." in str(err.value)
+
     def test_aes_key_wrap_constructor_a128kw_with_invalid_key_length(self):
         with pytest.raises(ValueError) as err:
             AESKeyWrap(

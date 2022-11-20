@@ -45,7 +45,8 @@ class Recipient:
             protected (dict): Parameters that are to be cryptographically protected.
             unprotected (dict): Parameters that are not cryptographically protected.
             ciphertext (List[Any]): A cipher text.
-            sender_key (Optional[COSEKeyInterface]): A sender key as COSEKey.
+            sender_key (Optional[COSEKeyInterface]): A sender private key as COSEKey.
+            recipient_key (Optional[COSEKeyInterface]): A recipient public key as COSEKey.
         Returns:
             RecipientInterface: A recipient object.
         Raises:
@@ -64,13 +65,13 @@ class Recipient:
         if alg in [-3, -4, -5]:
             if not sender_key:
                 sender_key = COSEKey.from_symmetric_key(alg=alg)
-            return AESKeyWrap(p, u, sender_key, ciphertext, recipients)
+            return AESKeyWrap(p, u, ciphertext, recipients, sender_key)
         if alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT.values():
-            return ECDH_DirectHKDF(p, u, ciphertext, recipients, sender_key)
+            return ECDH_DirectHKDF(p, u, ciphertext, recipients, sender_key, recipient_key)
         if alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP.values():
-            return ECDH_AESKeyWrap(p, u, ciphertext, recipients, sender_key)
+            return ECDH_AESKeyWrap(p, u, ciphertext, recipients, sender_key, recipient_key)
         if alg in COSE_ALGORITHMS_HPKE.values():
-            return HPKE(p, u, ciphertext, recipients)  # TODO sender_key
+            return HPKE(p, u, ciphertext, recipients, recipient_key)  # TODO sender_key
         raise ValueError(f"Unsupported or unknown alg(1): {alg}.")
 
     @classmethod

@@ -15,8 +15,10 @@ class HPKE(RecipientInterface):
         unprotected: Dict[int, Any],
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
+        recipient_key: Optional[COSEKeyInterface] = None,
     ):
         super().__init__(protected, unprotected, ciphertext, recipients)
+        self._recipient_key = recipient_key
 
         if self._alg != -1:
             raise ValueError("alg should be HPKE(-1).")
@@ -34,16 +36,14 @@ class HPKE(RecipientInterface):
     def encode(
         self,
         plaintext: bytes = b"",
-        recipient_key: Optional[COSEKeyInterface] = None,
         salt: Optional[bytes] = None,
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
     ) -> Optional[COSEKeyInterface]:
-        if not recipient_key:
-            raise ValueError("recipient_key should be set.")
-        self._recipient_key = recipient_key
-        self._kem_key = self._to_kem_key(recipient_key)
+        if self._recipient_key is None:
+            raise ValueError("recipient_key should be set in advance.")
+        self._kem_key = self._to_kem_key(self._recipient_key)
         enc_structure = [aad_context, self._dumps(self._protected), external_aad]
         aad = self._dumps(enc_structure)
         try:
