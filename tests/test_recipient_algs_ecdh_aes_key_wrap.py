@@ -95,13 +95,15 @@ class TestECDH_AESKeyWrap:
         self, sender_key_es, recipient_public_key, recipient_private_key
     ):
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
-        sender = ECDH_AESKeyWrap({1: -29}, {4: b"01"}, sender_key=sender_key_es)
-        sender.apply(enc_key, recipient_key=recipient_public_key, context={"alg": "A128GCM"})
+        sender = ECDH_AESKeyWrap(
+            {1: -29}, {4: b"01"}, sender_key=sender_key_es, recipient_key=recipient_public_key, context={"alg": "A128GCM"}
+        )
+        sender.encode(enc_key.to_bytes())
         assert sender.ciphertext is not None
 
         encoded = sender.to_list()
-        recipient = Recipient.from_list(encoded)
-        decoded_key = recipient.extract(recipient_private_key, alg="ChaCha20/Poly1305", context={"alg": "A128GCM"})
+        recipient = Recipient.from_list(encoded, context={"alg": "A128GCM"})
+        decoded_key = recipient.extract(recipient_private_key, alg="ChaCha20/Poly1305")
         assert enc_key.key == decoded_key.key
 
     def test_ecdh_aes_key_wrap_through_cose_api(self, recipient_public_key, recipient_private_key):

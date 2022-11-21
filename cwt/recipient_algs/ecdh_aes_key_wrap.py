@@ -57,7 +57,6 @@ class ECDH_AESKeyWrap(RecipientInterface):
     def encode(
         self,
         plaintext: bytes = b"",
-        salt: Optional[bytes] = None,
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
     ) -> Optional[COSEKeyInterface]:
@@ -124,14 +123,13 @@ class ECDH_AESKeyWrap(RecipientInterface):
         self,
         key: COSEKeyInterface,
         alg: Optional[int] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ) -> COSEKeyInterface:
         if not alg:
             raise ValueError("alg should be set.")
-        if not context:
+        if not self._context:
             raise ValueError("context should be set.")
         try:
-            derived = key.derive_key(context, public_key=self._sender_public_key)
+            derived = key.derive_key(self._context, public_key=self._sender_public_key)
             unwrapped = aes_key_unwrap(derived.key, self._ciphertext)
             return COSEKey.from_symmetric_key(unwrapped, alg=alg, kid=self._kid)
         except Exception as err:
@@ -141,11 +139,10 @@ class ECDH_AESKeyWrap(RecipientInterface):
         self,
         key: COSEKeyInterface,
         alg: Optional[int] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
         payload: bytes = b"",
         nonce: bytes = b"",
         aad: bytes = b"",
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
     ) -> bytes:
-        return self.extract(key, alg, context).decrypt(payload, nonce, aad)
+        return self.extract(key, alg).decrypt(payload, nonce, aad)

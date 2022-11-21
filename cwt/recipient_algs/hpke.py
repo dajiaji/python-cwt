@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from pyhpke import AEADId, CipherSuite, KDFId, KEMId, KEMKey, KEMKeyInterface
 
@@ -36,7 +36,6 @@ class HPKE(RecipientInterface):
     def encode(
         self,
         plaintext: bytes = b"",
-        salt: Optional[bytes] = None,
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
     ) -> Optional[COSEKeyInterface]:
@@ -56,7 +55,6 @@ class HPKE(RecipientInterface):
     def decode(
         self,
         key: COSEKeyInterface,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
     ) -> bytes:
@@ -72,7 +70,6 @@ class HPKE(RecipientInterface):
         self,
         key: COSEKeyInterface,
         alg: Optional[int] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
         payload: bytes = b"",
         nonce: bytes = b"",
         aad: bytes = b"",
@@ -80,7 +77,7 @@ class HPKE(RecipientInterface):
         aad_context: str = "Enc_Recipient",
     ) -> bytes:
         alg = alg if isinstance(alg, int) else 0
-        raw = self.decode(key, context, external_aad, aad_context)
+        raw = self.decode(key, external_aad, aad_context)
         return COSEKey.from_symmetric_key(raw, alg=alg, kid=self._kid).decrypt(payload, nonce, aad)
 
     def _to_kem_key(self, src: COSEKeyInterface) -> KEMKeyInterface:

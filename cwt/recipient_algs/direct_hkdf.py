@@ -29,6 +29,8 @@ class DirectHKDF(Direct):
     ):
         super().__init__(protected, unprotected, ciphertext, recipients)
 
+        if not context:
+            raise ValueError("context should be set.")
         self._context = context
 
         self._salt = None
@@ -49,7 +51,7 @@ class DirectHKDF(Direct):
             ],
             [None, None],
         ]
-        self._applied_ctx: Union[list, None] = None
+        self._applied_ctx: list
 
         self._hash_alg: Any = None
         if self._alg == -10:  # direct+HKDF-SHA-256
@@ -59,42 +61,6 @@ class DirectHKDF(Direct):
         else:
             raise ValueError(f"Unknown alg(3) for direct key with KDF: {self._alg}.")
 
-    def verify_key(
-        self,
-        material: bytes,
-        expected_key: bytes,
-        context: Union[List[Any], Dict[str, Any]],
-    ):
-
-        if isinstance(context, dict):
-            alg = self._alg if isinstance(self._alg, int) else 0
-            context = to_cis(context, alg)
-        else:
-            self._validate_context(context)
-
-        # Verify key.
-        try:
-            hkdf = HKDF(
-                algorithm=self._hash_alg,
-                length=COSE_KEY_LEN[context[0]] // 8,
-                salt=self._salt,
-                info=self._dumps(context),
-            )
-            hkdf.verify(material, expected_key)
-        except Exception as err:
-            raise VerifyError("Failed to verify key.") from err
-        return
-
-    def encode(
-        self,
-        plaintext: bytes = b"",
-        salt: Optional[bytes] = None,
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
-    ) -> Optional[COSEKeyInterface]:
-
-        if not self._context:
-            raise ValueError("context should be set.")
         ctx: list
         if isinstance(self._context, dict):
             alg = self._alg if isinstance(self._alg, int) else 0
@@ -105,12 +71,12 @@ class DirectHKDF(Direct):
         self._applied_ctx = self._apply_context(ctx)
 
         # Generate a salt automatically if both of a salt and a PartyU nonce are not specified.
-        if not salt and not self._salt and not self._applied_ctx[1][1]:
+        if not self._salt and not self._applied_ctx[1][1]:
             self._salt = token_bytes(32) if self._alg == -10 else token_bytes(64)
             self._unprotected[-20] = self._salt
-        elif salt:
-            self._salt = salt
-            self._unprotected[-20] = self._salt
+        # elif salt:
+        #     self._salt = salt
+        #     self._unprotected[-20] = self._salt
 
         # PartyU nonce
         if self._applied_ctx[1][1]:
@@ -118,6 +84,38 @@ class DirectHKDF(Direct):
         # PartyV nonce
         if self._applied_ctx[2][1]:
             self._unprotected[-25] = self._applied_ctx[2][1]
+
+    def verify_key(
+        self,
+        material: bytes,
+        expected_key: bytes,
+    ):
+
+        if isinstance(self._context, dict):
+            alg = self._alg if isinstance(self._alg, int) else 0
+            self._context = to_cis(self._context, alg)
+        else:
+            self._validate_context(self._context)
+
+        # Verify key.
+        try:
+            hkdf = HKDF(
+                algorithm=self._hash_alg,
+                length=COSE_KEY_LEN[self._context[0]] // 8,
+                salt=self._salt,
+                info=self._dumps(self._context),
+            )
+            hkdf.verify(material, expected_key)
+        except Exception as err:
+            raise VerifyError("Failed to verify key.") from err
+        return
+
+    def encode(
+        self,
+        plaintext: bytes = b"",
+        external_aad: bytes = b"",
+        aad_context: str = "Enc_Recipient",
+    ) -> Optional[COSEKeyInterface]:
 
         # Derive key.
         try:
@@ -189,39 +187,37 @@ class DirectHKDF(Direct):
         self,
         key: COSEKeyInterface,
         alg: Optional[int] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ) -> COSEKeyInterface:
 
-        if not context:
+        if not self._context:
             raise ValueError("context should be set.")
-        if isinstance(context, dict):
+        if isinstance(self._context, dict):
             alg = self._alg if isinstance(self._alg, int) else 0
-            context = to_cis(context, alg)
+            self._context = to_cis(self._context, alg)
         else:
-            self._validate_context(context)
+            self._validate_context(self._context)
 
         # Derive key.
         hkdf = HKDF(
             algorithm=self._hash_alg,
-            length=COSE_KEY_LEN[context[0]] // 8,
+            length=COSE_KEY_LEN[self._context[0]] // 8,
             salt=self._salt,
-            info=self._dumps(context),
+            info=self._dumps(self._context),
         )
         derived = hkdf.derive(key.key)
-        return COSEKey.from_symmetric_key(derived, alg=context[0], kid=self._kid)
+        return COSEKey.from_symmetric_key(derived, alg=self._context[0], kid=self._kid)
 
     def decrypt(
         self,
         key: COSEKeyInterface,
         alg: Optional[int] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
         payload: bytes = b"",
         nonce: bytes = b"",
         aad: bytes = b"",
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
     ) -> bytes:
-        return self.extract(key, alg, context).decrypt(payload, nonce, aad)
+        return self.extract(key, alg).decrypt(payload, nonce, aad)
 
     def _apply_context(self, given: list) -> list:
         ctx = copy.deepcopy(self._default_ctx)

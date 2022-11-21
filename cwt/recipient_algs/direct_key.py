@@ -20,7 +20,6 @@ class DirectKey(Direct):
     def encode(
         self,
         plaintext: bytes = b"",
-        salt: Optional[bytes] = None,
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
     ) -> Optional[COSEKeyInterface]:
@@ -45,7 +44,6 @@ class DirectKey(Direct):
         self,
         key: COSEKeyInterface,
         alg: Optional[int] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ) -> COSEKeyInterface:
         return key
 
@@ -53,11 +51,10 @@ class DirectKey(Direct):
         self,
         key: COSEKeyInterface,
         alg: Optional[int] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
         payload: bytes = b"",
         nonce: bytes = b"",
         aad: bytes = b"",
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
     ) -> bytes:
-        return self.extract(key, alg, context).decrypt(payload, nonce, aad)
+        return self.extract(key, alg).decrypt(payload, nonce, aad)

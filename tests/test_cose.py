@@ -941,7 +941,7 @@ class TestCOSE:
         with pytest.raises(ValueError) as err:
             ctx.decode(encoded, private_key)
             pytest.fail("decode should fail.")
-        assert "context should be set." in str(err.value)
+        assert "context should be set in advance." in str(err.value)
 
     def test_cose_decode_ecdh_aes_key_wrap_without_context(self):
         with open(key_path("public_key_es256.pem")) as key_file:

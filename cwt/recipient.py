@@ -20,7 +20,7 @@ from .recipient_algs.ecdh_aes_key_wrap import ECDH_AESKeyWrap
 from .recipient_algs.ecdh_direct_hkdf import ECDH_DirectHKDF
 from .recipient_algs.hpke import HPKE
 from .recipient_interface import RecipientInterface
-from .utils import parse_apu, parse_apv, to_cose_header
+from .utils import to_cose_header
 
 
 class Recipient:
@@ -136,25 +136,29 @@ class Recipient:
         if "context" in recipient:
             if not isinstance(recipient["context"], dict):
                 raise ValueError("context should be dict.")
-            apu = parse_apu(recipient["context"])
-            if apu[0]:
-                unprotected[-21] = apu[0]
-            if apu[1]:
-                unprotected[-22] = apu[1]
-            if apu[2]:
-                unprotected[-23] = apu[2]
-            apv = parse_apv(recipient["context"])
-            if apv[0]:
-                unprotected[-24] = apv[0]
-            if apv[1]:
-                unprotected[-25] = apv[1]
-            if apv[2]:
-                unprotected[-26] = apv[2]
+            # apu = parse_apu(recipient["context"])
+            # if apu[0]:
+            #     unprotected[-21] = apu[0]
+            # if apu[1]:
+            #     unprotected[-22] = apu[1]
+            # if apu[2]:
+            #     unprotected[-23] = apu[2]
+            # apv = parse_apv(recipient["context"])
+            # if apv[0]:
+            #     unprotected[-24] = apv[0]
+            # if apv[1]:
+            #     unprotected[-25] = apv[1]
+            # if apv[2]:
+            #     unprotected[-26] = apv[2]
 
-        return cls.new(protected, unprotected, sender_key=sender_key)
+        return cls.new(protected, unprotected, sender_key=sender_key, context=recipient.get("context", None))
 
     @classmethod
-    def from_list(cls, recipient: List[Any]) -> RecipientInterface:
+    def from_list(
+        cls,
+        recipient: List[Any],
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+    ) -> RecipientInterface:
         """
         Creates a recipient from a raw COSE array data.
 
@@ -176,10 +180,10 @@ class Recipient:
         if not isinstance(recipient[2], bytes):
             raise ValueError("ciphertext should be bytes.")
         if len(recipient) == 3:
-            return cls.new(protected, recipient[1], recipient[2])
+            return cls.new(protected, recipient[1], recipient[2], context=context)
         if not isinstance(recipient[3], list):
             raise ValueError("recipients should be list.")
         recipients: List[RecipientInterface] = []
         for r in recipient[3]:
             recipients.append(cls.from_list(r))
-        return cls.new(protected, recipient[1], recipient[2], recipients)
+        return cls.new(protected, recipient[1], recipient[2], recipients, context=context)

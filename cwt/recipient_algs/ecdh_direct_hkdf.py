@@ -31,6 +31,8 @@ class ECDH_DirectHKDF(Direct):
         self._sender_public_key: Any = None
         self._sender_key = sender_key
         self._recipient_key = recipient_key
+        if not context:
+            raise ValueError("context should be set in advance.")
         self._context = context
 
         self._salt = None
@@ -51,7 +53,7 @@ class ECDH_DirectHKDF(Direct):
             ],
             [None, None],
         ]
-        self._applied_ctx: Union[list, None] = None
+        self._applied_ctx: list
 
         if self._alg in [-25, -26]:  # ECDH-ES
             if -1 in self.unprotected:
@@ -64,18 +66,6 @@ class ECDH_DirectHKDF(Direct):
         else:
             raise ValueError(f"Unknown alg(1) for ECDH with HKDF: {self._alg}.")
 
-    def encode(
-        self,
-        plaintext: bytes = b"",
-        salt: Optional[bytes] = None,
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
-    ) -> Optional[COSEKeyInterface]:
-
-        if not self._recipient_key:
-            raise ValueError("recipient_key should be set in advance.")
-        if not self._context:
-            raise ValueError("context should be set in advance.")
         ctx: list
         if isinstance(self._context, dict):
             alg = self._alg if isinstance(self._alg, int) else 0
@@ -87,12 +77,12 @@ class ECDH_DirectHKDF(Direct):
 
         # Generate a salt automatically if both of a salt and a PartyU nonce are not specified.
         if self._alg in [-27, -28]:  # ECDH-SS
-            if not salt and not self._salt and not self._applied_ctx[1][1]:
+            if not self._salt and not self._applied_ctx[1][1]:
                 self._salt = token_bytes(32) if self._alg == -27 else token_bytes(64)
                 self._unprotected[-20] = self._salt
-            elif salt:
-                self._salt = salt
-                self._unprotected[-20] = self._salt
+            # elif salt:
+            #     self._salt = salt
+            #     self._unprotected[-20] = self._salt
 
         # PartyU nonce
         if self._applied_ctx[1][1]:
@@ -100,6 +90,16 @@ class ECDH_DirectHKDF(Direct):
         # PartyV nonce
         if self._applied_ctx[2][1]:
             self._unprotected[-25] = self._applied_ctx[2][1]
+
+    def encode(
+        self,
+        plaintext: bytes = b"",
+        external_aad: bytes = b"",
+        aad_context: str = "Enc_Recipient",
+    ) -> Optional[COSEKeyInterface]:
+
+        if not self._recipient_key:
+            raise ValueError("recipient_key should be set in advance.")
 
         # Derive key.
         if self._alg in [-25, -26]:
@@ -113,6 +113,7 @@ class ECDH_DirectHKDF(Direct):
             # ECDH-SS (alg=-27 or -28)
             if not self._sender_key:
                 raise ValueError("sender_key should be set in advance.")
+
         derived_key = self._sender_key.derive_key(self._applied_ctx, public_key=self._recipient_key)
         if self._alg in [-25, -26]:
             # ECDH-ES
@@ -180,24 +181,22 @@ class ECDH_DirectHKDF(Direct):
         self,
         key: COSEKeyInterface,
         alg: Optional[int] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ) -> COSEKeyInterface:
-        if not context:
+        if not self._context:
             raise ValueError("context should be set.")
-        return key.derive_key(context, public_key=self._sender_public_key)
+        return key.derive_key(self._context, public_key=self._sender_public_key)
 
     def decrypt(
         self,
         key: COSEKeyInterface,
         alg: Optional[int] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
         payload: bytes = b"",
         nonce: bytes = b"",
         aad: bytes = b"",
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
     ) -> bytes:
-        return self.extract(key, alg, context).decrypt(payload, nonce, aad)
+        return self.extract(key, alg).decrypt(payload, nonce, aad)
 
     def _apply_context(self, given: list) -> list:
         ctx = copy.deepcopy(self._default_ctx)

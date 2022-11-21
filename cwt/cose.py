@@ -436,9 +436,9 @@ class COSE(CBORProcessor):
         # Encrypt
         if data.tag == 96:
             aad = self._dumps(["Encrypt", data.value[0], external_aad])
-            rs = Recipients.from_list(data.value[3], self._verify_kid)
+            rs = Recipients.from_list(data.value[3], self._verify_kid, context)
             nonce = unprotected.get(5, b"")
-            return rs.decrypt(keys, alg, context, data.value[2], nonce, aad, external_aad)
+            return rs.decrypt(keys, alg, data.value[2], nonce, aad, external_aad)
 
         # MAC0
         if data.tag == 17:
@@ -465,8 +465,8 @@ class COSE(CBORProcessor):
         # MAC
         if data.tag == 97:
             to_be_maced = self._dumps(["MAC", data.value[0], external_aad, data.value[2]])
-            rs = Recipients.from_list(data.value[4], self._verify_kid)
-            mac_auth_key = rs.extract(keys, context, alg)
+            rs = Recipients.from_list(data.value[4], self._verify_kid, context)
+            mac_auth_key = rs.extract(keys, alg)
             mac_auth_key.verify(to_be_maced, data.value[3])
             return data.value[2]
 

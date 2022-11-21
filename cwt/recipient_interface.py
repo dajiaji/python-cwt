@@ -157,7 +157,6 @@ class RecipientInterface(CBORProcessor):
     def encode(
         self,
         plaintext: bytes = b"",
-        salt: Optional[bytes] = None,
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
     ) -> Optional[COSEKeyInterface]:
@@ -174,7 +173,6 @@ class RecipientInterface(CBORProcessor):
         Args:
             plaintext (bytes): A plaing text to be encrypted. In most of the cases,
                 the plaintext is a byte string of a content encryption key.
-            salt (Optional[bytes]): A salt used for deriving a key.
             external_aad (bytes): External additional authenticated data for AEAD.
             aad_context (bytes): An additional authenticated data context to build
                 an Enc_structure internally.
@@ -230,7 +228,6 @@ class RecipientInterface(CBORProcessor):
         self,
         key: COSEKeyInterface,
         alg: Optional[int] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ) -> COSEKeyInterface:
         """
         Extracts a MAC/encryption key with the recipient-specific method
@@ -242,8 +239,6 @@ class RecipientInterface(CBORProcessor):
             key (COSEKeyInterface): The external key to be used for
                 extracting the key.
             alg (Optional[int]): The algorithm of the key extracted.
-            context (Optional[Union[List[Any], Dict[str, Any]]]): Context
-                information structure.
         Returns:
             COSEKeyInterface: An extracted key which is used for decrypting
                 or verifying a payload message.
@@ -257,7 +252,6 @@ class RecipientInterface(CBORProcessor):
         self,
         key: COSEKeyInterface,
         alg: Optional[int] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
         payload: bytes = b"",
         nonce: bytes = b"",
         aad: bytes = b"",
@@ -270,7 +264,6 @@ class RecipientInterface(CBORProcessor):
         Args:
             key (COSEKeyInterface): The external key to be used for extracting the key.
             alg (Optional[int]): The algorithm of the key extracted.
-            context (Optional[Union[List[Any], Dict[str, Any]]]): Context information structure.
             external_aad (bytes): External additional authenticated data for AEAD.
             aad_context (bytes): An additional authenticated data context to build
                 an Enc_structure internally.

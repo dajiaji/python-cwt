@@ -60,29 +60,29 @@ class TestECDH_DirectHKDF:
     """
 
     def test_ecdh_direct_hkdf_constructor_with_ecdh_es_256(self):
-        ctx = ECDH_DirectHKDF({1: -25}, {4: b"01"})
+        ctx = ECDH_DirectHKDF({1: -25}, {4: b"01"}, context={"alg": "A128GCM"})
         assert isinstance(ctx, ECDH_DirectHKDF)
         assert ctx.alg == -25
         assert ctx.kid == b"01"
 
     def test_ecdh_direct_hkdf_constructor_with_ecdh_es_512(self):
-        ctx = ECDH_DirectHKDF({1: -26}, {4: b"01"})
+        ctx = ECDH_DirectHKDF({1: -26}, {4: b"01"}, context={"alg": "A128GCM"})
         assert ctx.alg == -26
         assert ctx.kid == b"01"
 
     def test_ecdh_direct_hkdf_constructor_with_ecdh_ss_256(self):
-        ctx = ECDH_DirectHKDF({1: -27}, {4: b"01"})
+        ctx = ECDH_DirectHKDF({1: -27}, {4: b"01"}, context={"alg": "A128GCM"})
         assert ctx.alg == -27
         assert ctx.kid == b"01"
 
     def test_ecdh_direct_hkdf_constructor_with_ecdh_ss_512(self):
-        ctx = ECDH_DirectHKDF({1: -28}, {4: b"01"})
+        ctx = ECDH_DirectHKDF({1: -28}, {4: b"01"}, context={"alg": "A128GCM"})
         assert ctx.alg == -28
         assert ctx.kid == b"01"
 
     def test_ecdh_direct_hkdf_constructor_with_invalid_alg(self):
         with pytest.raises(ValueError) as err:
-            ECDH_DirectHKDF({1: -1}, {4: b"01"})
+            ECDH_DirectHKDF({1: -1}, {4: b"01"}, context={"alg": "A128GCM"})
             pytest.fail("ECDH_DirectHKDF() should fail.")
         assert "Unknown alg(1) for ECDH with HKDF: -1." in str(err.value)
 
@@ -269,10 +269,10 @@ class TestECDH_DirectHKDF:
 
     def test_ecdh_direct_hkdf_apply_with_party_v_nonce(self):
         nonce = token_bytes(32)
-        rec = Recipient.from_jwk({"kty": "EC", "crv": "P-256", "alg": "ECDH-ES+HKDF-256"})
         with open(key_path("public_key_es256.pem")) as key_file:
             pub_key = COSEKey.from_pem(key_file.read(), kid="01")
-        enc_key = rec.apply(
+        rec = Recipient.new(
+            unprotected={"alg": "ECDH-ES+HKDF-256"},
             recipient_key=pub_key,
             context=[
                 1,
@@ -281,15 +281,16 @@ class TestECDH_DirectHKDF:
                 [128, cbor2.dumps({1: -25})],
             ],
         )
+        enc_key = rec.encode()
         assert enc_key.alg == 1
         assert nonce == rec._unprotected[-25]
 
     def test_ecdh_direct_hkdf_apply_with_supp_pub_other(self):
         nonce = token_bytes(32)
-        rec = Recipient.from_jwk({"kty": "EC", "crv": "P-256", "alg": "ECDH-ES+HKDF-256"})
         with open(key_path("public_key_es256.pem")) as key_file:
             pub_key = COSEKey.from_pem(key_file.read(), kid="01")
-        enc_key = rec.apply(
+        rec = Recipient.new(
+            unprotected={"alg": "ECDH-ES+HKDF-256"},
             recipient_key=pub_key,
             context=[
                 1,
@@ -298,15 +299,16 @@ class TestECDH_DirectHKDF:
                 [128, cbor2.dumps({1: -25}), b"other"],
             ],
         )
+        enc_key = rec.encode()
         assert enc_key.alg == 1
         assert nonce == rec._unprotected[-25]
 
-    def test_ecdh_direct_hkdf_apply_without_sender_key(self, recipient_public_key):
-        sender = ECDH_DirectHKDF({1: -25}, {4: b"01"})
-        with pytest.raises(ValueError) as err:
-            sender.apply(recipient_key=recipient_public_key, context={"alg": "A128GCM"})
-            pytest.fail("apply() should fail.")
-        assert "sender_key should be set in advance." in str(err.value)
+    # def test_ecdh_direct_hkdf_apply_without_sender_key(self, recipient_public_key):
+    #     sender = ECDH_DirectHKDF({1: -25}, {4: b"01"}, recipient_key=recipient_public_key, context={"alg": "A128GCM"})
+    #     with pytest.raises(ValueError) as err:
+    #         sender.encode()
+    #         pytest.fail("encode() should fail.")
+    #     assert "sender_key should be set in advance." in str(err.value)
 
     def test_ecdh_direct_hkdf_encode_without_recipient_key(self):
         sender = ECDH_DirectHKDF({1: -25}, {4: b"01"}, context={"alg": "A128GCM"})
@@ -316,26 +318,31 @@ class TestECDH_DirectHKDF:
         assert "recipient_key should be set in advance." in str(err.value)
 
     def test_ecdh_direct_hkdf_apply_without_context(self, sender_key_es):
-        sender = ECDH_DirectHKDF({1: -25}, {4: b"01"}, sender_key=sender_key_es)
         with pytest.raises(ValueError) as err:
-            sender.apply(recipient_key=recipient_public_key)
-            pytest.fail("apply() should fail.")
-        assert "context should be set." in str(err.value)
+            ECDH_DirectHKDF({1: -25}, {4: b"01"}, sender_key=sender_key_es)
+            pytest.fail("ECDH_DirectHKDF() should fail.")
+        assert "context should be set in advance." in str(err.value)
 
     def test_ecdh_direct_hkdf_apply_with_invalid_recipient_key(self, sender_key_es, recipient_private_key):
-        rec = Recipient.new(protected={"alg": "ECDH-ES+HKDF-256"}, sender_key=sender_key_es)
+        rec = Recipient.new(
+            protected={"alg": "ECDH-ES+HKDF-256"},
+            sender_key=sender_key_es,
+            recipient_key=recipient_private_key,
+            context={"alg": "A128GCM"},
+        )
         with pytest.raises(ValueError) as err:
-            rec.apply(recipient_key=recipient_private_key, context={"alg": "A128GCM"})
+            rec.encode()
             pytest.fail("apply() should fail.")
         assert "public_key should be elliptic curve public key." in str(err.value)
 
     def test_ecdh_direct_hkdf_apply_and_extract_with_ecdh_es(self, sender_key_es, recipient_public_key, recipient_private_key):
-        sender = ECDH_DirectHKDF({1: -25}, {4: b"01"}, sender_key=sender_key_es)
-        enc_key = sender.apply(recipient_key=recipient_public_key, context={"alg": "A128GCM"})
-
+        sender = ECDH_DirectHKDF(
+            {1: -25}, {4: b"01"}, sender_key=sender_key_es, recipient_key=recipient_public_key, context={"alg": "A128GCM"}
+        )
+        enc_key = sender.encode()
         encoded = sender.to_list()
-        recipient = Recipient.from_list(encoded)
-        decoded_key = recipient.extract(recipient_private_key, context={"alg": "A128GCM"})
+        recipient = Recipient.from_list(encoded, context={"alg": "A128GCM"})
+        decoded_key = recipient.extract(recipient_private_key)
         assert enc_key.key == decoded_key.key
 
     @pytest.mark.parametrize(

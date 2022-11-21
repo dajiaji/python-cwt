@@ -16,19 +16,23 @@ class Recipients:
         return
 
     @classmethod
-    def from_list(cls, recipients: List[Any], verify_kid: bool = False):
+    def from_list(
+        cls,
+        recipients: List[Any],
+        verify_kid: bool = False,
+        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+    ):
         """
         Create Recipients from a CBOR-like list.
         """
         res: List[RecipientInterface] = []
         for r in recipients:
-            res.append(Recipient.from_list(r))
+            res.append(Recipient.from_list(r, context))
         return cls(res, verify_kid)
 
     def extract(
         self,
         keys: List[COSEKeyInterface],
-        context: Optional[Union[Dict[str, Any], List[Any]]] = None,
         alg: int = 0,
     ) -> COSEKeyInterface:
         """
@@ -45,13 +49,13 @@ class Recipients:
                     if k.kid != r.kid:
                         continue
                     try:
-                        return r.extract(k, alg, context)
+                        return r.extract(k, alg)
                     except Exception as e:
                         err = e
                 continue
             for k in keys:
                 try:
-                    return r.extract(k, alg, context)
+                    return r.extract(k, alg)
                 except Exception as e:
                     err = e
         raise err
@@ -60,7 +64,6 @@ class Recipients:
         self,
         keys: List[COSEKeyInterface],
         alg: int = 0,
-        context: Optional[Union[Dict[str, Any], List[Any]]] = None,
         payload: bytes = b"",
         nonce: bytes = b"",
         aad: bytes = b"",
@@ -81,13 +84,13 @@ class Recipients:
                     if k.kid != r.kid:
                         continue
                     try:
-                        return r.decrypt(k, alg, context, payload, nonce, aad, external_aad)
+                        return r.decrypt(k, alg, payload, nonce, aad, external_aad)
                     except Exception as e:
                         err = e
                 continue
             for k in keys:
                 try:
-                    return r.decrypt(k, alg, context, payload, nonce, aad, external_aad)
+                    return r.decrypt(k, alg, payload, nonce, aad, external_aad)
                 except Exception as e:
                     err = e
         raise err
