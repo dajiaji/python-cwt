@@ -167,7 +167,7 @@ mac_key = COSEKey.generate_symmetric_key(alg="HS512", kid="01")
 
 # The sender side:
 r = Recipient.new(unprotected={"alg": "direct", "kid": mac_key.kid})
-// r = Recipient.new(unprotected={1: -6, 4: mac_key.kid}) // is also acceptable.
+# r = Recipient.new(unprotected={1: -6, 4: mac_key.kid}) # is also acceptable.
 
 sender = COSE.new()
 encoded = sender.encode_and_mac(b"Hello world!", mac_key, recipients=[r])
@@ -423,7 +423,7 @@ enc_key = COSEKey.generate_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
 # The sender side:
 nonce = enc_key.generate_nonce()
 r = Recipient.new(unprotected={"alg": "direct", "kid": enc_key.kid})
-# r = Recipient.new(unprotected={1: -6, 4: enc_key.kid}) # is also acceptable
+# r = Recipient.new(unprotected={1: -6, 4: enc_key.kid}) # is also acceptable.
 
 sender = COSE.new()
 encoded = sender.encode_and_encrypt(
