@@ -132,13 +132,10 @@ class RecipientInterface(CBORProcessor):
         """
         return self._recipients
 
-    def to_list(self, payload: bytes = b"", external_aad: bytes = b"", aad_context: str = "") -> List[Any]:
+    def to_list(self) -> List[Any]:
         """
         Returns the recipient information as a COSE recipient structure.
 
-        Args:
-            payload (Optional[bytes]): The payload to be encrypted.
-            external_aad (Optional[bytes]): External additional authenticated data.
         Returns:
             List[Any]: The recipient structure.
         """
@@ -150,7 +147,7 @@ class RecipientInterface(CBORProcessor):
 
         children = []
         for recipient in self._recipients:
-            children.append(recipient.to_list(payload, external_aad, aad_context))
+            children.append(recipient.to_list())
         res.append(children)
         return res
 
