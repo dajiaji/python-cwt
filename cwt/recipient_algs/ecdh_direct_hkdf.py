@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from ..algs.ec2 import EC2Key
 from ..algs.okp import OKPKey
-from ..const import COSE_KEY_OPERATION_VALUES
+from ..const import COSE_KEY_LEN, COSE_KEY_OPERATION_VALUES
 from ..cose_key import COSEKey
 from ..cose_key_interface import COSEKeyInterface
 from ..utils import to_cis
@@ -123,6 +123,20 @@ class ECDH_DirectHKDF(Direct):
             self._unprotected[-2] = self._to_cose_key(self._sender_key.key.public_key())
         return self.to_list(), derived_key
 
+    def decode(
+        self,
+        key: COSEKeyInterface,
+        external_aad: bytes = b"",
+        aad_context: str = "Enc_Recipient",
+    ) -> bytes:
+        if not self._sender_public_key:
+            raise ValueError("sender_public_key should be set.")
+        return key.derive_bytes(
+            COSE_KEY_LEN[self._applied_ctx[0]] // 8,
+            info=self._dumps(self._applied_ctx),
+            public_key=self._sender_public_key,
+        )
+
     def apply(
         self,
         key: Optional[COSEKeyInterface] = None,
@@ -184,7 +198,9 @@ class ECDH_DirectHKDF(Direct):
     ) -> COSEKeyInterface:
         if not self._context:
             raise ValueError("context should be set.")
-        return key.derive_key(self._context, public_key=self._sender_public_key)
+        if not self._sender_public_key:
+            raise ValueError("sender_public_key should be set.")
+        return key.derive_key(self._applied_ctx, public_key=self._sender_public_key)
 
     def decrypt(
         self,

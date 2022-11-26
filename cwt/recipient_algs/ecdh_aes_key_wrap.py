@@ -119,6 +119,22 @@ class ECDH_AESKeyWrap(RecipientInterface):
             raise EncodeError("Failed to wrap key.") from err
         return key
 
+    def decode(
+        self,
+        key: COSEKeyInterface,
+        external_aad: bytes = b"",
+        aad_context: str = "Enc_Recipient",
+    ) -> bytes:
+        if not self._context:
+            raise ValueError("context should be set.")
+        if not self._sender_public_key:
+            raise ValueError("sender_public_key should be set.")
+        try:
+            derived = key.derive_key(self._context, public_key=self._sender_public_key)
+            return aes_key_unwrap(derived.key, self._ciphertext)
+        except Exception as err:
+            raise DecodeError("Failed to decode key.") from err
+
     def extract(
         self,
         key: COSEKeyInterface,

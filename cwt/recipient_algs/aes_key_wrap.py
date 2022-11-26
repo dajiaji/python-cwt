@@ -47,6 +47,14 @@ class AESKeyWrap(RecipientInterface):
         self._ciphertext = self._sender_key.wrap_key(plaintext)
         return self.to_list(), None
 
+    def decode(
+        self,
+        key: COSEKeyInterface,
+        external_aad: bytes = b"",
+        aad_context: str = "Enc_Recipient",
+    ) -> bytes:
+        return key.unwrap_key(self._ciphertext)
+
     def apply(
         self,
         key: Optional[COSEKeyInterface] = None,

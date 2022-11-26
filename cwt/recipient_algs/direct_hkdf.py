@@ -8,7 +8,7 @@ from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from ..const import COSE_KEY_LEN, COSE_KEY_OPERATION_VALUES
 from ..cose_key import COSEKey
 from ..cose_key_interface import COSEKeyInterface
-from ..exceptions import EncodeError, VerifyError
+from ..exceptions import DecodeError, EncodeError, VerifyError
 from ..utils import to_cis
 from .direct import Direct
 
@@ -182,6 +182,32 @@ class DirectHKDF(Direct):
             return COSEKey.from_symmetric_key(derived, self._applied_ctx[0], self._kid)
         except Exception as err:
             raise EncodeError("Failed to derive key.") from err
+
+    def decode(
+        self,
+        key: COSEKeyInterface,
+        external_aad: bytes = b"",
+        aad_context: str = "Enc_Recipient",
+    ) -> bytes:
+
+        if not self._context:
+            raise ValueError("context should be set.")
+        if isinstance(self._context, dict):
+            alg = self._alg if isinstance(self._alg, int) else 0
+            self._context = to_cis(self._context, alg)
+        else:
+            self._validate_context(self._context)
+
+        try:
+            hkdf = HKDF(
+                algorithm=self._hash_alg,
+                length=COSE_KEY_LEN[self._context[0]] // 8,
+                salt=self._salt,
+                info=self._dumps(self._context),
+            )
+            return hkdf.derive(key.key)
+        except Exception as err:
+            raise DecodeError("Failed to decode.") from err
 
     def extract(
         self,

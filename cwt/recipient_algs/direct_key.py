@@ -25,6 +25,14 @@ class DirectKey(Direct):
     ) -> Tuple[List[Any], Optional[COSEKeyInterface]]:
         return self.to_list(), None
 
+    def decode(
+        self,
+        key: COSEKeyInterface,
+        external_aad: bytes = b"",
+        aad_context: str = "Enc_Recipient",
+    ) -> bytes:
+        return b""
+
     def apply(
         self,
         key: Optional[COSEKeyInterface] = None,
