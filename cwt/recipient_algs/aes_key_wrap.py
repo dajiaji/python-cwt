@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from ..const import COSE_KEY_OPERATION_VALUES
 from ..cose_key import COSEKey
@@ -42,10 +42,10 @@ class AESKeyWrap(RecipientInterface):
         plaintext: bytes = b"",
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
-    ) -> Optional[COSEKeyInterface]:
+    ) -> Tuple[List[Any], Optional[COSEKeyInterface]]:
 
         self._ciphertext = self._sender_key.wrap_key(plaintext)
-        return None
+        return self.to_list(), None
 
     def apply(
         self,

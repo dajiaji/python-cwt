@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from ..cose_key_interface import COSEKeyInterface
 from .direct import Direct
@@ -22,8 +22,8 @@ class DirectKey(Direct):
         plaintext: bytes = b"",
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
-    ) -> Optional[COSEKeyInterface]:
-        return None
+    ) -> Tuple[List[Any], Optional[COSEKeyInterface]]:
+        return self.to_list(), None
 
     def apply(
         self,

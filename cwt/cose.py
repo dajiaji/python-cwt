@@ -162,8 +162,8 @@ class COSE(CBORProcessor):
         if not recipients:
             if 1 in p and p[1] == -1:  # HPKE
                 hpke = HPKE(p, u, recipient_key=key)
-                hpke.encode(payload, external_aad=external_aad, aad_context="Encrypt0")
-                res = CBORTag(16, hpke.to_list())
+                encoded, _ = hpke.encode(payload, external_aad=external_aad, aad_context="Encrypt0")
+                res = CBORTag(16, encoded)
                 return res if out == "cbor2/CBORTag" else self._dumps(res)
             if key is None:
                 raise ValueError("key should be set.")
@@ -187,9 +187,9 @@ class COSE(CBORProcessor):
         b_key = key.to_bytes() if isinstance(key, COSEKeyInterface) else b""
         cek: Optional[COSEKeyInterface] = None
         for rec in recipients:
-            derived_key = rec.encode(b_key, external_aad=external_aad)
+            encoded, derived_key = rec.encode(b_key, external_aad=external_aad)
             cek = derived_key if derived_key else key
-            recs.append(rec.to_list())
+            recs.append(encoded)
 
         if cek is None:
             raise ValueError("key should be set.")
@@ -264,9 +264,9 @@ class COSE(CBORProcessor):
         recs = []
         b_key = key.to_bytes() if isinstance(key, COSEKeyInterface) else b""
         for rec in recipients:
-            derived_key = rec.encode(b_key, external_aad=external_aad)
+            encoded, derived_key = rec.encode(b_key, external_aad=external_aad)
             key = derived_key if derived_key else key
-            recs.append(rec.to_list())
+            recs.append(encoded)
 
         if key is None:
             raise ValueError("key should be set.")

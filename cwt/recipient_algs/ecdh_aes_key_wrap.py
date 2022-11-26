@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from cryptography.hazmat.primitives.keywrap import aes_key_unwrap, aes_key_wrap
 
@@ -59,7 +59,7 @@ class ECDH_AESKeyWrap(RecipientInterface):
         plaintext: bytes = b"",
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
-    ) -> Optional[COSEKeyInterface]:
+    ) -> Tuple[List[Any], Optional[COSEKeyInterface]]:
 
         if not self._recipient_key:
             raise ValueError("recipient_key should be set in advance.")
@@ -83,7 +83,7 @@ class ECDH_AESKeyWrap(RecipientInterface):
             self._ciphertext = aes_key_wrap(wrapping_key.key, plaintext)
         except Exception as err:
             raise EncodeError("Failed to wrap key.") from err
-        return None
+        return self.to_list(), None
 
     def apply(
         self,

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePublicKey
 from cryptography.hazmat.primitives.asymmetric.x448 import X448PublicKey
@@ -159,16 +159,15 @@ class RecipientInterface(CBORProcessor):
         plaintext: bytes = b"",
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
-    ) -> Optional[COSEKeyInterface]:
+    ) -> Tuple[List[Any], Optional[COSEKeyInterface]]:
         """
-        Encodes a specified plaintext to a ciphertext with the recipient-specific
-        method (e.g., key wrapping, key agreement, or the combination of them)
-        and sets up the related information (context information or ciphertext)
-        in the recipient structure.
-        Therefore, it will be used by the sender of the recipient information
-        before calling COSE.encode_* functions with the Recipient object. The
-        key generated through this function will be set to ``key`` parameter
-        of COSE.encode_* functions.
+        Encrypts a specified plaintext to the ciphertext in the COSE_Recipient
+        structure with the recipient-specific method (e.g., key wrapping, key
+        agreement, or the combination of them) and sets up the related information
+        (context information or ciphertext) in the recipient structure.
+
+        This function will be called in COSE.encode_* functions so applications
+        do not need to call it directly.
 
         Args:
             plaintext (bytes): A plaing text to be encrypted. In most of the cases,
@@ -177,11 +176,40 @@ class RecipientInterface(CBORProcessor):
             aad_context (bytes): An additional authenticated data context to build
                 an Enc_structure internally.
         Returns:
-            Optional[COSEKeyInterface]: A generated key or passed-through key
-                which is used as ``key`` parameter of COSE.encode_* functions.
+            Tuple[List[Any], Optional[COSEKeyInterface]]: The encoded COSE_Recipient structure
+                and a derived key.
         Raises:
             ValueError: Invalid arguments.
             EncodeError: Failed to encode(e.g., wrap, derive) the key.
+        """
+        raise NotImplementedError
+
+    def decode(
+        self,
+        key: COSEKeyInterface,
+        external_aad: bytes = b"",
+        aad_context: str = "Enc_Recipient",
+    ) -> bytes:
+        """
+        Decrypts the ciphertext in the COSE_Recipient structure with the
+        recipient-specific method (e.g., key wrapping, key agreement,
+        or the combination of them).
+
+        This function will be called in COSE.decode so applications do not need
+        to call it directly.
+
+        Args:
+            key (COSEKeyInterface): The external key to be used for
+                decrypting the ciphertext in the COSE_Recipient structure.
+            external_aad (bytes): External additional authenticated data for AEAD.
+            aad_context (bytes): An additional authenticated data context to build
+                an Enc_structure internally.
+        Returns:
+            COSEKeyInterface: An extracted key which is used for decrypting
+                or verifying a payload message.
+        Raises:
+            ValueError: Invalid arguments.
+            DecodeError: Failed to decode(e.g., unwrap, derive) the key.
         """
         raise NotImplementedError
 
@@ -230,7 +258,7 @@ class RecipientInterface(CBORProcessor):
         alg: Optional[int] = None,
     ) -> COSEKeyInterface:
         """
-        Extracts a MAC/encryption key with the recipient-specific method
+        [DEPRECATED] Extracts a MAC/encryption key with the recipient-specific method
         (e.g., key wrapping, key agreement, or the combination of them).
         This function will be called in COSE.decode so applications do
         not need to call it directly.
@@ -259,7 +287,7 @@ class RecipientInterface(CBORProcessor):
         aad_context: str = "Enc_Recipient",
     ) -> bytes:
         """
-        Decrypts the supplied payload.
+        [DEPRECATED] Decrypts the supplied payload.
 
         Args:
             key (COSEKeyInterface): The external key to be used for extracting the key.

@@ -1,6 +1,6 @@
 import copy
 from secrets import token_bytes
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
@@ -115,7 +115,7 @@ class DirectHKDF(Direct):
         plaintext: bytes = b"",
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
-    ) -> Optional[COSEKeyInterface]:
+    ) -> Tuple[List[Any], Optional[COSEKeyInterface]]:
 
         # Derive key.
         try:
@@ -126,7 +126,7 @@ class DirectHKDF(Direct):
                 info=self._dumps(self._applied_ctx),
             )
             derived = hkdf.derive(plaintext)
-            return COSEKey.from_symmetric_key(derived, self._applied_ctx[0], self._kid)
+            return self.to_list(), COSEKey.from_symmetric_key(derived, self._applied_ctx[0], self._kid)
         except Exception as err:
             raise EncodeError("Failed to derive key.") from err
 

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from pyhpke import AEADId, CipherSuite, KDFId, KEMId, KEMKey, KEMKeyInterface
 
@@ -38,7 +38,7 @@ class HPKE(RecipientInterface):
         plaintext: bytes = b"",
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
-    ) -> Optional[COSEKeyInterface]:
+    ) -> Tuple[List[Any], Optional[COSEKeyInterface]]:
         if self._recipient_key is None:
             raise ValueError("recipient_key should be set in advance.")
         self._kem_key = self._to_kem_key(self._recipient_key)
@@ -50,7 +50,7 @@ class HPKE(RecipientInterface):
             self._ciphertext = ctx.seal(plaintext, aad=aad)
         except Exception as err:
             raise EncodeError("Failed to seal.") from err
-        return None
+        return self.to_list(), None
 
     def decode(
         self,

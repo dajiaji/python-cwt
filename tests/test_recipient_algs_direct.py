@@ -145,7 +145,7 @@ class TestDirectHKDF:
         ]
         material = COSEKey.from_symmetric_key(token_bytes(16))
         ctx = DirectHKDF({1: -10}, {4: b"01", -20: b"aabbccddeeff"}, context=context)
-        key = ctx.encode(material.to_bytes())
+        _, key = ctx.encode(material.to_bytes())
         assert key.alg == 10
         assert len(key.key) == 16
 
@@ -158,7 +158,7 @@ class TestDirectHKDF:
         ]
         material = COSEKey.from_symmetric_key(token_bytes(16))
         ctx = DirectHKDF({1: -10}, {4: b"01"}, context=context)
-        key = ctx.encode(material.to_bytes())
+        _, key = ctx.encode(material.to_bytes())
         assert key.alg == 10
         assert len(key.key) == 16
 
@@ -172,7 +172,7 @@ class TestDirectHKDF:
         ]
         material = COSEKey.from_symmetric_key(token_bytes(16))
         ctx = DirectHKDF({1: -10}, {4: b"01"}, context=context)
-        key = ctx.encode(material.to_bytes())
+        _, key = ctx.encode(material.to_bytes())
         assert key.alg == 10
         assert len(key.key) == 16
         assert nonce == ctx._unprotected[-22]
@@ -187,7 +187,7 @@ class TestDirectHKDF:
         ]
         material = COSEKey.from_symmetric_key(token_bytes(16))
         ctx = DirectHKDF({1: -10}, {4: b"01"}, context=context)
-        key = ctx.encode(material.to_bytes())
+        _, key = ctx.encode(material.to_bytes())
         assert key.alg == 10
         assert len(key.key) == 16
         assert nonce == ctx._unprotected[-25]
@@ -225,7 +225,7 @@ class TestDirectHKDF:
                 },
             },
         )
-        key = ctx.encode(material.to_bytes())
+        _, key = ctx.encode(material.to_bytes())
         assert key.alg == 10
 
     # def test_direct_hkdf_apply_with_invalid_key(self):
@@ -381,7 +381,7 @@ class TestDirectHKDF:
             },
         }
         ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"}, context=context)
-        key = ctx.encode(material.to_bytes())
+        _, key = ctx.encode(material.to_bytes())
         ctx.verify_key(
             base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
             key.key,
@@ -399,7 +399,7 @@ class TestDirectHKDF:
             [128, cbor2.dumps({1: -10}), b"Encryption Example 02"],
         ]
         ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"}, context=context)
-        key = ctx.encode(material.to_bytes())
+        _, key = ctx.encode(material.to_bytes())
         ctx.verify_key(
             base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
             key.key,
@@ -423,7 +423,7 @@ class TestDirectHKDF:
             },
         }
         ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"}, context=context)
-        key = ctx.encode(material.to_bytes())
+        _, key = ctx.encode(material.to_bytes())
         with pytest.raises(VerifyError) as err:
             ctx.verify_key(
                 b"xxxxxxxxxx",

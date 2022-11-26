@@ -281,7 +281,7 @@ class TestECDH_DirectHKDF:
                 [128, cbor2.dumps({1: -25})],
             ],
         )
-        enc_key = rec.encode()
+        _, enc_key = rec.encode()
         assert enc_key.alg == 1
         assert nonce == rec._unprotected[-25]
 
@@ -299,7 +299,7 @@ class TestECDH_DirectHKDF:
                 [128, cbor2.dumps({1: -25}), b"other"],
             ],
         )
-        enc_key = rec.encode()
+        _, enc_key = rec.encode()
         assert enc_key.alg == 1
         assert nonce == rec._unprotected[-25]
 
@@ -339,8 +339,7 @@ class TestECDH_DirectHKDF:
         sender = ECDH_DirectHKDF(
             {1: -25}, {4: b"01"}, sender_key=sender_key_es, recipient_key=recipient_public_key, context={"alg": "A128GCM"}
         )
-        enc_key = sender.encode()
-        encoded = sender.to_list()
+        encoded, enc_key = sender.encode()
         recipient = Recipient.from_list(encoded, context={"alg": "A128GCM"})
         decoded_key = recipient.extract(recipient_private_key)
         assert enc_key.key == decoded_key.key

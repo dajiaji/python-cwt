@@ -1,6 +1,6 @@
 import copy
 from secrets import token_bytes
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from ..algs.ec2 import EC2Key
 from ..algs.okp import OKPKey
@@ -96,7 +96,7 @@ class ECDH_DirectHKDF(Direct):
         plaintext: bytes = b"",
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
-    ) -> Optional[COSEKeyInterface]:
+    ) -> Tuple[List[Any], Optional[COSEKeyInterface]]:
 
         if not self._recipient_key:
             raise ValueError("recipient_key should be set in advance.")
@@ -121,7 +121,7 @@ class ECDH_DirectHKDF(Direct):
         else:
             # ECDH-SS (alg=-27 or -28)
             self._unprotected[-2] = self._to_cose_key(self._sender_key.key.public_key())
-        return derived_key
+        return self.to_list(), derived_key
 
     def apply(
         self,
