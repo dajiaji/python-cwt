@@ -177,6 +177,9 @@ def to_cose_header(data: Optional[dict] = None, algs: Dict[str, int] = {}) -> Di
             v = algs[v]
         else:
             v = v.encode("utf-8") if isinstance(v, str) else v
+            if k == "salt":
+                if not isinstance(v, bytes):
+                    raise ValueError("salt should be bytes or str.")
         res[COSE_HEADER_PARAMETERS[k]] = v
     return res
 

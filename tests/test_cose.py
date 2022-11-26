@@ -94,7 +94,7 @@ class TestCOSE:
 
         # Encrypt
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="02")
-        rec = Recipient.from_jwk({"alg": "direct", "kid": "02"})
+        rec = Recipient.new(unprotected={"alg": "direct", "kid": "02"})
         encoded = ctx.encode_and_encrypt(
             b"Hello world!",
             enc_key,
@@ -106,7 +106,7 @@ class TestCOSE:
         ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
 
         # Encrypt
-        rec = Recipient.from_jwk({"alg": "direct", "kid": "02"})
+        rec = Recipient.new(unprotected={"alg": "direct", "kid": "02"})
         with pytest.raises(ValueError) as err:
             ctx.encode_and_encrypt(
                 b"Hello world!",
@@ -214,12 +214,7 @@ class TestCOSE:
         ctx = COSE.new()
 
         mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
-        recipient = Recipient.from_jwk(
-            {
-                "alg": "direct",
-                "kid": "01",
-            }
-        )
+        recipient = Recipient.new(unprotected={"alg": "direct", "kid": "01"})
         encoded = ctx.encode_and_mac(
             b"Hello world!",
             mac_key,
@@ -530,8 +525,10 @@ class TestCOSE:
         material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
         material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
 
-        r1 = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "k": material1})
-        r2 = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "k": material2})
+        k1 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material1})
+        k2 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material2})
+        r1 = Recipient.new(unprotected={"alg": "A128KW"}, sender_key=k1)
+        r2 = Recipient.new(unprotected={"alg": "A128KW"}, sender_key=k2)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2, r1])
 
@@ -547,8 +544,10 @@ class TestCOSE:
         material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
         material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
 
-        r1 = Recipient.from_jwk({"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1})
-        r2 = Recipient.from_jwk({"kid": "02", "kty": "oct", "alg": "A128KW", "k": material2})
+        k1 = COSEKey.from_jwk({"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1})
+        k2 = COSEKey.from_jwk({"kid": "02", "kty": "oct", "alg": "A128KW", "k": material2})
+        r1 = Recipient.new(unprotected={"kid": "01", "alg": "A128KW"}, sender_key=k1)
+        r2 = Recipient.new(unprotected={"kid": "02", "alg": "A128KW"}, sender_key=k2)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2, r1])
 
@@ -587,8 +586,10 @@ class TestCOSE:
         material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
         material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
 
-        r1 = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "k": material1})
-        r2 = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "k": material2})
+        k1 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material1})
+        k2 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material2})
+        r1 = Recipient.new(unprotected={"alg": "A128KW"}, sender_key=k1)
+        r2 = Recipient.new(unprotected={"alg": "A128KW"}, sender_key=k2)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2, r1])
 
@@ -610,8 +611,10 @@ class TestCOSE:
         material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
         material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
 
-        r1 = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "k": material1})
-        r2 = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "k": material2})
+        k1 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material1})
+        k2 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material2})
+        r1 = Recipient.new(unprotected={"alg": "A128KW"}, sender_key=k1)
+        r2 = Recipient.new(unprotected={"alg": "A128KW"}, sender_key=k2)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2, r1])
 
@@ -631,7 +634,8 @@ class TestCOSE:
         material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
         material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
 
-        r2 = Recipient.from_jwk({"kid": "03", "kty": "oct", "alg": "A128KW", "k": material2})
+        k2 = COSEKey.from_jwk({"kid": "03", "kty": "oct", "alg": "A128KW", "k": material2})
+        r2 = Recipient.new(unprotected={"kid": "03", "alg": "A128KW"}, sender_key=k2)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2])
 
@@ -651,7 +655,8 @@ class TestCOSE:
         material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
         material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
 
-        r2 = Recipient.from_jwk({"kid": "03", "kty": "oct", "alg": "A128KW", "k": material2})
+        k2 = COSEKey.from_jwk({"kid": "03", "kty": "oct", "alg": "A128KW", "k": material2})
+        r2 = Recipient.new(unprotected={"kid": "03", "alg": "A128KW"}, sender_key=k2)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2])
 
@@ -717,8 +722,10 @@ class TestCOSE:
         material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
         material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
 
-        r1 = Recipient.from_jwk({"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1})
-        r2 = Recipient.from_jwk({"kid": "02", "kty": "oct", "alg": "A128KW", "k": material2})
+        k1 = COSEKey.from_jwk({"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1})
+        k2 = COSEKey.from_jwk({"kid": "02", "kty": "oct", "alg": "A128KW", "k": material2})
+        r1 = Recipient.new(unprotected={"kid": "01", "alg": "A128KW"}, sender_key=k1)
+        r2 = Recipient.new(unprotected={"kid": "02", "alg": "A128KW"}, sender_key=k2)
 
         encoded = ctx.encode_and_encrypt(b"Hello world!", key, recipients=[r2, r1])
 

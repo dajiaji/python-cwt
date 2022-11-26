@@ -478,13 +478,20 @@ class TestCOSE:
             ),
             alg="HS512",
         )
-        recipient = Recipient.from_jwk(
+        key = COSEKey.from_jwk(
             {
                 "kty": "oct",
                 "alg": "A128KW",
                 "kid": "our-secret",
                 "k": "hJtXIZ2uSN5kbQfbtTNWbg",
             },
+        )
+        recipient = Recipient.new(
+            unprotected={
+                "alg": "A128KW",
+                "kid": "our-secret",
+            },
+            sender_key=key,
         )
         ctx = COSE.new()
         encoded = ctx.encode_and_mac(
@@ -494,14 +501,6 @@ class TestCOSE:
             recipients=[recipient],
         )
         assert encoded == bytes.fromhex(cwt_str)
-        key = COSEKey.from_jwk(
-            {
-                "kty": "oct",
-                "alg": "A128KW",
-                "kid": "our-secret",
-                "k": "hJtXIZ2uSN5kbQfbtTNWbg",
-            },
-        )
         res = ctx.decode(encoded, keys=[key])
         assert res == b"This is the content."
 

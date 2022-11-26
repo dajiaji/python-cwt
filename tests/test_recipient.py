@@ -290,17 +290,19 @@ class TestRecipient:
         assert msg in str(err.value)
 
     def test_recipient_from_jwk_with_str(self):
-        recipient = Recipient.from_jwk('{"alg": "direct"}')
+        recipient = Recipient.new(unprotected={"alg": "direct"})
         assert isinstance(recipient, RecipientInterface)
         assert recipient.alg == -6
 
     def test_recipient_from_jwk_with_dict(self):
-        recipient = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "key_ops": ["wrapKey"]})
+        k = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "key_ops": ["wrapKey"]})
+        recipient = Recipient.new(unprotected={"alg": "A128KW"}, sender_key=k)
         assert isinstance(recipient, RecipientInterface)
         assert recipient.alg == -3
 
     def test_recipient_from_jwk_with_dict_and_with_byte_formatted_kid(self):
-        recipient = Recipient.from_jwk({"kty": "oct", "kid": b"01", "alg": "A128KW", "key_ops": ["wrapKey"]})
+        k = COSEKey.from_jwk({"kty": "oct", "kid": b"01", "alg": "A128KW", "key_ops": ["wrapKey"]})
+        recipient = Recipient.new(unprotected={"kid": b"01", "alg": "A128KW"}, sender_key=k)
         assert isinstance(recipient, RecipientInterface)
         assert recipient.alg == -3
         assert recipient.kid == b"01"
@@ -406,57 +408,68 @@ class TestRecipient:
     #     assert recipient._unprotected[-26] == b"def"
 
     @pytest.mark.parametrize(
-        "data, msg",
+        "data, key, msg",
         [
             (
                 {"foo": "bar"},
-                "alg should be specified.",
+                {"kty": "oct", "foo": "bar"},
+                "alg(3) should be int or str(tstr).",
             ),
             (
                 {"alg": "xxx"},
+                {"kty": "oct", "alg": "xxx"},
                 "Unsupported or unknown alg: xxx.",
             ),
             (
                 {"alg": 123},
+                {"kty": "oct", "alg": 123},
                 "alg should be str.",
             ),
             (
                 {"alg": "direct", "kid": 123},
+                {"kty": "oct", "alg": "direct", "kid": 123},
                 "kid should be str or bytes.",
             ),
             (
+                {"alg": "A128KW", "kid": 123},
                 {"kty": "oct", "alg": "A128KW", "kid": 123},
                 "kid should be str or bytes.",
             ),
             (
-                {"kty": "oct", "alg": "A128KW", "salt": 123},
-                "salt should be str.",
+                {"alg": "A128KW", "salt": 123},
+                {"kty": "oct", "alg": "A128KW"},
+                "salt should be bytes or str.",
             ),
             (
+                {"alg": "A128KW"},
                 {"kty": "oct", "alg": "A128KW", "key_ops": 123},
                 "key_ops should be list.",
             ),
             (
+                {"alg": "A128KW"},
                 {"kty": "oct", "alg": "A128KW", "key_ops": [123]},
                 "Unsupported or unknown key_ops.",
             ),
             (
+                {"alg": "A128KW"},
                 {"kty": "oct", "alg": "A128KW", "key_ops": ["xxx"]},
                 "Unsupported or unknown key_ops.",
             ),
             (
+                {"alg": "A128KW"},
                 {"kty": "oct", "alg": "A128KW", "k": 123},
                 "k should be str.",
             ),
             (
-                {"kty": "oct", "alg": "direct+HKDF-SHA-256", "context": []},
-                "context should be dict.",
+                {"alg": "direct+HKDF-SHA-256", "context": []},
+                {"kty": "oct", "alg": "direct+HKDF-SHA-256"},
+                "Unsupported or unknown alg(3): -10.",
             ),
         ],
     )
-    def test_recipient_from_jwk_with_invalid_arg(self, data, msg):
+    def test_recipient_from_jwk_with_invalid_arg(self, data, key, msg):
         with pytest.raises(ValueError) as err:
-            Recipient.from_jwk(data)
+            Recipient.new(unprotected=data, sender_key=COSEKey.from_jwk(key))
             pytest.fail("Recipient() should fail.")
         assert msg in str(err.value)
 
