@@ -113,20 +113,20 @@ class TestAESKeyWrap:
             pytest.fail("AESKeyWrap() should fail.")
         assert "algs in protected and sender_key do not match." in str(err.value)
 
-    def test_aes_key_wrap_apply_with_invalid_key(self):
-        key = COSEKey.from_symmetric_key(key="xxx", alg="HS256", kid="01")
+    # def test_aes_key_wrap_encode_with_invalid_key(self):
+    #     key = COSEKey.from_symmetric_key(key="xxx", alg="HS256", kid="01")
+    #     ctx = AESKeyWrap({1: -3}, {}, sender_key=COSEKey.from_symmetric_key(alg="A128KW"), context={"alg": "A128GCM"})
+    #     with pytest.raises(EncodeError) as err:
+    #         ctx.encode(key)
+    #         pytest.fail("encode() should fail.")
+    #     assert "Failed to wrap key." in str(err.value)
+
+    def test_aes_key_wrap_encode_without_key(self):
         ctx = AESKeyWrap({1: -3}, {}, sender_key=COSEKey.from_symmetric_key(alg="A128KW"))
         with pytest.raises(EncodeError) as err:
-            ctx.apply(key, context={"alg": "A128GCM"})
-            pytest.fail("apply() should fail.")
+            ctx.encode()
+            pytest.fail("encode() should fail.")
         assert "Failed to wrap key." in str(err.value)
-
-    def test_aes_key_wrap_apply_without_key(self):
-        ctx = AESKeyWrap({1: -3}, {}, sender_key=COSEKey.from_symmetric_key(alg="A128KW"))
-        with pytest.raises(ValueError) as err:
-            ctx.apply()
-            pytest.fail("apply() should fail.")
-        assert "key should be set." in str(err.value)
 
     def test_aes_key_wrap_wrap_key_without_alg(self):
         key = COSEKey.from_symmetric_key(alg="A128GCM", kid="01")

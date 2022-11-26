@@ -86,7 +86,7 @@ class TestECDH_DirectHKDF:
             pytest.fail("ECDH_DirectHKDF() should fail.")
         assert "Unknown alg(1) for ECDH with HKDF: -1." in str(err.value)
 
-    def test_ecdh_direct_hkdf_apply_with_ecdh_ss_p256(self):
+    def test_ecdh_direct_hkdf_encode_with_ecdh_ss_p256(self):
         sender_priv_key = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -116,7 +116,7 @@ class TestECDH_DirectHKDF:
             priv_key = COSEKey.from_pem(key_file.read(), kid="01", alg="ECDH-SS+HKDF-256")
         assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "A128GCM"})
 
-    def test_ecdh_direct_hkdf_apply_with_ecdh_ss_p521(self):
+    def test_ecdh_direct_hkdf_encode_with_ecdh_ss_p521(self):
         sender_priv_key = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -146,7 +146,7 @@ class TestECDH_DirectHKDF:
             priv_key = COSEKey.from_pem(key_file.read(), kid="01", alg="ECDH-SS+HKDF-512")
         assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "A128GCM"})
 
-    def test_ecdh_direct_hkdf_apply_with_raw_context(self):
+    def test_ecdh_direct_hkdf_encode_with_raw_context(self):
         with open(key_path("public_key_es256.pem")) as key_file:
             pub_key = COSEKey.from_pem(key_file.read(), kid="01")
         rec = Recipient.new(
@@ -166,7 +166,7 @@ class TestECDH_DirectHKDF:
             priv_key = COSEKey.from_pem(key_file.read(), kid="01", alg="ECDH-ES+HKDF-256")
         assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "A128GCM"})
 
-    def test_ecdh_direct_hkdf_apply_with_ecdh_ss_p521_without_salt(self):
+    def test_ecdh_direct_hkdf_encode_with_ecdh_ss_p521_without_salt(self):
         sender_priv_key = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -195,7 +195,7 @@ class TestECDH_DirectHKDF:
             priv_key = COSEKey.from_pem(key_file.read(), kid="01", alg="ECDH-SS+HKDF-512")
         assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "A128GCM"})
 
-    def test_ecdh_direct_hkdf_apply_with_ecdh_ss_p521_with_default_salt(self):
+    def test_ecdh_direct_hkdf_encode_with_ecdh_ss_p521_with_default_salt(self):
         sender_priv_key = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -225,7 +225,7 @@ class TestECDH_DirectHKDF:
             priv_key = COSEKey.from_pem(key_file.read(), kid="01", alg="ECDH-SS+HKDF-512")
         assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "A128GCM"})
 
-    def test_ecdh_direct_hkdf_apply_without_salt(self):
+    def test_ecdh_direct_hkdf_encode_without_salt(self):
         with open(key_path("public_key_es256.pem")) as key_file:
             pub_key = COSEKey.from_pem(key_file.read(), kid="01")
         rec = Recipient.new(
@@ -245,7 +245,7 @@ class TestECDH_DirectHKDF:
             priv_key = COSEKey.from_pem(key_file.read(), kid="01", alg="ECDH-ES+HKDF-256")
         assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "A128GCM"})
 
-    def test_ecdh_direct_hkdf_apply_with_party_u_nonce(self):
+    def test_ecdh_direct_hkdf_encode_with_party_u_nonce(self):
         nonce = token_bytes(32)
         with open(key_path("public_key_es256.pem")) as key_file:
             pub_key = COSEKey.from_pem(key_file.read(), kid="01")
@@ -267,7 +267,7 @@ class TestECDH_DirectHKDF:
             priv_key = COSEKey.from_pem(key_file.read(), kid="01", alg="ECDH-ES+HKDF-256")
         assert b"Hello world!" == ctx.decode(encoded, priv_key, context=context)
 
-    def test_ecdh_direct_hkdf_apply_with_party_v_nonce(self):
+    def test_ecdh_direct_hkdf_encode_with_party_v_nonce(self):
         nonce = token_bytes(32)
         with open(key_path("public_key_es256.pem")) as key_file:
             pub_key = COSEKey.from_pem(key_file.read(), kid="01")
@@ -285,7 +285,7 @@ class TestECDH_DirectHKDF:
         assert enc_key.alg == 1
         assert nonce == rec._unprotected[-25]
 
-    def test_ecdh_direct_hkdf_apply_with_supp_pub_other(self):
+    def test_ecdh_direct_hkdf_encode_with_supp_pub_other(self):
         nonce = token_bytes(32)
         with open(key_path("public_key_es256.pem")) as key_file:
             pub_key = COSEKey.from_pem(key_file.read(), kid="01")
@@ -303,7 +303,7 @@ class TestECDH_DirectHKDF:
         assert enc_key.alg == 1
         assert nonce == rec._unprotected[-25]
 
-    # def test_ecdh_direct_hkdf_apply_without_sender_key(self, recipient_public_key):
+    # def test_ecdh_direct_hkdf_encode_without_sender_key(self, recipient_public_key):
     #     sender = ECDH_DirectHKDF({1: -25}, {4: b"01"}, recipient_key=recipient_public_key, context={"alg": "A128GCM"})
     #     with pytest.raises(ValueError) as err:
     #         sender.encode()
@@ -317,13 +317,13 @@ class TestECDH_DirectHKDF:
             pytest.fail("encode() should fail.")
         assert "recipient_key should be set in advance." in str(err.value)
 
-    def test_ecdh_direct_hkdf_apply_without_context(self, sender_key_es):
+    def test_ecdh_direct_hkdf_encode_without_context(self, sender_key_es):
         with pytest.raises(ValueError) as err:
             ECDH_DirectHKDF({1: -25}, {4: b"01"}, sender_key=sender_key_es)
             pytest.fail("ECDH_DirectHKDF() should fail.")
         assert "context should be set in advance." in str(err.value)
 
-    def test_ecdh_direct_hkdf_apply_with_invalid_recipient_key(self, sender_key_es, recipient_private_key):
+    def test_ecdh_direct_hkdf_encode_with_invalid_recipient_key(self, sender_key_es, recipient_private_key):
         rec = Recipient.new(
             protected={"alg": "ECDH-ES+HKDF-256"},
             sender_key=sender_key_es,
@@ -332,10 +332,10 @@ class TestECDH_DirectHKDF:
         )
         with pytest.raises(ValueError) as err:
             rec.encode()
-            pytest.fail("apply() should fail.")
+            pytest.fail("encode() should fail.")
         assert "public_key should be elliptic curve public key." in str(err.value)
 
-    def test_ecdh_direct_hkdf_apply_and_extract_with_ecdh_es(self, sender_key_es, recipient_public_key, recipient_private_key):
+    def test_ecdh_direct_hkdf_encode_and_extract_with_ecdh_es(self, sender_key_es, recipient_public_key, recipient_private_key):
         sender = ECDH_DirectHKDF(
             {1: -25}, {4: b"01"}, sender_key=sender_key_es, recipient_key=recipient_public_key, context={"alg": "A128GCM"}
         )

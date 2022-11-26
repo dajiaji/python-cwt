@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 from ..cose_key_interface import COSEKeyInterface
 from .direct import Direct
@@ -33,20 +33,20 @@ class DirectKey(Direct):
     ) -> bytes:
         return b""
 
-    def apply(
-        self,
-        key: Optional[COSEKeyInterface] = None,
-        recipient_key: Optional[COSEKeyInterface] = None,
-        salt: Optional[bytes] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
-    ) -> COSEKeyInterface:
-        if not key:
-            raise ValueError("key should be set.")
-        if key.kid:
-            self._unprotected[4] = key.kid
-        return key
+    # def apply(
+    #     self,
+    #     key: Optional[COSEKeyInterface] = None,
+    #     recipient_key: Optional[COSEKeyInterface] = None,
+    #     salt: Optional[bytes] = None,
+    #     context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+    #     external_aad: bytes = b"",
+    #     aad_context: str = "Enc_Recipient",
+    # ) -> COSEKeyInterface:
+    #     if not key:
+    #         raise ValueError("key should be set.")
+    #     if key.kid:
+    #         self._unprotected[4] = key.kid
+    #     return key
 
     def extract(
         self,

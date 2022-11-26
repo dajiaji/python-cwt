@@ -25,8 +25,8 @@ class TestDirect:
         assert isinstance(ctx, Direct)
         assert ctx.alg == -6
         with pytest.raises(NotImplementedError):
-            ctx.apply(k)
-            pytest.fail("apply() should fail.")
+            ctx.encode(k)
+            pytest.fail("encode() should fail.")
         with pytest.raises(NotImplementedError):
             ctx.extract(k)
             pytest.fail("extract() should fail.")
@@ -73,19 +73,17 @@ class TestDirectKey:
             pytest.fail("DirectKey() should fail.")
         assert msg in str(err.value)
 
-    def test_direct_key_apply(self):
+    def test_direct_key_encode(self):
         k = COSEKey.from_symmetric_key(alg="HS256")
         ctx = DirectKey({1: -6}, {})
-        encoded = ctx.apply(k)
-        assert encoded.alg == 5
-        assert k.key == encoded.key
+        _, derived_key = ctx.encode(k)
+        assert derived_key is None
 
-    def test_direct_key_apply_with_invalid_arg(self):
+    def test_direct_key_encode_without_alg(self):
         ctx = DirectKey({1: -6}, {})
-        with pytest.raises(ValueError) as err:
-            ctx.apply()
-            pytest.fail("apply() should fail.")
-        assert "key should be set." in str(err.value)
+        encoded, derived_key = ctx.encode()
+        assert isinstance(encoded, list)
+        assert derived_key is None
 
     def test_direct_key_extract(self):
         k = COSEKey.from_symmetric_key(alg="HS256")
@@ -136,7 +134,7 @@ class TestDirectHKDF:
             pytest.fail("DirectHKDF() should fail.")
         assert msg in str(err.value)
 
-    def test_direct_hkdf_apply(self):
+    def test_direct_hkdf_encode(self):
         context = [
             10,
             [b"lighting-client", None, None],
@@ -149,7 +147,7 @@ class TestDirectHKDF:
         assert key.alg == 10
         assert len(key.key) == 16
 
-    def test_direct_hkdf_apply_without_salt(self):
+    def test_direct_hkdf_encode_without_salt(self):
         context = [
             10,
             [b"lighting-client", None, None],
@@ -162,7 +160,7 @@ class TestDirectHKDF:
         assert key.alg == 10
         assert len(key.key) == 16
 
-    def test_direct_hkdf_apply_with_party_u_nonce(self):
+    def test_direct_hkdf_encode_with_party_u_nonce(self):
         nonce = token_bytes(16)
         context = [
             10,
@@ -177,7 +175,7 @@ class TestDirectHKDF:
         assert len(key.key) == 16
         assert nonce == ctx._unprotected[-22]
 
-    def test_direct_hkdf_apply_with_party_v_nonce(self):
+    def test_direct_hkdf_encode_with_party_v_nonce(self):
         nonce = token_bytes(16)
         context = [
             10,
@@ -192,7 +190,7 @@ class TestDirectHKDF:
         assert len(key.key) == 16
         assert nonce == ctx._unprotected[-25]
 
-    # def test_direct_hkdf_apply_without_alg(self):
+    # def test_direct_hkdf_encode_without_alg(self):
     #     material = COSEKey.from_symmetric_key(token_bytes(16))
     #     ctx = DirectHKDF(
     #         {1: -10},
@@ -204,7 +202,7 @@ class TestDirectHKDF:
     #         pytest.fail("encode() should fail.")
     #     assert "context should be set." in str(err.value)
 
-    def test_direct_hkdf_apply_with_json_context(self):
+    def test_direct_hkdf_encode_with_json_context(self):
         material = COSEKey.from_symmetric_key(
             key=base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
             alg="A256GCM",
@@ -228,7 +226,7 @@ class TestDirectHKDF:
         _, key = ctx.encode(material.to_bytes())
         assert key.alg == 10
 
-    # def test_direct_hkdf_apply_with_invalid_key(self):
+    # def test_direct_hkdf_encode_with_invalid_key(self):
     #     ctx = DirectHKDF(
     #         {1: -10},
     #         {-20: b"aabbccddeeff"},
@@ -249,10 +247,10 @@ class TestDirectHKDF:
     #         ctx.encode(
     #             plaintext=base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
     #         )
-    #         pytest.fail("apply() should fail.")
+    #         pytest.fail("encode() should fail.")
     #     assert "Failed to derive key." in str(err.value)
 
-    def test_direct_hkdf_apply_with_invalid_material(self):
+    def test_direct_hkdf_encode_with_invalid_material(self):
         ctx = DirectHKDF(
             {1: -10},
             {-20: b"aabbccddeeff"},
@@ -271,7 +269,7 @@ class TestDirectHKDF:
         )
         with pytest.raises(EncodeError) as err:
             ctx.encode(plaintext=None)
-            pytest.fail("apply() should fail.")
+            pytest.fail("encode() should fail.")
         assert "Failed to derive key." in str(err.value)
 
     @pytest.mark.parametrize(
@@ -303,7 +301,7 @@ class TestDirectHKDF:
             ),
         ],
     )
-    def test_direct_hkdf_apply_with_invalid_context(self, invalid, msg):
+    def test_direct_hkdf_encode_with_invalid_context(self, invalid, msg):
         # material = COSEKey.from_symmetric_key(
         #     key=base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
         #     alg="A256GCM",

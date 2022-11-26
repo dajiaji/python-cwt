@@ -118,8 +118,11 @@ class TestRecipientInterface:
         assert r.alg == 0
         assert len(r.recipients) == 0
         with pytest.raises(NotImplementedError):
-            r.apply(k)
-            pytest.fail("apply() should fail.")
+            r.encode(b"")
+            pytest.fail("encode() should fail.")
+        with pytest.raises(NotImplementedError):
+            r.decode(k)
+            pytest.fail("decode() should fail.")
         with pytest.raises(NotImplementedError):
             r.extract(k)
             pytest.fail("extract() should fail.")
@@ -559,7 +562,6 @@ class TestRecipients:
     #             "k": "hJtXIZ2uSN5kbQfbtTNWbg",
     #         },
     #     )
-    #     r3.apply(mac_key)
     #     rs = Recipients([r1, r2, r3])
     #     key = rs.extract(keys=[k3], alg=7)
     #     assert key.alg == 7

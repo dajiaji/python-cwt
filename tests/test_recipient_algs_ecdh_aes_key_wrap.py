@@ -5,7 +5,7 @@ import pytest
 
 from cwt.cose import COSE
 from cwt.cose_key import COSEKey
-from cwt.exceptions import DecodeError, EncodeError
+from cwt.exceptions import DecodeError
 from cwt.recipient import Recipient
 from cwt.recipient_algs.ecdh_aes_key_wrap import ECDH_AESKeyWrap
 
@@ -148,52 +148,52 @@ class TestECDH_AESKeyWrap:
         )
         assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "A128GCM"})
 
-    def test_ecdh_aes_key_wrap_apply_without_key(self, sender_key_es):
-        sender = ECDH_AESKeyWrap({1: -29}, {4: b"01"}, sender_key=sender_key_es)
-        with pytest.raises(ValueError) as err:
-            sender.apply(recipient_key=recipient_public_key, context={"alg": "A128GCM"})
-            pytest.fail("apply() should fail.")
-        assert "key should be set." in str(err.value)
+    # def test_ecdh_aes_key_wrap_encode_without_key(self, sender_key_es):
+    #     sender = ECDH_AESKeyWrap({1: -29}, {4: b"01"}, sender_key=sender_key_es)
+    #     with pytest.raises(ValueError) as err:
+    #         sender.encode(recipient_key=recipient_public_key, context={"alg": "A128GCM"})
+    #         pytest.fail("encode() should fail.")
+    #     assert "key should be set." in str(err.value)
 
-    def test_ecdh_aes_key_wrap_apply_without_sender_key(self, recipient_public_key):
-        enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
-        sender = ECDH_AESKeyWrap({1: -29}, {4: b"01"})
-        with pytest.raises(ValueError) as err:
-            sender.apply(enc_key, recipient_key=recipient_public_key, context={"alg": "A128GCM"})
-            pytest.fail("apply() should fail.")
-        assert "sender_key should be set in advance." in str(err.value)
+    # def test_ecdh_aes_key_wrap_encode_without_sender_key(self, recipient_public_key):
+    #     enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
+    #     sender = ECDH_AESKeyWrap({1: -29}, {4: b"01"})
+    #     with pytest.raises(ValueError) as err:
+    #         sender.encode(enc_key, recipient_key=recipient_public_key, context={"alg": "A128GCM"})
+    #         pytest.fail("encode() should fail.")
+    #     assert "sender_key should be set in advance." in str(err.value)
 
-    def test_ecdh_aes_key_wrap_apply_without_recipient_key(self, sender_key_es):
-        enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
-        sender = ECDH_AESKeyWrap({1: -29}, {4: b"01"}, sender_key=sender_key_es)
-        with pytest.raises(ValueError) as err:
-            sender.apply(enc_key, context={"alg": "A128GCM"})
-            pytest.fail("apply() should fail.")
-        assert "recipient_key should be set in advance." in str(err.value)
+    # def test_ecdh_aes_key_wrap_encode_without_recipient_key(self, sender_key_es):
+    #     enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
+    #     sender = ECDH_AESKeyWrap({1: -29}, {4: b"01"}, sender_key=sender_key_es)
+    #     with pytest.raises(ValueError) as err:
+    #         sender.encode(enc_key, context={"alg": "A128GCM"})
+    #         pytest.fail("encode() should fail.")
+    #     assert "recipient_key should be set in advance." in str(err.value)
 
-    def test_ecdh_aes_key_wrap_apply_without_context(self, sender_key_es):
-        enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
-        sender = ECDH_AESKeyWrap({1: -29}, {4: b"01"}, sender_key=sender_key_es)
-        with pytest.raises(ValueError) as err:
-            sender.apply(enc_key, recipient_key=recipient_public_key)
-            pytest.fail("apply() should fail.")
-        assert "context should be set." in str(err.value)
+    # def test_ecdh_aes_key_wrap_encode_without_context(self, sender_key_es):
+    #     enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
+    #     sender = ECDH_AESKeyWrap({1: -29}, {4: b"01"}, sender_key=sender_key_es)
+    #     with pytest.raises(ValueError) as err:
+    #         sender.encode(enc_key, recipient_key=recipient_public_key)
+    #         pytest.fail("encode() should fail.")
+    #     assert "context should be set." in str(err.value)
 
-    def test_ecdh_aes_key_wrap_apply_with_invalid_recipient_key(self, sender_key_es, recipient_private_key):
-        enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
-        rec = Recipient.new(protected={"alg": "ECDH-ES+A128KW"}, sender_key=sender_key_es)
-        with pytest.raises(ValueError) as err:
-            rec.apply(enc_key, recipient_key=recipient_private_key, context={"alg": "A128GCM"})
-            pytest.fail("apply() should fail.")
-        assert "public_key should be elliptic curve public key." in str(err.value)
+    # def test_ecdh_aes_key_wrap_encode_with_invalid_recipient_key(self, sender_key_es, recipient_private_key):
+    #     enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
+    #     rec = Recipient.new(protected={"alg": "ECDH-ES+A128KW"}, sender_key=sender_key_es)
+    #     with pytest.raises(ValueError) as err:
+    #         rec.encode(enc_key, recipient_key=recipient_private_key, context={"alg": "A128GCM"})
+    #         pytest.fail("encode() should fail.")
+    #     assert "public_key should be elliptic curve public key." in str(err.value)
 
-    def test_ecdh_aes_key_wrap_apply_with_invalid_key_to_wrap(self, sender_key_es, recipient_public_key):
-        mac_key = COSEKey.from_symmetric_key(key="xxx", alg="HS256")
-        rec = Recipient.new(protected={"alg": "ECDH-ES+A128KW"}, sender_key=sender_key_es)
-        with pytest.raises(EncodeError) as err:
-            rec.apply(mac_key, recipient_key=recipient_public_key, context={"alg": "A128GCM"})
-            pytest.fail("apply() should fail.")
-        assert "Failed to wrap key." in str(err.value)
+    # def test_ecdh_aes_key_wrap_encode_with_invalid_key_to_wrap(self, sender_key_es, recipient_public_key):
+    #     mac_key = COSEKey.from_symmetric_key(key="xxx", alg="HS256")
+    #     rec = Recipient.new(protected={"alg": "ECDH-ES+A128KW"}, sender_key=sender_key_es)
+    #     with pytest.raises(EncodeError) as err:
+    #         rec.encode(mac_key, recipient_key=recipient_public_key, context={"alg": "A128GCM"})
+    #         pytest.fail("encode() should fail.")
+    #     assert "Failed to wrap key." in str(err.value)
 
     def test_ecdh_aes_key_wrap_extract_without_alg(self):
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")

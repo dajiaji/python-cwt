@@ -532,8 +532,6 @@ class TestCOSE:
 
         r1 = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "k": material1})
         r2 = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "k": material2})
-        r1.apply(key)
-        r2.apply(key)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2, r1])
 
@@ -551,8 +549,6 @@ class TestCOSE:
 
         r1 = Recipient.from_jwk({"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1})
         r2 = Recipient.from_jwk({"kid": "02", "kty": "oct", "alg": "A128KW", "k": material2})
-        r1.apply(key)
-        r2.apply(key)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2, r1])
 
@@ -575,8 +571,6 @@ class TestCOSE:
 
         r1 = Recipient.new(protected={1: -3, 4: b"01"}, sender_key=shared_key1)
         r2 = Recipient.new(protected={1: -3, 4: b"02"}, sender_key=shared_key2)
-        r1.apply(key)
-        r2.apply(key)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2, r1])
 
@@ -595,8 +589,6 @@ class TestCOSE:
 
         r1 = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "k": material1})
         r2 = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "k": material2})
-        r1.apply(key)
-        r2.apply(key)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2, r1])
 
@@ -620,8 +612,6 @@ class TestCOSE:
 
         r1 = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "k": material1})
         r2 = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "k": material2})
-        r1.apply(key)
-        r2.apply(key)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2, r1])
 
@@ -642,7 +632,6 @@ class TestCOSE:
         material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
 
         r2 = Recipient.from_jwk({"kid": "03", "kty": "oct", "alg": "A128KW", "k": material2})
-        r2.apply(key)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2])
 
@@ -663,7 +652,6 @@ class TestCOSE:
         material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
 
         r2 = Recipient.from_jwk({"kid": "03", "kty": "oct", "alg": "A128KW", "k": material2})
-        r2.apply(key)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2])
 
@@ -731,8 +719,6 @@ class TestCOSE:
 
         r1 = Recipient.from_jwk({"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1})
         r2 = Recipient.from_jwk({"kid": "02", "kty": "oct", "alg": "A128KW", "k": material2})
-        r1.apply(key)
-        r2.apply(key)
 
         encoded = ctx.encode_and_encrypt(b"Hello world!", key, recipients=[r2, r1])
 

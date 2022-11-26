@@ -85,39 +85,39 @@ class ECDH_AESKeyWrap(RecipientInterface):
             raise EncodeError("Failed to wrap key.") from err
         return self.to_list(), None
 
-    def apply(
-        self,
-        key: Optional[COSEKeyInterface] = None,
-        recipient_key: Optional[COSEKeyInterface] = None,
-        salt: Optional[bytes] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
-    ) -> COSEKeyInterface:
+    # def apply(
+    #     self,
+    #     key: Optional[COSEKeyInterface] = None,
+    #     recipient_key: Optional[COSEKeyInterface] = None,
+    #     salt: Optional[bytes] = None,
+    #     context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+    #     external_aad: bytes = b"",
+    #     aad_context: str = "Enc_Recipient",
+    # ) -> COSEKeyInterface:
 
-        if not key:
-            raise ValueError("key should be set.")
-        if not recipient_key:
-            raise ValueError("recipient_key should be set in advance.")
-        if not self._sender_key:
-            raise ValueError("sender_key should be set in advance.")
-        if not context:
-            raise ValueError("context should be set.")
-        wrapping_key = self._sender_key.derive_key(context, public_key=recipient_key)
-        if self._alg in [-29, -30, -31]:
-            # ECDH-ES
-            self._unprotected[-1] = self._to_cose_key(self._sender_key.key.public_key())
-        else:
-            # ECDH-SS (alg=-32, -33, -34)
-            self._unprotected[-2] = self._to_cose_key(self._sender_key.key.public_key())
-        kid = self._kid if self._kid else recipient_key.kid
-        if kid:
-            self._unprotected[4] = kid
-        try:
-            self._ciphertext = aes_key_wrap(wrapping_key.key, key.key)
-        except Exception as err:
-            raise EncodeError("Failed to wrap key.") from err
-        return key
+    #     if not key:
+    #         raise ValueError("key should be set.")
+    #     if not recipient_key:
+    #         raise ValueError("recipient_key should be set in advance.")
+    #     if not self._sender_key:
+    #         raise ValueError("sender_key should be set in advance.")
+    #     if not context:
+    #         raise ValueError("context should be set.")
+    #     wrapping_key = self._sender_key.derive_key(context, public_key=recipient_key)
+    #     if self._alg in [-29, -30, -31]:
+    #         # ECDH-ES
+    #         self._unprotected[-1] = self._to_cose_key(self._sender_key.key.public_key())
+    #     else:
+    #         # ECDH-SS (alg=-32, -33, -34)
+    #         self._unprotected[-2] = self._to_cose_key(self._sender_key.key.public_key())
+    #     kid = self._kid if self._kid else recipient_key.kid
+    #     if kid:
+    #         self._unprotected[4] = kid
+    #     try:
+    #         self._ciphertext = aes_key_wrap(wrapping_key.key, key.key)
+    #     except Exception as err:
+    #         raise EncodeError("Failed to wrap key.") from err
+    #     return key
 
     def decode(
         self,

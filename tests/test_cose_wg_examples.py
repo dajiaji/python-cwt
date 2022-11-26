@@ -486,7 +486,6 @@ class TestCOSE:
                 "k": "hJtXIZ2uSN5kbQfbtTNWbg",
             },
         )
-        recipient.apply(mac_key)
         ctx = COSE.new()
         encoded = ctx.encode_and_mac(
             b"This is the content.",
