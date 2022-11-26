@@ -273,6 +273,37 @@ class EC2Key(AsymmetricKey):
         except ValueError as err:
             raise VerifyError("Invalid signature.") from err
 
+    def derive_bytes(
+        self,
+        length: int,
+        material: bytes = b"",
+        info: bytes = b"",
+        public_key: Optional[Any] = None,
+    ) -> bytes:
+
+        if self._public_key:
+            raise ValueError("Public key cannot be used for key derivation.")
+        if not public_key:
+            raise ValueError("public_key should be set.")
+        if not isinstance(public_key.key, EllipticCurvePublicKey):
+            raise ValueError("public_key should be elliptic curve public key.")
+        if self._alg not in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.values():
+            raise ValueError(f"Invalid alg for key derivation: {self._alg}.")
+
+        # Derive bytes.
+        try:
+            self._key = self._private_key if self._private_key else ec.generate_private_key(self._crv_obj)
+            shared_key = self._key.exchange(ec.ECDH(), public_key.key)
+            hkdf = HKDF(
+                algorithm=self._hash_alg(),
+                length=length,
+                salt=None,
+                info=info,
+            )
+            return hkdf.derive(shared_key)
+        except Exception as err:
+            raise EncodeError("Failed to derive bytes.") from err
+
     def derive_key(
         self,
         context: Union[List[Any], Dict[str, Any]],

@@ -273,6 +273,40 @@ class OKPKey(AsymmetricKey):
         except cryptography.exceptions.InvalidSignature as err:
             raise VerifyError("Failed to verify.") from err
 
+    def derive_bytes(
+        self,
+        length: int,
+        material: bytes = b"",
+        info: bytes = b"",
+        public_key: Optional[Any] = None,
+    ) -> bytes:
+
+        if self._public_key:
+            raise ValueError("Public key cannot be used for key derivation.")
+        if not public_key:
+            raise ValueError("public_key should be set.")
+        if not isinstance(public_key.key, X25519PublicKey) and not isinstance(public_key.key, X448PublicKey):
+            raise ValueError("public_key should be x25519/x448 public key.")
+        # if self._alg not in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.values():
+        #     raise ValueError(f"Invalid alg for key derivation: {self._alg}.")
+
+        # Derive key.
+        try:
+            if self._private_key:
+                self._key = self._private_key
+            else:
+                self._key = X25519PrivateKey.generate() if self._crv == 4 else X448PrivateKey.generate()
+            shared_key = self._key.exchange(public_key.key)
+            hkdf = HKDF(
+                algorithm=self._hash_alg(),
+                length=length,
+                salt=None,
+                info=info,
+            )
+            return hkdf.derive(shared_key)
+        except Exception as err:
+            raise EncodeError("Failed to derive bytes.") from err
+
     def derive_key(
         self,
         context: Union[List[Any], Dict[str, Any]],
