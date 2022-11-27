@@ -59,7 +59,7 @@ class Recipient:
         if alg == 0:
             raise ValueError("alg should be specified.")
         if alg == -6:
-            return DirectKey(u, ciphertext, recipients)
+            return DirectKey(u)
         if alg in [-10, -11]:
             return DirectHKDF(p, u, ciphertext, recipients, context)
         if alg in [-3, -4, -5]:
