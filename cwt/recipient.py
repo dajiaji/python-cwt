@@ -55,9 +55,12 @@ class Recipient:
         p = to_cose_header(protected, algs=COSE_ALGORITHMS_RECIPIENT)
         u = to_cose_header(unprotected, algs=COSE_ALGORITHMS_RECIPIENT)
 
+        if 1 in p and 1 in u:
+            raise ValueError("alg appear both in protected and unprotected.")
         alg = u[1] if 1 in u else p.get(1, 0)
         if alg == 0:
             raise ValueError("alg should be specified.")
+
         if alg == -6:
             return DirectKey(p, u)
         if alg in [-10, -11]:

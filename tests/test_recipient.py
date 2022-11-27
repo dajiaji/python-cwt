@@ -271,6 +271,11 @@ class TestRecipient:
                 "alg should be specified.",
             ),
             (
+                {1: -6},
+                {1: -6},
+                "alg appear both in protected and unprotected.",
+            ),
+            (
                 {1: -65535},
                 {},
                 "Unsupported or unknown alg(1): -65535.",
