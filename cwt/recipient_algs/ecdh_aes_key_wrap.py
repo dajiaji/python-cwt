@@ -24,24 +24,13 @@ class ECDH_AESKeyWrap(RecipientInterface):
         recipients: List[Any] = [],
         sender_key: Optional[COSEKeyInterface] = None,
         recipient_key: Optional[COSEKeyInterface] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+        context: List[Any] = [],
     ):
         super().__init__(protected, unprotected, ciphertext, recipients)
         self._sender_public_key: Any = None
         self._sender_key = sender_key
         self._recipient_key = recipient_key
         self._context = context
-
-        self._apu = [
-            self.unprotected[-21] if -21 in self.unprotected else None,
-            self.unprotected[-22] if -22 in self.unprotected else None,
-            self.unprotected[-23] if -23 in self.unprotected else None,
-        ]
-        self._apv = [
-            self.unprotected[-24] if -24 in self.unprotected else None,
-            self.unprotected[-25] if -25 in self.unprotected else None,
-            self.unprotected[-26] if -26 in self.unprotected else None,
-        ]
 
         if self._alg in [-29, -30, -31]:  # ECDH-ES
             if -1 in self.unprotected:
@@ -60,11 +49,11 @@ class ECDH_AESKeyWrap(RecipientInterface):
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
     ) -> Tuple[List[Any], Optional[COSEKeyInterface]]:
-
         if not self._recipient_key:
             raise ValueError("recipient_key should be set in advance.")
         if not self._context:
-            raise ValueError("context should be set in advance.")
+            raise ValueError("context should be set.")
+
         if self._alg in [-29, -30, -31]:
             # ECDH-ES
             self._sender_key = EC2Key({1: 2, -1: self._recipient_key.crv, 3: self._alg})
@@ -97,6 +86,7 @@ class ECDH_AESKeyWrap(RecipientInterface):
             raise ValueError("context should be set.")
         if not self._sender_public_key:
             raise ValueError("sender_public_key should be set.")
+
         try:
             derived = key.derive_key(self._context, public_key=self._sender_public_key)
             derived_bytes = aes_key_unwrap(derived.key, self._ciphertext)

@@ -60,31 +60,31 @@ class TestECDH_DirectHKDF:
     """
 
     def test_ecdh_direct_hkdf_constructor_with_ecdh_es_256(self):
-        ctx = ECDH_DirectHKDF({1: -25}, {4: b"01"}, context={"alg": "A128GCM"})
+        ctx = Recipient.new({1: -25}, {4: b"01"}, context={"alg": "A128GCM"})
         assert isinstance(ctx, ECDH_DirectHKDF)
         assert ctx.alg == -25
         assert ctx.kid == b"01"
 
     def test_ecdh_direct_hkdf_constructor_with_ecdh_es_512(self):
-        ctx = ECDH_DirectHKDF({1: -26}, {4: b"01"}, context={"alg": "A128GCM"})
+        ctx = Recipient.new({1: -26}, {4: b"01"}, context={"alg": "A128GCM"})
         assert ctx.alg == -26
         assert ctx.kid == b"01"
 
     def test_ecdh_direct_hkdf_constructor_with_ecdh_ss_256(self):
-        ctx = ECDH_DirectHKDF({1: -27}, {4: b"01"}, context={"alg": "A128GCM"})
+        ctx = Recipient.new({1: -27}, {4: b"01"}, context={"alg": "A128GCM"})
         assert ctx.alg == -27
         assert ctx.kid == b"01"
 
     def test_ecdh_direct_hkdf_constructor_with_ecdh_ss_512(self):
-        ctx = ECDH_DirectHKDF({1: -28}, {4: b"01"}, context={"alg": "A128GCM"})
+        ctx = Recipient.new({1: -28}, {4: b"01"}, context={"alg": "A128GCM"})
         assert ctx.alg == -28
         assert ctx.kid == b"01"
 
     def test_ecdh_direct_hkdf_constructor_with_invalid_alg(self):
         with pytest.raises(ValueError) as err:
-            ECDH_DirectHKDF({1: -1}, {4: b"01"}, context={"alg": "A128GCM"})
+            Recipient.new({1: -99}, {4: b"01"}, context={"alg": "A128GCM"})
             pytest.fail("ECDH_DirectHKDF() should fail.")
-        assert "Unknown alg(1) for ECDH with HKDF: -1." in str(err.value)
+        assert "Unsupported or unknown alg(1): -99." in str(err.value)
 
     def test_ecdh_direct_hkdf_encode_with_ecdh_ss_p256(self):
         sender_priv_key = COSEKey.from_jwk(
@@ -311,7 +311,7 @@ class TestECDH_DirectHKDF:
     #     assert "sender_key should be set in advance." in str(err.value)
 
     def test_ecdh_direct_hkdf_encode_without_recipient_key(self):
-        sender = ECDH_DirectHKDF({1: -25}, {4: b"01"}, context={"alg": "A128GCM"})
+        sender = Recipient.new({1: -25}, {4: b"01"}, context={"alg": "A128GCM"})
         with pytest.raises(ValueError) as err:
             sender.encode()
             pytest.fail("encode() should fail.")
@@ -319,9 +319,9 @@ class TestECDH_DirectHKDF:
 
     def test_ecdh_direct_hkdf_encode_without_context(self, sender_key_es):
         with pytest.raises(ValueError) as err:
-            ECDH_DirectHKDF({1: -25}, {4: b"01"}, sender_key=sender_key_es)
-            pytest.fail("ECDH_DirectHKDF() should fail.")
-        assert "context should be set in advance." in str(err.value)
+            Recipient.new({1: -25}, {4: b"01"}, sender_key=sender_key_es)
+            pytest.fail("Recipient.new() should fail.")
+        assert "context should be set." in str(err.value)
 
     def test_ecdh_direct_hkdf_encode_with_invalid_recipient_key(self, sender_key_es, recipient_private_key):
         rec = Recipient.new(
@@ -336,7 +336,7 @@ class TestECDH_DirectHKDF:
         assert "public_key should be elliptic curve public key." in str(err.value)
 
     def test_ecdh_direct_hkdf_encode_and_extract_with_ecdh_es(self, sender_key_es, recipient_public_key, recipient_private_key):
-        sender = ECDH_DirectHKDF(
+        sender = Recipient.new(
             {1: -25}, {4: b"01"}, sender_key=sender_key_es, recipient_key=recipient_public_key, context={"alg": "A128GCM"}
         )
         encoded, enc_key = sender.encode()

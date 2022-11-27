@@ -7,6 +7,7 @@ import cbor2
 from .const import (
     COSE_ALGORITHMS_CEK,
     COSE_ALGORITHMS_MAC,
+    COSE_ALGORITHMS_SYMMETRIC,
     COSE_HEADER_PARAMETERS,
     COSE_KEY_LEN,
     COSE_KEY_TYPES,
@@ -288,3 +289,53 @@ def jwk_to_cose_key_params(data: Union[str, bytes, Dict[str, Any]]) -> Dict[int,
                 raise ValueError("x5c should be a list of str.")
             cose_key[33].append(base64url_decode(v))
     return cose_key
+
+
+def _validate_context(context: List[Any]) -> List[Any]:
+    if len(context) != 4 and len(context) != 5:
+        raise ValueError("Invalid context information.")
+    # AlgorithmID
+    if not isinstance(context[0], int):
+        raise ValueError("AlgorithmID should be int.")
+    if context[0] not in COSE_ALGORITHMS_SYMMETRIC.values():
+        raise ValueError(f"Unsupported or unknown algorithm: {context[0]}.")
+    # PartyVInfo
+    if not isinstance(context[1], list) or len(context[1]) != 3:
+        raise ValueError("PartyUInfo should be list(size=3).")
+    # PartyUInfo
+    if not isinstance(context[2], list) or len(context[2]) != 3:
+        raise ValueError("PartyVInfo should be list(size=3).")
+    # SuppPubInfo
+    if not isinstance(context[3], list) or (len(context[3]) != 2 and len(context[3]) != 3):
+        raise ValueError("SuppPubInfo should be list(size=2 or 3).")
+    return context
+
+
+def to_recipient_context(alg: int, u: Dict[int, Any], context: Union[List[Any], Dict[str, Any]]) -> List[Any]:
+    ctx: List[Any] = [
+        None,
+        [
+            u[-21] if -21 in u else None,
+            u[-22] if -22 in u else None,
+            u[-23] if -23 in u else None,
+        ],
+        [
+            u[-24] if -24 in u else None,
+            u[-25] if -25 in u else None,
+            u[-26] if -26 in u else None,
+        ],
+        [None, None],
+    ]
+    supplied_ctx = to_cis(context, alg) if isinstance(context, dict) else _validate_context(context)
+    for i, item in enumerate(supplied_ctx):
+        if i == 0:
+            ctx[0] = item
+            continue
+        for j, v in enumerate(item):
+            if not v:
+                continue
+            if i != 3 or j != 2:
+                ctx[i][j] = v
+            else:
+                ctx[i].append(v)
+    return ctx

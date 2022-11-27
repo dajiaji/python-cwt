@@ -278,7 +278,8 @@ class TestRecipient:
             (
                 {1: -65535},
                 {},
-                "Unsupported or unknown alg(1): -65535.",
+                # "Unsupported or unknown alg(1): -65535.",
+                "context should be set.",
             ),
         ],
     )

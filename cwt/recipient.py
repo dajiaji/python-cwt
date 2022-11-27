@@ -17,7 +17,7 @@ from .recipient_algs.ecdh_aes_key_wrap import ECDH_AESKeyWrap
 from .recipient_algs.ecdh_direct_hkdf import ECDH_DirectHKDF
 from .recipient_algs.hpke import HPKE
 from .recipient_interface import RecipientInterface
-from .utils import to_cose_header
+from .utils import to_cose_header, to_recipient_context
 
 
 class Recipient:
@@ -63,95 +63,24 @@ class Recipient:
 
         if alg == -6:
             return DirectKey(p, u)
-        if alg in [-10, -11]:
-            return DirectHKDF(p, u, context)
         if alg in [-3, -4, -5]:
             if not sender_key:
                 sender_key = COSEKey.from_symmetric_key(alg=alg)
             return AESKeyWrap(u, ciphertext, recipients, sender_key)
-        if alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT.values():
-            return ECDH_DirectHKDF(p, u, ciphertext, recipients, sender_key, recipient_key, context)
-        if alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP.values():
-            return ECDH_AESKeyWrap(p, u, ciphertext, recipients, sender_key, recipient_key, context)
         if alg in COSE_ALGORITHMS_HPKE.values():
             return HPKE(p, u, ciphertext, recipients, recipient_key)  # TODO sender_key
+
+        if context is None:
+            raise ValueError("context should be set.")
+        ctx = to_recipient_context(alg, u, context)
+
+        if alg in [-10, -11]:
+            return DirectHKDF(p, u, ctx)
+        if alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT.values():
+            return ECDH_DirectHKDF(p, u, ciphertext, recipients, sender_key, recipient_key, ctx)
+        if alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP.values():
+            return ECDH_AESKeyWrap(p, u, ciphertext, recipients, sender_key, recipient_key, ctx)
         raise ValueError(f"Unsupported or unknown alg(1): {alg}.")
-
-    # @classmethod
-    # def from_jwk(cls, data: Union[str, bytes, Dict[str, Any]]) -> RecipientInterface:
-    #     """
-    #     Creates a recipient from JWK-like data.
-
-    #     Args:
-    #         data (Union[str, bytes, Dict[str, Any]]): JSON-formatted recipient data.
-    #     Returns:
-    #         RecipientInterface: A recipient object.
-    #     Raises:
-    #         ValueError: Invalid arguments.
-    #         DecodeError: Failed to decode the key data.
-    #     """
-    #     protected: Dict[int, Any] = {}
-    #     unprotected: Dict[int, Any] = {}
-    #     recipient: Dict[str, Any]
-
-    #     if not isinstance(data, dict):
-    #         recipient = json.loads(data)
-    #     else:
-    #         recipient = data
-
-    #     # alg
-    #     sender_key = None
-    #     if "alg" not in recipient:
-    #         raise ValueError("alg should be specified.")
-    #     if not isinstance(recipient["alg"], str):
-    #         raise ValueError("alg should be str.")
-    #     if recipient["alg"] not in COSE_ALGORITHMS_RECIPIENT:
-    #         raise ValueError(f"Unsupported or unknown alg: {recipient['alg']}.")
-    #     if recipient["alg"] == "direct":
-    #         unprotected[1] = COSE_ALGORITHMS_RECIPIENT[recipient["alg"]]
-    #     elif recipient["alg"] in COSE_ALGORITHMS_KEY_WRAP:
-    #         unprotected[1] = COSE_ALGORITHMS_RECIPIENT[recipient["alg"]]
-    #         sender_key = COSEKey.from_jwk(recipient)
-    #     else:
-    #         protected[1] = COSE_ALGORITHMS_RECIPIENT[recipient["alg"]]
-    #     if recipient["alg"] in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.keys():
-    #         sender_key = COSEKey.from_jwk(recipient)
-
-    #     # kid
-    #     if "kid" in recipient:
-    #         if not isinstance(recipient["kid"], (str, bytes)):
-    #             raise ValueError("kid should be str or bytes.")
-    #         if isinstance(recipient["kid"], str):
-    #             unprotected[4] = recipient["kid"].encode("utf-8")
-    #         else:
-    #             unprotected[4] = recipient["kid"]
-
-    #     # salt
-    #     if "salt" in recipient:
-    #         if not isinstance(recipient["salt"], str):
-    #             raise ValueError("salt should be str.")
-    #         unprotected[-20] = recipient["salt"].encode("utf-8")
-
-    #     # context
-    #     if "context" in recipient:
-    #         if not isinstance(recipient["context"], dict):
-    #             raise ValueError("context should be dict.")
-    #         # apu = parse_apu(recipient["context"])
-    #         # if apu[0]:
-    #         #     unprotected[-21] = apu[0]
-    #         # if apu[1]:
-    #         #     unprotected[-22] = apu[1]
-    #         # if apu[2]:
-    #         #     unprotected[-23] = apu[2]
-    #         # apv = parse_apv(recipient["context"])
-    #         # if apv[0]:
-    #         #     unprotected[-24] = apv[0]
-    #         # if apv[1]:
-    #         #     unprotected[-25] = apv[1]
-    #         # if apv[2]:
-    #         #     unprotected[-26] = apv[2]
-
-    #     return cls.new(protected, unprotected, sender_key=sender_key, context=recipient.get("context", None))
 
     @classmethod
     def from_list(
