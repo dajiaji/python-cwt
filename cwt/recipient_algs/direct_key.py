@@ -12,21 +12,11 @@ class DirectKey(Direct):
             raise ValueError("alg(1) should be direct(-6).")
         return
 
-    def encode(
-        self,
-        plaintext: bytes = b"",
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
-    ) -> Tuple[List[Any], Optional[COSEKeyInterface]]:
+    def encode(self, plaintext: bytes = b"", aad: bytes = b"") -> Tuple[List[Any], Optional[COSEKeyInterface]]:
         return self.to_list(), None
 
     def decode(
-        self,
-        key: COSEKeyInterface,
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
-        alg: int = 0,
-        as_cose_key: bool = False,
+        self, key: COSEKeyInterface, aad: bytes = b"", alg: int = 0, as_cose_key: bool = False
     ) -> Union[bytes, COSEKeyInterface]:
         if not as_cose_key:
             return b""

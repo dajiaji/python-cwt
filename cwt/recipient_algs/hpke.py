@@ -33,17 +33,10 @@ class HPKE(RecipientInterface):
         self._suite = CipherSuite.new(KEMId(unprotected[-4][1]), KDFId(unprotected[-4][2]), AEADId(unprotected[-4][3]))
         return
 
-    def encode(
-        self,
-        plaintext: bytes = b"",
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
-    ) -> Tuple[List[Any], Optional[COSEKeyInterface]]:
+    def encode(self, plaintext: bytes = b"", aad: bytes = b"") -> Tuple[List[Any], Optional[COSEKeyInterface]]:
         if self._recipient_key is None:
             raise ValueError("recipient_key should be set in advance.")
         self._kem_key = self._to_kem_key(self._recipient_key)
-        enc_structure = [aad_context, self._dumps(self._protected), external_aad]
-        aad = self._dumps(enc_structure)
         try:
             enc, ctx = self._suite.create_sender_context(self._kem_key)
             self._unprotected[-4][4] = enc
@@ -55,13 +48,10 @@ class HPKE(RecipientInterface):
     def decode(
         self,
         key: COSEKeyInterface,
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
+        aad: bytes = b"",
         alg: int = 0,
         as_cose_key: bool = False,
     ) -> Union[bytes, COSEKeyInterface]:
-        enc_structure = [aad_context, self._dumps(self._protected), external_aad]
-        aad = self._dumps(enc_structure)
         try:
             ctx = self._suite.create_recipient_context(self._unprotected[-4][4], self._to_kem_key(key))
             raw = ctx.open(self._ciphertext, aad=aad)

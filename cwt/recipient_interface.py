@@ -154,8 +154,7 @@ class RecipientInterface(CBORProcessor):
     def encode(
         self,
         plaintext: bytes = b"",
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
+        aad: bytes = b"",
     ) -> Tuple[List[Any], Optional[COSEKeyInterface]]:
         """
         Encrypts a specified plaintext to the ciphertext in the COSE_Recipient
@@ -184,8 +183,7 @@ class RecipientInterface(CBORProcessor):
     def decode(
         self,
         key: COSEKeyInterface,
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
+        aad: bytes = b"",
         alg: int = 0,
         as_cose_key: bool = False,
     ) -> Union[bytes, COSEKeyInterface]:

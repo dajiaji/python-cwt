@@ -43,12 +43,7 @@ class ECDH_AESKeyWrap(RecipientInterface):
         else:
             raise ValueError(f"Unknown alg(1) for ECDH with key wrap: {self._alg}.")
 
-    def encode(
-        self,
-        plaintext: bytes = b"",
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
-    ) -> Tuple[List[Any], Optional[COSEKeyInterface]]:
+    def encode(self, plaintext: bytes = b"", aad: bytes = b"") -> Tuple[List[Any], Optional[COSEKeyInterface]]:
         if not self._recipient_key:
             raise ValueError("recipient_key should be set in advance.")
         if not self._context:
@@ -75,12 +70,7 @@ class ECDH_AESKeyWrap(RecipientInterface):
         return self.to_list(), None
 
     def decode(
-        self,
-        key: COSEKeyInterface,
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
-        alg: int = 0,
-        as_cose_key: bool = False,
+        self, key: COSEKeyInterface, aad: bytes = b"", alg: int = 0, as_cose_key: bool = False
     ) -> Union[bytes, COSEKeyInterface]:
         if not self._context:
             raise ValueError("context should be set.")

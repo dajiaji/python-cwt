@@ -1,12 +1,13 @@
 from typing import Any, Dict, List, Optional, Union
 
+from .cbor_processor import CBORProcessor
 from .cose_key import COSEKey
 from .cose_key_interface import COSEKeyInterface
 from .recipient import Recipient
 from .recipient_interface import RecipientInterface
 
 
-class Recipients:
+class Recipients(CBORProcessor):
     """
     A Set of COSE Recipients.
     """
@@ -31,7 +32,7 @@ class Recipients:
             res.append(Recipient.from_list(r, context))
         return cls(res, verify_kid)
 
-    def derive_key(self, keys: List[COSEKeyInterface], alg: int) -> COSEKeyInterface:
+    def derive_key(self, keys: List[COSEKeyInterface], alg: int, external_aad: bytes, content_aad: bytes) -> COSEKeyInterface:
         """
         Decodes an appropriate key from recipients or keys provided as a parameter ``keys``.
         """
@@ -41,12 +42,13 @@ class Recipients:
         for r in self._recipients:
             if not r.kid and self._verify_kid:
                 raise ValueError("kid should be specified in recipient.")
+            aad = self._dumps([content_aad, self._dumps(r.protected), external_aad])
             if r.kid:
                 for k in keys:
                     if k.kid != r.kid:
                         continue
                     try:
-                        res = r.decode(k, alg=alg, as_cose_key=True)
+                        res = r.decode(k, aad, alg=alg, as_cose_key=True)
                         if not isinstance(res, COSEKeyInterface):
                             raise TypeError("Internal type error.")
                         return res
@@ -55,7 +57,7 @@ class Recipients:
                 continue
             for k in keys:
                 try:
-                    res = r.decode(k, alg=alg, as_cose_key=True)
+                    res = r.decode(k, aad, alg=alg, as_cose_key=True)
                     if not isinstance(res, COSEKeyInterface):
                         raise TypeError("Internal type error.")
                     return res

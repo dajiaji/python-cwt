@@ -60,12 +60,7 @@ class ECDH_DirectHKDF(Direct):
         if self._context[2][1]:
             self._unprotected[-25] = self._context[2][1]
 
-    def encode(
-        self,
-        plaintext: bytes = b"",
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
-    ) -> Tuple[List[Any], Optional[COSEKeyInterface]]:
+    def encode(self, plaintext: bytes = b"", aad: bytes = b"") -> Tuple[List[Any], Optional[COSEKeyInterface]]:
 
         if not self._recipient_key:
             raise ValueError("recipient_key should be set in advance.")
@@ -95,8 +90,7 @@ class ECDH_DirectHKDF(Direct):
     def decode(
         self,
         key: COSEKeyInterface,
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
+        aad: bytes = b"",
         alg: int = 0,
         as_cose_key: bool = False,
     ) -> Union[bytes, COSEKeyInterface]:

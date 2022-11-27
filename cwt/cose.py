@@ -160,9 +160,11 @@ class COSE(CBORProcessor):
 
         # Encrypt0
         if not recipients:
+            enc_structure = ["Encrypt0", b_protected, external_aad]
+            aad = self._dumps(enc_structure)
             if 1 in p and p[1] == -1:  # HPKE
                 hpke = HPKE(p, u, recipient_key=key)
-                encoded, _ = hpke.encode(payload, external_aad=external_aad, aad_context="Encrypt0")
+                encoded, _ = hpke.encode(payload, aad)
                 res = CBORTag(16, encoded)
                 return res if out == "cbor2/CBORTag" else self._dumps(res)
             if key is None:
@@ -173,8 +175,6 @@ class COSE(CBORProcessor):
                 except NotImplementedError:
                     raise ValueError("Nonce generation is not supported for the key. Set a nonce explicitly.")
             u[5] = nonce
-            enc_structure = ["Encrypt0", b_protected, external_aad]
-            aad = self._dumps(enc_structure)
             ciphertext = key.encrypt(payload, nonce, aad)
             res = CBORTag(16, [b_protected, u, ciphertext])
             return res if out == "cbor2/CBORTag" else self._dumps(res)
@@ -187,7 +187,8 @@ class COSE(CBORProcessor):
         b_key = key.to_bytes() if isinstance(key, COSEKeyInterface) else b""
         cek: Optional[COSEKeyInterface] = None
         for rec in recipients:
-            encoded, derived_key = rec.encode(b_key, external_aad=external_aad)
+            aad = self._dumps(["Enc_Recipient", self._dumps(rec.protected), external_aad])
+            encoded, derived_key = rec.encode(b_key, aad)
             cek = derived_key if derived_key else key
             recs.append(encoded)
 
@@ -264,7 +265,8 @@ class COSE(CBORProcessor):
         recs = []
         b_key = key.to_bytes() if isinstance(key, COSEKeyInterface) else b""
         for rec in recipients:
-            encoded, derived_key = rec.encode(b_key, external_aad=external_aad)
+            aad = self._dumps(["Mac_Recipient", self._dumps(rec.protected), external_aad])
+            encoded, derived_key = rec.encode(b_key, aad)
             key = derived_key if derived_key else key
             recs.append(encoded)
 
@@ -421,7 +423,7 @@ class COSE(CBORProcessor):
                     try:
                         if not isinstance(protected, bytes) and alg == -1:  # HPKE
                             hpke = HPKE(protected, unprotected, data.value[2])
-                            res = hpke.decode(k, external_aad=external_aad, aad_context="Encrypt0")
+                            res = hpke.decode(k, aad)
                             if not isinstance(res, bytes):
                                 raise TypeError("Internal type error.")
                             return res
@@ -438,10 +440,10 @@ class COSE(CBORProcessor):
 
         # Encrypt
         if data.tag == 96:
-            aad = self._dumps(["Encrypt", data.value[0], external_aad])
             rs = Recipients.from_list(data.value[3], self._verify_kid, context)
             nonce = unprotected.get(5, b"")
-            enc_key = rs.derive_key(keys, alg)
+            enc_key = rs.derive_key(keys, alg, external_aad, "Enc_Recipient")
+            aad = self._dumps(["Encrypt", data.value[0], external_aad])
             return enc_key.decrypt(data.value[2], nonce, aad)
 
         # MAC0
@@ -470,7 +472,7 @@ class COSE(CBORProcessor):
         if data.tag == 97:
             to_be_maced = self._dumps(["MAC", data.value[0], external_aad, data.value[2]])
             rs = Recipients.from_list(data.value[4], self._verify_kid, context)
-            mac_auth_key = rs.derive_key(keys, alg)
+            mac_auth_key = rs.derive_key(keys, alg, external_aad, "Mac_Recipient")
             mac_auth_key.verify(to_be_maced, data.value[3])
             return data.value[2]
 
