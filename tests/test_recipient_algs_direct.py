@@ -85,10 +85,10 @@ class TestDirectKey:
         assert isinstance(encoded, list)
         assert derived_key is None
 
-    def test_direct_key_extract(self):
+    def test_direct_key_decode(self):
         k = COSEKey.from_symmetric_key(alg="HS256")
         ctx = DirectKey({1: -6})
-        decoded = ctx.extract(k)
+        decoded = ctx.decode(k, as_cose_key=True)
         assert decoded.alg == 5
         assert k.key == decoded.key
 
@@ -311,7 +311,7 @@ class TestDirectHKDF:
             pytest.fail("DirectHKDF() should fail.")
         assert msg in str(err.value)
 
-    def test_direct_hkdf_extract_with_raw_context(self):
+    def test_direct_hkdf_decode_with_raw_context(self):
         context = [
             10,
             [b"lighting-client", None, None],
@@ -320,7 +320,7 @@ class TestDirectHKDF:
         ]
         key = COSEKey.from_symmetric_key(alg="A128GCM")
         ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"}, context=context)
-        decoded = ctx.extract(key)
+        decoded = ctx.decode(key, as_cose_key=True)
         assert decoded.alg == 10
         assert len(decoded.key) == 16
 
@@ -333,28 +333,28 @@ class TestDirectHKDF:
             ("AES-CCM-64-64-256", 13, 32),
         ],
     )
-    def test_direct_hkdf_extract_with_json_context(self, alg, alg_id, key_len):
+    def test_direct_hkdf_decode_with_json_context(self, alg, alg_id, key_len):
         key = COSEKey.from_symmetric_key(alg="A128GCM")
         ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"}, context={"alg": alg})
-        decoded = ctx.extract(key)
+        decoded = ctx.decode(key, as_cose_key=True)
         assert decoded.alg == alg_id
         assert len(decoded.key) == key_len
 
-    def test_direct_hkdf_extract_with_invalid_context(self):
+    def test_direct_hkdf_decode_with_invalid_context(self):
         # key = COSEKey.from_symmetric_key(alg="A128GCM")
         with pytest.raises(ValueError) as err:
             DirectHKDF({1: -10}, {-20: b"aabbccddeeff"}, context=[None, None, None])
             pytest.fail("DirectHKDF() should fail.")
         assert "Invalid context information." in str(err.value)
 
-    def test_direct_hkdf_extract_without_context(self):
+    def test_direct_hkdf_decode_without_context(self):
         # key = COSEKey.from_symmetric_key(alg="A128GCM")
         with pytest.raises(ValueError) as err:
             DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})
             pytest.fail("DirectHKDF() should fail.")
         assert "context should be set." in str(err.value)
 
-    def test_direct_hkdf_extract_with_invalid_key(self):
+    def test_direct_hkdf_decode_with_invalid_key(self):
         # key = COSEKey.from_symmetric_key(key="a", alg="HS256")
         with pytest.raises(ValueError) as err:
             DirectHKDF({1: -10}, {-20: b"aabbccddeeff"})

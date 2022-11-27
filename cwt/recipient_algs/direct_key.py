@@ -31,22 +31,3 @@ class DirectKey(Direct):
         if not as_cose_key:
             return b""
         return key
-
-    def extract(
-        self,
-        key: COSEKeyInterface,
-        alg: Optional[int] = None,
-    ) -> COSEKeyInterface:
-        return key
-
-    def decrypt(
-        self,
-        key: COSEKeyInterface,
-        alg: Optional[int] = None,
-        payload: bytes = b"",
-        nonce: bytes = b"",
-        aad: bytes = b"",
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
-    ) -> bytes:
-        return self.extract(key, alg).decrypt(payload, nonce, aad)

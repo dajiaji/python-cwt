@@ -129,17 +129,19 @@ class TestAESKeyWrap:
         assert "Failed to wrap key." in str(err.value)
 
     def test_aes_key_wrap_wrap_key_without_alg(self):
-        key = COSEKey.from_symmetric_key(alg="A128GCM", kid="01")
-        ctx = AESKeyWrap({1: -3}, {}, sender_key=COSEKey.from_symmetric_key(alg="A128KW"))
+        enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
+        key = COSEKey.from_symmetric_key(alg="A128KW", kid="01")
+        ctx = AESKeyWrap({1: -3}, {}, sender_key=key)
+        ctx.encode(enc_key.to_bytes())
         with pytest.raises(ValueError) as err:
-            ctx.extract(key=key)
-            pytest.fail("extract() should fail.")
+            ctx.decode(key=key, as_cose_key=True)
+            pytest.fail("decode() should fail.")
         assert "alg should be set." in str(err.value)
 
     def test_aes_key_wrap_wrap_key_without_ciphertext(self):
         key = COSEKey.from_symmetric_key(alg="A128GCM", kid="01")
         ctx = AESKeyWrap({1: -3}, {}, sender_key=COSEKey.from_symmetric_key(alg="A128KW"))
         with pytest.raises(DecodeError) as err:
-            ctx.extract(key=key, alg="A128GCM")
-            pytest.fail("extract() should fail.")
+            ctx.decode(key=key, alg="A128GCM", as_cose_key=True)
+            pytest.fail("decode() should fail.")
         assert "Failed to decode key." in str(err.value)

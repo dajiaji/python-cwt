@@ -55,35 +55,12 @@ class AESKeyWrap(RecipientInterface):
         alg: int = 0,
         as_cose_key: bool = False,
     ) -> Union[bytes, COSEKeyInterface]:
-        unwrapped = key.unwrap_key(self._ciphertext)
-        try:
-            if not as_cose_key:
-                return unwrapped
-            return COSEKey.from_symmetric_key(unwrapped, alg=alg, kid=self._kid)
-        except Exception as err:
-            raise DecodeError("Failed to decode key.") from err
-
-    def extract(
-        self,
-        key: COSEKeyInterface,
-        alg: Optional[int] = None,
-    ) -> COSEKeyInterface:
-        if not alg:
-            raise ValueError("alg should be set.")
         try:
             unwrapped = key.unwrap_key(self._ciphertext)
-            return COSEKey.from_symmetric_key(unwrapped, alg=alg, kid=self._kid)
         except Exception as err:
             raise DecodeError("Failed to decode key.") from err
-
-    def decrypt(
-        self,
-        key: COSEKeyInterface,
-        alg: Optional[int] = None,
-        payload: bytes = b"",
-        nonce: bytes = b"",
-        aad: bytes = b"",
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
-    ) -> bytes:
-        return self.extract(key, alg).decrypt(payload, nonce, aad)
+        if not as_cose_key:
+            return unwrapped
+        if not alg:
+            raise ValueError("alg should be set.")
+        return COSEKey.from_symmetric_key(unwrapped, alg=alg, kid=self._kid)

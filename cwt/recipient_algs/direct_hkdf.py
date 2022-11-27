@@ -130,59 +130,6 @@ class DirectHKDF(Direct):
         except Exception as err:
             raise EncodeError("Failed to derive key.") from err
 
-    # def apply(
-    #     self,
-    #     key: Optional[COSEKeyInterface] = None,
-    #     recipient_key: Optional[COSEKeyInterface] = None,
-    #     salt: Optional[bytes] = None,
-    #     context: Optional[Union[List[Any], Dict[str, Any]]] = None,
-    #     external_aad: bytes = b"",
-    #     aad_context: str = "Enc_Recipient",
-    # ) -> COSEKeyInterface:
-
-    #     if not key:
-    #         raise ValueError("key should be set.")
-    #     if not context:
-    #         raise ValueError("context should be set.")
-    #     ctx: list
-    #     if isinstance(context, dict):
-    #         alg = self._alg if isinstance(self._alg, int) else 0
-    #         ctx = to_cis(context, alg)
-    #     else:
-    #         self._validate_context(context)
-    #         ctx = context
-    #     self._applied_ctx = self._apply_context(ctx)
-
-    #     # Generate a salt automatically if both of a salt and a PartyU nonce are not specified.
-    #     if not salt and not self._salt and not self._applied_ctx[1][1]:
-    #         self._salt = token_bytes(32) if self._alg == -10 else token_bytes(64)
-    #         self._unprotected[-20] = self._salt
-    #     elif salt:
-    #         self._salt = salt
-    #         self._unprotected[-20] = self._salt
-
-    #     # PartyU nonce
-    #     if self._applied_ctx[1][1]:
-    #         self._unprotected[-22] = self._applied_ctx[1][1]
-    #     # PartyV nonce
-    #     if self._applied_ctx[2][1]:
-    #         self._unprotected[-25] = self._applied_ctx[2][1]
-
-    #     # Derive key.
-    #     hkdf = HKDF(
-    #         algorithm=self._hash_alg,
-    #         length=COSE_KEY_LEN[self._applied_ctx[0]] // 8,
-    #         salt=self._salt,
-    #         info=self._dumps(self._applied_ctx),
-    #     )
-    #     try:
-    #         derived = hkdf.derive(key.key)
-    #         if key.kid:
-    #             self._unprotected[4] = key.kid
-    #         return COSEKey.from_symmetric_key(derived, self._applied_ctx[0], self._kid)
-    #     except Exception as err:
-    #         raise EncodeError("Failed to derive key.") from err
-
     def decode(
         self,
         key: COSEKeyInterface,
@@ -213,42 +160,6 @@ class DirectHKDF(Direct):
             return COSEKey.from_symmetric_key(derived, alg=self._context[0], kid=self._kid)
         except Exception as err:
             raise DecodeError("Failed to decode.") from err
-
-    def extract(
-        self,
-        key: COSEKeyInterface,
-        alg: Optional[int] = None,
-    ) -> COSEKeyInterface:
-
-        if not self._context:
-            raise ValueError("context should be set.")
-        if isinstance(self._context, dict):
-            alg = self._alg if isinstance(self._alg, int) else 0
-            self._context = to_cis(self._context, alg)
-        else:
-            self._validate_context(self._context)
-
-        # Derive key.
-        hkdf = HKDF(
-            algorithm=self._hash_alg,
-            length=COSE_KEY_LEN[self._context[0]] // 8,
-            salt=self._salt,
-            info=self._dumps(self._context),
-        )
-        derived = hkdf.derive(key.key)
-        return COSEKey.from_symmetric_key(derived, alg=self._context[0], kid=self._kid)
-
-    def decrypt(
-        self,
-        key: COSEKeyInterface,
-        alg: Optional[int] = None,
-        payload: bytes = b"",
-        nonce: bytes = b"",
-        aad: bytes = b"",
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
-    ) -> bytes:
-        return self.extract(key, alg).decrypt(payload, nonce, aad)
 
     def _apply_context(self, given: list) -> list:
         ctx = copy.deepcopy(self._default_ctx)
