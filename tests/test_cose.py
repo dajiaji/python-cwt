@@ -556,7 +556,7 @@ class TestCOSE:
 
         assert b"Hello world!" == ctx.decode(encoded, keys=[shared_key3, shared_key1])
 
-    def test_cose_decode_mac_with_multiple_keys_with_verify_kid_and_protected_kid(self):
+    def test_cose_decode_mac_with_multiple_keys_with_verify_kid_and_unprotected_kid(self):
         ctx = COSE.new(alg_auto_inclusion=True, verify_kid=True)
         key = COSEKey.from_symmetric_key(alg="HS256")
 
@@ -568,8 +568,8 @@ class TestCOSE:
         shared_key2 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material2})
         shared_key3 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material3})
 
-        r1 = Recipient.new(protected={1: -3, 4: b"01"}, sender_key=shared_key1)
-        r2 = Recipient.new(protected={1: -3, 4: b"02"}, sender_key=shared_key2)
+        r1 = Recipient.new(unprotected={1: -3, 4: b"01"}, sender_key=shared_key1)
+        r2 = Recipient.new(unprotected={1: -3, 4: b"02"}, sender_key=shared_key2)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2, r1])
 

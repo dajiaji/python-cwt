@@ -65,7 +65,7 @@ class Recipient:
         if alg in [-3, -4, -5]:
             if not sender_key:
                 sender_key = COSEKey.from_symmetric_key(alg=alg)
-            return AESKeyWrap(p, u, ciphertext, recipients, sender_key)
+            return AESKeyWrap(u, ciphertext, recipients, sender_key)
         if alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT.values():
             return ECDH_DirectHKDF(p, u, ciphertext, recipients, sender_key, recipient_key, context)
         if alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP.values():

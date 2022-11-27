@@ -15,7 +15,6 @@ class AESKeyWrap(RecipientInterface):
 
     def __init__(
         self,
-        protected: Dict[int, Any],
         unprotected: Dict[int, Any],
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
@@ -25,10 +24,12 @@ class AESKeyWrap(RecipientInterface):
             raise ValueError("sender_key should be set.")
         if sender_key.alg not in [-3, -4, -5]:
             raise ValueError(f"Invalid alg in sender_key: {sender_key.alg}.")
-        if 1 in protected and protected[1] != sender_key.alg:
-            raise ValueError("algs in protected and sender_key do not match.")
+        if 1 not in unprotected:
+            raise ValueError("alg(1) not found in unprotected.")
+        if unprotected[1] != sender_key.alg:
+            raise ValueError("alg in unprotected and sender_key's alg do not match.")
         super().__init__(
-            protected,
+            {},
             unprotected,
             ciphertext,
             recipients,
