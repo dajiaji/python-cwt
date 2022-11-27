@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from pyhpke import AEADId, CipherSuite, KDFId, KEMId, KEMKey, KEMKeyInterface
 
@@ -57,28 +57,19 @@ class HPKE(RecipientInterface):
         key: COSEKeyInterface,
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
-    ) -> bytes:
+        alg: int = 0,
+        as_cose_key: bool = False,
+    ) -> Union[bytes, COSEKeyInterface]:
         enc_structure = [aad_context, self._dumps(self._protected), external_aad]
         aad = self._dumps(enc_structure)
         try:
             ctx = self._suite.create_recipient_context(self._unprotected[-4][4], self._to_kem_key(key))
-            return ctx.open(self._ciphertext, aad=aad)
+            raw = ctx.open(self._ciphertext, aad=aad)
+            if not as_cose_key:
+                return raw
+            return COSEKey.from_symmetric_key(raw, alg=alg, kid=self._kid)
         except Exception as err:
             raise DecodeError("Failed to open.") from err
-
-    def decrypt(
-        self,
-        key: COSEKeyInterface,
-        alg: Optional[int] = None,
-        payload: bytes = b"",
-        nonce: bytes = b"",
-        aad: bytes = b"",
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
-    ) -> bytes:
-        alg = alg if isinstance(alg, int) else 0
-        raw = self.decode(key, external_aad, aad_context)
-        return COSEKey.from_symmetric_key(raw, alg=alg, kid=self._kid).decrypt(payload, nonce, aad)
 
     def _to_kem_key(self, src: COSEKeyInterface) -> KEMKeyInterface:
         return KEMKey.from_pyca_cryptography_key(src.key)

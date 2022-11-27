@@ -127,9 +127,10 @@ class TestCOSESample:
             recipient_key=pub_key,
             context={"alg": "HS256"},
         )
-        sender = COSE.new(alg_auto_inclusion=True)
+        sender = COSE.new()
         encoded = sender.encode_and_mac(
             b"Hello world!",
+            protected={"alg": "HS256"},
             recipients=[r],
         )
 

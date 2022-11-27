@@ -186,7 +186,9 @@ class RecipientInterface(CBORProcessor):
         key: COSEKeyInterface,
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
-    ) -> bytes:
+        alg: int = 0,
+        as_cose_key: bool = False,
+    ) -> Union[bytes, COSEKeyInterface]:
         """
         Decrypts the ciphertext in the COSE_Recipient structure with the
         recipient-specific method (e.g., key wrapping, key agreement,
@@ -201,60 +203,12 @@ class RecipientInterface(CBORProcessor):
             external_aad (bytes): External additional authenticated data for AEAD.
             aad_context (bytes): An additional authenticated data context to build
                 an Enc_structure internally.
+            alg (int): The algorithm of the key derived.
+            as_cose_key (bool): The indicator whether the output will be returned
+                as a COSEKey or not.
         Returns:
-            COSEKeyInterface: An extracted key which is used for decrypting
-                or verifying a payload message.
-        Raises:
-            ValueError: Invalid arguments.
-            DecodeError: Failed to decode(e.g., unwrap, derive) the key.
-        """
-        raise NotImplementedError
-
-    def extract(
-        self,
-        key: COSEKeyInterface,
-        alg: Optional[int] = None,
-    ) -> COSEKeyInterface:
-        """
-        [DEPRECATED] Extracts a MAC/encryption key with the recipient-specific method
-        (e.g., key wrapping, key agreement, or the combination of them).
-        This function will be called in COSE.decode so applications do
-        not need to call it directly.
-
-        Args:
-            key (COSEKeyInterface): The external key to be used for
-                extracting the key.
-            alg (Optional[int]): The algorithm of the key extracted.
-        Returns:
-            COSEKeyInterface: An extracted key which is used for decrypting
-                or verifying a payload message.
-        Raises:
-            ValueError: Invalid arguments.
-            DecodeError: Failed to decode(e.g., unwrap, derive) the key.
-        """
-        raise NotImplementedError
-
-    def decrypt(
-        self,
-        key: COSEKeyInterface,
-        alg: Optional[int] = None,
-        payload: bytes = b"",
-        nonce: bytes = b"",
-        aad: bytes = b"",
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
-    ) -> bytes:
-        """
-        [DEPRECATED] Decrypts the supplied payload.
-
-        Args:
-            key (COSEKeyInterface): The external key to be used for extracting the key.
-            alg (Optional[int]): The algorithm of the key extracted.
-            external_aad (bytes): External additional authenticated data for AEAD.
-            aad_context (bytes): An additional authenticated data context to build
-                an Enc_structure internally.
-        Returns:
-            bytes: The decrypted plain text.
+            Union[bytes, COSEKeyInterface]: The decrypted ciphertext field or The COSEKey
+                converted from the decrypted ciphertext.
         Raises:
             ValueError: Invalid arguments.
             DecodeError: Failed to decode(e.g., unwrap, derive) the key.

@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional, Union
 
+from .cose_key import COSEKey
 from .cose_key_interface import COSEKeyInterface
 from .recipient import Recipient
 from .recipient_interface import RecipientInterface
@@ -30,11 +31,7 @@ class Recipients:
             res.append(Recipient.from_list(r, context))
         return cls(res, verify_kid)
 
-    def extract(
-        self,
-        keys: List[COSEKeyInterface],
-        alg: int = 0,
-    ) -> COSEKeyInterface:
+    def derive_key(self, keys: List[COSEKeyInterface], alg: int) -> COSEKeyInterface:
         """
         Decodes an appropriate key from recipients or keys provided as a parameter ``keys``.
         """
@@ -49,48 +46,26 @@ class Recipients:
                     if k.kid != r.kid:
                         continue
                     try:
-                        return r.extract(k, alg)
+                        res = r.decode(k, alg=alg, as_cose_key=True)
+                        if not isinstance(res, COSEKeyInterface):
+                            raise TypeError("Internal type error.")
+                        return res
                     except Exception as e:
                         err = e
                 continue
             for k in keys:
                 try:
-                    return r.extract(k, alg)
+                    res = r.decode(k, alg=alg, as_cose_key=True)
+                    if not isinstance(res, COSEKeyInterface):
+                        raise TypeError("Internal type error.")
+                    return res
                 except Exception as e:
                     err = e
         raise err
 
-    def decrypt(
-        self,
-        keys: List[COSEKeyInterface],
-        alg: int = 0,
-        payload: bytes = b"",
-        nonce: bytes = b"",
-        aad: bytes = b"",
-        external_aad: bytes = b"",
-    ) -> bytes:
-
-        """
-        Decrypts the supplied payload.
-        """
-        if not self._recipients:
-            raise ValueError("No recipients.")
-        err: Exception = ValueError("key is not found.")
-        for r in self._recipients:
-            if not r.kid and self._verify_kid:
-                raise ValueError("kid should be specified in recipient.")
-            if r.kid:
-                for k in keys:
-                    if k.kid != r.kid:
-                        continue
-                    try:
-                        return r.decrypt(k, alg, payload, nonce, aad, external_aad)
-                    except Exception as e:
-                        err = e
-                continue
-            for k in keys:
-                try:
-                    return r.decrypt(k, alg, payload, nonce, aad, external_aad)
-                except Exception as e:
-                    err = e
-        raise err
+    def _create_key(self, alg: int, k: COSEKeyInterface, r: RecipientInterface) -> COSEKeyInterface:
+        if r.alg == -6:  # direct
+            # if k.alg != alg:
+            #     raise ValueError("alg mismatch.")
+            return k
+        return COSEKey.new({1: 4, 3: alg, -1: r.decode(k)})

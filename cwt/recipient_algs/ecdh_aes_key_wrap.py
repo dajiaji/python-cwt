@@ -124,14 +124,19 @@ class ECDH_AESKeyWrap(RecipientInterface):
         key: COSEKeyInterface,
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
-    ) -> bytes:
+        alg: int = 0,
+        as_cose_key: bool = False,
+    ) -> Union[bytes, COSEKeyInterface]:
         if not self._context:
             raise ValueError("context should be set.")
         if not self._sender_public_key:
             raise ValueError("sender_public_key should be set.")
         try:
             derived = key.derive_key(self._context, public_key=self._sender_public_key)
-            return aes_key_unwrap(derived.key, self._ciphertext)
+            derived_bytes = aes_key_unwrap(derived.key, self._ciphertext)
+            if not as_cose_key:
+                return derived_bytes
+            return COSEKey.from_symmetric_key(derived_bytes, alg=alg, kid=self._kid)
         except Exception as err:
             raise DecodeError("Failed to decode key.") from err
 

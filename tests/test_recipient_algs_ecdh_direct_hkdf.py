@@ -341,7 +341,7 @@ class TestECDH_DirectHKDF:
         )
         encoded, enc_key = sender.encode()
         recipient = Recipient.from_list(encoded, context={"alg": "A128GCM"})
-        decoded_key = recipient.extract(recipient_private_key)
+        decoded_key = recipient.decode(recipient_private_key, as_cose_key=True)
         assert enc_key.key == decoded_key.key
 
     @pytest.mark.parametrize(

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from ..const import COSE_KEY_OPERATION_VALUES
 from ..cose_key import COSEKey
@@ -52,8 +52,16 @@ class AESKeyWrap(RecipientInterface):
         key: COSEKeyInterface,
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
-    ) -> bytes:
-        return key.unwrap_key(self._ciphertext)
+        alg: int = 0,
+        as_cose_key: bool = False,
+    ) -> Union[bytes, COSEKeyInterface]:
+        unwrapped = key.unwrap_key(self._ciphertext)
+        try:
+            if not as_cose_key:
+                return unwrapped
+            return COSEKey.from_symmetric_key(unwrapped, alg=alg, kid=self._kid)
+        except Exception as err:
+            raise DecodeError("Failed to decode key.") from err
 
     def extract(
         self,

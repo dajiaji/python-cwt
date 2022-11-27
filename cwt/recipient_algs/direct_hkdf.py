@@ -188,7 +188,9 @@ class DirectHKDF(Direct):
         key: COSEKeyInterface,
         external_aad: bytes = b"",
         aad_context: str = "Enc_Recipient",
-    ) -> bytes:
+        alg: int = 0,
+        as_cose_key: bool = False,
+    ) -> Union[bytes, COSEKeyInterface]:
 
         if not self._context:
             raise ValueError("context should be set.")
@@ -205,7 +207,10 @@ class DirectHKDF(Direct):
                 salt=self._salt,
                 info=self._dumps(self._context),
             )
-            return hkdf.derive(key.key)
+            derived = hkdf.derive(key.key)
+            if not as_cose_key:
+                return derived
+            return COSEKey.from_symmetric_key(derived, alg=self._context[0], kid=self._kid)
         except Exception as err:
             raise DecodeError("Failed to decode.") from err
 

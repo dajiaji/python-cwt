@@ -421,7 +421,10 @@ class COSE(CBORProcessor):
                     try:
                         if not isinstance(protected, bytes) and alg == -1:  # HPKE
                             hpke = HPKE(protected, unprotected, data.value[2])
-                            return hpke.decode(k, external_aad=external_aad, aad_context="Encrypt0")
+                            res = hpke.decode(k, external_aad=external_aad, aad_context="Encrypt0")
+                            if not isinstance(res, bytes):
+                                raise TypeError("Internal type error.")
+                            return res
                         return k.decrypt(data.value[2], nonce, aad)
                     except Exception as e:
                         err = e
@@ -438,7 +441,8 @@ class COSE(CBORProcessor):
             aad = self._dumps(["Encrypt", data.value[0], external_aad])
             rs = Recipients.from_list(data.value[3], self._verify_kid, context)
             nonce = unprotected.get(5, b"")
-            return rs.decrypt(keys, alg, data.value[2], nonce, aad, external_aad)
+            enc_key = rs.derive_key(keys, alg)
+            return enc_key.decrypt(data.value[2], nonce, aad)
 
         # MAC0
         if data.tag == 17:
@@ -466,7 +470,7 @@ class COSE(CBORProcessor):
         if data.tag == 97:
             to_be_maced = self._dumps(["MAC", data.value[0], external_aad, data.value[2]])
             rs = Recipients.from_list(data.value[4], self._verify_kid, context)
-            mac_auth_key = rs.extract(keys, alg)
+            mac_auth_key = rs.derive_key(keys, alg)
             mac_auth_key.verify(to_be_maced, data.value[3])
             return data.value[2]
 

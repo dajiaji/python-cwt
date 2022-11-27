@@ -645,7 +645,7 @@ class TestCOSE:
         with pytest.raises(DecodeError) as err:
             ctx.decode(encoded, keys=[shared_key1, shared_key3])
             pytest.fail("decode() should fail.")
-        assert "Failed to decode key." in str(err.value)
+        assert "Failed to unwrap key." in str(err.value)
 
     def test_cose_decode_mac_with_different_multiple_keys_2(self):
         ctx = COSE.new(alg_auto_inclusion=True, verify_kid=True)
