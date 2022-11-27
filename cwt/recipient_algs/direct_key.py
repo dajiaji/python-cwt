@@ -5,8 +5,8 @@ from .direct import Direct
 
 
 class DirectKey(Direct):
-    def __init__(self, unprotected: Dict[int, Any]):
-        super().__init__({}, unprotected, b"", [])
+    def __init__(self, protected: Dict[int, Any] = {}, unprotected: Dict[int, Any] = {}):
+        super().__init__(protected, unprotected, b"", [])
 
         if self._alg != -6:
             raise ValueError("alg(1) should be direct(-6).")

@@ -59,9 +59,9 @@ class Recipient:
         if alg == 0:
             raise ValueError("alg should be specified.")
         if alg == -6:
-            return DirectKey(u)
+            return DirectKey(p, u)
         if alg in [-10, -11]:
-            return DirectHKDF(p, u, ciphertext, recipients, context)
+            return DirectHKDF(p, u, context)
         if alg in [-3, -4, -5]:
             if not sender_key:
                 sender_key = COSEKey.from_symmetric_key(alg=alg)

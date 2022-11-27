@@ -21,13 +21,11 @@ class DirectHKDF(Direct):
 
     def __init__(
         self,
-        protected: Dict[int, Any],
-        unprotected: Dict[int, Any],
-        ciphertext: bytes = b"",
-        recipients: List[Any] = [],
+        protected: Dict[int, Any] = {},
+        unprotected: Dict[int, Any] = {},
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ):
-        super().__init__(protected, unprotected, ciphertext, recipients)
+        super().__init__(protected, unprotected, b"", [])
 
         if not context:
             raise ValueError("context should be set.")

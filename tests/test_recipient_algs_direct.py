@@ -21,7 +21,7 @@ class TestDirect:
 
     def test_direct_constructor(self):
         k = COSEKey.from_symmetric_key(alg="HS256")
-        ctx = Direct({1: -6}, {})
+        ctx = Direct({}, {1: -6})
         assert isinstance(ctx, Direct)
         assert ctx.alg == -6
         with pytest.raises(NotImplementedError):
@@ -54,7 +54,7 @@ class TestDirectKey:
     """
 
     def test_direct_key_constructor(self):
-        ctx = DirectKey({1: -6})
+        ctx = DirectKey(unprotected={1: -6})
         assert isinstance(ctx, DirectKey)
         assert ctx.alg == -6
 
@@ -75,19 +75,19 @@ class TestDirectKey:
 
     def test_direct_key_encode(self):
         k = COSEKey.from_symmetric_key(alg="HS256")
-        ctx = DirectKey({1: -6})
+        ctx = DirectKey(unprotected={1: -6})
         _, derived_key = ctx.encode(k)
         assert derived_key is None
 
     def test_direct_key_encode_without_alg(self):
-        ctx = DirectKey({1: -6})
+        ctx = DirectKey(unprotected={1: -6})
         encoded, derived_key = ctx.encode()
         assert isinstance(encoded, list)
         assert derived_key is None
 
     def test_direct_key_decode(self):
         k = COSEKey.from_symmetric_key(alg="HS256")
-        ctx = DirectKey({1: -6})
+        ctx = DirectKey(unprotected={1: -6})
         decoded = ctx.decode(k, as_cose_key=True)
         assert decoded.alg == 5
         assert k.key == decoded.key
