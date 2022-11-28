@@ -304,8 +304,7 @@ class CWT(CBORProcessor):
             b_claims,
             key,
             {},
-            {},
-            nonce,
+            {5: nonce} if nonce != b"" else {},
             recipients,
             out="cbor2/CBORTag",
         )

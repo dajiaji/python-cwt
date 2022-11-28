@@ -362,7 +362,7 @@ enc_key = COSEKey.generate_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
 # The sender side:
 nonce = enc_key.generate_nonce()
 sender = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
-encoded = sender.encode_and_encrypt(b"Hello world!", enc_key, nonce=nonce)
+encoded = sender.encode_and_encrypt(b"Hello world!", enc_key, unprotected={"iv": nonce})
 
 # The recipient side:
 recipient = COSE.new()
@@ -445,7 +445,7 @@ sender = COSE.new()
 encoded = sender.encode_and_encrypt(
     b"Hello world!",
     enc_key,
-    nonce=nonce,
+    unprotected={5: nonce},
     recipients=[r],
 )
 
@@ -606,7 +606,7 @@ sender = COSE.new(alg_auto_inclusion=True)
 encoded = sender.encode_and_encrypt(
     b"Hello world!",
     key=enc_key,
-    nonce=nonce,
+    unprotected={5: nonce},
     recipients=[r],
 )
 

@@ -51,7 +51,6 @@ class EncryptedCOSEKey(CBORProcessor):
             encryption_key,
             protected,
             unprotected,
-            nonce=nonce,
             out="cbor2/CBORTag",
         )
         return res.value

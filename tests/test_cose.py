@@ -291,7 +291,7 @@ class TestCOSE:
             ctx.encode_and_encrypt(
                 b"This is the content.",
                 key,
-                nonce=bytes.fromhex("89F52F65A1C580933B5261A72F"),
+                unprotected={5: bytes.fromhex("89F52F65A1C580933B5261A72F")},
                 recipients=[RecipientInterface(unprotected={1: 0, 4: b"our-secret"})],
             )
             pytest.fail("encode_and_encrypt should fail.")
