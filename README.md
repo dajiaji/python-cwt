@@ -28,20 +28,20 @@ And then, you can use it as follows:
 
 **COSE API**
 
-```pycon
+```py
 >>> from cwt import COSE, COSEKey
 >>> ctx = COSE.new()
 >>> mac_key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
 >>> encoded = ctx.encode_and_mac(b"Hello world!", mac_key, unprotected={"alg": "HS256"})
 >>> encoded.hex()
-'d18443a10105a1044230314c48656c6c6f20776f726c642158205d0b144add282ccaac32a02e0d5eec76928ccadf3623271eb48e9464e2ee03b2'
+'d18443a10105a1044230314c48656c6c6f20776f726c64215820'...
 >>> ctx.decode(encoded, mac_key)
 b'Hello world!'
 ```
 
 **CWT API**
 
-```pycon
+```py
 >>> import cwt
 >>> from cwt import COSEKey
 >>> key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
