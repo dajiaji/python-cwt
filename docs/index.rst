@@ -44,8 +44,6 @@ Index
    :maxdepth: 2
 
    installation
-   cwt_usage
-   cose_usage
    api
    claims
    algorithms

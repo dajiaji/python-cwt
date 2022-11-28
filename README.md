@@ -26,18 +26,35 @@ $ pip install cwt
 
 And then, you can use it as follows:
 
-```py
+**COSE API**
+
+```pycon
+>>> from cwt import COSE, COSEKey
+>>> ctx = COSE.new()
+>>> mac_key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
+>>> encoded = ctx.encode_and_mac(b"Hello world!", mac_key, unprotected={"alg": "HS256"})
+>>> encoded.hex()
+'d18443a10105a1044230314c48656c6c6f20776f726c642158205d0b144add282ccaac32a02e0d5eec76928ccadf3623271eb48e9464e2ee03b2'
+>>> ctx.decode(encoded, mac_key)
+b'Hello world!'
+```
+
+**CWT API**
+
+```pycon
 >>> import cwt
 >>> from cwt import COSEKey
 >>> key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
->>> token = cwt.{"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
+>>> token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
 >>> token.hex()
 'd18443a10105a05835a60172636f6170733a2f2f61732e657861'...
 >>> cwt.decode(token, key)
 {1: 'coaps://as.example', 2: 'dajiaji', 7: b'123', 4: 1620088759, 5: 1620085159, 6: 1620085159}
 ```
 
-See [Documentation](https://python-cwt.readthedocs.io/en/stable/) for details.
+Various usage examples are shown in this README.
+
+See [Documentation](https://python-cwt.readthedocs.io/en/stable/) for the details of API specification.
 
 ## Index
 
@@ -89,10 +106,9 @@ pip install cwt
 
 ## COSE Usage Examples
 
-Followings are typical and basic examples which create various types of COSE messages, verify and decode them.
+Followings are typical and basic examples which encode various types of COSE messages and decode them.
 
-See [API Reference](https://python-cwt.readthedocs.io/en/stable/api.html#cwt.COSE) and
-[COSE Usage Examples on document](https://python-cwt.readthedocs.io/en/stable/cose_usage.html) for more details.
+See [API Reference](https://python-cwt.readthedocs.io/en/stable/api.html#cwt.COSE).
 
 ### COSE MAC0
 
@@ -740,14 +756,12 @@ assert b"Hello world!" == recipient.decode(encoded, pub_key)
 
 ## CWT Usage Examples
 
-Followings are typical and basic examples which create various types of CWTs, verify and decode them.
+Followings are typical and basic examples which encode various types of CWTs, verify and decode them.
 
 [CWT API](https://python-cwt.readthedocs.io/en/stable/api.html) in the examples are built
 on top of [COSE API](https://python-cwt.readthedocs.io/en/stable/api.html#cwt.COSE).
 
-See [API Reference](https://python-cwt.readthedocs.io/en/stable/api.html) and
-[CWT Usage Examples on document](https://python-cwt.readthedocs.io/en/stable/cwt_usage.html)
-for more details.
+See [API Reference](https://python-cwt.readthedocs.io/en/stable/api.html).
 
 ### MACed CWT
 
