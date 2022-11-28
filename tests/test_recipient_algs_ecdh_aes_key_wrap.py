@@ -93,7 +93,7 @@ class TestECDH_AESKeyWrap:
 
     def test_ecdh_aes_key_wrap_encode_and_decode_with_ecdh_es(self, sender_key_es, recipient_public_key, recipient_private_key):
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
-        sender = ECDH_AESKeyWrap(
+        sender = Recipient.new(
             {1: -29}, {4: b"01"}, sender_key=sender_key_es, recipient_key=recipient_public_key, context={"alg": "A128GCM"}
         )
         encoded, _ = sender.encode(enc_key.to_bytes())
@@ -194,7 +194,7 @@ class TestECDH_AESKeyWrap:
 
     def test_ecdh_aes_key_wrap_decode_without_alg(self, sender_key_es, recipient_public_key, recipient_private_key):
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
-        sender = ECDH_AESKeyWrap(
+        sender = Recipient.new(
             {1: -29}, {4: b"01"}, sender_key=sender_key_es, recipient_key=recipient_public_key, context={"alg": "A128GCM"}
         )
         encoded, _ = sender.encode(enc_key.to_bytes())

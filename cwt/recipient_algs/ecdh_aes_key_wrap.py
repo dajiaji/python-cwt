@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from cryptography.hazmat.primitives.keywrap import aes_key_unwrap, aes_key_wrap
 
 from ..algs.ec2 import EC2Key
-from ..const import COSE_KEY_OPERATION_VALUES
+from ..const import COSE_KEY_LEN, COSE_KEY_OPERATION_VALUES
 from ..cose_key import COSEKey
 from ..cose_key_interface import COSEKeyInterface
 from ..exceptions import DecodeError, EncodeError
@@ -56,7 +56,13 @@ class ECDH_AESKeyWrap(RecipientInterface):
             # ECDH-SS (alg=-32, -33, -34)
             if not self._sender_key:
                 raise ValueError("sender_key should be set in advance.")
-        wrapping_key = self._sender_key.derive_key(self._context, public_key=self._recipient_key)
+        wrapping_bytes = self._sender_key.derive_bytes(
+            COSE_KEY_LEN[self._context[0]] // 8,
+            info=self._dumps(self._context),
+            public_key=self._recipient_key,
+        )
+        wrapping_key = COSEKey.from_symmetric_key(wrapping_bytes, alg=self._context[0])
+        # wrapping_key = self._sender_key.derive_key(self._context, public_key=self._recipient_key)
         if self._alg in [-29, -30, -31]:
             # ECDH-ES
             self._unprotected[-1] = self._to_cose_key(self._sender_key.key.public_key())
@@ -78,8 +84,14 @@ class ECDH_AESKeyWrap(RecipientInterface):
             raise ValueError("sender_public_key should be set.")
 
         try:
-            derived = key.derive_key(self._context, public_key=self._sender_public_key)
-            derived_bytes = aes_key_unwrap(derived.key, self._ciphertext)
+            wrapping_key_bytes = key.derive_bytes(
+                COSE_KEY_LEN[self._context[0]] // 8,
+                info=self._dumps(self._context),
+                public_key=self._sender_public_key,
+            )
+            wrapping_key = COSEKey.from_symmetric_key(wrapping_key_bytes, alg=self._context[0])
+            # derived = key.derive_key(self._context, public_key=self._sender_public_key)
+            derived_bytes = aes_key_unwrap(wrapping_key.key, self._ciphertext)
         except Exception as err:
             raise DecodeError("Failed to decode key.") from err
         if not as_cose_key:

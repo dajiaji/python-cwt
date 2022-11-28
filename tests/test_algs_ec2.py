@@ -141,7 +141,7 @@ class TestEC2Key:
         assert 2 in public_key.key_ops
         assert public_key.base_iv is None
         with pytest.raises(ValueError) as err:
-            public_key.derive_key({"alg": "A128GCM"})
+            public_key.derive_bytes(16, b"xxxxxxxx")
         assert "Public key cannot be used for key derivation." in str(err.value)
 
         try:
@@ -179,24 +179,28 @@ class TestEC2Key:
             }
         )
         try:
-            derived_key = private_key.derive_key({"alg": "A128GCM"}, public_key=pub_key)
-            assert derived_key.alg == 1
+            derived_bytes = private_key.derive_bytes(16, b"xxxxxxxx", public_key=pub_key)
+            assert isinstance(derived_bytes, bytes)
         except Exception:
-            pytest.fail("derive_key() should not fail.")
+            pytest.fail("derive_bytes() should not fail.")
 
         try:
-            derived_key = private_key.derive_key(
-                [
-                    1,
-                    [None, None, None],
-                    [None, None, None],
-                    [128, cbor2.dumps({1: -25})],
-                ],
+            derived_bytes = private_key.derive_bytes(
+                16,
+                b"xxxxxxxx",
+                info=cbor2.dumps(
+                    [
+                        1,
+                        [None, None, None],
+                        [None, None, None],
+                        [128, cbor2.dumps({1: -25})],
+                    ]
+                ),
                 public_key=pub_key,
             )
-            assert derived_key.alg == 1
+            assert isinstance(derived_bytes, bytes)
         except Exception:
-            pytest.fail("derive_key() should not fail.")
+            pytest.fail("derive_bytes() should not fail.")
 
     def test_cose_key_constructor_without_cose_key(self):
         with pytest.raises(TypeError):
@@ -664,73 +668,98 @@ class TestEC2Key:
             pytest.fail("verify() should fail.")
         assert "Invalid signature." in str(err.value)
 
-    @pytest.mark.parametrize(
-        "alg",
-        [
-            "A128GCM",
-            "A192GCM",
-            "A256GCM",
-            # "HMAC 256/64",
-            # "HMAC 256/256",
-            # "HS256",
-            # "HMAC 384/384",
-            # "HS384",
-            # "HMAC 512/512",
-            # "HS512",
-            "AES-CCM-16-64-128",
-            "AES-CCM-16-64-128",
-            "ChaCha20/Poly1305",
-        ],
-    )
-    def test_ec2_key_derive_key(self, alg):
-        private_key = EC2Key(
-            {
-                1: 2,
-                -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
-                -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
-                -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
-                -1: 1,
-                3: -25,
-            }
-        )
-        pub_key = COSEKey.from_jwk(
-            {
-                "kty": "EC",
-                "kid": "01",
-                "crv": "P-256",
-                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
-                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
-            }
-        )
-        try:
-            derived_key = private_key.derive_key({"alg": alg}, public_key=pub_key)
-            assert derived_key.kty == 4
-        except Exception:
-            pytest.fail("derive_key() should not fail.")
+    # @pytest.mark.parametrize(
+    #     "alg",
+    #     [
+    #         "A128GCM",
+    #         "A192GCM",
+    #         "A256GCM",
+    #         # "HMAC 256/64",
+    #         # "HMAC 256/256",
+    #         # "HS256",
+    #         # "HMAC 384/384",
+    #         # "HS384",
+    #         # "HMAC 512/512",
+    #         # "HS512",
+    #         "AES-CCM-16-64-128",
+    #         "AES-CCM-16-64-128",
+    #         "ChaCha20/Poly1305",
+    #     ],
+    # )
+    # def test_ec2_key_derive_bytes(self, alg):
+    #     private_key = EC2Key(
+    #         {
+    #             1: 2,
+    #             -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+    #             -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+    #             -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+    #             -1: 1,
+    #             3: -25,
+    #         }
+    #     )
+    #     pub_key = COSEKey.from_jwk(
+    #         {
+    #             "kty": "EC",
+    #             "kid": "01",
+    #             "crv": "P-256",
+    #             "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+    #             "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+    #         }
+    #     )
+    #     try:
+    #         derived_key = private_key.derive_bytes({"alg": alg}, public_key=pub_key)
+    #         assert derived_key.kty == 4
+    #     except Exception:
+    #         pytest.fail("derive_bytes() should not fail.")
 
-    @pytest.mark.parametrize(
-        "invalid_alg",
-        [
-            ("ECDH-SS+A256KW"),
-            ("ECDH-SS+A192KW"),
-            ("ECDH-SS+A128KW"),
-            ("ECDH-ES+A256KW"),
-            ("ECDH-ES+A192KW"),
-            ("ECDH-ES+A128KW"),
-            ("ECDH-SS+HKDF-512"),
-            ("ECDH-SS+HKDF-256"),
-            ("ECDH-ES+HKDF-512"),
-            ("ECDH-ES+HKDF-256"),
-            ("direct+HKDF-SHA-512"),
-            ("direct+HKDF-SHA-256"),
-            ("dir"),
-            ("direct"),
-            ("A256KW"),
-            ("A192KW"),
-            ("A128KW"),
-        ],
-    )
-    def test_ec2_key_derive_key_with_invalid_alg(self, invalid_alg):
+    # @pytest.mark.parametrize(
+    #     "invalid_alg",
+    #     [
+    #         ("ECDH-SS+A256KW"),
+    #         ("ECDH-SS+A192KW"),
+    #         ("ECDH-SS+A128KW"),
+    #         ("ECDH-ES+A256KW"),
+    #         ("ECDH-ES+A192KW"),
+    #         ("ECDH-ES+A128KW"),
+    #         ("ECDH-SS+HKDF-512"),
+    #         ("ECDH-SS+HKDF-256"),
+    #         ("ECDH-ES+HKDF-512"),
+    #         ("ECDH-ES+HKDF-256"),
+    #         ("direct+HKDF-SHA-512"),
+    #         ("direct+HKDF-SHA-256"),
+    #         ("dir"),
+    #         ("direct"),
+    #         ("A256KW"),
+    #         ("A192KW"),
+    #         ("A128KW"),
+    #     ],
+    # )
+    # def test_ec2_key_derive_bytes_with_invalid_alg(self, invalid_alg):
+    #     private_key = EC2Key(
+    #         {
+    #             1: 2,
+    #             -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+    #             -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+    #             -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+    #             -1: 1,
+    #             3: -25,
+    #         }
+    #     )
+    #     pub_key = COSEKey.from_jwk(
+    #         {
+    #             "kty": "EC",
+    #             "kid": "01",
+    #             "crv": "P-256",
+    #             "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+    #             "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+    #         }
+    #     )
+    #     with pytest.raises(ValueError) as err:
+    #         private_key.derive_bytes({"alg": invalid_alg}, public_key=pub_key)
+    #         pytest.fail("derive_bytes() should fail.")
+    #     assert f"Unsupported or unknown alg for context information: {invalid_alg}." in str(err.value)
+
+    def test_ec2_key_derive_bytes_without_public_key(self):
         private_key = EC2Key(
             {
                 1: 2,
@@ -739,38 +768,13 @@ class TestEC2Key:
                 -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
                 -1: 1,
                 3: -25,
-            }
-        )
-        pub_key = COSEKey.from_jwk(
-            {
-                "kty": "EC",
-                "kid": "01",
-                "crv": "P-256",
-                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
-                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
             }
         )
         with pytest.raises(ValueError) as err:
-            private_key.derive_key({"alg": invalid_alg}, public_key=pub_key)
-            pytest.fail("derive_key() should fail.")
-        assert f"Unsupported or unknown alg for context information: {invalid_alg}." in str(err.value)
-
-    def test_ec2_key_derive_key_without_public_key(self):
-        private_key = EC2Key(
-            {
-                1: 2,
-                -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
-                -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
-                -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
-                -1: 1,
-                3: -25,
-            }
-        )
-        with pytest.raises(ValueError) as err:
-            private_key.derive_key({"alg": "A128GCM"})
+            private_key.derive_bytes(16, b"xxxxxxxx")
         assert "public_key should be set." in str(err.value)
 
-    def test_ec2_key_derive_key_with_invalid_public_key(self):
+    def test_ec2_key_derive_bytes_with_invalid_public_key(self):
         private_key = EC2Key(
             {
                 1: 2,
@@ -784,10 +788,10 @@ class TestEC2Key:
         with open(key_path("public_key_ed25519.pem")) as key_file:
             public_key = COSEKey.from_pem(key_file.read())
         with pytest.raises(ValueError) as err:
-            private_key.derive_key({"alg": "A128GCM"}, public_key=public_key)
+            private_key.derive_bytes(16, b"xxxxxxxx", public_key=public_key)
         assert "public_key should be elliptic curve public key." in str(err.value)
 
-    def test_ec2_key_derive_key_with_invalid_private_key(self):
+    def test_ec2_key_derive_bytes_with_invalid_private_key(self):
         private_key = EC2Key(
             {
                 1: 2,
@@ -801,7 +805,7 @@ class TestEC2Key:
         with open(key_path("public_key_es256.pem")) as key_file:
             public_key = COSEKey.from_pem(key_file.read())
         with pytest.raises(ValueError) as err:
-            private_key.derive_key({"alg": "A128GCM"}, public_key=public_key)
+            private_key.derive_bytes(16, b"xxxxxxxx", public_key=public_key)
         assert "Invalid alg for key derivation: -7." in str(err.value)
 
     def test_ec2_key_to_cose_key_with_invalid_key(self):

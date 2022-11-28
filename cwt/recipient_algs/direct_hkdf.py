@@ -80,7 +80,7 @@ class DirectHKDF(Direct):
                 info=self._dumps(self._context),
             )
             derived = hkdf.derive(plaintext)
-            return self.to_list(), COSEKey.from_symmetric_key(derived, self._context[0], self._kid)
+            return self.to_list(), COSEKey.from_symmetric_key(derived, self._context[0], kid=self._kid)
         except Exception as err:
             raise EncodeError("Failed to derive key.") from err
 

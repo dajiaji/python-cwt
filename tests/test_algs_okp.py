@@ -242,7 +242,7 @@ class TestOKPKey:
             "ChaCha20/Poly1305",
         ],
     )
-    def test_okp_key_derive_key(self, alg):
+    def test_okp_key_derive_bytes(self, alg):
         with open(key_path("private_key_x25519.pem")) as key_file:
             private_key = COSEKey.from_pem(key_file.read(), alg="ECDH-SS+HKDF-256")
         pub_key = COSEKey.from_jwk(
@@ -256,11 +256,11 @@ class TestOKPKey:
             }
         )
         try:
-            private_key.derive_key({"alg": alg}, public_key=pub_key)
+            private_key.derive_bytes(16, b"xxxxxxxx", b"xxxxxxxx", public_key=pub_key)
         except Exception:
-            pytest.fail("derive_key() should not fail.")
+            pytest.fail("derive_bytes() should not fail.")
 
-    def test_okp_key_derive_key_with_raw_context(self):
+    def test_okp_key_derive_bytes_with_raw_context(self):
         with open(key_path("private_key_x25519.pem")) as key_file:
             private_key = COSEKey.from_pem(key_file.read(), alg="ECDH-SS+HKDF-256")
         pub_key = COSEKey.from_jwk(
@@ -280,9 +280,9 @@ class TestOKPKey:
             [128, cbor2.dumps({1: -25})],
         ]
         try:
-            private_key.derive_key(context, public_key=pub_key)
+            private_key.derive_bytes(16, b"xxxxxxxx", info=cbor2.dumps(context), public_key=pub_key)
         except Exception:
-            pytest.fail("derive_key() should not fail.")
+            pytest.fail("derive_bytes() should not fail.")
 
     @pytest.mark.parametrize(
         "invalid, msg",
@@ -651,7 +651,7 @@ class TestOKPKey:
             pytest.fail("verify should not fail.")
         assert "Failed to verify." in str(err.value)
 
-    def test_okp_key_derive_key_with_public_key(self):
+    def test_okp_key_derive_bytes_with_public_key(self):
         with open(key_path("public_key_x25519.pem")) as key_file:
             public_key = COSEKey.from_pem(key_file.read(), alg="ECDH-SS+HKDF-256")
         pub_key = COSEKey.from_jwk(
@@ -665,17 +665,17 @@ class TestOKPKey:
             }
         )
         with pytest.raises(ValueError) as err:
-            public_key.derive_key({"alg": "A128GCM"}, public_key=pub_key)
+            public_key.derive_bytes(b"xxxxxxxx", public_key=pub_key)
         assert "Public key cannot be used for key derivation." in str(err.value)
 
-    def test_okp_key_derive_key_without_public_key(self):
+    def test_okp_key_derive_bytes_without_public_key(self):
         with open(key_path("private_key_x25519.pem")) as key_file:
             private_key = COSEKey.from_pem(key_file.read(), alg="ECDH-SS+HKDF-256")
         with pytest.raises(ValueError) as err:
-            private_key.derive_key({"alg": "A128GCM"})
+            private_key.derive_bytes(16, b"xxxxxxxx", b"xxxxxxxx")
         assert "public_key should be set." in str(err.value)
 
-    def test_okp_key_derive_key_with_ed25519_key(self):
+    def test_okp_key_derive_bytes_with_ed25519_key(self):
         with open(key_path("private_key_x25519.pem")) as key_file:
             private_key = COSEKey.from_pem(key_file.read(), alg="ECDH-SS+HKDF-256")
         pub_key = COSEKey.from_jwk(
@@ -689,7 +689,7 @@ class TestOKPKey:
             }
         )
         with pytest.raises(ValueError) as err:
-            private_key.derive_key({"alg": "A128GCM"}, public_key=pub_key)
+            private_key.derive_bytes(16, b"xxxxxxxx", b"xxxxxxxx", public_key=pub_key)
         assert "public_key should be x25519/x448 public key." in str(err.value)
 
     def test_okp_key_to_cose_key_with_invalid_key(self):

@@ -78,7 +78,12 @@ class ECDH_DirectHKDF(Direct):
             if not self._sender_key:
                 raise ValueError("sender_key should be set in advance.")
 
-        derived_key = self._sender_key.derive_key(self._context, public_key=self._recipient_key)
+        derived_bytes = self._sender_key.derive_bytes(
+            COSE_KEY_LEN[self._context[0]] // 8,
+            info=self._dumps(self._context),
+            public_key=self._recipient_key,
+        )
+        derived_key = COSEKey.from_symmetric_key(derived_bytes, alg=self._context[0])
         if self._alg in [-25, -26]:
             # ECDH-ES
             self._unprotected[-1] = self._to_cose_key(self._sender_key.key.public_key())
@@ -97,12 +102,13 @@ class ECDH_DirectHKDF(Direct):
         if not self._sender_public_key:
             raise ValueError("sender_public_key should be set.")
         try:
-            if not as_cose_key:
-                return key.derive_bytes(
-                    COSE_KEY_LEN[self._context[0]] // 8,
-                    info=self._dumps(self._context),
-                    public_key=self._sender_public_key,
-                )
-            return key.derive_key(self._context, public_key=self._sender_public_key)
+            derived_bytes = key.derive_bytes(
+                COSE_KEY_LEN[self._context[0]] // 8,
+                info=self._dumps(self._context),
+                public_key=self._sender_public_key,
+            )
         except Exception as err:
             raise DecodeError("Failed to decode.") from err
+        if not as_cose_key:
+            return derived_bytes
+        return COSEKey.from_symmetric_key(derived_bytes, alg=self._context[0], kid=self._kid)

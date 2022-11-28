@@ -55,8 +55,8 @@ class TestCOSEKeyInterface:
             key.unwrap_key(b"wrapped_key")
             pytest.fail("COSEKeyInterface.decrypt() should fail.")
         with pytest.raises(NotImplementedError):
-            key.derive_key([], b"material")
-            pytest.fail("COSEKeyInterface.derive_key() should fail.")
+            key.derive_bytes(16, b"material")
+            pytest.fail("COSEKeyInterface.derive_bytes() should fail.")
         with pytest.raises(NotImplementedError):
             key.validate_certificate("/path/to/ca_certs")
             pytest.fail("COSEKeyInterface.validate_certificate() should fail.")
