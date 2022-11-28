@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from ..const import COSE_KEY_OPERATION_VALUES
 from ..cose_key import COSEKey
@@ -15,7 +15,6 @@ class AESKeyWrap(RecipientInterface):
 
     def __init__(
         self,
-        protected: Dict[int, Any],
         unprotected: Dict[int, Any],
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
@@ -25,10 +24,12 @@ class AESKeyWrap(RecipientInterface):
             raise ValueError("sender_key should be set.")
         if sender_key.alg not in [-3, -4, -5]:
             raise ValueError(f"Invalid alg in sender_key: {sender_key.alg}.")
-        if 1 in protected and protected[1] != sender_key.alg:
-            raise ValueError("algs in protected and sender_key do not match.")
+        if 1 not in unprotected:
+            raise ValueError("alg(1) not found in unprotected.")
+        if unprotected[1] != sender_key.alg:
+            raise ValueError("alg in unprotected and sender_key's alg do not match.")
         super().__init__(
-            protected,
+            {},
             unprotected,
             ciphertext,
             recipients,
@@ -37,57 +38,20 @@ class AESKeyWrap(RecipientInterface):
         )
         self._sender_key: COSEKeyInterface = sender_key
 
-    def encode(
-        self,
-        plaintext: bytes = b"",
-        salt: Optional[bytes] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
-    ) -> Optional[COSEKeyInterface]:
+    def encode(self, plaintext: bytes = b"", aad: bytes = b"") -> Tuple[List[Any], Optional[COSEKeyInterface]]:
 
         self._ciphertext = self._sender_key.wrap_key(plaintext)
-        return None
+        return self.to_list(), None
 
-    def apply(
-        self,
-        key: Optional[COSEKeyInterface] = None,
-        recipient_key: Optional[COSEKeyInterface] = None,
-        salt: Optional[bytes] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
-    ) -> COSEKeyInterface:
-        if not key:
-            raise ValueError("key should be set.")
-        if key.kid:
-            self._protected[4] = key.kid
-        self._ciphertext = self._sender_key.wrap_key(key.key)
-        return key
-
-    def extract(
-        self,
-        key: COSEKeyInterface,
-        alg: Optional[int] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
-    ) -> COSEKeyInterface:
-        if not alg:
-            raise ValueError("alg should be set.")
+    def decode(
+        self, key: COSEKeyInterface, aad: bytes = b"", alg: int = 0, as_cose_key: bool = False
+    ) -> Union[bytes, COSEKeyInterface]:
         try:
             unwrapped = key.unwrap_key(self._ciphertext)
-            return COSEKey.from_symmetric_key(unwrapped, alg=alg, kid=self._kid)
         except Exception as err:
             raise DecodeError("Failed to decode key.") from err
-
-    def decrypt(
-        self,
-        key: COSEKeyInterface,
-        alg: Optional[int] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
-        payload: bytes = b"",
-        nonce: bytes = b"",
-        aad: bytes = b"",
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
-    ) -> bytes:
-        return self.extract(key, alg, context).decrypt(payload, nonce, aad)
+        if not as_cose_key:
+            return unwrapped
+        if not alg:
+            raise ValueError("alg should be set.")
+        return COSEKey.from_symmetric_key(unwrapped, alg=alg, kid=self._kid)

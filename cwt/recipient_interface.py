@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePublicKey
 from cryptography.hazmat.primitives.asymmetric.x448 import X448PublicKey
@@ -75,6 +75,7 @@ class RecipientInterface(CBORProcessor):
             if not isinstance(unprotected[5], bytes):
                 raise ValueError("unprotected[5](iv) should be bytes.")
 
+        self._b_protected: Optional[bytes] = None
         self._protected = protected
         self._unprotected = unprotected
         self._ciphertext = ciphertext
@@ -112,6 +113,15 @@ class RecipientInterface(CBORProcessor):
         return self._protected
 
     @property
+    def b_protected(self) -> bytes:
+        """
+        The binary encoded protected header.
+        """
+        if self._b_protected is None:
+            return self._dumps(self._protected)
+        return self._b_protected
+
+    @property
     def unprotected(self) -> Dict[int, Any]:
         """
         The parameters that are not cryptographically protected.
@@ -132,13 +142,10 @@ class RecipientInterface(CBORProcessor):
         """
         return self._recipients
 
-    def to_list(self, payload: bytes = b"", external_aad: bytes = b"", aad_context: str = "") -> List[Any]:
+    def to_list(self) -> List[Any]:
         """
         Returns the recipient information as a COSE recipient structure.
 
-        Args:
-            payload (Optional[bytes]): The payload to be encrypted.
-            external_aad (Optional[bytes]): External additional authenticated data.
         Returns:
             List[Any]: The recipient structure.
         """
@@ -150,135 +157,66 @@ class RecipientInterface(CBORProcessor):
 
         children = []
         for recipient in self._recipients:
-            children.append(recipient.to_list(payload, external_aad, aad_context))
+            children.append(recipient.to_list())
         res.append(children)
         return res
 
     def encode(
         self,
         plaintext: bytes = b"",
-        salt: Optional[bytes] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
-    ) -> Optional[COSEKeyInterface]:
+        aad: bytes = b"",
+    ) -> Tuple[List[Any], Optional[COSEKeyInterface]]:
         """
-        Encodes a specified plaintext to a ciphertext with the recipient-specific
-        method (e.g., key wrapping, key agreement, or the combination of them)
-        and sets up the related information (context information or ciphertext)
-        in the recipient structure.
-        Therefore, it will be used by the sender of the recipient information
-        before calling COSE.encode_* functions with the Recipient object. The
-        key generated through this function will be set to ``key`` parameter
-        of COSE.encode_* functions.
+        Encrypts a specified plaintext to the ciphertext in the COSE_Recipient
+        structure with the recipient-specific method (e.g., key wrapping, key
+        agreement, or the combination of them) and sets up the related information
+        (context information or ciphertext) in the recipient structure.
+
+        This function will be called in COSE.encode_* functions so applications
+        do not need to call it directly.
 
         Args:
             plaintext (bytes): A plaing text to be encrypted. In most of the cases,
                 the plaintext is a byte string of a content encryption key.
-            salt (Optional[bytes]): A salt used for deriving a key.
-            context (Optional[Union[List[Any], Dict[str, Any]]]): Context
-                information structure.
             external_aad (bytes): External additional authenticated data for AEAD.
             aad_context (bytes): An additional authenticated data context to build
                 an Enc_structure internally.
         Returns:
-            Optional[COSEKeyInterface]: A generated key or passed-through key
-                which is used as ``key`` parameter of COSE.encode_* functions.
+            Tuple[List[Any], Optional[COSEKeyInterface]]: The encoded COSE_Recipient structure
+                and a derived key.
         Raises:
             ValueError: Invalid arguments.
             EncodeError: Failed to encode(e.g., wrap, derive) the key.
         """
         raise NotImplementedError
 
-    def apply(
-        self,
-        key: Optional[COSEKeyInterface] = None,
-        recipient_key: Optional[COSEKeyInterface] = None,
-        salt: Optional[bytes] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
-    ) -> COSEKeyInterface:
-        """
-        [DEPRECATED] Applies a COSEKey as a material to prepare a MAC/encryption key with
-        the recipient-specific method (e.g., key wrapping, key agreement,
-        or the combination of them) and sets up the related information
-        (context information or ciphertext) in the recipient structure.
-        Therefore, it will be used by the sender of the recipient information
-        before calling COSE.encode_* functions with the Recipient object. The
-        key generated through this function will be set to ``key`` parameter
-        of COSE.encode_* functions.
-
-        Args:
-            key (Optional[COSEKeyInterface]): The external key to
-                be used for preparing the key.
-            recipient_key (Optional[COSEKeyInterface]): The external public
-                key provided by the recipient used for ECDH key agreement, etc.
-            salt (Optional[bytes]): A salt used for deriving a key.
-            context (Optional[Union[List[Any], Dict[str, Any]]]): Context
-                information structure.
-            external_aad (bytes): External additional authenticated data for AEAD.
-            aad_context (bytes): An additional authenticated data context to build
-                an Enc_structure internally.
-        Returns:
-            COSEKeyInterface: A generated key or passed-throug key which is used
-                as ``key`` parameter of COSE.encode_* functions.
-        Raises:
-            ValueError: Invalid arguments.
-            EncodeError: Failed to encode(e.g., wrap, derive) the key.
-        """
-        raise NotImplementedError
-
-    def extract(
+    def decode(
         self,
         key: COSEKeyInterface,
-        alg: Optional[int] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
-    ) -> COSEKeyInterface:
+        aad: bytes = b"",
+        alg: int = 0,
+        as_cose_key: bool = False,
+    ) -> Union[bytes, COSEKeyInterface]:
         """
-        Extracts a MAC/encryption key with the recipient-specific method
-        (e.g., key wrapping, key agreement, or the combination of them).
-        This function will be called in COSE.decode so applications do
-        not need to call it directly.
+        Decrypts the ciphertext in the COSE_Recipient structure with the
+        recipient-specific method (e.g., key wrapping, key agreement,
+        or the combination of them).
+
+        This function will be called in COSE.decode so applications do not need
+        to call it directly.
 
         Args:
             key (COSEKeyInterface): The external key to be used for
-                extracting the key.
-            alg (Optional[int]): The algorithm of the key extracted.
-            context (Optional[Union[List[Any], Dict[str, Any]]]): Context
-                information structure.
-        Returns:
-            COSEKeyInterface: An extracted key which is used for decrypting
-                or verifying a payload message.
-        Raises:
-            ValueError: Invalid arguments.
-            DecodeError: Failed to decode(e.g., unwrap, derive) the key.
-        """
-        raise NotImplementedError
-
-    def decrypt(
-        self,
-        key: COSEKeyInterface,
-        alg: Optional[int] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
-        payload: bytes = b"",
-        nonce: bytes = b"",
-        aad: bytes = b"",
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
-    ) -> bytes:
-        """
-        Decrypts the supplied payload.
-
-        Args:
-            key (COSEKeyInterface): The external key to be used for extracting the key.
-            alg (Optional[int]): The algorithm of the key extracted.
-            context (Optional[Union[List[Any], Dict[str, Any]]]): Context information structure.
+                decrypting the ciphertext in the COSE_Recipient structure.
             external_aad (bytes): External additional authenticated data for AEAD.
             aad_context (bytes): An additional authenticated data context to build
                 an Enc_structure internally.
+            alg (int): The algorithm of the key derived.
+            as_cose_key (bool): The indicator whether the output will be returned
+                as a COSEKey or not.
         Returns:
-            bytes: The decrypted plain text.
+            Union[bytes, COSEKeyInterface]: The decrypted ciphertext field or The COSEKey
+                converted from the decrypted ciphertext.
         Raises:
             ValueError: Invalid arguments.
             DecodeError: Failed to decode(e.g., unwrap, derive) the key.
@@ -289,3 +227,7 @@ class RecipientInterface(CBORProcessor):
         if isinstance(k, EllipticCurvePublicKey):
             return EC2Key.to_cose_key(k)
         return OKPKey.to_cose_key(k)
+
+    def _set_b_protected(self, b_protected: bytes):
+        self._b_protected = b_protected
+        return

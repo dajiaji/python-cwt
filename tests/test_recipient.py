@@ -118,14 +118,11 @@ class TestRecipientInterface:
         assert r.alg == 0
         assert len(r.recipients) == 0
         with pytest.raises(NotImplementedError):
-            r.apply(k)
-            pytest.fail("apply() should fail.")
+            r.encode(b"")
+            pytest.fail("encode() should fail.")
         with pytest.raises(NotImplementedError):
-            r.extract(k)
-            pytest.fail("extract() should fail.")
-        with pytest.raises(NotImplementedError):
-            r.decrypt(k)
-            pytest.fail("open() should fail.")
+            r.decode(k)
+            pytest.fail("decode() should fail.")
         res = r.to_list()
         assert len(res) == 3
         assert res[0] == b""
@@ -274,9 +271,15 @@ class TestRecipient:
                 "alg should be specified.",
             ),
             (
+                {1: -6},
+                {1: -6},
+                "alg appear both in protected and unprotected.",
+            ),
+            (
                 {1: -65535},
                 {},
-                "Unsupported or unknown alg(1): -65535.",
+                # "Unsupported or unknown alg(1): -65535.",
+                "context should be set.",
             ),
         ],
     )
@@ -287,173 +290,186 @@ class TestRecipient:
         assert msg in str(err.value)
 
     def test_recipient_from_jwk_with_str(self):
-        recipient = Recipient.from_jwk('{"alg": "direct"}')
+        recipient = Recipient.new(unprotected={"alg": "direct"})
         assert isinstance(recipient, RecipientInterface)
         assert recipient.alg == -6
 
     def test_recipient_from_jwk_with_dict(self):
-        recipient = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "key_ops": ["wrapKey"]})
+        k = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "key_ops": ["wrapKey"]})
+        recipient = Recipient.new(unprotected={"alg": "A128KW"}, sender_key=k)
         assert isinstance(recipient, RecipientInterface)
         assert recipient.alg == -3
 
     def test_recipient_from_jwk_with_dict_and_with_byte_formatted_kid(self):
-        recipient = Recipient.from_jwk({"kty": "oct", "kid": b"01", "alg": "A128KW", "key_ops": ["wrapKey"]})
+        k = COSEKey.from_jwk({"kty": "oct", "kid": b"01", "alg": "A128KW", "key_ops": ["wrapKey"]})
+        recipient = Recipient.new(unprotected={"kid": b"01", "alg": "A128KW"}, sender_key=k)
         assert isinstance(recipient, RecipientInterface)
         assert recipient.alg == -3
         assert recipient.kid == b"01"
 
-    def test_recipient_from_jwk_with_context(self):
-        recipient = Recipient.from_jwk(
-            {
-                "kty": "oct",
-                "alg": "direct+HKDF-SHA-256",
-                "context": {
-                    "apu": {
-                        "id": "sender-01",
-                        "nonce": "xxx",
-                        "other": "yyy",
-                    },
-                    "apv": {
-                        "id": "recipient-01",
-                        "nonce": "abc",
-                        "other": "def",
-                    },
-                },
-            }
-        )
-        assert isinstance(recipient, RecipientInterface)
-        assert recipient.alg == -10
-        assert recipient._unprotected[-21] == b"sender-01"
-        assert recipient._unprotected[-22] == b"xxx"
-        assert recipient._unprotected[-23] == b"yyy"
-        assert recipient._unprotected[-24] == b"recipient-01"
-        assert recipient._unprotected[-25] == b"abc"
-        assert recipient._unprotected[-26] == b"def"
+    # def test_recipient_from_jwk_with_context(self):
+    #     recipient = Recipient.from_jwk(
+    #         {
+    #             "kty": "oct",
+    #             "alg": "direct+HKDF-SHA-256",
+    #             "context": {
+    #                 "apu": {
+    #                     "id": "sender-01",
+    #                     "nonce": "xxx",
+    #                     "other": "yyy",
+    #                 },
+    #                 "apv": {
+    #                     "id": "recipient-01",
+    #                     "nonce": "abc",
+    #                     "other": "def",
+    #                 },
+    #             },
+    #         }
+    #     )
+    #     assert isinstance(recipient, RecipientInterface)
+    #     assert recipient.alg == -10
+    #     assert recipient._unprotected[-21] == b"sender-01"
+    #     assert recipient._unprotected[-22] == b"xxx"
+    #     assert recipient._unprotected[-23] == b"yyy"
+    #     assert recipient._unprotected[-24] == b"recipient-01"
+    #     assert recipient._unprotected[-25] == b"abc"
+    #     assert recipient._unprotected[-26] == b"def"
 
-    def test_recipient_from_jwk_with_context_id(self):
-        recipient = Recipient.from_jwk(
-            {
-                "kty": "oct",
-                "alg": "direct+HKDF-SHA-256",
-                "context": {
-                    "apu": {
-                        "id": "sender-01",
-                    },
-                    "apv": {
-                        "id": "recipient-01",
-                    },
-                },
-            }
-        )
-        assert isinstance(recipient, RecipientInterface)
-        assert recipient.alg == -10
-        assert recipient._unprotected[-21] == b"sender-01"
-        assert -22 not in recipient._unprotected
-        assert -23 not in recipient._unprotected
-        assert recipient._unprotected[-24] == b"recipient-01"
-        assert -25 not in recipient._unprotected
-        assert -26 not in recipient._unprotected
+    # def test_recipient_from_jwk_with_context_id(self):
+    #     recipient = Recipient.from_jwk(
+    #         {
+    #             "kty": "oct",
+    #             "alg": "direct+HKDF-SHA-256",
+    #             "context": {
+    #                 "apu": {
+    #                     "id": "sender-01",
+    #                 },
+    #                 "apv": {
+    #                     "id": "recipient-01",
+    #                 },
+    #             },
+    #         }
+    #     )
+    #     assert isinstance(recipient, RecipientInterface)
+    #     assert recipient.alg == -10
+    #     assert recipient._unprotected[-21] == b"sender-01"
+    #     assert -22 not in recipient._unprotected
+    #     assert -23 not in recipient._unprotected
+    #     assert recipient._unprotected[-24] == b"recipient-01"
+    #     assert -25 not in recipient._unprotected
+    #     assert -26 not in recipient._unprotected
 
-    def test_recipient_from_jwk_with_context_nonce(self):
-        recipient = Recipient.from_jwk(
-            {
-                "kty": "oct",
-                "alg": "direct+HKDF-SHA-256",
-                "context": {
-                    "apu": {
-                        "nonce": "xxx",
-                    },
-                    "apv": {
-                        "nonce": "abc",
-                    },
-                },
-            }
-        )
-        assert isinstance(recipient, RecipientInterface)
-        assert recipient.alg == -10
-        assert -21 not in recipient._unprotected
-        assert recipient._unprotected[-22] == b"xxx"
-        assert -23 not in recipient._unprotected
-        assert -24 not in recipient._unprotected
-        assert recipient._unprotected[-25] == b"abc"
-        assert -26 not in recipient._unprotected
+    # def test_recipient_from_jwk_with_context_nonce(self):
+    #     recipient = Recipient.from_jwk(
+    #         {
+    #             "kty": "oct",
+    #             "alg": "direct+HKDF-SHA-256",
+    #             "context": {
+    #                 "apu": {
+    #                     "nonce": "xxx",
+    #                 },
+    #                 "apv": {
+    #                     "nonce": "abc",
+    #                 },
+    #             },
+    #         }
+    #     )
+    #     assert isinstance(recipient, RecipientInterface)
+    #     assert recipient.alg == -10
+    #     assert -21 not in recipient._unprotected
+    #     assert recipient._unprotected[-22] == b"xxx"
+    #     assert -23 not in recipient._unprotected
+    #     assert -24 not in recipient._unprotected
+    #     assert recipient._unprotected[-25] == b"abc"
+    #     assert -26 not in recipient._unprotected
 
-    def test_recipient_from_jwk_with_context_other(self):
-        recipient = Recipient.from_jwk(
-            {
-                "kty": "oct",
-                "alg": "direct+HKDF-SHA-256",
-                "context": {
-                    "apu": {
-                        "other": "yyy",
-                    },
-                    "apv": {
-                        "other": "def",
-                    },
-                },
-            }
-        )
-        assert isinstance(recipient, RecipientInterface)
-        assert recipient.alg == -10
-        assert -21 not in recipient._unprotected
-        assert -22 not in recipient._unprotected
-        assert recipient._unprotected[-23] == b"yyy"
-        assert -24 not in recipient._unprotected
-        assert -25 not in recipient._unprotected
-        assert recipient._unprotected[-26] == b"def"
+    # def test_recipient_from_jwk_with_context_other(self):
+    #     recipient = Recipient.from_jwk(
+    #         {
+    #             "kty": "oct",
+    #             "alg": "direct+HKDF-SHA-256",
+    #             "context": {
+    #                 "apu": {
+    #                     "other": "yyy",
+    #                 },
+    #                 "apv": {
+    #                     "other": "def",
+    #                 },
+    #             },
+    #         }
+    #     )
+    #     assert isinstance(recipient, RecipientInterface)
+    #     assert recipient.alg == -10
+    #     assert -21 not in recipient._unprotected
+    #     assert -22 not in recipient._unprotected
+    #     assert recipient._unprotected[-23] == b"yyy"
+    #     assert -24 not in recipient._unprotected
+    #     assert -25 not in recipient._unprotected
+    #     assert recipient._unprotected[-26] == b"def"
 
     @pytest.mark.parametrize(
-        "data, msg",
+        "data, key, msg",
         [
             (
                 {"foo": "bar"},
-                "alg should be specified.",
+                {"kty": "oct", "foo": "bar"},
+                "alg(3) should be int or str(tstr).",
             ),
             (
                 {"alg": "xxx"},
+                {"kty": "oct", "alg": "xxx"},
                 "Unsupported or unknown alg: xxx.",
             ),
             (
                 {"alg": 123},
+                {"kty": "oct", "alg": 123},
                 "alg should be str.",
             ),
             (
                 {"alg": "direct", "kid": 123},
+                {"kty": "oct", "alg": "direct", "kid": 123},
                 "kid should be str or bytes.",
             ),
             (
+                {"alg": "A128KW", "kid": 123},
                 {"kty": "oct", "alg": "A128KW", "kid": 123},
                 "kid should be str or bytes.",
             ),
             (
-                {"kty": "oct", "alg": "A128KW", "salt": 123},
-                "salt should be str.",
+                {"alg": "A128KW", "salt": 123},
+                {"kty": "oct", "alg": "A128KW"},
+                "salt should be bytes or str.",
             ),
             (
+                {"alg": "A128KW"},
                 {"kty": "oct", "alg": "A128KW", "key_ops": 123},
                 "key_ops should be list.",
             ),
             (
+                {"alg": "A128KW"},
                 {"kty": "oct", "alg": "A128KW", "key_ops": [123]},
                 "Unsupported or unknown key_ops.",
             ),
             (
+                {"alg": "A128KW"},
                 {"kty": "oct", "alg": "A128KW", "key_ops": ["xxx"]},
                 "Unsupported or unknown key_ops.",
             ),
             (
+                {"alg": "A128KW"},
                 {"kty": "oct", "alg": "A128KW", "k": 123},
                 "k should be str.",
             ),
             (
-                {"kty": "oct", "alg": "direct+HKDF-SHA-256", "context": []},
-                "context should be dict.",
+                {"alg": "direct+HKDF-SHA-256", "context": []},
+                {"kty": "oct", "alg": "direct+HKDF-SHA-256"},
+                "Unsupported or unknown alg(3): -10.",
             ),
         ],
     )
-    def test_recipient_from_jwk_with_invalid_arg(self, data, msg):
+    def test_recipient_from_jwk_with_invalid_arg(self, data, key, msg):
         with pytest.raises(ValueError) as err:
-            Recipient.from_jwk(data)
+            Recipient.new(unprotected=data, sender_key=COSEKey.from_jwk(key))
             pytest.fail("Recipient() should fail.")
         assert msg in str(err.value)
 
@@ -470,118 +486,117 @@ class TestRecipients:
     def test_recipients_constructor_with_recipient_alg_direct(self):
         key = COSEKey.from_symmetric_key("mysecret", alg="HMAC 256/64", kid="our-secret")
         r = Recipients([Recipient.new(unprotected={1: -6, 4: b"our-secret"})])
-        key = r.extract([key])
+        key = r.derive_key([key], key.alg, b"", b"")
         assert key.kty == 4
         assert key.alg == 4
         assert key.kid == b"our-secret"
 
-    def test_recipients_extract_without_key(self):
+    def test_recipients_derive_key_without_key(self):
         r = Recipients([RecipientInterface(unprotected={1: -6, 4: b"our-secret"})])
         with pytest.raises(ValueError) as err:
-            r.extract([])
-            pytest.fail("extract() should fail.")
+            r.derive_key([], 0, b"", b"")
+            pytest.fail("derive_key() should fail.")
         assert "key is not found." in str(err.value)
 
-    def test_recipients_extract_without_context(self, material):
-        r = Recipients(
-            [
-                Recipient.new(
-                    unprotected={"alg": "direct+HKDF-SHA-256", "kid": "02"},
-                )
-            ],
-            True,
-        )
-        with pytest.raises(ValueError) as err:
-            r.extract(keys=[material])
-            pytest.fail("extract() should fail.")
-        assert "context should be set." in str(err.value)
+    # def test_recipients_derive_key_without_context(self, material):
+    #     r = Recipients(
+    #         [
+    #             Recipient.new(
+    #                 unprotected={"alg": "direct+HKDF-SHA-256", "kid": "02"},
+    #             )
+    #         ],
+    #         True,
+    #     )
+    #     with pytest.raises(ValueError) as err:
+    #         r.derive_key(keys=[material])
+    #         pytest.fail("derive_key() should fail.")
+    #     assert "context should be set." in str(err.value)
 
-    def test_recipients_extract_with_empty_recipients(self, material, context):
+    def test_recipients_derive_key_with_empty_recipients(self, material, context):
         r = Recipients([])
         with pytest.raises(ValueError) as err:
-            r.extract(context=context, keys=[material])
-            pytest.fail("extract() should fail.")
+            r.derive_key([material], 0, b"", b"")
+            pytest.fail("derive_key() should fail.")
         assert "No recipients." in str(err.value)
 
-    def test_recipients_extract_with_multiple_materials(self, material, context):
-        r1 = Recipient.from_jwk(
-            {
-                "alg": "direct",
-                "kid": "01",
-            }
-        )
-        r2 = Recipient.from_jwk(
-            {
-                "alg": "direct+HKDF-SHA-256",
-                "kid": "02",
-                "salt": "aabbccddeeffgghh",
-            }
-        )
-        rs = Recipients([r1, r2])
-        key = rs.extract(context=context, keys=[material])
-        assert key.alg == 10
-        assert key.kid == b"02"
+    # def test_recipients_derive_key_with_multiple_materials(self, material, context):
+    #     r1 = Recipient.from_jwk(
+    #         {
+    #             "alg": "direct",
+    #             "kid": "01",
+    #         }
+    #     )
+    #     r2 = Recipient.from_jwk(
+    #         {
+    #             "alg": "direct+HKDF-SHA-256",
+    #             "kid": "02",
+    #             "salt": "aabbccddeeffgghh",
+    #         }
+    #     )
+    #     rs = Recipients([r1, r2])
+    #     key = rs.derive_key(context=context, keys=[material])
+    #     assert key.alg == 10
+    #     assert key.kid == b"02"
 
-    def test_recipients_extract_with_multiple_keys(self, material):
-        mac_key = COSEKey.from_symmetric_key(
-            bytes.fromhex(
-                "DDDC08972DF9BE62855291A17A1B4CF767C2DC762CB551911893BF7754988B0A286127BFF5D60C4CBC877CAC4BF3BA02C07AD544C951C3CA2FC46B70219BC3DC"
-            ),
-            alg="HS512",
-        )
-        r1 = Recipient.from_jwk(
-            {
-                "kty": "oct",
-                "alg": "A128KW",
-                "kid": "01",
-            }
-        )
-        r2 = Recipient.from_jwk(
-            {
-                "alg": "direct+HKDF-SHA-256",
-                "kid": "02",
-                "salt": "aabbccddeeffgghh",
-            },
-        )
-        r3 = Recipient.from_jwk(
-            {
-                "kty": "oct",
-                "alg": "A128KW",
-                "kid": "03",
-                "k": "hJtXIZ2uSN5kbQfbtTNWbg",
-            },
-        )
-        k3 = COSEKey.from_jwk(
-            {
-                "kty": "oct",
-                "alg": "A128KW",
-                "kid": "03",
-                "k": "hJtXIZ2uSN5kbQfbtTNWbg",
-            },
-        )
-        r3.apply(mac_key)
-        rs = Recipients([r1, r2, r3])
-        key = rs.extract(keys=[k3], alg=7)
-        assert key.alg == 7
-        assert key.kid == b"03"
+    # def test_recipients_derive_key_with_multiple_keys(self, material):
+    #     mac_key = COSEKey.from_symmetric_key(
+    #         bytes.fromhex(
+    #             "DDDC08972DF9BE62855291A17A1B4CF767C2DC762CB551911893BF7754988B0A286127BFF5D60C4CBC877CAC4BF3BA02C07AD544C951C3CA2FC46B70219BC3DC"
+    #         ),
+    #         alg="HS512",
+    #     )
+    #     r1 = Recipient.from_jwk(
+    #         {
+    #             "kty": "oct",
+    #             "alg": "A128KW",
+    #             "kid": "01",
+    #         }
+    #     )
+    #     r2 = Recipient.from_jwk(
+    #         {
+    #             "alg": "direct+HKDF-SHA-256",
+    #             "kid": "02",
+    #             "salt": "aabbccddeeffgghh",
+    #         },
+    #     )
+    #     r3 = Recipient.from_jwk(
+    #         {
+    #             "kty": "oct",
+    #             "alg": "A128KW",
+    #             "kid": "03",
+    #             "k": "hJtXIZ2uSN5kbQfbtTNWbg",
+    #         },
+    #     )
+    #     k3 = COSEKey.from_jwk(
+    #         {
+    #             "kty": "oct",
+    #             "alg": "A128KW",
+    #             "kid": "03",
+    #             "k": "hJtXIZ2uSN5kbQfbtTNWbg",
+    #         },
+    #     )
+    #     rs = Recipients([r1, r2, r3])
+    #     key = rs.derive_key(keys=[k3], alg=7)
+    #     assert key.alg == 7
+    #     assert key.kid == b"03"
 
-    def test_recipients_extract_with_different_kid(self):
+    def test_recipients_derive_key_with_different_kid(self):
         key = COSEKey.from_symmetric_key("mysecret", alg="HMAC 256/64", kid="our-secret")
         r = Recipients([RecipientInterface(unprotected={1: -6, 4: b"your-secret"})])
         with pytest.raises(ValueError) as err:
-            r.extract([key])
-            pytest.fail("extract() should fail.")
+            r.derive_key([key], key.alg, b"", b"")
+            pytest.fail("derive_key() should fail.")
         assert "key is not found." in str(err.value)
 
     def test_recipients_from_list(self):
         try:
-            Recipients.from_list([[cbor2.dumps({1: -10}), {-20: b"aabbccddeefff"}, b""]])
+            Recipients.from_list([[cbor2.dumps({1: -10}), {-20: b"aabbccddeefff"}, b""]], context={"alg": "A128GCM"})
         except Exception:
             pytest.fail("from_list() should not fail.")
 
     def test_recipients_from_list_with_empty_recipients(self):
         try:
-            Recipients.from_list([[cbor2.dumps({1: -10}), {-20: b"aabbccddeefff"}, b"", []]])
+            Recipients.from_list([[cbor2.dumps({1: -10}), {-20: b"aabbccddeefff"}, b"", []]], context={"alg": "A128GCM"})
         except Exception:
             pytest.fail("from_list() should not fail.")
 
@@ -595,7 +610,8 @@ class TestRecipients:
                         b"",
                         [[b"", {1: -6, 4: b"our-secret"}, b""]],
                     ]
-                ]
+                ],
+                context={"alg": "A128GCM"},
             )
         except Exception:
             pytest.fail("from_list() should not fail.")
@@ -637,14 +653,14 @@ class TestRecipients:
         r = RecipientInterface(protected={1: -1}, unprotected={4: b"01", -4: {1: 0x0010, 2: 0x0001, 3: 0x0001}})
         rs = Recipients([r])
         with pytest.raises(ValueError) as err:
-            rs.decrypt([])
+            rs.derive_key([], 0, b"", b"")
             pytest.fail("open() should fail.")
         assert "key is not found." in str(err.value)
 
     def test_recipients_open_with_empty_recipients(self, rsk1):
         rs = Recipients([])
         with pytest.raises(ValueError) as err:
-            rs.decrypt([rsk1])
+            rs.derive_key([rsk1], 0, b"", b"")
             pytest.fail("open() should fail.")
         assert "No recipients." in str(err.value)
 
@@ -685,13 +701,10 @@ class TestRecipients:
             }
         )
         r = Recipient.new(protected={1: -1}, unprotected={-4: {1: 0x0010, 2: 0x0001, 3: 0x0001}}, recipient_key=rpk)
-        r.encode(enc_key.key)
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
-            # protected={
-            #     1: -1,  # alg: "HPKE"
-            # },
+            enc_key,
             recipients=[r],
         )
         recipient = COSE.new(verify_kid=True)
@@ -716,9 +729,7 @@ class TestRecipients:
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
-            # protected={
-            #     1: -1,  # alg: "HPKE"
-            # },
+            enc_key,
             recipients=[r],
         )
         recipient = COSE.new()
@@ -746,13 +757,11 @@ class TestRecipients:
     def test_recipients_open_with_invalid_rsk(self, rpk1):
         enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
         r = Recipient.new(protected={1: -1}, unprotected={4: b"02", -4: {1: 0x0010, 2: 0x0001, 3: 0x0001}}, recipient_key=rpk1)
-        r.encode(enc_key.to_bytes())
+        # r.encode(enc_key.to_bytes())
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
-            # protected={
-            #     1: -1,  # alg: "HPKE"
-            # },
+            enc_key,
             recipients=[r],
         )
         invalid_rsk = COSEKey.from_jwk(

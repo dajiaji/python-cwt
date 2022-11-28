@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 import cryptography
 from cryptography.hazmat.primitives import hashes
@@ -18,15 +18,12 @@ from ..const import (
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_ES,
     COSE_ALGORITHMS_HPKE,
     COSE_ALGORITHMS_SIG_EC2,
-    COSE_KEY_LEN,
     COSE_KEY_OPERATION_VALUES,
     COSE_KEY_TYPES,
 )
-from ..cose_key_interface import COSEKeyInterface
 from ..exceptions import EncodeError, VerifyError
-from ..utils import i2osp, os2ip, to_cis
+from ..utils import i2osp, os2ip
 from .asymmetric import AsymmetricKey
-from .symmetric import AESCCMKey, AESGCMKey, ChaCha20Key, HMACKey
 
 
 class EC2Key(AsymmetricKey):
@@ -273,12 +270,7 @@ class EC2Key(AsymmetricKey):
         except ValueError as err:
             raise VerifyError("Invalid signature.") from err
 
-    def derive_key(
-        self,
-        context: Union[List[Any], Dict[str, Any]],
-        material: bytes = b"",
-        public_key: Optional[COSEKeyInterface] = None,
-    ) -> COSEKeyInterface:
+    def derive_bytes(self, length: int, material: bytes = b"", info: bytes = b"", public_key: Optional[Any] = None) -> bytes:
 
         if self._public_key:
             raise ValueError("Public key cannot be used for key derivation.")
@@ -289,35 +281,19 @@ class EC2Key(AsymmetricKey):
         if self._alg not in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.values():
             raise ValueError(f"Invalid alg for key derivation: {self._alg}.")
 
-        # Validate context information.
-        if isinstance(context, dict):
-            context = to_cis(context, self._alg)
-        else:
-            self._validate_context(context)
-
-        # Derive key.
-        self._key = self._private_key if self._private_key else ec.generate_private_key(self._crv_obj)
-        shared_key = self._key.exchange(ec.ECDH(), public_key.key)
-        hkdf = HKDF(
-            algorithm=self._hash_alg(),
-            length=COSE_KEY_LEN[context[0]] // 8,
-            salt=None,
-            info=self._dumps(context),
-        )
-        # return COSEKey.from_symmetric_key(hkdf.derive(shared_key), alg=context[0])
-        cose_key = {
-            1: 4,
-            3: context[0],
-            -1: hkdf.derive(shared_key),
-        }
-        if cose_key[3] in [1, 2, 3]:
-            return AESGCMKey(cose_key)
-        if cose_key[3] in [4, 5, 6, 7]:
-            return HMACKey(cose_key)
-        if cose_key[3] in [10, 11, 12, 13, 30, 31, 32, 33]:
-            return AESCCMKey(cose_key)
-        # cose_key[3] == 24:
-        return ChaCha20Key(cose_key)
+        # Derive bytes.
+        try:
+            self._key = self._private_key if self._private_key else ec.generate_private_key(self._crv_obj)
+            shared_key = self._key.exchange(ec.ECDH(), public_key.key)
+            hkdf = HKDF(
+                algorithm=self._hash_alg(),
+                length=length,
+                salt=None,
+                info=info,
+            )
+            return hkdf.derive(shared_key)
+        except Exception as err:
+            raise EncodeError("Failed to derive bytes.") from err
 
     def _der_to_os(self, key_size: int, sig: bytes) -> bytes:
         num_bytes = (key_size + 7) // 8

@@ -1,13 +1,12 @@
-import copy
 from secrets import token_bytes
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from ..algs.ec2 import EC2Key
 from ..algs.okp import OKPKey
-from ..const import COSE_KEY_OPERATION_VALUES
+from ..const import COSE_KEY_LEN, COSE_KEY_OPERATION_VALUES
 from ..cose_key import COSEKey
 from ..cose_key_interface import COSEKeyInterface
-from ..utils import to_cis
+from ..exceptions import DecodeError
 from .direct import Direct
 
 
@@ -25,31 +24,17 @@ class ECDH_DirectHKDF(Direct):
         recipients: List[Any] = [],
         sender_key: Optional[COSEKeyInterface] = None,
         recipient_key: Optional[COSEKeyInterface] = None,
+        context: List[Any] = [],
     ):
         super().__init__(protected, unprotected, ciphertext, recipients)
         self._sender_public_key: Any = None
         self._sender_key = sender_key
         self._recipient_key = recipient_key
+        self._context = context
 
         self._salt = None
         if -20 in unprotected:
             self._salt = unprotected[-20]
-
-        self._default_ctx: List[Any] = [
-            None,
-            [
-                self.unprotected[-21] if -21 in self.unprotected else None,
-                self.unprotected[-22] if -22 in self.unprotected else None,
-                self.unprotected[-23] if -23 in self.unprotected else None,
-            ],
-            [
-                self.unprotected[-24] if -24 in self.unprotected else None,
-                self.unprotected[-25] if -25 in self.unprotected else None,
-                self.unprotected[-26] if -26 in self.unprotected else None,
-            ],
-            [None, None],
-        ]
-        self._applied_ctx: Union[list, None] = None
 
         if self._alg in [-25, -26]:  # ECDH-ES
             if -1 in self.unprotected:
@@ -62,43 +47,23 @@ class ECDH_DirectHKDF(Direct):
         else:
             raise ValueError(f"Unknown alg(1) for ECDH with HKDF: {self._alg}.")
 
-    def encode(
-        self,
-        plaintext: bytes = b"",
-        salt: Optional[bytes] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
-    ) -> Optional[COSEKeyInterface]:
-
-        if not self._recipient_key:
-            raise ValueError("recipient_key should be set in advance.")
-        if not context:
-            raise ValueError("context should be set.")
-        ctx: list
-        if isinstance(context, dict):
-            alg = self._alg if isinstance(self._alg, int) else 0
-            ctx = to_cis(context, alg)
-        else:
-            self._validate_context(context)
-            ctx = context
-        self._applied_ctx = self._apply_context(ctx)
-
         # Generate a salt automatically if both of a salt and a PartyU nonce are not specified.
         if self._alg in [-27, -28]:  # ECDH-SS
-            if not salt and not self._salt and not self._applied_ctx[1][1]:
+            if not self._salt and not self._context[1][1]:
                 self._salt = token_bytes(32) if self._alg == -27 else token_bytes(64)
-                self._unprotected[-20] = self._salt
-            elif salt:
-                self._salt = salt
                 self._unprotected[-20] = self._salt
 
         # PartyU nonce
-        if self._applied_ctx[1][1]:
-            self._unprotected[-22] = self._applied_ctx[1][1]
+        if self._context[1][1]:
+            self._unprotected[-22] = self._context[1][1]
         # PartyV nonce
-        if self._applied_ctx[2][1]:
-            self._unprotected[-25] = self._applied_ctx[2][1]
+        if self._context[2][1]:
+            self._unprotected[-25] = self._context[2][1]
+
+    def encode(self, plaintext: bytes = b"", aad: bytes = b"") -> Tuple[List[Any], Optional[COSEKeyInterface]]:
+
+        if not self._recipient_key:
+            raise ValueError("recipient_key should be set in advance.")
 
         # Derive key.
         if self._alg in [-25, -26]:
@@ -112,103 +77,38 @@ class ECDH_DirectHKDF(Direct):
             # ECDH-SS (alg=-27 or -28)
             if not self._sender_key:
                 raise ValueError("sender_key should be set in advance.")
-        derived_key = self._sender_key.derive_key(self._applied_ctx, public_key=self._recipient_key)
+
+        derived_bytes = self._sender_key.derive_bytes(
+            COSE_KEY_LEN[self._context[0]] // 8,
+            info=self._dumps(self._context),
+            public_key=self._recipient_key,
+        )
+        derived_key = COSEKey.from_symmetric_key(derived_bytes, alg=self._context[0])
         if self._alg in [-25, -26]:
             # ECDH-ES
             self._unprotected[-1] = self._to_cose_key(self._sender_key.key.public_key())
         else:
             # ECDH-SS (alg=-27 or -28)
             self._unprotected[-2] = self._to_cose_key(self._sender_key.key.public_key())
-        return derived_key
+        return self.to_list(), derived_key
 
-    def apply(
-        self,
-        key: Optional[COSEKeyInterface] = None,
-        recipient_key: Optional[COSEKeyInterface] = None,
-        salt: Optional[bytes] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
-    ) -> COSEKeyInterface:
-
-        if not self._sender_key:
-            raise ValueError("sender_key should be set in advance.")
-        if not recipient_key:
-            raise ValueError("recipient_key should be set in advance.")
-        if not context:
-            raise ValueError("context should be set.")
-        ctx: list
-        if isinstance(context, dict):
-            alg = self._alg if isinstance(self._alg, int) else 0
-            ctx = to_cis(context, alg)
-        else:
-            self._validate_context(context)
-            ctx = context
-        self._applied_ctx = self._apply_context(ctx)
-
-        # Generate a salt automatically if both of a salt and a PartyU nonce are not specified.
-        if self._alg in [-27, -28]:  # ECDH-SS
-            if not salt and not self._salt and not self._applied_ctx[1][1]:
-                self._salt = token_bytes(32) if self._alg == -27 else token_bytes(64)
-                self._unprotected[-20] = self._salt
-            elif salt:
-                self._salt = salt
-                self._unprotected[-20] = self._salt
-
-        # PartyU nonce
-        if self._applied_ctx[1][1]:
-            self._unprotected[-22] = self._applied_ctx[1][1]
-        # PartyV nonce
-        if self._applied_ctx[2][1]:
-            self._unprotected[-25] = self._applied_ctx[2][1]
-
-        # Derive key.
-        derived_key = self._sender_key.derive_key(self._applied_ctx, public_key=recipient_key)
-        if self._alg in [-25, -26]:
-            # ECDH-ES
-            self._unprotected[-1] = self._to_cose_key(self._sender_key.key.public_key())
-        else:
-            # ECDH-SS (alg=-27 or -28)
-            self._unprotected[-2] = self._to_cose_key(self._sender_key.key.public_key())
-        kid = self._kid if self._kid else recipient_key.kid
-        if kid:
-            self._unprotected[4] = kid
-        return derived_key
-
-    def extract(
+    def decode(
         self,
         key: COSEKeyInterface,
-        alg: Optional[int] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
-    ) -> COSEKeyInterface:
-        if not context:
-            raise ValueError("context should be set.")
-        return key.derive_key(context, public_key=self._sender_public_key)
-
-    def decrypt(
-        self,
-        key: COSEKeyInterface,
-        alg: Optional[int] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
-        payload: bytes = b"",
-        nonce: bytes = b"",
         aad: bytes = b"",
-        external_aad: bytes = b"",
-        aad_context: str = "Enc_Recipient",
-    ) -> bytes:
-        return self.extract(key, alg, context).decrypt(payload, nonce, aad)
-
-    def _apply_context(self, given: list) -> list:
-        ctx = copy.deepcopy(self._default_ctx)
-        for i, item in enumerate(given):
-            if i == 0:
-                ctx[0] = item
-                continue
-            for j, v in enumerate(item):
-                if not v:
-                    continue
-                if i != 3 or j != 2:
-                    ctx[i][j] = v
-                else:
-                    ctx[i].append(v)
-        return ctx
+        alg: int = 0,
+        as_cose_key: bool = False,
+    ) -> Union[bytes, COSEKeyInterface]:
+        if not self._sender_public_key:
+            raise ValueError("sender_public_key should be set.")
+        try:
+            derived_bytes = key.derive_bytes(
+                COSE_KEY_LEN[self._context[0]] // 8,
+                info=self._dumps(self._context),
+                public_key=self._sender_public_key,
+            )
+        except Exception as err:
+            raise DecodeError("Failed to decode.") from err
+        if not as_cose_key:
+            return derived_bytes
+        return COSEKey.from_symmetric_key(derived_bytes, alg=self._context[0], kid=self._kid)

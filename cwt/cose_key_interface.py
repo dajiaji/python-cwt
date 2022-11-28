@@ -269,22 +269,23 @@ class COSEKeyInterface(CBORProcessor):
         """
         raise NotImplementedError
 
-    def derive_key(
+    def derive_bytes(
         self,
-        context: Union[List[Any], Dict[str, Any]],
+        length: int,
         material: bytes = b"",
+        info: bytes = b"",
         public_key: Optional[Any] = None,
-    ) -> Any:
+    ) -> bytes:
         """
-        Derives a key with a key material or key exchange.
+        Derives a byte string with a key material or key exchange.
 
         Args:
-            context (Union[List[Any], Dict[str, Any]]): Context information structure for
-                key derivation functions.
+            length (int): The length of derived byte string.
             material (bytes): A key material as bytes.
+            info (bytes): application supplied information.
             public_key: A public key for key derivation with key exchange.
         Returns:
-            COSEKeyInterface: A COSE key derived.
+            bytes: A derived byte string.
         Raises:
             NotImplementedError: Not implemented.
             ValueError: Invalid arguments.

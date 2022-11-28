@@ -12,9 +12,8 @@ import cbor2
 import pytest
 from cbor2 import CBORTag
 
-from cwt import CWT, Claims, COSEKey, DecodeError, VerifyError
+from cwt import CWT, Claims, COSEKey, DecodeError, Recipient, VerifyError
 from cwt.cose_key_interface import COSEKeyInterface
-from cwt.recipient_interface import RecipientInterface
 from cwt.signer import Signer
 
 from .utils import key_path, now
@@ -174,7 +173,7 @@ class TestCWT:
         assert 7 in decoded and decoded[7] == b"123"
 
     def test_cwt_encode_and_mac_with_recipient(self, ctx):
-        recipient = RecipientInterface(unprotected={1: -6, 4: b"our-secret"})
+        recipient = Recipient.new(unprotected={1: -6, 4: b"our-secret"})
         key = COSEKey.from_symmetric_key("mysecret", alg="HMAC 256/64", kid="our-secret")
         token = ctx.encode_and_mac(
             {1: "https://as.example", 2: "someone", 7: b"123"},
@@ -374,18 +373,6 @@ class TestCWT:
         assert 1 in decoded and decoded[1] == "https://as.example"
         assert 2 in decoded and decoded[2] == "someone"
         assert 7 in decoded and decoded[7] == b"123"
-
-    def test_cwt_encode_and_encrypt_with_recipient_direct(self, ctx):
-        enc_key = COSEKey.from_symmetric_key(token_bytes(16), alg="AES-CCM-16-64-128", kid="our-secret")
-        recipient = RecipientInterface(unprotected={1: -6, 4: b"our-secret"})
-        token = ctx.encode_and_encrypt(
-            {1: "https://as.example", 2: "someone", 7: b"123"},
-            enc_key,
-            nonce=token_bytes(13),
-            recipients=[recipient],
-        )
-        decoded = ctx.decode(token, enc_key)
-        assert 1 in decoded and decoded[1] == "https://as.example"
 
     @pytest.mark.parametrize(
         "private_key_path, public_key_path",

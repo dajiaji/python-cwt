@@ -68,7 +68,7 @@ class TestCOSE:
         encoded = ctx.encode_and_mac(
             b"Hello world!",
             mac_key,
-            recipients=[RecipientInterface(unprotected={1: -6, 4: b"01"})],
+            recipients=[Recipient.new(unprotected={1: -6, 4: b"01"})],
         )
         assert b"Hello world!" == ctx.decode(encoded, mac_key)
 
@@ -94,7 +94,7 @@ class TestCOSE:
 
         # Encrypt
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305", kid="02")
-        rec = Recipient.from_jwk({"alg": "direct", "kid": "02"})
+        rec = Recipient.new(unprotected={"alg": "direct", "kid": "02"})
         encoded = ctx.encode_and_encrypt(
             b"Hello world!",
             enc_key,
@@ -106,7 +106,7 @@ class TestCOSE:
         ctx = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
 
         # Encrypt
-        rec = Recipient.from_jwk({"alg": "direct", "kid": "02"})
+        rec = Recipient.new(unprotected={"alg": "direct", "kid": "02"})
         with pytest.raises(ValueError) as err:
             ctx.encode_and_encrypt(
                 b"Hello world!",
@@ -214,12 +214,7 @@ class TestCOSE:
         ctx = COSE.new()
 
         mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
-        recipient = Recipient.from_jwk(
-            {
-                "alg": "direct",
-                "kid": "01",
-            }
-        )
+        recipient = Recipient.new(unprotected={"alg": "direct", "kid": "01"})
         encoded = ctx.encode_and_mac(
             b"Hello world!",
             mac_key,
@@ -530,10 +525,10 @@ class TestCOSE:
         material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
         material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
 
-        r1 = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "k": material1})
-        r2 = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "k": material2})
-        r1.apply(key)
-        r2.apply(key)
+        k1 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material1})
+        k2 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material2})
+        r1 = Recipient.new(unprotected={"alg": "A128KW"}, sender_key=k1)
+        r2 = Recipient.new(unprotected={"alg": "A128KW"}, sender_key=k2)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2, r1])
 
@@ -549,10 +544,10 @@ class TestCOSE:
         material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
         material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
 
-        r1 = Recipient.from_jwk({"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1})
-        r2 = Recipient.from_jwk({"kid": "02", "kty": "oct", "alg": "A128KW", "k": material2})
-        r1.apply(key)
-        r2.apply(key)
+        k1 = COSEKey.from_jwk({"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1})
+        k2 = COSEKey.from_jwk({"kid": "02", "kty": "oct", "alg": "A128KW", "k": material2})
+        r1 = Recipient.new(unprotected={"kid": "01", "alg": "A128KW"}, sender_key=k1)
+        r2 = Recipient.new(unprotected={"kid": "02", "alg": "A128KW"}, sender_key=k2)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2, r1])
 
@@ -561,7 +556,7 @@ class TestCOSE:
 
         assert b"Hello world!" == ctx.decode(encoded, keys=[shared_key3, shared_key1])
 
-    def test_cose_decode_mac_with_multiple_keys_with_verify_kid_and_protected_kid(self):
+    def test_cose_decode_mac_with_multiple_keys_with_verify_kid_and_unprotected_kid(self):
         ctx = COSE.new(alg_auto_inclusion=True, verify_kid=True)
         key = COSEKey.from_symmetric_key(alg="HS256")
 
@@ -573,10 +568,8 @@ class TestCOSE:
         shared_key2 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material2})
         shared_key3 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material3})
 
-        r1 = Recipient.new(protected={1: -3, 4: b"01"}, sender_key=shared_key1)
-        r2 = Recipient.new(protected={1: -3, 4: b"02"}, sender_key=shared_key2)
-        r1.apply(key)
-        r2.apply(key)
+        r1 = Recipient.new(unprotected={1: -3, 4: b"01"}, sender_key=shared_key1)
+        r2 = Recipient.new(unprotected={1: -3, 4: b"02"}, sender_key=shared_key2)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2, r1])
 
@@ -593,10 +586,10 @@ class TestCOSE:
         material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
         material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
 
-        r1 = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "k": material1})
-        r2 = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "k": material2})
-        r1.apply(key)
-        r2.apply(key)
+        k1 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material1})
+        k2 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material2})
+        r1 = Recipient.new(unprotected={"alg": "A128KW"}, sender_key=k1)
+        r2 = Recipient.new(unprotected={"alg": "A128KW"}, sender_key=k2)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2, r1])
 
@@ -618,10 +611,10 @@ class TestCOSE:
         material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
         material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
 
-        r1 = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "k": material1})
-        r2 = Recipient.from_jwk({"kty": "oct", "alg": "A128KW", "k": material2})
-        r1.apply(key)
-        r2.apply(key)
+        k1 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material1})
+        k2 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material2})
+        r1 = Recipient.new(unprotected={"alg": "A128KW"}, sender_key=k1)
+        r2 = Recipient.new(unprotected={"alg": "A128KW"}, sender_key=k2)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2, r1])
 
@@ -641,8 +634,8 @@ class TestCOSE:
         material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
         material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
 
-        r2 = Recipient.from_jwk({"kid": "03", "kty": "oct", "alg": "A128KW", "k": material2})
-        r2.apply(key)
+        k2 = COSEKey.from_jwk({"kid": "03", "kty": "oct", "alg": "A128KW", "k": material2})
+        r2 = Recipient.new(unprotected={"kid": "03", "alg": "A128KW"}, sender_key=k2)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2])
 
@@ -662,8 +655,8 @@ class TestCOSE:
         material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
         material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
 
-        r2 = Recipient.from_jwk({"kid": "03", "kty": "oct", "alg": "A128KW", "k": material2})
-        r2.apply(key)
+        k2 = COSEKey.from_jwk({"kid": "03", "kty": "oct", "alg": "A128KW", "k": material2})
+        r2 = Recipient.new(unprotected={"kid": "03", "alg": "A128KW"}, sender_key=k2)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2])
 
@@ -729,10 +722,10 @@ class TestCOSE:
         material2 = base64.urlsafe_b64encode(token_bytes(16)).decode()
         material3 = base64.urlsafe_b64encode(token_bytes(16)).decode()
 
-        r1 = Recipient.from_jwk({"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1})
-        r2 = Recipient.from_jwk({"kid": "02", "kty": "oct", "alg": "A128KW", "k": material2})
-        r1.apply(key)
-        r2.apply(key)
+        k1 = COSEKey.from_jwk({"kid": "01", "kty": "oct", "alg": "A128KW", "k": material1})
+        k2 = COSEKey.from_jwk({"kid": "02", "kty": "oct", "alg": "A128KW", "k": material2})
+        r1 = Recipient.new(unprotected={"kid": "01", "alg": "A128KW"}, sender_key=k1)
+        r2 = Recipient.new(unprotected={"kid": "02", "alg": "A128KW"}, sender_key=k2)
 
         encoded = ctx.encode_and_encrypt(b"Hello world!", key, recipients=[r2, r1])
 
@@ -925,12 +918,14 @@ class TestCOSE:
     def test_cose_decode_ecdh_es_hkdf_256_without_context(self):
         with open(key_path("public_key_es256.pem")) as key_file:
             public_key = COSEKey.from_pem(key_file.read(), kid="01")
-        recipient = Recipient.from_jwk({"kty": "EC", "crv": "P-256", "alg": "ECDH-ES+HKDF-256"})
-        enc_key = recipient.apply(recipient_key=public_key, context={"alg": "A128GCM"})
+        recipient = Recipient.new(
+            unprotected={"alg": "ECDH-ES+HKDF-256"},
+            recipient_key=public_key,
+            context={"alg": "A128GCM"},
+        )
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_encrypt(
             b"This is the content.",
-            key=enc_key,
             recipients=[recipient],
         )
 
@@ -945,8 +940,11 @@ class TestCOSE:
         with open(key_path("public_key_es256.pem")) as key_file:
             public_key = COSEKey.from_pem(key_file.read(), kid="01")
         enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
-        recipient = Recipient.from_jwk({"kty": "EC", "crv": "P-256", "alg": "ECDH-ES+A128KW"})
-        recipient.apply(enc_key, recipient_key=public_key, context={"alg": "A128GCM"})
+        recipient = Recipient.new(
+            unprotected={"alg": "ECDH-ES+A128KW"},
+            recipient_key=public_key,
+            context={"alg": "A128GCM"},
+        )
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_encrypt(
             b"This is the content.",
