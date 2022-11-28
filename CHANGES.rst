@@ -4,6 +4,27 @@ Changes
 Unreleased
 ----------
 
+Version 2.0.0
+-------------
+
+Released 2022-11-29
+
+- BREAKING CHANGES for v2.0.0. `#290 <https://github.com/dajiaji/python-cwt/pull/290>`__
+    - Remove context parameter from Recipient encode()
+    - Remove context and salt parameters from Recipient functions.
+    - Add derive_bytes() to COSEKey interface.
+    - Add decode() to Recipient interface.
+    - Remove apply() from Recipient interface.
+    - Remove from_jwk() from Recipient.
+    - Remove extract() and decrypt() from Recipient interface.
+    - Drop support for protected header for Key Wrap.
+    - Remove derive_key() from COSEKey interface.
+- Update examples on README to be compliant with v2.0.0. `#290 <https://github.com/dajiaji/python-cwt/pull/290>`__
+- Remove usage examples from documentation for ReadTheDocs. `#290 <https://github.com/dajiaji/python-cwt/pull/290>`__
+- Add b_protected getter/setter to Recipient interface. `#290 <https://github.com/dajiaji/python-cwt/pull/290>`__
+- Add to_bytes() to COSEKey interface. `#285 <https://github.com/dajiaji/python-cwt/pull/285>`__
+- Add support for HPKE key wrapping experimentally. `#284 <https://github.com/dajiaji/python-cwt/pull/284>`__
+
 Version 1.6.2
 -------------
 
