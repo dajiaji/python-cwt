@@ -131,7 +131,6 @@ class COSE(CBORProcessor):
     #         key (Optional[COSEKeyInterface]): A content encryption key as COSEKey.
     #         protected (Optional[dict]): Parameters that are to be cryptographically protected.
     #         unprotected (Optional[dict]): Parameters that are not cryptographically protected.
-    #         nonce (bytes): A nonce for encryption.
     #         recipients (Optional[List[RecipientInterface]]): A list of recipient
     #             information structures.
     #         signers (List[Signer]): A list of signer information objects for
@@ -175,7 +174,6 @@ class COSE(CBORProcessor):
         key: Optional[COSEKeyInterface] = None,
         protected: Optional[dict] = None,
         unprotected: Optional[dict] = None,
-        nonce: bytes = b"",
         recipients: Optional[List[RecipientInterface]] = None,
         external_aad: bytes = b"",
         out: str = "",
@@ -188,7 +186,6 @@ class COSE(CBORProcessor):
             key (Optional[COSEKeyInterface]): A content encryption key as COSEKey.
             protected (Optional[dict]): Parameters that are to be cryptographically protected.
             unprotected (Optional[dict]): Parameters that are not cryptographically protected.
-            nonce (bytes): A nonce for encryption.
             recipients (Optional[List[RecipientInterface]]): A list of recipient
                 information structures.
             external_aad(bytes): External additional authenticated data supplied
@@ -206,7 +203,7 @@ class COSE(CBORProcessor):
             EncodeError: Failed to encode data.
         """
         p, u = self._build_headers(key, protected, unprotected)
-        return self._encode_and_encrypt(payload, key, p, u, nonce, recipients, external_aad, out)
+        return self._encode_and_encrypt(payload, key, p, u, recipients, external_aad, out)
 
     def encode_and_mac(
         self,
@@ -493,13 +490,27 @@ class COSE(CBORProcessor):
                     err = e
         raise err
 
+    def _build_headers(
+        self,
+        key: Optional[COSEKeyInterface],
+        protected: Optional[dict],
+        unprotected: Optional[dict],
+    ) -> Tuple[Dict[int, Any], Dict[int, Any]]:
+        p = to_cose_header(protected)
+        u = to_cose_header(unprotected)
+        if key is not None:
+            if self._alg_auto_inclusion:
+                p[1] = key.alg
+            if self._kid_auto_inclusion and key.kid:
+                u[4] = key.kid
+        return p, u
+
     def _encode_and_encrypt(
         self,
         payload: bytes,
         key: Optional[COSEKeyInterface],
         p: Dict[int, Any],
         u: Dict[int, Any],
-        nonce: bytes,
         recipients: Optional[List[RecipientInterface]],
         external_aad: bytes,
         out: str,
@@ -519,13 +530,12 @@ class COSE(CBORProcessor):
                 return res if out == "cbor2/CBORTag" else self._dumps(res)
             if key is None:
                 raise ValueError("key should be set.")
-            if not nonce:
+            if 5 not in u:  # nonce
                 try:
-                    nonce = key.generate_nonce()
+                    u[5] = key.generate_nonce()
                 except NotImplementedError:
                     raise ValueError("Nonce generation is not supported for the key. Set a nonce explicitly.")
-            u[5] = nonce
-            ciphertext = key.encrypt(payload, nonce, aad)
+            ciphertext = key.encrypt(payload, u[5], aad)
             res = CBORTag(16, [b_protected, u, ciphertext])
             return res if out == "cbor2/CBORTag" else self._dumps(res)
 
@@ -544,34 +554,18 @@ class COSE(CBORProcessor):
 
         if cek is None:
             raise ValueError("key should be set.")
-        if not nonce:
+        if 5 not in u:  # nonce
             try:
-                nonce = cek.generate_nonce()
+                u[5] = cek.generate_nonce()
             except NotImplementedError:
                 raise ValueError("Nonce generation is not supported for the key. Set a nonce explicitly.")
-        u[5] = nonce
         enc_structure = ["Encrypt", b_protected, external_aad]
         aad = self._dumps(enc_structure)
-        ciphertext = cek.encrypt(payload, nonce, aad)
+        ciphertext = cek.encrypt(payload, u[5], aad)
         cose_enc: List[Any] = [b_protected, u, ciphertext]
         cose_enc.append(recs)
         res = CBORTag(96, cose_enc)
         return res if out == "cbor2/CBORTag" else self._dumps(res)
-
-    def _build_headers(
-        self,
-        key: Optional[COSEKeyInterface],
-        protected: Optional[dict],
-        unprotected: Optional[dict],
-    ) -> Tuple[Dict[int, Any], Dict[int, Any]]:
-        p = to_cose_header(protected)
-        u = to_cose_header(unprotected)
-        if key is not None:
-            if self._alg_auto_inclusion:
-                p[1] = key.alg
-            if self._kid_auto_inclusion and key.kid:
-                u[4] = key.kid
-        return p, u
 
     def _encode_and_mac(
         self,

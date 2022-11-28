@@ -8,10 +8,19 @@ Tests for samples on README and RFCs related to CWT/COSE.
 """
 from secrets import token_bytes
 
+import cbor2
 import pytest
 
 import cwt
-from cwt import CWT, Claims, COSEKey, EncryptedCOSEKey, VerifyError, load_pem_hcert_dsc
+from cwt import (
+    COSE,
+    CWT,
+    Claims,
+    COSEKey,
+    EncryptedCOSEKey,
+    VerifyError,
+    load_pem_hcert_dsc,
+)
 
 from .utils import key_path, now
 
@@ -827,7 +836,25 @@ class TestSample:
             key=key,
             nonce=nonce,
         )
-        assert encoded == bytes.fromhex(SAMPLE_CWT_RFC8392_A5)
+        # assert encoded == bytes.fromhex(SAMPLE_CWT_RFC8392_A5)
+        ctx = COSE.new()
+        token2 = ctx.encode_and_encrypt(
+            cbor2.dumps(
+                {
+                    1: "coap://as.example.com",
+                    2: "erikw",
+                    3: "coap://light.example.com",
+                    4: 1444064944,
+                    5: 1443944944,
+                    6: 1443944944,
+                    7: bytes.fromhex("0b71"),
+                }
+            ),
+            key,
+            protected={1: key.alg},
+            unprotected={4: key.kid, 5: nonce},
+        )
+        assert token2 == bytes.fromhex(SAMPLE_CWT_RFC8392_A5)
         decoded = cwt.decode(encoded, keys=key, no_verify=True)
         assert 1 in decoded and decoded[1] == "coap://as.example.com"
 
@@ -847,7 +874,25 @@ class TestSample:
             key=key,
             nonce=nonce,
         )
-        assert token == bytes.fromhex(SAMPLE_CWT_RFC8392_A5)
+        # assert token == bytes.fromhex(SAMPLE_CWT_RFC8392_A5)
+        ctx = COSE.new()
+        token2 = ctx.encode_and_encrypt(
+            cbor2.dumps(
+                {
+                    1: "coap://as.example.com",
+                    2: "erikw",
+                    3: "coap://light.example.com",
+                    4: 1444064944,
+                    5: 1443944944,
+                    6: 1443944944,
+                    7: bytes.fromhex("0b71"),
+                }
+            ),
+            key,
+            protected={1: key.alg},
+            unprotected={4: key.kid, 5: nonce},
+        )
+        assert token2 == bytes.fromhex(SAMPLE_CWT_RFC8392_A5)
         decoded = cwt.decode(token, keys=key, no_verify=True)
         assert 1 in decoded and decoded[1] == "coap://as.example.com"
 
