@@ -75,6 +75,7 @@ class RecipientInterface(CBORProcessor):
             if not isinstance(unprotected[5], bytes):
                 raise ValueError("unprotected[5](iv) should be bytes.")
 
+        self._b_protected: Optional[bytes] = None
         self._protected = protected
         self._unprotected = unprotected
         self._ciphertext = ciphertext
@@ -110,6 +111,15 @@ class RecipientInterface(CBORProcessor):
         The parameters that are to be cryptographically protected.
         """
         return self._protected
+
+    @property
+    def b_protected(self) -> bytes:
+        """
+        The binary encoded protected header.
+        """
+        if self._b_protected is None:
+            return self._dumps(self._protected)
+        return self._b_protected
 
     @property
     def unprotected(self) -> Dict[int, Any]:
@@ -217,3 +227,7 @@ class RecipientInterface(CBORProcessor):
         if isinstance(k, EllipticCurvePublicKey):
             return EC2Key.to_cose_key(k)
         return OKPKey.to_cose_key(k)
+
+    def _set_b_protected(self, b_protected: bytes):
+        self._b_protected = b_protected
+        return

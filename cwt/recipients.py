@@ -42,7 +42,7 @@ class Recipients(CBORProcessor):
         for r in self._recipients:
             if not r.kid and self._verify_kid:
                 raise ValueError("kid should be specified in recipient.")
-            aad = self._dumps([content_aad, self._dumps(r.protected), external_aad])
+            aad = self._dumps([content_aad, r.b_protected, external_aad])
             if r.kid:
                 for k in keys:
                     if k.kid != r.kid:
