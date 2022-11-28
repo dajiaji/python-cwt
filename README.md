@@ -406,8 +406,6 @@ encoded = sender.encode_and_encrypt(
     },
 )
 
-# print(encoded.hex())
-
 # The recipient side:
 rsk = COSEKey.from_jwk(
     {
