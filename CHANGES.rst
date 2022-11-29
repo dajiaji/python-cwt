@@ -4,6 +4,17 @@ Changes
 Unreleased
 ----------
 
+Version 2.1.0
+-------------
+
+Released 2022-11-29
+
+- Add encode() to COSE. `#294 <https://github.com/dajiaji/python-cwt/pull/294>`__
+- Update dev dependencies.
+    - Bump pre-commit/flake8 to 6.0.0. `#288 <https://github.com/dajiaji/python-cwt/pull/288>`__
+    - Bump pre-commit/mirrors-mypy to 0.991. `#288 <https://github.com/dajiaji/python-cwt/pull/288>`__
+    - Bump pre-commit/pre-commit-hooks to 4.4.0. `#288 <https://github.com/dajiaji/python-cwt/pull/288>`__
+
 Version 2.0.0
 -------------
 
