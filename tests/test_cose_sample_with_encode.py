@@ -5,7 +5,7 @@ import pytest
 from cwt import COSE, COSEKey, Recipient, Signer
 
 
-class TestCOSESample:
+class TestCOSESampleWithEncode:
     """
     Tests for samples on COSE Usage Examples.
     """
@@ -244,6 +244,57 @@ class TestCOSESample:
             }
         )
         assert b"Hello world!" == recipient.decode(encoded, priv_key, context={"alg": "HS256"})
+
+    def test_cose_usage_examples_cose_mac_hpke(self):
+
+        # The sender side:
+        mac_key = COSEKey.generate_symmetric_key(alg="HS256")
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+        r = Recipient.new(
+            protected={
+                1: -1,  # alg: "HPKE"
+            },
+            unprotected={
+                4: b"01",  # kid: "01"
+                -4: {  # HPKE sender information
+                    1: 0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
+                    2: 0x0001,  # kdf: HKDF-SHA256
+                    3: 0x0001,  # aead: AES-128-GCM
+                },
+            },
+            recipient_key=rpk,
+        )
+        sender = COSE.new()
+        encoded = sender.encode(
+            b"This is the content.",
+            mac_key,
+            protected={1: 5},  # alg: HS256
+            recipients=[r],
+        )
+
+        # print(encoded.hex())
+
+        # The recipient side:
+        rsk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        )
+        recipient = COSE.new()
+        assert b"This is the content." == recipient.decode(encoded, rsk)
 
     def test_cose_usage_examples_cose_encrypt0(self):
         enc_key = COSEKey.generate_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
