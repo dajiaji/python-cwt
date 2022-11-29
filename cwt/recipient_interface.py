@@ -80,6 +80,7 @@ class RecipientInterface(CBORProcessor):
         self._unprotected = unprotected
         self._ciphertext = ciphertext
         self._key = key
+        self._context: List[Any] = [0, [None, None, None], [None, None, None], [None, None]]
 
         # Validate recipients
         self._recipients: List[RecipientInterface] = []
@@ -141,6 +142,13 @@ class RecipientInterface(CBORProcessor):
         The list of recipient information structures.
         """
         return self._recipients
+
+    @property
+    def context(self) -> List[Any]:
+        """
+        The recipient context information.
+        """
+        return self._context
 
     def to_list(self) -> List[Any]:
         """
