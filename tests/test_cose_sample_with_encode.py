@@ -15,7 +15,7 @@ class TestCOSESample:
 
         # The sender side:
         sender = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
-        encoded = sender.encode_and_mac(b"Hello world!", mac_key)
+        encoded = sender.encode(b"Hello world!", mac_key)
 
         # The recipient side:
         recipient = COSE.new()
@@ -23,7 +23,7 @@ class TestCOSESample:
 
         # variation
         sender = COSE.new()
-        encoded2 = sender.encode_and_mac(
+        encoded2 = sender.encode(
             b"Hello world!",
             mac_key,
             protected={"alg": "HS256"},
@@ -31,7 +31,7 @@ class TestCOSESample:
         )
         assert b"Hello world!" == recipient.decode(encoded2, mac_key)
 
-        encoded3 = sender.encode_and_mac(
+        encoded3 = sender.encode(
             b"Hello world!",
             mac_key,
             protected={1: 5},
@@ -45,40 +45,22 @@ class TestCOSESample:
         mac_key = COSEKey.generate_symmetric_key(alg="HS512", kid="01")
 
         # The sender side:
-        r = Recipient.new(unprotected={"alg": "direct"})
+        r = Recipient.new(unprotected={"alg": "direct", "kid": mac_key.kid})
 
-        sender = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
-        encoded = sender.encode_and_mac(
-            b"Hello world!",
-            mac_key,
-            # protected={"alg": "HS512"},
-            # unprotected={"kid": mac_key.kid},
-            recipients=[r],
-        )
+        sender = COSE.new()
+        encoded = sender.encode(b"Hello world!", mac_key, protected={"alg": "HS512"}, recipients=[r])
 
         # The recipient side:
         recipient = COSE.new()
         assert b"Hello world!" == recipient.decode(encoded, mac_key)
 
         # variation
-        r2 = Recipient.new(unprotected={"alg": "direct"})
-        encoded2 = sender.encode_and_mac(
-            b"Hello world!",
-            mac_key,
-            protected={"alg": "HS512"},
-            unprotected={"kid": mac_key.kid},
-            recipients=[r2],
-        )
+        r2 = Recipient.new(unprotected={"alg": "direct", "kid": mac_key.kid})
+        encoded2 = sender.encode(b"Hello world!", mac_key, protected={"alg": "HS512"}, recipients=[r2])
         assert b"Hello world!" == recipient.decode(encoded2, mac_key)
 
-        r3 = Recipient.new(unprotected={1: -6})
-        encoded3 = sender.encode_and_mac(
-            b"Hello world!",
-            mac_key,
-            protected={1: 7},
-            unprotected={4: mac_key.kid},
-            recipients=[r3],
-        )
+        r3 = Recipient.new(unprotected={1: -6, 4: mac_key.kid})
+        encoded3 = sender.encode(b"Hello world!", mac_key, protected={"alg": "HS512"}, recipients=[r3])
         assert b"Hello world!" == recipient.decode(encoded3, mac_key)
 
         assert encoded == encoded2 == encoded3
@@ -97,7 +79,7 @@ class TestCOSESample:
             context={"alg": "HS256"},
         )
         sender = COSE.new(alg_auto_inclusion=True)
-        encoded = sender.encode_and_mac(
+        encoded = sender.encode(
             b"Hello world!",
             shared_key,
             recipients=[r],
@@ -121,7 +103,7 @@ class TestCOSESample:
         )
         r = Recipient.new(unprotected={"alg": "A128KW"}, sender_key=enc_key)
         sender = COSE.new(alg_auto_inclusion=True)
-        encoded = sender.encode_and_mac(b"Hello world!", mac_key, recipients=[r])
+        encoded = sender.encode(b"Hello world!", mac_key, recipients=[r])
 
         # The recipient side:
         recipient = COSE.new()
@@ -146,7 +128,7 @@ class TestCOSESample:
             context={"alg": "HS256"},
         )
         sender = COSE.new()
-        encoded = sender.encode_and_mac(
+        encoded = sender.encode(
             b"Hello world!",
             protected={"alg": "HS256"},
             recipients=[r],
@@ -201,7 +183,7 @@ class TestCOSESample:
             context={"alg": "HS256"},
         )
         sender = COSE.new(alg_auto_inclusion=True)
-        encoded = sender.encode_and_mac(
+        encoded = sender.encode(
             b"Hello world!",
             key=mac_key,
             recipients=[r],
@@ -242,7 +224,7 @@ class TestCOSESample:
             context={"alg": "HS256"},
         )
         sender = COSE.new(alg_auto_inclusion=True)
-        encoded = sender.encode_and_mac(
+        encoded = sender.encode(
             b"Hello world!",
             mac_key,
             recipients=[r],
@@ -269,7 +251,7 @@ class TestCOSESample:
         # The sender side:
         nonce = enc_key.generate_nonce()
         sender = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
-        encoded = sender.encode_and_encrypt(b"Hello world!", enc_key, unprotected={5: nonce})
+        encoded = sender.encode(b"Hello world!", enc_key, unprotected={5: nonce})
 
         # The recipient side:
         recipient = COSE.new()
@@ -277,7 +259,7 @@ class TestCOSESample:
 
         # variation
         sender = COSE.new()
-        encoded2 = sender.encode_and_encrypt(
+        encoded2 = sender.encode(
             b"Hello world!",
             enc_key,
             protected={"alg": "ChaCha20/Poly1305"},
@@ -285,7 +267,7 @@ class TestCOSESample:
         )
         assert b"Hello world!" == recipient.decode(encoded2, enc_key)
 
-        encoded3 = sender.encode_and_encrypt(
+        encoded3 = sender.encode(
             b"Hello world!",
             enc_key,
             protected={1: 24},
@@ -309,7 +291,7 @@ class TestCOSESample:
         )
 
         sender = COSE.new()
-        encoded = sender.encode_and_encrypt(
+        encoded = sender.encode(
             b"This is the content.",
             rpk,
             protected={
@@ -350,7 +332,7 @@ class TestCOSESample:
         r = Recipient.new(unprotected={"alg": "direct"})
 
         sender = COSE.new()
-        encoded = sender.encode_and_encrypt(
+        encoded = sender.encode(
             b"Hello world!",
             enc_key,
             protected={"alg": "ChaCha20/Poly1305"},
@@ -364,7 +346,7 @@ class TestCOSESample:
 
         # variation
         r = Recipient.new(unprotected={1: -6})
-        encoded2 = sender.encode_and_encrypt(
+        encoded2 = sender.encode(
             b"Hello world!",
             enc_key,
             protected={1: 24},  # ChaCha20/Poly1305
@@ -402,10 +384,13 @@ class TestCOSESample:
             },
             recipient_key=rpk,
         )
-        sender = COSE.new(alg_auto_inclusion=True)
-        encoded = sender.encode_and_encrypt(
+        sender = COSE.new()
+        encoded = sender.encode(
             b"This is the content.",
-            key=enc_key,
+            enc_key,
+            protected={
+                1: 1,  # alg: "A128GCM"
+            },
             recipients=[r],
         )
 
@@ -454,7 +439,7 @@ class TestCOSESample:
         )
         sender = COSE.new()
         with pytest.raises(ValueError) as err:
-            sender.encode_and_encrypt(
+            sender.encode(
                 b"This is the content.",
                 protected={
                     1: -1,  # alg: "HPKE"
@@ -469,7 +454,7 @@ class TestCOSESample:
                 },
                 recipients=[r],
             )
-            pytest.fail("encode_and_encrypt should fail.")
+            pytest.fail("encode should fail.")
         assert "key should be set." in str(err.value)
 
     def test_cose_usage_examples_cose_encrypt_hpke_with_nonce(self):
@@ -501,7 +486,7 @@ class TestCOSESample:
         )
         sender = COSE.new()
         with pytest.raises(ValueError) as err:
-            sender.encode_and_encrypt(
+            sender.encode(
                 b"This is the content.",
                 protected={
                     1: -1,  # alg: "HPKE"
@@ -516,7 +501,7 @@ class TestCOSESample:
                 },
                 recipients=[r],
             )
-            pytest.fail("encode_and_encrypt should fail.")
+            pytest.fail("encode should fail.")
         assert "key should be set." in str(err.value)
 
     def test_cose_usage_examples_cose_encrypt_direct_hkdf_sha_256(self):
@@ -533,7 +518,7 @@ class TestCOSESample:
             context={"alg": "A256GCM"},
         )
         sender = COSE.new(alg_auto_inclusion=True)
-        encoded = sender.encode_and_encrypt(
+        encoded = sender.encode(
             b"Hello world!",
             shared_key,
             recipients=[r],
@@ -561,7 +546,7 @@ class TestCOSESample:
             sender_key=wrapping_key,
         )
         sender = COSE.new(alg_auto_inclusion=True)
-        encoded = sender.encode_and_encrypt(b"Hello world!", key=enc_key, recipients=[r])
+        encoded = sender.encode(b"Hello world!", key=enc_key, recipients=[r])
 
         # The recipient side:
         recipient = COSE.new()
@@ -585,7 +570,7 @@ class TestCOSESample:
             context={"alg": "A128GCM"},
         )
         sender = COSE.new(alg_auto_inclusion=True)
-        encoded = sender.encode_and_encrypt(
+        encoded = sender.encode(
             b"Hello world!",
             recipients=[r],
         )
@@ -636,7 +621,7 @@ class TestCOSESample:
             context={"alg": "A128GCM"},
         )
         sender = COSE.new(alg_auto_inclusion=True)
-        encoded = sender.encode_and_encrypt(
+        encoded = sender.encode(
             b"Hello world!",
             key=enc_key,
             unprotected={5: nonce},
@@ -672,7 +657,7 @@ class TestCOSESample:
             }
         )
         sender = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
-        encoded = sender.encode_and_sign(b"Hello world!", priv_key)
+        encoded = sender.encode(b"Hello world!", priv_key)
 
         # The recipient side:
         pub_key = COSEKey.from_jwk(
@@ -689,7 +674,7 @@ class TestCOSESample:
 
         # variation
         sender = COSE.new()
-        encoded2 = sender.encode_and_sign(
+        encoded2 = sender.encode(
             b"Hello world!",
             priv_key,
             protected={"alg": "ES256"},
@@ -697,7 +682,7 @@ class TestCOSESample:
         )
         assert b"Hello world!" == recipient.decode(encoded2, pub_key)
 
-        encoded3 = sender.encode_and_sign(
+        encoded3 = sender.encode(
             b"Hello world!",
             priv_key,
             protected={1: -7},
@@ -726,7 +711,7 @@ class TestCOSESample:
             context={"alg": "A128GCM"},
         )
         sender = COSE.new(alg_auto_inclusion=True)
-        encoded = sender.encode_and_encrypt(
+        encoded = sender.encode(
             b"Hello world!",
             key=enc_key,
             recipients=[r],
@@ -761,7 +746,7 @@ class TestCOSESample:
             },
         )
         sender = COSE.new()
-        encoded = sender.encode_and_sign(b"Hello world!", signers=[signer])
+        encoded = sender.encode(b"Hello world!", signers=[signer])
 
         # The recipient side:
         recipient = COSE.new()
@@ -791,7 +776,7 @@ class TestCOSESample:
             protected={"alg": "ES256"},
             unprotected={"kid": "01"},
         )
-        encoded2 = sender.encode_and_sign(b"Hello world!", signers=[signer])
+        encoded2 = sender.encode(b"Hello world!", signers=[signer])
         assert b"Hello world!" == recipient.decode(encoded2, pub_key)
 
         signer = Signer.new(
@@ -808,5 +793,5 @@ class TestCOSESample:
             protected={1: -7},
             unprotected={4: b"01"},
         )
-        encoded3 = sender.encode_and_sign(b"Hello world!", signers=[signer])
+        encoded3 = sender.encode(b"Hello world!", signers=[signer])
         assert b"Hello world!" == recipient.decode(encoded3, pub_key)

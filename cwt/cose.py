@@ -4,7 +4,16 @@ from asn1crypto import pem
 from cbor2 import CBORTag
 
 from .cbor_processor import CBORProcessor
-from .const import COSE_ALGORITHMS_RECIPIENT
+from .const import (
+    COSE_ALGORITHMS_CEK,
+    COSE_ALGORITHMS_CKDM,
+    COSE_ALGORITHMS_CKDM_KEY_AGREEMENT,
+    COSE_ALGORITHMS_HPKE,
+    COSE_ALGORITHMS_KEY_WRAP,
+    COSE_ALGORITHMS_MAC,
+    COSE_ALGORITHMS_RECIPIENT,
+    COSE_ALGORITHMS_SIGNATURE,
+)
 from .cose_key_interface import COSEKeyInterface
 from .recipient_algs.hpke import HPKE
 from .recipient_interface import RecipientInterface
@@ -112,61 +121,52 @@ class COSE(CBORProcessor):
         self._verify_kid = verify_kid
         return
 
-    # def encode(
-    #     self,
-    #     payload: bytes,
-    #     key: Optional[COSEKeyInterface] = None,
-    #     protected: Optional[dict] = None,
-    #     unprotected: Optional[dict] = None,
-    #     recipients: Optional[List[RecipientInterface]] = None,
-    #     signers: List[Signer] = [],
-    #     external_aad: bytes = b"",
-    #     out: str = "",
-    # ) -> bytes:
-    #     """
-    #     Encodes COSE message with MAC, signing and encryption.
+    def encode(
+        self,
+        payload: bytes,
+        key: Optional[COSEKeyInterface] = None,
+        protected: Optional[dict] = None,
+        unprotected: Optional[dict] = None,
+        recipients: Optional[List[RecipientInterface]] = None,
+        signers: List[Signer] = [],
+        external_aad: bytes = b"",
+        out: str = "",
+    ) -> bytes:
+        """
+        Encodes COSE message with MAC, signing and encryption.
 
-    #     Args:
-    #         payload (bytes): A content to be MACed, signed or encrypted.
-    #         key (Optional[COSEKeyInterface]): A content encryption key as COSEKey.
-    #         protected (Optional[dict]): Parameters that are to be cryptographically protected.
-    #         unprotected (Optional[dict]): Parameters that are not cryptographically protected.
-    #         recipients (Optional[List[RecipientInterface]]): A list of recipient
-    #             information structures.
-    #         signers (List[Signer]): A list of signer information objects for
-    #             multiple signer cases.
-    #         external_aad(bytes): External additional authenticated data supplied
-    #             by application.
-    #         out(str): An output format. Only ``"cbor2/CBORTag"`` can be used. If
-    #             ``"cbor2/CBORTag"`` is specified. This function will return encoded
-    #             data as `cbor2 <https://cbor2.readthedocs.io/en/stable/>`_'s
-    #             ``CBORTag`` object. If any other value is specified, it will return
-    #             encoded data as bytes.
-    #     Returns:
-    #         Union[bytes, CBORTag]: A byte string of the encoded COSE or a
-    #             cbor2.CBORTag object.
-    #     Raises:
-    #         ValueError: Invalid arguments.
-    #         EncodeError: Failed to encode data.
-    #     """
-    #     p = to_cose_header(protected)
-    #     u = to_cose_header(unprotected)
-    #     if key is not None:
-    #         if self._alg_auto_inclusion:
-    #             p[1] = key.alg
-    #         if self._kid_auto_inclusion and key.kid:
-    #             u[4] = key.kid
-
-    #     if 1 in p and 1 in u:
-    #         raise ValueError("alg appear both in protected and unprotected.")
-    #     alg = u[1] if 1 in u else p.get(1, 0)
-    #     if is_cose_enc(alg):
-    #         return self._encode_and_encrypt(payload, key, p, u, b"", recipients, external_aad, out)
-    #     if is_cose_mac(alg):
-    #         return self._encode_and_mac(payload, key, p, u, recipients, external_aad, out)
-    #     if is_cose_sign(alg):
-    #         return self._encode_and_sign(payload, key, p, u, signers, external_aad, out)
-    #     raise ValueError(f"Unsupported or unknown alg: {alg}.")
+        Args:
+            payload (bytes): A content to be MACed, signed or encrypted.
+            key (Optional[COSEKeyInterface]): A content encryption key as COSEKey.
+            protected (Optional[dict]): Parameters that are to be cryptographically protected.
+            unprotected (Optional[dict]): Parameters that are not cryptographically protected.
+            recipients (Optional[List[RecipientInterface]]): A list of recipient
+                information structures.
+            signers (List[Signer]): A list of signer information objects for
+                multiple signer cases.
+            external_aad(bytes): External additional authenticated data supplied
+                by application.
+            out(str): An output format. Only ``"cbor2/CBORTag"`` can be used. If
+                ``"cbor2/CBORTag"`` is specified. This function will return encoded
+                data as `cbor2 <https://cbor2.readthedocs.io/en/stable/>`_'s
+                ``CBORTag`` object. If any other value is specified, it will return
+                encoded data as bytes.
+        Returns:
+            Union[bytes, CBORTag]: A byte string of the encoded COSE or a
+                cbor2.CBORTag object.
+        Raises:
+            ValueError: Invalid arguments.
+            EncodeError: Failed to encode data.
+        """
+        p, u = self._build_headers(key, protected, unprotected)
+        rs = [] if recipients is None else recipients
+        typ = self._validate_cose_message(p, u, rs, signers)
+        if typ == 0:
+            return self._encode_and_encrypt(payload, key, p, u, recipients, external_aad, out)
+        elif typ == 1:
+            return self._encode_and_mac(payload, key, p, u, recipients, external_aad, out)
+        # elif typ == 2:
+        return self._encode_and_sign(payload, key, p, u, signers, external_aad, out)
 
     def encode_and_encrypt(
         self,
@@ -504,6 +504,63 @@ class COSE(CBORProcessor):
             if self._kid_auto_inclusion and key.kid:
                 u[4] = key.kid
         return p, u
+
+    def _validate_cose_message(
+        self,
+        p: Dict[int, Any],
+        u: Dict[int, Any],
+        recipients: List[RecipientInterface],
+        signers: List[Signer],
+    ) -> int:
+        if len(recipients) > 0 and len(signers) > 0:
+            raise ValueError("Both recipients and signers are specified.")
+
+        if 1 in p and 1 in u:
+            raise ValueError("alg appear both in protected and unprotected.")
+        alg = p[1] if 1 in p else u.get(1, 0)
+
+        if len(signers) > 0:
+            return 2  # Sign0/Sign
+
+        if len(recipients) == 0:
+            if alg in COSE_ALGORITHMS_CEK.values():
+                return 0  # Encrypt0/Encrypt
+            if alg in COSE_ALGORITHMS_HPKE.values():
+                return 0  # Encrypt0/Encrypt
+            if alg in COSE_ALGORITHMS_MAC.values():
+                return 1  # MAC0/MAC
+            if alg in COSE_ALGORITHMS_SIGNATURE.values():
+                return 2  # Sign0/Sign
+            raise ValueError(f"Invalid alg for single-layer COSE message: {alg}.")
+
+        if (
+            recipients[0].alg == -6  # direct
+            or recipients[0].alg in COSE_ALGORITHMS_HPKE.values()
+            or recipients[0].alg in COSE_ALGORITHMS_KEY_WRAP.values()
+        ):
+            if alg in COSE_ALGORITHMS_CEK.values():
+                return 0  # Encrypt0/Encrypt
+            if alg in COSE_ALGORITHMS_HPKE.values():
+                return 0  # Encrypt0/Encrypt
+            if alg in COSE_ALGORITHMS_MAC.values():
+                return 1  # MAC0/MAC
+            if alg in COSE_ALGORITHMS_SIGNATURE.values():
+                return 2  # Sign0/Sign
+            raise ValueError(f"Invalid alg for single-layer COSE message: {alg}.")
+
+        if (
+            recipients[0].alg in COSE_ALGORITHMS_CKDM.values()
+            or recipients[0].alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.values()
+        ):
+            if recipients[0].context[0] in COSE_ALGORITHMS_CEK.values():
+                return 0  # Encrypt0/Encrypt
+            if recipients[0].context[0] in COSE_ALGORITHMS_HPKE.values():
+                return 0  # Encrypt0/Encrypt
+            if recipients[0].context[0] in COSE_ALGORITHMS_MAC.values():
+                return 1  # MAC0/MAC
+            raise ValueError(f"Invalid alg in recipients' context information: {recipients[0]._context[0]}.")
+
+        raise ValueError(f"Unsupported or unknown alg: {alg}.")
 
     def _encode_and_encrypt(
         self,
