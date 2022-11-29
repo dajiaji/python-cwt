@@ -67,6 +67,7 @@ See [Documentation](https://python-cwt.readthedocs.io/en/stable/) for the detail
         - [AES Key Wrap](#aes-key-wrap-for-mac)
         - [Direct key Agreement](#direct-key-agreement-for-mac)
         - [Key Agreement with Key Wrap](#key-agreement-with-key-wrap-for-mac)
+        - [COSE-HPKE (MAC)](#cose-hpke-mac)
     - [COSE Encrypt0](#cose-encrypt0)
         - [Encryption with ChaCha20/Poly1305](#encryption-with-chacha20-poly1305)
         - [COSE-HPKE (Encrypt0)](#cose-hpke-encrypt0)
@@ -357,6 +358,62 @@ priv_key = COSEKey.from_jwk(
 assert b"Hello world!" == recipient.decode(encoded, priv_key, context={"alg": "HS256"})
 ```
 
+#### COSE-HPKE (MAC)
+
+**Experimental Implementation. DO NOT USE for production.**
+
+Create a COSE-HPKE MAC message, verify and decode it as follows:
+
+```py
+from cwt import COSE, COSEKey, Recipient
+
+# The sender side:
+mac_key = COSEKey.generate_symmetric_key(alg="HS256")
+rpk = COSEKey.from_jwk(
+    {
+        "kty": "EC",
+        "kid": "01",
+        "crv": "P-256",
+        "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+        "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+    }
+)
+r = Recipient.new(
+    protected={
+        1: -1,  # alg: "HPKE"
+    },
+    unprotected={
+        4: b"01",  # kid: "01"
+        -4: {  # HPKE sender information
+            1: 0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
+            2: 0x0001,  # kdf: HKDF-SHA256
+            3: 0x0001,  # aead: AES-128-GCM
+        },
+    },
+    recipient_key=rpk,
+)
+sender = COSE.new()
+encoded = sender.encode(
+    b"This is the content.",
+    mac_key,
+    protected={1: 5},  # alg: HS256
+    recipients=[r],
+)
+
+# The recipient side:
+rsk = COSEKey.from_jwk(
+    {
+        "kty": "EC",
+        "kid": "01",
+        "crv": "P-256",
+        "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+        "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+        "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+    }
+)
+recipient = COSE.new()
+assert b"This is the content." == recipient.decode(encoded, rsk)
+```
 
 ### COSE Encrypt0
 
@@ -689,8 +746,6 @@ encoded = sender.encode(
     },
     recipients=[r],
 )
-
-# print(encoded.hex())
 
 # The recipient side:
 rsk = COSEKey.from_jwk(
