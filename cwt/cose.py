@@ -158,7 +158,7 @@ class COSE(CBORProcessor):
             ValueError: Invalid arguments.
             EncodeError: Failed to encode data.
         """
-        p, u = self._build_headers(key, protected, unprotected)
+        p, u = self._encode_headers(key, protected, unprotected)
         rs = [] if recipients is None else recipients
         typ = self._validate_cose_message(p, u, rs, signers)
         if typ == 0:
@@ -202,7 +202,7 @@ class COSE(CBORProcessor):
             ValueError: Invalid arguments.
             EncodeError: Failed to encode data.
         """
-        p, u = self._build_headers(key, protected, unprotected)
+        p, u = self._encode_headers(key, protected, unprotected)
         return self._encode_and_encrypt(payload, key, p, u, recipients, external_aad, out)
 
     def encode_and_mac(
@@ -235,7 +235,7 @@ class COSE(CBORProcessor):
             ValueError: Invalid arguments.
             EncodeError: Failed to encode data.
         """
-        p, u = self._build_headers(key, protected, unprotected)
+        p, u = self._encode_headers(key, protected, unprotected)
         return self._encode_and_mac(payload, key, p, u, recipients, external_aad, out)
 
     def encode_and_sign(
@@ -274,7 +274,7 @@ class COSE(CBORProcessor):
             ValueError: Invalid arguments.
             EncodeError: Failed to encode data.
         """
-        p, u = self._build_headers(key, protected, unprotected)
+        p, u = self._encode_headers(key, protected, unprotected)
         return self._encode_and_sign(payload, key, p, u, signers, external_aad, out)
 
     def decode(
@@ -490,7 +490,7 @@ class COSE(CBORProcessor):
                     err = e
         raise err
 
-    def _build_headers(
+    def _encode_headers(
         self,
         key: Optional[COSEKeyInterface],
         protected: Optional[dict],
