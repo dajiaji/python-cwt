@@ -341,26 +341,27 @@ class COSE(CBORProcessor):
         else:
             raise ValueError(f"Unsupported or unknown CBOR tag({data.tag}).")
 
-        protected: Union[Dict[int, Any], bytes] = self._loads(data.value[0]) if data.value[0] else b""
-        unprotected = data.value[1]
-        if not isinstance(unprotected, dict):
-            raise ValueError("unprotected header should be dict.")
-        alg = self._get_alg(protected)
+        # protected: Union[Dict[int, Any], bytes] = self._loads(data.value[0]) if data.value[0] else b""
+        # unprotected = data.value[1]
+        # if not isinstance(unprotected, dict):
+        #     raise ValueError("unprotected header should be dict.")
+        p, u = self._decode_headers(data.value[0], data.value[1])
+        alg = self._get_alg(p)
 
         err: Exception = ValueError("key is not found.")
 
         # Encrypt0
         if data.tag == 16:
-            kid = self._get_kid(protected, unprotected)
+            kid = self._get_kid(p, u)
             aad = self._dumps(["Encrypt0", data.value[0], external_aad])
-            nonce = unprotected.get(5, None)
+            nonce = u.get(5, None)
             if kid:
                 for _, k in enumerate(keys):
                     if k.kid != kid:
                         continue
                     try:
-                        if not isinstance(protected, bytes) and alg == -1:  # HPKE
-                            hpke = HPKE(protected, unprotected, data.value[2])
+                        if not isinstance(p, bytes) and alg == -1:  # HPKE
+                            hpke = HPKE(p, u, data.value[2])
                             res = hpke.decode(k, aad)
                             if not isinstance(res, bytes):
                                 raise TypeError("Internal type error.")
@@ -379,14 +380,14 @@ class COSE(CBORProcessor):
         # Encrypt
         if data.tag == 96:
             rs = Recipients.from_list(data.value[3], self._verify_kid, context)
-            nonce = unprotected.get(5, b"")
+            nonce = u.get(5, b"")
             enc_key = rs.derive_key(keys, alg, external_aad, "Enc_Recipient")
             aad = self._dumps(["Encrypt", data.value[0], external_aad])
             return enc_key.decrypt(data.value[2], nonce, aad)
 
         # MAC0
         if data.tag == 17:
-            kid = self._get_kid(protected, unprotected)
+            kid = self._get_kid(p, u)
             msg = self._dumps(["MAC0", data.value[0], external_aad, data.value[2]])
             if kid:
                 for _, k in enumerate(keys):
@@ -416,7 +417,7 @@ class COSE(CBORProcessor):
 
         # Signature1
         if data.tag == 18:
-            kid = self._get_kid(protected, unprotected)
+            kid = self._get_kid(p, u)
             to_be_signed = self._dumps(["Signature1", data.value[0], external_aad, data.value[2]])
             if kid:
                 for _, k in enumerate(keys):
@@ -449,11 +450,11 @@ class COSE(CBORProcessor):
             if not isinstance(sig, list) or len(sig) != 3:
                 raise ValueError("Invalid Signature format.")
 
-            protected = self._loads(sig[0]) if sig[0] else b""
-            unprotected = sig[1]
-            if not isinstance(unprotected, dict):
+            sp = self._loads(sig[0]) if sig[0] else b""
+            su = sig[1]
+            if not isinstance(su, dict):
                 raise ValueError("unprotected header in signature structure should be dict.")
-            kid = self._get_kid(protected, unprotected)
+            kid = self._get_kid(sp, su)
             if kid:
                 for _, k in enumerate(keys):
                     if k.kid != kid:
@@ -503,6 +504,19 @@ class COSE(CBORProcessor):
                 p[1] = key.alg
             if self._kid_auto_inclusion and key.kid:
                 u[4] = key.kid
+        return p, u
+
+    def _decode_headers(self, protected: Any, unprotected: Any) -> Tuple[Dict[int, Any], Dict[int, Any]]:
+        p: Union[Dict[int, Any], bytes]
+        p = self._loads(protected) if protected else {}
+        if isinstance(p, bytes):
+            if len(p) > 0:
+                raise ValueError("Invalid protected header.")
+            p = {}
+
+        u: Dict[int, Any] = unprotected
+        if not isinstance(u, dict):
+            raise ValueError("unprotected header should be dict.")
         return p, u
 
     def _validate_cose_message(
