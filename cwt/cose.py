@@ -515,6 +515,14 @@ class COSE(CBORProcessor):
         if len(recipients) > 0 and len(signers) > 0:
             raise ValueError("Both recipients and signers are specified.")
 
+        h: Dict[int, Any] = {}
+        for k, v in p.items():
+            h[k] = v
+        for k, v in u.items():
+            h[k] = v
+        if len(h) != len(p) + len(u):
+            raise ValueError("The same keys are both in protected and unprotected headers.")
+
         if 1 in p and 1 in u:
             raise ValueError("alg appear both in protected and unprotected.")
         alg = p[1] if 1 in p else u.get(1, 0)

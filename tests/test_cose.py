@@ -958,3 +958,51 @@ class TestCOSE:
             ctx.decode(encoded, private_key)
             pytest.fail("decode should fail.")
         assert "context should be set." in str(err.value)
+
+    @pytest.mark.parametrize(
+        "p, u, msg",
+        [
+            (
+                {1: 4},
+                {1: 4},
+                "The same keys are both in protected and unprotected headers.",
+            ),
+            (
+                {1: 4},
+                {1: 5},
+                "The same keys are both in protected and unprotected headers.",
+            ),
+            (
+                {"alg": "HMAC 256/64"},
+                {1: 5},
+                "The same keys are both in protected and unprotected headers.",
+            ),
+            (
+                {4: b"01"},
+                {"kid": b"01"},
+                "The same keys are both in protected and unprotected headers.",
+            ),
+            # (
+            #     {1: 4, 1: 5},
+            #     {},
+            #     "The protected header has duplicated keys.",
+            # ),
+            # (
+            #     {},
+            #     {1: 4, 1: 5},
+            #     "Unsupported or unknown alg: xxx.",
+            # ),
+            # (
+            #     {"alg": 4, 1: 5},
+            #     {},
+            #     "Unsupported or unknown COSE header parameter: xxx.",
+            # ),
+        ],
+    )
+    def test_cose_encode_for_mac_with_invalid_args(self, p, u, msg):
+        key = COSEKey.from_symmetric_key(alg="HS256")
+        ctx = COSE.new()
+        with pytest.raises(ValueError) as err:
+            ctx.encode(b"This is the content.", key, protected=p, unprotected=u)
+            pytest.fail("encode should fail.")
+        assert msg in str(err.value)
