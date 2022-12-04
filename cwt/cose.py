@@ -160,7 +160,7 @@ class COSE(CBORProcessor):
         """
         p, u = self._encode_headers(key, protected, unprotected)
         rs = [] if recipients is None else recipients
-        typ = self._validate_cose_message(p, u, rs, signers)
+        typ = self._validate_cose_message(key, p, u, rs, signers)
         if typ == 0:
             return self._encode_and_encrypt(payload, key, p, u, recipients, external_aad, out)
         elif typ == 1:
@@ -203,6 +203,10 @@ class COSE(CBORProcessor):
             EncodeError: Failed to encode data.
         """
         p, u = self._encode_headers(key, protected, unprotected)
+        rs = [] if recipients is None else recipients
+        typ = self._validate_cose_message(key, p, u, rs, [])
+        if typ != 0:
+            raise ValueError("The COSE message is not suitable for COSE Encrypt0/Encrypt.")
         return self._encode_and_encrypt(payload, key, p, u, recipients, external_aad, out)
 
     def encode_and_mac(
@@ -236,6 +240,10 @@ class COSE(CBORProcessor):
             EncodeError: Failed to encode data.
         """
         p, u = self._encode_headers(key, protected, unprotected)
+        rs = [] if recipients is None else recipients
+        typ = self._validate_cose_message(key, p, u, rs, [])
+        if typ != 1:
+            raise ValueError("The COSE message is not suitable for COSE MAC0/MAC.")
         return self._encode_and_mac(payload, key, p, u, recipients, external_aad, out)
 
     def encode_and_sign(
@@ -275,6 +283,10 @@ class COSE(CBORProcessor):
             EncodeError: Failed to encode data.
         """
         p, u = self._encode_headers(key, protected, unprotected)
+        ss = [] if signers is None else signers
+        typ = self._validate_cose_message(key, p, u, [], ss)
+        if typ != 2:
+            raise ValueError("The COSE message is not suitable for COSE Sign0/Sign.")
         return self._encode_and_sign(payload, key, p, u, signers, external_aad, out)
 
     def decode(
@@ -513,7 +525,6 @@ class COSE(CBORProcessor):
             if len(p) > 0:
                 raise ValueError("Invalid protected header.")
             p = {}
-
         u: Dict[int, Any] = unprotected
         if not isinstance(u, dict):
             raise ValueError("unprotected header should be dict.")
@@ -521,6 +532,7 @@ class COSE(CBORProcessor):
 
     def _validate_cose_message(
         self,
+        key: Optional[COSEKeyInterface],
         p: Dict[int, Any],
         u: Dict[int, Any],
         recipients: List[RecipientInterface],
@@ -530,29 +542,56 @@ class COSE(CBORProcessor):
             raise ValueError("Both recipients and signers are specified.")
 
         h: Dict[int, Any] = {}
+        iv_count: int = 0
         for k, v in p.items():
+            if k == 2:  # crit
+                if not isinstance(v, list):
+                    raise ValueError("crit parameter must have list.")
+                for crit in v:
+                    if not isinstance(crit, int):
+                        raise ValueError("Integer labels for crit are only supported.")
+                    if crit >= 0 and crit <= 7:
+                        raise ValueError("Integer labels for crit in the range of 0 to 7 should be omitted.")
+                    if crit not in p.keys() and crit not in u.keys():
+                        raise ValueError(f"Integer label({crit}) for crit not found in the headers.")
+            if k == 5 or k == 6:  # IV or Partial IV
+                if not isinstance(v, bytes):
+                    raise ValueError("IV and Partial IV must be bstr.")
+                iv_count += 1
             h[k] = v
         for k, v in u.items():
+            if k == 2:  # crit
+                raise ValueError("crit(2) must be placed only in protected header.")
+            if k == 5 or k == 6:  # IV or Partial IV
+                if not isinstance(v, bytes):
+                    raise ValueError("IV and Partial IV must be bstr.")
+                iv_count += 1
             h[k] = v
         if len(h) != len(p) + len(u):
             raise ValueError("The same keys are both in protected and unprotected headers.")
+        if iv_count > 1:
+            raise ValueError("IV and Partial IV must not both be present in the same security layer.")
 
         if 1 in p and 1 in u:
             raise ValueError("alg appear both in protected and unprotected.")
         alg = p[1] if 1 in p else u.get(1, 0)
 
         if len(signers) > 0:
-            return 2  # Sign0/Sign
+            return 2  # Sign
 
         if len(recipients) == 0:
+            if key is None:
+                raise ValueError("key should be set.")
+            if alg not in COSE_ALGORITHMS_HPKE.values() and key.alg != alg:
+                raise ValueError(f"The alg({alg}) in the headers does not match the alg({key.alg}) in the populated key.")
             if alg in COSE_ALGORITHMS_CEK.values():
-                return 0  # Encrypt0/Encrypt
+                return 0  # Encrypt0
             if alg in COSE_ALGORITHMS_HPKE.values():
-                return 0  # Encrypt0/Encrypt
+                return 0  # Encrypt0
             if alg in COSE_ALGORITHMS_MAC.values():
-                return 1  # MAC0/MAC
+                return 1  # MAC0
             if alg in COSE_ALGORITHMS_SIGNATURE.values():
-                return 2  # Sign0/Sign
+                return 2  # Sign0
             raise ValueError(f"Invalid alg for single-layer COSE message: {alg}.")
 
         if (
@@ -560,14 +599,16 @@ class COSE(CBORProcessor):
             or recipients[0].alg in COSE_ALGORITHMS_HPKE.values()
             or recipients[0].alg in COSE_ALGORITHMS_KEY_WRAP.values()
         ):
+            if key is None:
+                raise ValueError("key should be set.")
+            if key.alg != alg:
+                raise ValueError(f"The alg({alg}) in the headers does not match the alg({key.alg}) in the populated key.")
             if alg in COSE_ALGORITHMS_CEK.values():
-                return 0  # Encrypt0/Encrypt
+                return 0  # Encrypt
             if alg in COSE_ALGORITHMS_HPKE.values():
-                return 0  # Encrypt0/Encrypt
+                return 0  # Encrypt
             if alg in COSE_ALGORITHMS_MAC.values():
-                return 1  # MAC0/MAC
-            if alg in COSE_ALGORITHMS_SIGNATURE.values():
-                return 2  # Sign0/Sign
+                return 1  # MAC
             raise ValueError(f"Invalid alg for single-layer COSE message: {alg}.")
 
         if (
@@ -575,11 +616,11 @@ class COSE(CBORProcessor):
             or recipients[0].alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.values()
         ):
             if recipients[0].context[0] in COSE_ALGORITHMS_CEK.values():
-                return 0  # Encrypt0/Encrypt
+                return 0  # Encrypt
             if recipients[0].context[0] in COSE_ALGORITHMS_HPKE.values():
-                return 0  # Encrypt0/Encrypt
+                return 0  # Encrypt
             if recipients[0].context[0] in COSE_ALGORITHMS_MAC.values():
-                return 1  # MAC0/MAC
+                return 1  # MAC
             raise ValueError(f"Invalid alg in recipients' context information: {recipients[0]._context[0]}.")
 
         raise ValueError(f"Unsupported or unknown alg: {alg}.")

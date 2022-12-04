@@ -705,6 +705,7 @@ class TestRecipients:
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
             enc_key,
+            protected={"alg": "A128GCM"},
             recipients=[r],
         )
         recipient = COSE.new(verify_kid=True)
@@ -730,6 +731,7 @@ class TestRecipients:
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
             enc_key,
+            protected={"alg": "A128GCM"},
             recipients=[r],
         )
         recipient = COSE.new()
@@ -762,6 +764,7 @@ class TestRecipients:
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
             enc_key,
+            protected={"alg": "A128GCM"},
             recipients=[r],
         )
         invalid_rsk = COSEKey.from_jwk(
