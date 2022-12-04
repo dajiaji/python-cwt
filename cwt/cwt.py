@@ -135,7 +135,7 @@ class CWT(CBORProcessor):
         claims: Union[Claims, Dict[str, Any], Dict[int, Any], bytes],
         key: COSEKeyInterface,
         nonce: bytes = b"",
-        recipients: Optional[List[RecipientInterface]] = None,
+        recipients: List[RecipientInterface] = [],
         signers: List[Signer] = [],
         tagged: bool = False,
     ) -> bytes:
@@ -156,8 +156,7 @@ class CWT(CBORProcessor):
                 claims object, or a JWT claims object, text string or byte string.
             key (COSEKeyInterface): A COSE key used to generate a MAC for the claims.
             nonce (bytes): A nonce for encryption.
-            recipients (Optional[List[RecipientInterface]]): A list of recipient
-                information structures.
+            recipients (List[RecipientInterface]): A list of recipient information structures.
             signers (List[Signer]): A list of signer information structures for
                 multiple signer cases.
             tagged (bool): An indicator whether the response is wrapped by CWT
@@ -196,7 +195,7 @@ class CWT(CBORProcessor):
         self,
         claims: Union[Claims, Dict[int, Any], bytes],
         key: COSEKeyInterface,
-        recipients: Optional[List[RecipientInterface]] = None,
+        recipients: List[RecipientInterface] = [],
         tagged: bool = False,
     ) -> bytes:
         """
@@ -269,7 +268,7 @@ class CWT(CBORProcessor):
         claims: Union[Claims, Dict[int, Any], bytes],
         key: COSEKeyInterface,
         nonce: bytes = b"",
-        recipients: Optional[List[RecipientInterface]] = None,
+        recipients: List[RecipientInterface] = [],
         tagged: bool = False,
     ) -> bytes:
         """
@@ -367,7 +366,7 @@ class CWT(CBORProcessor):
         claims: Union[Claims, Dict[Any, Any], bytes],
         key: COSEKeyInterface,
         nonce: bytes = b"",
-        recipients: Optional[List[RecipientInterface]] = None,
+        recipients: List[RecipientInterface] = [],
         signers: List[Signer] = [],
         tagged: bool = False,
     ) -> bytes:
@@ -440,7 +439,7 @@ def encode(
     claims: Union[Claims, Dict[str, Any], Dict[int, Any], bytes],
     key: COSEKeyInterface,
     nonce: bytes = b"",
-    recipients: Optional[List[RecipientInterface]] = None,
+    recipients: List[RecipientInterface] = [],
     signers: List[Signer] = [],
     tagged: bool = False,
 ) -> bytes:
@@ -451,7 +450,7 @@ def encode(
 def encode_and_mac(
     claims: Union[Claims, Dict[int, Any], bytes],
     key: COSEKeyInterface,
-    recipients: Optional[List[RecipientInterface]] = None,
+    recipients: List[RecipientInterface] = [],
     tagged: bool = False,
 ) -> bytes:
 
@@ -472,7 +471,7 @@ def encode_and_encrypt(
     claims: Union[Claims, Dict[int, Any], bytes],
     key: COSEKeyInterface,
     nonce: bytes = b"",
-    recipients: Optional[List[RecipientInterface]] = None,
+    recipients: List[RecipientInterface] = [],
     tagged: bool = False,
 ) -> bytes:
 
