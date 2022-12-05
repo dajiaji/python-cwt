@@ -1084,7 +1084,7 @@ class TestCOSE:
         mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
         ctx = COSE.new()
         with pytest.raises(ValueError) as err:
-            encoded = ctx.encode(
+            ctx.encode(
                 b"Hello world!",
                 mac_key,
                 protected={1: 5},
@@ -1101,7 +1101,7 @@ class TestCOSE:
         mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
         ctx = COSE.new()
         with pytest.raises(ValueError) as err:
-            encoded = ctx.encode(
+            ctx.encode(
                 b"Hello world!",
                 mac_key,
                 protected={1: 5},
