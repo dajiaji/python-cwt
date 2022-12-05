@@ -137,7 +137,7 @@ class RecipientInterface(CBORProcessor):
         return self._ciphertext
 
     @property
-    def recipients(self) -> Union[List[Any], None]:
+    def recipients(self) -> List[Any]:
         """
         The list of recipient information structures.
         """

@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional, Union
 import cbor2
 
 from .const import (  # COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP,
+    COSE_ALGORITHMS_CKDM,
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT,
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP,
     COSE_ALGORITHMS_HPKE,
@@ -60,6 +61,14 @@ class Recipient:
         alg = u[1] if 1 in u else p.get(1, 0)
         if alg == 0:
             raise ValueError("alg should be specified.")
+
+        if alg in COSE_ALGORITHMS_CKDM.values():  # Direct encryption mode.
+            if len(recipients) > 0:
+                raise ValueError("Recipients for direct encryption mode don't have recipients.")
+            if len(ciphertext) > 0:
+                raise ValueError(
+                    "The ciphertext in  the recipients for direct encryption mode must be a zero-length byte string."
+                )
 
         if alg == -6:
             return DirectKey(p, u)

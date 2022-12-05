@@ -1077,3 +1077,37 @@ class TestCOSE:
             ctx.encode_and_mac(b"This is the content.", key, protected=p, unprotected=u)
             pytest.fail("encode should fail.")
         assert msg in str(err.value)
+
+    def test_cose_encode_for_mac_with_three_layer_direct(self):
+
+        # MAC
+        mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+        ctx = COSE.new()
+        with pytest.raises(ValueError) as err:
+            encoded = ctx.encode(
+                b"Hello world!",
+                mac_key,
+                protected={1: 5},
+                recipients=[
+                    Recipient.new(unprotected={1: -6, 4: b"01"}, recipients=[Recipient.new(unprotected={1: -6, 4: b"01"})])
+                ],
+            )
+            pytest.fail("encode should fail.")
+        assert "Recipients for direct encryption mode don't have recipients." in str(err.value)
+
+    def test_cose_encode_for_mac_without_ciphertext(self):
+
+        # MAC
+        mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+        ctx = COSE.new()
+        with pytest.raises(ValueError) as err:
+            encoded = ctx.encode(
+                b"Hello world!",
+                mac_key,
+                protected={1: 5},
+                recipients=[Recipient.new(unprotected={1: -6, 4: b"01"}, ciphertext=b"xxxxxx")],
+            )
+            pytest.fail("encode should fail.")
+        assert "The ciphertext in  the recipients for direct encryption mode must be a zero-length byte string." in str(
+            err.value
+        )

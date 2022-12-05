@@ -588,6 +588,20 @@ class COSE(CBORProcessor):
                 return 2  # Sign0
             raise ValueError(f"Invalid alg for single-layer COSE message: {alg}.")
 
+        if recipients[0].alg in COSE_ALGORITHMS_CKDM.values():  # Direct encryption mode.
+            for r in recipients:
+                if r.alg not in COSE_ALGORITHMS_CKDM.values():
+                    raise ValueError("All of the recipient alg must be the direct encryption mode.")
+                if len(r.recipients) > 0:
+                    raise ValueError("Recipients for direct encryption mode don't have recipients.")
+                if len(r.ciphertext) > 0:
+                    raise ValueError(
+                        "The ciphertext in  the recipients for direct encryption mode must be a zero-length byte string."
+                    )
+
+        # if recipients[0].alg in COSE_ALGORITHMS_KEY_WRAP.values():
+        #     raise ValueError(f"Invalid alg for single-layer COSE message: {alg}.")
+
         if (
             recipients[0].alg == -6  # direct
             or recipients[0].alg in COSE_ALGORITHMS_HPKE.values()
