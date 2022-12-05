@@ -218,6 +218,7 @@ class TestCOSE:
         encoded = ctx.encode_and_mac(
             b"Hello world!",
             mac_key,
+            protected={"alg": "HS256"},
             recipients=[recipient],
         )
         assert b"Hello world!" == ctx.decode(encoded, mac_key)
@@ -268,14 +269,14 @@ class TestCOSE:
 
     def test_cose_encode_and_mac_with_recipient_has_unsupported_alg(self, ctx):
         key = COSEKey.from_symmetric_key(alg="HS256")
-        with pytest.raises(NotImplementedError) as err:
+        with pytest.raises(ValueError) as err:
             ctx.encode_and_mac(
                 b"This is the content.",
                 key,
                 recipients=[RecipientInterface(unprotected={1: 0, 4: b"our-secret"})],
             )
-            pytest.fail("encode_and_mac should fail.")
-        assert "Algorithms other than direct are not supported for recipients." in str(err.value)
+            pytest.fail(".")
+        assert "Unsupported or unknown alg: 5." in str(err.value)
 
     def test_cose_encode_and_encrypt_with_recipient_has_unsupported_alg(self, ctx):
         key = COSEKey.from_jwk(
@@ -287,7 +288,7 @@ class TestCOSE:
                 "k": "hJtXIZ2uSN5kbQfbtTNWbg",
             }
         )
-        with pytest.raises(NotImplementedError) as err:
+        with pytest.raises(ValueError) as err:
             ctx.encode_and_encrypt(
                 b"This is the content.",
                 key,
@@ -295,7 +296,7 @@ class TestCOSE:
                 recipients=[RecipientInterface(unprotected={1: 0, 4: b"our-secret"})],
             )
             pytest.fail("encode_and_encrypt should fail.")
-        assert "Algorithms other than direct are not supported for recipients." in str(err.value)
+        assert "Unsupported or unknown alg: 10." in str(err.value)
 
     def test_cose_encode_and_mac_with_invalid_payload(self, ctx):
         key = COSEKey.from_symmetric_key(alg="HS256")
@@ -958,3 +959,155 @@ class TestCOSE:
             ctx.decode(encoded, private_key)
             pytest.fail("decode should fail.")
         assert "context should be set." in str(err.value)
+
+    @pytest.mark.parametrize(
+        "p, u",
+        [
+            (
+                {1: 5, -129: b"This is a critical param.", 2: [-129]},
+                {},
+            ),
+            (
+                {1: 5, -129: b"This is a critical param.", 2: [-129, -130]},
+                {-130: "This is also a critical param"},
+            ),
+        ],
+    )
+    def test_cose_encode_for_mac_with_valid_args(self, p, u):
+        key = COSEKey.from_symmetric_key(alg="HS256")
+        ctx = COSE.new()
+        try:
+            ctx.encode(b"This is the content.", key, protected=p, unprotected=u)
+        except Exception as err:
+            pytest.fail(f"encode should not fail: {err.value}")
+
+    @pytest.mark.parametrize(
+        "p, u, msg",
+        [
+            (
+                {1: 4},
+                {1: 4},
+                "The same keys are both in protected and unprotected headers.",
+            ),
+            (
+                {1: 4},
+                {1: 5},
+                "The same keys are both in protected and unprotected headers.",
+            ),
+            (
+                {"alg": "HMAC 256/64"},
+                {1: 5},
+                "The same keys are both in protected and unprotected headers.",
+            ),
+            (
+                {4: b"01"},
+                {"kid": b"01"},
+                "The same keys are both in protected and unprotected headers.",
+            ),
+            (
+                {1: 5, -129: b"This is a critical param."},
+                {2: [-129]},
+                "crit(2) must be placed only in protected header.",
+            ),
+            (
+                {1: 5, -129: b"This is a critical param.", 2: "critical"},
+                {},
+                "crit parameter must have list.",
+            ),
+            (
+                {1: 5, -129: b"This is a critical param.", 2: [-130]},
+                {},
+                "Integer label(-130) for crit not found in the headers.",
+            ),
+            (
+                {1: 5, -129: b"This is a critical param.", 2: [1, -129]},
+                {},
+                "Integer labels for crit in the range of 0 to 7 should be omitted.",
+            ),
+            (
+                {1: 5, -129: b"This is a critical param.", 2: ["reserved"]},
+                {-130: "This is also a critical param"},
+                "Integer labels for crit are only supported.",
+            ),
+            (
+                {1: 5, 5: b"xxxxxxxx"},
+                {6: b"yyyyyyyy"},
+                "IV and Partial IV must not both be present in the same security layer.",
+            ),
+            (
+                {1: 5, 5: "xxxxxxxx"},
+                {},
+                "IV and Partial IV must be bstr",
+            ),
+            (
+                {1: 5},
+                {5: "xxxxxxxx"},
+                "IV and Partial IV must be bstr",
+            ),
+            (
+                {1: 4},
+                {},
+                "The alg(4) in the headers does not match the alg(5) in the populated key.",
+            ),
+            # (
+            #     {1: 4, 1: 5},
+            #     {},
+            #     "The protected header has duplicated keys.",
+            # ),
+            # (
+            #     {},
+            #     {1: 4, 1: 5},
+            #     "Unsupported or unknown alg: xxx.",
+            # ),
+            # (
+            #     {"alg": 4, 1: 5},
+            #     {},
+            #     "Unsupported or unknown COSE header parameter: xxx.",
+            # ),
+        ],
+    )
+    def test_cose_encode_for_mac_with_invalid_args(self, p, u, msg):
+        key = COSEKey.from_symmetric_key(alg="HS256")
+        ctx = COSE.new()
+        with pytest.raises(ValueError) as err:
+            ctx.encode(b"This is the content.", key, protected=p, unprotected=u)
+            pytest.fail("encode should fail.")
+        assert msg in str(err.value)
+        with pytest.raises(ValueError) as err:
+            ctx.encode_and_mac(b"This is the content.", key, protected=p, unprotected=u)
+            pytest.fail("encode should fail.")
+        assert msg in str(err.value)
+
+    def test_cose_encode_for_mac_with_three_layer_direct(self):
+
+        # MAC
+        mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+        ctx = COSE.new()
+        with pytest.raises(ValueError) as err:
+            ctx.encode(
+                b"Hello world!",
+                mac_key,
+                protected={1: 5},
+                recipients=[
+                    Recipient.new(unprotected={1: -6, 4: b"01"}, recipients=[Recipient.new(unprotected={1: -6, 4: b"01"})])
+                ],
+            )
+            pytest.fail("encode should fail.")
+        assert "Recipients for direct encryption mode don't have recipients." in str(err.value)
+
+    def test_cose_encode_for_mac_without_ciphertext(self):
+
+        # MAC
+        mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+        ctx = COSE.new()
+        with pytest.raises(ValueError) as err:
+            ctx.encode(
+                b"Hello world!",
+                mac_key,
+                protected={1: 5},
+                recipients=[Recipient.new(unprotected={1: -6, 4: b"01"}, ciphertext=b"xxxxxx")],
+            )
+            pytest.fail("encode should fail.")
+        assert "The ciphertext in  the recipients for direct encryption mode must be a zero-length byte string." in str(
+            err.value
+        )

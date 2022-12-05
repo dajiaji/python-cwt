@@ -304,12 +304,14 @@ class TestCWT:
 
     def test_cwt_encode_and_encrypt_with_invalid_key_and_without_nonce(self, ctx):
         enc_key = COSEKey.from_symmetric_key(alg="HMAC 256/64", kid="01")
+        # enc_key = COSEKey.generate_symmetric_key(alg="A128GCM", kid="01")
         with pytest.raises(ValueError) as err:
             ctx.encode_and_encrypt(
                 {1: "https://as.example", 2: "someone", 7: b"123"},
                 enc_key,
             )
-        assert "Nonce generation is not supported for the key. Set a nonce explicitly." in str(err.value)
+            pytest.fail("encode_and_encrypt should fail.")
+        assert "The COSE message is not suitable for COSE Encrypt0/Encrypt." in str(err.value)
 
     @pytest.mark.parametrize(
         "alg",

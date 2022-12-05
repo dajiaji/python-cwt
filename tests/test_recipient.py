@@ -601,7 +601,7 @@ class TestRecipients:
             pytest.fail("from_list() should not fail.")
 
     def test_recipients_from_list_with_recipients(self):
-        try:
+        with pytest.raises(ValueError) as err:
             Recipients.from_list(
                 [
                     [
@@ -613,8 +613,7 @@ class TestRecipients:
                 ],
                 context={"alg": "A128GCM"},
             )
-        except Exception:
-            pytest.fail("from_list() should not fail.")
+        assert "Recipients for direct encryption mode don't have recipients." in str(err.value)
 
     @pytest.mark.parametrize(
         "invalid, msg",
@@ -705,6 +704,7 @@ class TestRecipients:
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
             enc_key,
+            protected={"alg": "A128GCM"},
             recipients=[r],
         )
         recipient = COSE.new(verify_kid=True)
@@ -730,6 +730,7 @@ class TestRecipients:
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
             enc_key,
+            protected={"alg": "A128GCM"},
             recipients=[r],
         )
         recipient = COSE.new()
@@ -762,6 +763,7 @@ class TestRecipients:
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
             enc_key,
+            protected={"alg": "A128GCM"},
             recipients=[r],
         )
         invalid_rsk = COSEKey.from_jwk(
