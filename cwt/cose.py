@@ -8,6 +8,7 @@ from .const import (
     COSE_ALGORITHMS_CEK,
     COSE_ALGORITHMS_CKDM,
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT,
+    COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT,
     COSE_ALGORITHMS_HPKE,
     COSE_ALGORITHMS_KEY_WRAP,
     COSE_ALGORITHMS_MAC,
@@ -588,6 +589,10 @@ class COSE(CBORProcessor):
                 return 2  # Sign0
             raise ValueError(f"Invalid alg for single-layer COSE message: {alg}.")
 
+        if recipients[0].alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT.values():
+            if len(recipients) > 1:
+                raise ValueError("There must be only one recipient in direct key agreement mode.")
+
         if recipients[0].alg in COSE_ALGORITHMS_CKDM.values():  # Direct encryption mode.
             for r in recipients:
                 if r.alg not in COSE_ALGORITHMS_CKDM.values():
@@ -596,11 +601,13 @@ class COSE(CBORProcessor):
                     raise ValueError("Recipients for direct encryption mode don't have recipients.")
                 if len(r.ciphertext) > 0:
                     raise ValueError(
-                        "The ciphertext in  the recipients for direct encryption mode must be a zero-length byte string."
+                        "The ciphertext in the recipients for direct encryption mode must be a zero-length byte string."
                     )
 
-        # if recipients[0].alg in COSE_ALGORITHMS_KEY_WRAP.values():
-        #     raise ValueError(f"Invalid alg for single-layer COSE message: {alg}.")
+        if recipients[0].alg in COSE_ALGORITHMS_KEY_WRAP.values():
+            for r in recipients:
+                if len(r.protected) > 0:
+                    raise ValueError("The protected header must be a zero-length string in key wrap mode with an AE algorithm.")
 
         if (
             recipients[0].alg == -6  # direct

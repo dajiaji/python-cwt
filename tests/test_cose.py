@@ -1078,9 +1078,8 @@ class TestCOSE:
             pytest.fail("encode should fail.")
         assert msg in str(err.value)
 
-    def test_cose_encode_for_mac_with_three_layer_direct(self):
+    def test_cose_encode_for_mac_with_direct_mode_has_invalid_three_layer(self):
 
-        # MAC
         mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
         ctx = COSE.new()
         with pytest.raises(ValueError) as err:
@@ -1095,9 +1094,8 @@ class TestCOSE:
             pytest.fail("encode should fail.")
         assert "Recipients for direct encryption mode don't have recipients." in str(err.value)
 
-    def test_cose_encode_for_mac_without_ciphertext(self):
+    def test_cose_encode_for_mac_with_direct_mode_with_ciphertext(self):
 
-        # MAC
         mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
         ctx = COSE.new()
         with pytest.raises(ValueError) as err:
@@ -1108,6 +1106,28 @@ class TestCOSE:
                 recipients=[Recipient.new(unprotected={1: -6, 4: b"01"}, ciphertext=b"xxxxxx")],
             )
             pytest.fail("encode should fail.")
-        assert "The ciphertext in  the recipients for direct encryption mode must be a zero-length byte string." in str(
+        assert "The ciphertext in the recipients for direct encryption mode must be a zero-length byte string." in str(
             err.value
         )
+
+    def test_cose_encode_for_mac_with_key_wrap_mode_with_protected_header(self):
+
+        # mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+        wrapping_key = COSEKey.from_symmetric_key(alg="A128KW", kid="our-secret")
+        with pytest.raises(ValueError) as err:
+            Recipient.new(protected={"alg": "A128KW"}, unprotected={"kid": "our-secret"}, sender_key=wrapping_key)
+        assert "The protected header must be a zero-length string in key wrap mode with an AE algorithm." in str(err.value)
+
+    def test_cose_encode_for_mac_with_ecdh_es_hkdf_256_without_multiple_recipients(self):
+        with open(key_path("public_key_es256.pem")) as key_file:
+            public_key = COSEKey.from_pem(key_file.read(), kid="01")
+        recipient = Recipient.new(
+            unprotected={"alg": "ECDH-ES+HKDF-256"},
+            recipient_key=public_key,
+            context={"alg": "A128GCM"},
+        )
+        ctx = COSE.new()
+        with pytest.raises(ValueError) as err:
+            ctx.encode(b"This is the content.", recipients=[recipient, recipient])
+            pytest.fail("encode should fail.")
+        assert "There must be only one recipient in direct key agreement mode." in str(err.value)

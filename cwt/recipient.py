@@ -7,6 +7,7 @@ from .const import (  # COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP,
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT,
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP,
     COSE_ALGORITHMS_HPKE,
+    COSE_ALGORITHMS_KEY_WRAP,
     COSE_ALGORITHMS_RECIPIENT,
 )
 from .cose_key import COSEKey
@@ -67,12 +68,14 @@ class Recipient:
                 raise ValueError("Recipients for direct encryption mode don't have recipients.")
             if len(ciphertext) > 0:
                 raise ValueError(
-                    "The ciphertext in  the recipients for direct encryption mode must be a zero-length byte string."
+                    "The ciphertext in the recipients for direct encryption mode must be a zero-length byte string."
                 )
 
         if alg == -6:
             return DirectKey(p, u)
-        if alg in [-3, -4, -5]:
+        if alg in COSE_ALGORITHMS_KEY_WRAP.values():
+            if len(protected) > 0:
+                raise ValueError("The protected header must be a zero-length string in key wrap mode with an AE algorithm.")
             if not sender_key:
                 sender_key = COSEKey.from_symmetric_key(alg=alg)
             return AESKeyWrap(u, ciphertext, recipients, sender_key)
