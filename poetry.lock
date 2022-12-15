@@ -705,7 +705,7 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "tox"
-version = "4.0.8"
+version = "4.0.11"
 description = "tox is a generic virtualenv management and test command line tool"
 category = "dev"
 optional = false
@@ -786,7 +786,7 @@ docs = ["Sphinx", "sphinx-autodoc-typehints", "sphinx-rtd-theme"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "ae2de5f859c1834bc1bd610fca281d9d1c7dd997d7c33e188a9d7c92c77ee0a4"
+content-hash = "400be5ab5eb5238ca6c8ce7579ae98953a17d786d4f06ffa439f01b95053d6b3"
 
 [metadata.files]
 alabaster = [
@@ -1270,8 +1270,8 @@ tomli = [
     {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
 ]
 tox = [
-    {file = "tox-4.0.8-py3-none-any.whl", hash = "sha256:da0899154e8b38e807a74adb53c331efc05a5790e4a717f9bd2e7c80c8e04c48"},
-    {file = "tox-4.0.8.tar.gz", hash = "sha256:4f282bcdea8abab26ccdfccbdd770899bb9b660b6e0a68814da83b5401ea41d6"},
+    {file = "tox-4.0.11-py3-none-any.whl", hash = "sha256:9521447370a375279139e9f80d7ba4ff88bd0407b744e63a33c3bf564cc0f19a"},
+    {file = "tox-4.0.11.tar.gz", hash = "sha256:695fc21a276e6a4f11bd6ab25345c1e617353b23195335369365eb0b72129b2a"},
 ]
 typing-extensions = [
     {file = "typing_extensions-4.4.0-py3-none-any.whl", hash = "sha256:16fa4864408f655d35ec496218b85f79b3437c829e93320c7c9215ccfd92489e"},
