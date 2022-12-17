@@ -1,6 +1,6 @@
 # Python CWT - A Python implementation of CWT/COSE
 
-[![PyPI version](https://badge.fury.io/py/svg)](https://badge.fury.io/py/cwt)
+[![PyPI version](https://badge.fury.io/py/cwt.svg)](https://badge.fury.io/py/cwt)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/cwt)
 [![Documentation Status](https://readthedocs.org/projects/python-cwt/badge/?version=latest)](https://python-readthedocs.io/en/latest/?badge=latest)
 ![Github CI](https://github.com/dajiaji/python-cwt/actions/workflows/python-package.yml/badge.svg)
