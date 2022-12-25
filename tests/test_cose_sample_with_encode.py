@@ -2,7 +2,7 @@ from secrets import token_bytes
 
 import pytest
 
-from cwt import COSE, COSEKey, Recipient, Signer
+from cwt import COSE, COSEKey, COSEMessage, Recipient, Signer
 
 
 class TestCOSESampleWithEncode:
@@ -40,6 +40,48 @@ class TestCOSESampleWithEncode:
         assert b"Hello world!" == recipient.decode(encoded3, mac_key)
 
         assert encoded == encoded2 == encoded3
+
+    def test_cose_usage_examples_cose_mac0_countersignature(self):
+        mac_key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
+
+        # The sender side:
+        sender = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        encoded = sender.encode(b"Hello world!", mac_key)
+
+        # The notary side:
+        notary = Signer.from_jwk(
+            {
+                "kid": "01",
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "alg": "EdDSA",
+                "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+                "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
+            },
+        )
+        msg = COSEMessage.loads(encoded)
+        msg.sign(notary, countersignature=True)
+        countersigned = msg.dumps()
+
+        # The recipient side:
+        pub_key = COSEKey.from_jwk(
+            {
+                "kid": "01",
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "alg": "EdDSA",
+                "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+            },
+        )
+        recipient = COSE.new()
+        assert b"Hello world!" == recipient.decode(countersigned, mac_key)
+        try:
+            msg = COSEMessage.loads(countersigned)
+            countersignature = msg.verify(pub_key, countersignature=True)
+            assert countersignature.protected == bytes.fromhex("A10127")  # alg: "EdDSA"
+            assert countersignature.unprotected.get("kid", b"") == b"01"
+        except Exception as err:
+            pytest.fail(f"failed to verify: {err.value}")
 
     def test_cose_usage_examples_cose_mac_direct(self):
         mac_key = COSEKey.generate_symmetric_key(alg="HS512", kid="01")

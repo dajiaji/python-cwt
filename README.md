@@ -72,6 +72,8 @@ See [Documentation](https://python-readthedocs.io/en/stable/) for details of the
 - [Installation](#installation)
 - [COSE Usage Examples](#cose-usage-examples)
     - [COSE MAC0](#cose-mac0)
+        - [MAC with HMAC with SHA256](#mac-with-hmac-with-sha256)
+        - [Countersign (MAC0)](#countersign-mac0)
     - [COSE MAC](#cose-mac)
         - [Direct Key Distribution](#direct-key-distribution-for-mac)
         - [Direct Key with KDF](#direct-key-with-kdf-for-mac)
@@ -124,6 +126,8 @@ See [API Reference](https://python-readthedocs.io/en/stable/api.html#cwt.COSE).
 
 ### COSE MAC0
 
+#### MAC with HMAC with SHA256
+
 Create a COSE MAC0 message, verify and decode it as follows:
 
 ```py
@@ -168,7 +172,7 @@ recipient = COSE.new()
 assert b"Hello world!" == recipient.decode(encoded, mac_key)
 ```
 
-`alg_auto_inclusion` and `kid_auto_inclusion` can be used to omit to specify `alg` and `kid` header parameterss respectively as follows:
+`alg_auto_inclusion` and `kid_auto_inclusion` can be used to omit to specify `alg` and `kid` header parameters respectively as follows:
 
 ```py
 from cwt import COSE, COSEKey
@@ -189,6 +193,56 @@ recipient = COSE.new()
 assert b"Hello world!" == recipient.decode(encoded, mac_key)
 ```
 
+#### Countersign (MAC0)
+
+`python-cwt` supports [RFC9338: COSE Countersignatures](https://www.rfc-editor.org/rfc/rfc9338.html).
+The notary below adds a countersignature to a MACed COSE message.
+The recipinet has to call `verify(countersignature=True)` to verify the countersignature explicitly.
+
+```py
+from cwt import COSE, COSEKey, COSEMessage
+
+mac_key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
+
+# The sender side:
+sender = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+encoded = sender.encode(b"Hello world!", mac_key)
+
+# The notary side:
+notary = Signer.from_jwk(
+    {
+        "kid": "01",
+        "kty": "OKP",
+        "crv": "Ed25519",
+        "alg": "EdDSA",
+        "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+        "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
+    },
+)
+msg = COSEMessage.loads(encoded)
+msg.sign(notary, countersignature=True)
+countersigned = msg.dumps()
+
+# The recipient side:
+pub_key = COSEKey.from_jwk(
+    {
+        "kid": "01",
+        "kty": "OKP",
+        "crv": "Ed25519",
+        "alg": "EdDSA",
+        "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+    },
+)
+recipient = COSE.new()
+assert b"Hello world!" == recipient.decode(countersigned, mac_key)
+try:
+    msg = COSEMessage.loads(countersigned)
+    countersignature = msg.verify(pub_key, countersignature=True)
+    assert countersignature.protected == bytes.fromhex("A10127")  # alg: "EdDSA"
+    assert countersignature.unprotected.get("kid", b"") == b"01"
+except Exception as err:
+    print(f"failed to verify: {err.value}")
+```
 
 ### COSE MAC
 
