@@ -109,8 +109,9 @@ class TestCOSESample:
 
     def test_cose_usage_examples_cose_mac_aes_key_wrap(self):
 
-        # The sender side:
         mac_key = COSEKey.generate_symmetric_key(alg="HS512")
+
+        # The sender side:
         enc_key = COSEKey.from_jwk(
             {
                 "kty": "oct",
@@ -173,8 +174,9 @@ class TestCOSESample:
 
     def test_cose_usage_examples_cose_mac_ecdh_ss_a128kw(self):
 
-        # The sender side:
         mac_key = COSEKey.generate_symmetric_key(alg="HS256")
+
+        # The sender side:
         priv_key = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -224,8 +226,9 @@ class TestCOSESample:
 
     def test_cose_usage_examples_cose_mac_ecdh_aes_key_wrap(self):
 
-        # The sender side:
         mac_key = COSEKey.generate_symmetric_key(alg="HS256")
+
+        # The sender side:
         pub_key = COSEKey.from_jwk(
             {
                 "kty": "EC",

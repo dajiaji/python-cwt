@@ -53,8 +53,9 @@ assert b"Hello world!" == recipient.decode(encoded, mac_key)
 import cwt
 from cwt import COSEKey
 
-# The sender side:
 mac_key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
+
+# The sender side:
 token = encode({1: "coaps://as.example", 2: "dajiaji", 7: b"123"}, mac_key)
 
 # The recipient side:
@@ -146,7 +147,7 @@ assert b"Hello world!" == recipient.decode(encoded, mac_key)
 
 Following two samples are other ways of writing the above example.
 
-CBOR object can be used for `protected` and `unprotected` headers as follows:
+CBOR object can be used for `protected` and `unprotected` header parameters as follows:
 
 ```py
 from cwt import COSE, COSEKey
@@ -167,7 +168,7 @@ recipient = COSE.new()
 assert b"Hello world!" == recipient.decode(encoded, mac_key)
 ```
 
-`alg_auto_inclusion` and `kid_auto_inclusion` can be used to omit to specify `alg` and `kid` headers respectively as follows:
+`alg_auto_inclusion` and `kid_auto_inclusion` can be used to omit to specify `alg` and `kid` header parameterss respectively as follows:
 
 ```py
 from cwt import COSE, COSEKey
@@ -250,8 +251,6 @@ The AES key wrap algorithm can be used to wrap a MAC key as follows:
 ```py
 from cwt import COSE, COSEKey, Recipient
 
-# The sender side:
-mac_key = COSEKey.generate_symmetric_key(alg="HS512")
 enc_key = COSEKey.from_jwk(
     {
         "kty": "oct",
@@ -260,6 +259,9 @@ enc_key = COSEKey.from_jwk(
         "k": "hJtXIZ2uSN5kbQfbtTNWbg",  # A shared wrapping key
     }
 )
+
+# The sender side:
+mac_key = COSEKey.generate_symmetric_key(alg="HS512")
 r = Recipient.new(unprotected={"alg": "A128KW"}, sender_key=enc_key)
 sender = COSE.new(alg_auto_inclusion=True)
 encoded = sender.encode(b"Hello world!", mac_key, recipients=[r])
@@ -531,6 +533,9 @@ key distribution method.
 ```py
 from cwt import COSE, COSEKey, Recipient
 
+enc_key = COSEKey.generate_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
+
+# The sender side:
 nonce = enc_key.generate_nonce()
 r = Recipient.new(unprotected={"alg": "direct"})
 # r = Recipient.new(unprotected={1: -6}) # is also acceptable.
@@ -540,7 +545,9 @@ encoded = sender.encode(
     b"Hello world!",
     enc_key,
     protected={"alg": "ChaCha20/Poly1305"},
+    # protected={1: 24},  # is also acceptable.
     unprotected={"kid": enc_key.kid, "iv": nonce},
+    # unprotected={4: enc_key.kid, 5: nonce},  # is also acceptable.
     recipients=[r],
 )
 
@@ -585,10 +592,6 @@ The AES key wrap algorithm can be used to wrap a MAC key as follows:
 ```py
 from cwt import COSE, COSEKey, Recipient
 
-# A key to wrap
-enc_key = COSEKey.generate_symmetric_key(alg="ChaCha20/Poly1305")
-
-# The sender side:
 wrapping_key = COSEKey.from_jwk(
     {
         "kty": "oct",
@@ -597,6 +600,9 @@ wrapping_key = COSEKey.from_jwk(
         "k": "hJtXIZ2uSN5kbQfbtTNWbg",  # A shared wrapping key
     }
 )
+
+# The sender side:
+enc_key = COSEKey.generate_symmetric_key(alg="ChaCha20/Poly1305")
 r = Recipient.new(
     unprotected={"alg": "A128KW"},
     sender_key=wrapping_key,
