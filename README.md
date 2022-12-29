@@ -80,9 +80,11 @@ See [Documentation](https://python-readthedocs.io/en/stable/) for details of the
         - [AES Key Wrap](#aes-key-wrap-for-mac)
         - [Direct key Agreement](#direct-key-agreement-for-mac)
         - [Key Agreement with Key Wrap](#key-agreement-with-key-wrap-for-mac)
+        - [Countersign (MAC)](#countersign-mac)
         - [COSE-HPKE (MAC)](#cose-hpke-mac)
     - [COSE Encrypt0](#cose-encrypt0)
         - [Encryption with ChaCha20/Poly1305](#encryption-with-chacha20-poly1305)
+        - [Countersign (Encrypt0)](#countersign-encrypt0)
         - [COSE-HPKE (Encrypt0)](#cose-hpke-encrypt0)
     - [COSE Encrypt](#cose-encrypt)
         - [Direct Key Distribution](#direct-key-distribution-for-encryption)
@@ -90,9 +92,12 @@ See [Documentation](https://python-readthedocs.io/en/stable/) for details of the
         - [AES Key Wrap](#aes-key-wrap-for-encryption)
         - [Direct key Agreement](#direct-key-agreement-for-encryption)
         - [Key Agreement with Key Wrap](#key-agreement-with-key-wrap-for-encryption)
+        - [Countersign (Encrypt)](#countersign-encrypt)
         - [COSE-HPKE (Encrypt)](#cose-hpke-encrypt)
     - [COSE Signature1](#cose-signature1)
+        - [Countersign (Sign1)](#countersign-sign1)
     - [COSE Signature](#cose-signature)
+        - [Countersign (Sign)](#countersign-sign)
 - [CWT Usage Examples](#cwt-usage-examples)
     - [MACed CWT](#maced-cwt)
     - [Signed CWT](#signed-cwt)
@@ -197,7 +202,7 @@ assert b"Hello world!" == recipient.decode(encoded, mac_key)
 
 `python-cwt` supports [RFC9338: COSE Countersignatures](https://www.rfc-editor.org/rfc/rfc9338.html).
 The notary below adds a countersignature to a MACed COSE message.
-The recipinet has to call `verify(countersignature=True)` to verify the countersignature explicitly.
+The recipinet has to call `counterverify` to verify the countersignature explicitly.
 
 ```py
 from cwt import COSE, COSEKey, COSEMessage
@@ -219,9 +224,7 @@ notary = Signer.from_jwk(
         "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
     },
 )
-msg = COSEMessage.loads(encoded)
-msg.sign(notary, countersignature=True)
-countersigned = msg.dumps()
+countersigned = COSEMessage.loads(encoded).countersign(notary).dumps()
 
 # The recipient side:
 pub_key = COSEKey.from_jwk(
@@ -236,12 +239,12 @@ pub_key = COSEKey.from_jwk(
 recipient = COSE.new()
 assert b"Hello world!" == recipient.decode(countersigned, mac_key)
 try:
-    msg = COSEMessage.loads(countersigned)
-    countersignature = msg.verify(pub_key, countersignature=True)
-    assert countersignature.protected == bytes.fromhex("A10127")  # alg: "EdDSA"
-    assert countersignature.unprotected.get("kid", b"") == b"01"
+    sig = COSEMessage.loads(countersigned).counterverify(pub_key)
 except Exception as err:
-    print(f"failed to verify: {err.value}")
+    pytest.fail(f"failed to verify: {err}")
+countersignature = COSEMessage.from_cose_signature(sig)
+assert countersignature.protected[1] == -8  # alg: "EdDSA"
+assert countersignature.unprotected[4] == b"01"  # kid: b"01"
 ```
 
 ### COSE MAC
@@ -424,6 +427,58 @@ priv_key = COSEKey.from_jwk(
 assert b"Hello world!" == recipient.decode(encoded, priv_key, context={"alg": "HS256"})
 ```
 
+#### Countersign (MAC)
+
+`python-cwt` supports [RFC9338: COSE Countersignatures](https://www.rfc-editor.org/rfc/rfc9338.html).
+The notary below adds a countersignature to a MACed COSE message.
+The recipinet has to call `counterverify` to verify the countersignature explicitly.
+
+
+```py
+from cwt import COSE, COSEKey, COSEMessage, Recipient
+
+mac_key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
+
+# The sender side:
+r = Recipient.new(unprotected={"alg": "direct", "kid": mac_key.kid})
+sender = COSE.new()
+encoded = sender.encode(b"Hello world!", mac_key, protected={"alg": "HS256"}, recipients=[r])
+
+# The notary side:
+notary = Signer.from_jwk(
+    {
+        "kid": "01",
+        "kty": "OKP",
+        "crv": "Ed25519",
+        "alg": "EdDSA",
+        "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+        "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
+    },
+)
+countersigned = COSEMessage.loads(encoded).countersign(notary).dumps()
+
+# The recipient side:
+pub_key = COSEKey.from_jwk(
+    {
+        "kid": "01",
+        "kty": "OKP",
+        "crv": "Ed25519",
+        "alg": "EdDSA",
+        "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+    },
+)
+recipient = COSE.new()
+assert b"Hello world!" == recipient.decode(countersigned, mac_key)
+try:
+    sig = COSEMessage.loads(countersigned).counterverify(pub_key)
+except Exception as err:
+    pytest.fail(f"failed to verify: {err}")
+countersignature = COSEMessage.from_cose_signature(sig)
+assert countersignature.protected[1] == -8  # alg: "EdDSA"
+assert countersignature.unprotected[4] == b"01"  # kid: b"01"
+```
+
+
 #### COSE-HPKE (MAC)
 
 **Experimental Implementation. DO NOT USE for production.**
@@ -522,6 +577,17 @@ encoded = sender.encode(
 # The recipient side:
 recipient = COSE.new()
 assert b"Hello world!" == recipient.decode(encoded, enc_key)
+```
+
+#### Countersign (Encrypt0)
+
+`python-cwt` supports [RFC9338: COSE Countersignatures](https://www.rfc-editor.org/rfc/rfc9338.html).
+The notary below adds a countersignature to an encrypted COSE message.
+The recipinet has to call `counterverify` to verify the countersignature explicitly.
+
+```py
+from cwt import COSE, COSEKey, COSEMessage
+
 ```
 
 #### COSE-HPKE (Encrypt0)
@@ -773,6 +839,17 @@ r_priv_key = COSEKey.from_jwk(
 assert b"Hello world!" == recipient.decode(encoded, r_priv_key, context={"alg": "A128GCM"})
 ```
 
+#### Countersign (Encrypt)
+
+`python-cwt` supports [RFC9338: COSE Countersignatures](https://www.rfc-editor.org/rfc/rfc9338.html).
+The notary below adds a countersignature to an encrypted COSE message.
+The recipinet has to call `counterverify` to verify the countersignature explicitly.
+
+```py
+from cwt import COSE, COSEKey, COSEMessage
+
+```
+
 #### COSE-HPKE (Encrypt)
 
 **Experimental Implementation. DO NOT USE for production.**
@@ -867,6 +944,17 @@ recipient = COSE.new()
 assert b"Hello world!" == recipient.decode(encoded, pub_key)
 ```
 
+#### Countersign (Sign1)
+
+`python-cwt` supports [RFC9338: COSE Countersignatures](https://www.rfc-editor.org/rfc/rfc9338.html).
+The notary below adds a countersignature to a signed COSE message.
+The recipinet has to call `counterverify` to verify the countersignature explicitly.
+
+```py
+from cwt import COSE, COSEKey, COSEMessage
+
+```
+
 ### COSE Signature
 
 Create a COSE Signature message, verify and decode it as follows:
@@ -900,6 +988,17 @@ pub_key = COSEKey.from_jwk(
     }
 )
 assert b"Hello world!" == recipient.decode(encoded, pub_key)
+```
+
+#### Countersign (Sign)
+
+`python-cwt` supports [RFC9338: COSE Countersignatures](https://www.rfc-editor.org/rfc/rfc9338.html).
+The notary below adds a countersignature to a signed COSE message.
+The recipinet has to call `counterverify` to verify the countersignature explicitly.
+
+```py
+from cwt import COSE, COSEKey, COSEMessage
+
 ```
 
 ## CWT Usage Examples

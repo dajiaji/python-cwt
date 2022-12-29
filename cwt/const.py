@@ -1,3 +1,25 @@
+from .enums import COSEType
+
+COSE_TAG_TO_TYPE = {
+    16: COSEType.ENCRYPT0,
+    96: COSEType.ENCRYPT,
+    17: COSEType.MAC0,
+    97: COSEType.MAC,
+    18: COSEType.SIGN1,
+    98: COSEType.SIGN,
+    19: COSEType.COUNTERSIGNATURE,
+}
+
+COSE_TYPE_TO_TAG = {
+    COSEType.ENCRYPT0: 16,
+    COSEType.ENCRYPT: 96,
+    COSEType.MAC0: 17,
+    COSEType.MAC: 97,
+    COSEType.SIGN1: 18,
+    COSEType.SIGN: 98,
+    COSEType.COUNTERSIGNATURE: 19,
+}
+
 # Registered CWT Claims
 CWT_CLAIM_NAMES = {
     "hcert": -260,  # map
@@ -46,9 +68,11 @@ COSE_HEADER_PARAMETERS = {
     "iv": 5,
     "IV": 5,
     "Partial IV": 6,
-    "counter signature": 7,
+    "CounterSignature": 7,
     "CounterSignature0": 9,
     "kid context": 10,
+    "CounterSignatureV2": 11,
+    "CounterSignature0V2": 12,
     "x5bag": 32,
     "x5c": 33,
     "x5chain": 33,
