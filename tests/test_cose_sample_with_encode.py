@@ -1103,4 +1103,3 @@ class TestCOSESampleWithEncode:
         countersignature = COSEMessage.from_cose_signature(sig)
         assert countersignature.protected[1] == -8  # alg: "EdDSA"
         assert countersignature.unprotected[4] == b"01"  # kid: b"01"
-
