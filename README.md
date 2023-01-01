@@ -9,8 +9,10 @@
 
 Python CWT is a CBOR Web Token (CWT) and CBOR Object Signing and Encryption (COSE)
 implementation compliant with:
+- [RFC9052: CBOR Object Signing and Encryption (COSE): Structures and Process](https://www.rfc-editor.org/rfc/rfc9052.html)
+- [RFC9053: CBOR Object Signing and Encryption (COSE): Initial Algorithms](https://www.rfc-editor.org/rfc/rfc9053.html)
+- [RFC9338: CBOR Object Signing and Encryption (COSE): Countersignatures](https://www.rfc-editor.org/rfc/rfc9338.html)
 - [RFC8392: CWT (CBOR Web Token)](https://tools.ietf.org/html/rfc8392)
-- [RFC8152: COSE (CBOR Object Signing and Encryption)](https://tools.ietf.org/html/rfc8152)
 - and related various specifications. See [Referenced Specifications](#referenced-specifications).
 
 It is designed to make users who already know about [JWS](https://tools.ietf.org/html/rfc7515)/[JWE](https://tools.ietf.org/html/rfc7516)/[JWT](https://tools.ietf.org/html/rfc7519)
@@ -1656,11 +1658,14 @@ See [Documentation](https://python-readthedocs.io/en/stable/algorithms.html).
 
 Python CWT is (partially) compliant with following specifications:
 
-- [RFC8152: CBOR Object Signing and Encryption (COSE)](https://tools.ietf.org/html/rfc8152)
-- [RFC8230: Using RSA Algorithms with COSE Messages](https://tools.ietf.org/html/rfc8230)
-- [RFC8392: CBOR Web Token (CWT)](https://tools.ietf.org/html/rfc8392)
-- [RFC8747: Proof-of-Possession Key Semantics for CBOR Web Tokens (CWTs)](https://tools.ietf.org/html/rfc8747)
+- [RFC9052: CBOR Object Signing and Encryption (COSE): Structures and Process](https://www.rfc-editor.org/rfc/rfc9052.html)
+- [RFC9053: CBOR Object Signing and Encryption (COSE): Initial Algorithms](https://www.rfc-editor.org/rfc/rfc9053.html)
+- [RFC9338: CBOR Object Signing and Encryption (COSE): Countersignatures](https://www.rfc-editor.org/rfc/rfc9338.html)
 - [RFC8812: COSE and JOSE Registrations for Web Authentication (WebAuthn) Algorithms](https://tools.ietf.org/html/rfc8812)
+- [RFC8747: Proof-of-Possession Key Semantics for CBOR Web Tokens (CWTs)](https://tools.ietf.org/html/rfc8747)
+- [RFC8392: CWT (CBOR Web Token)](https://tools.ietf.org/html/rfc8392)
+- [RFC8230: Using RSA Algorithms with COSE Messages](https://tools.ietf.org/html/rfc8230)
+- [RFC8152: CBOR Object Signing and Encryption (COSE)](https://tools.ietf.org/html/rfc8152)
 - [Electronic Health Certificate Specification](https://github.com/ehn-dcc-development/hcert-spec/blob/main/hcert_spec.md)
 - [Technical Specifications for Digital Green Certificates Volume 1](https://ec.europa.eu/health/sites/default/files/ehealth/docs/digital-green-certificates_v1_en.pdf)
 
