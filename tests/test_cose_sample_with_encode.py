@@ -1032,6 +1032,35 @@ class TestCOSESampleWithEncode:
         sender = COSE.new()
         encoded = sender.encode(b"Hello world!", signers=[signer])
 
+        # The recipient side:
+        recipient = COSE.new()
+        pub_key = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+        assert b"Hello world!" == recipient.decode(encoded, pub_key)
+
+    def test_cose_usage_examples_cose_signature_countersignature(self):
+
+        # The sender side:
+        signer = Signer.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            },
+        )
+        sender = COSE.new()
+        encoded = sender.encode(b"Hello world!", signers=[signer])
+
         # The notary side:
         notary = Signer.from_jwk(
             {
@@ -1075,31 +1104,3 @@ class TestCOSESampleWithEncode:
         assert countersignature.protected[1] == -8  # alg: "EdDSA"
         assert countersignature.unprotected[4] == b"01"  # kid: b"01"
 
-    def test_cose_usage_examples_cose_signature_countersignature(self):
-
-        # The sender side:
-        signer = Signer.from_jwk(
-            {
-                "kty": "EC",
-                "kid": "01",
-                "crv": "P-256",
-                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
-                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
-                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
-            },
-        )
-        sender = COSE.new()
-        encoded = sender.encode(b"Hello world!", signers=[signer])
-
-        # The recipient side:
-        recipient = COSE.new()
-        pub_key = COSEKey.from_jwk(
-            {
-                "kty": "EC",
-                "kid": "01",
-                "crv": "P-256",
-                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
-                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
-            }
-        )
-        assert b"Hello world!" == recipient.decode(encoded, pub_key)
