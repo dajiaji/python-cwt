@@ -461,4 +461,3 @@ class TestCOSEMessage:
             COSEMessage.loads(countersigned).counterverify(pub_key)
             pytest.fail("counterverify() should not fail.")
         assert "Failed to verify." in str(err.value)
-
