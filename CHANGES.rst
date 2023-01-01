@@ -4,6 +4,24 @@ Changes
 Unreleased
 ----------
 
+Version 2.2.0
+-------------
+
+Released 2023-01-01
+
+- Add support for countersignatures. `#323 <https://github.com/dajiaji/python-cwt/pull/323>`__
+- Remove Python 3.7 from CI temporarilly. `#323 <https://github.com/dajiaji/python-cwt/pull/323>`__
+- Enhance COSE message validation. `#300 <https://github.com/dajiaji/python-cwt/pull/300>`__
+- Add test and sample for COSE-HPKE MAC. `#297 <https://github.com/dajiaji/python-cwt/pull/297>`__
+- Add Python 3.11 to CI. `#296 <https://github.com/dajiaji/python-cwt/pull/296>`__
+- Update dependencies.
+    - Bump cbor2 from 5.4.6. `#302 <https://github.com/dajiaji/python-cwt/pull/302>`__
+- Update dev dependencies.
+    - Bump tox to 4.1.2. `#323 <https://github.com/dajiaji/python-cwt/pull/323>`__
+    - Bump pre-commit/isort to 5.11.3. `#311 <https://github.com/dajiaji/python-cwt/pull/311>`__
+    - Bump pre-commit/black to 22.12.0. `#306 <https://github.com/dajiaji/python-cwt/pull/306>`__
+    - Bump certifi to 2022.12.7. `#303 <https://github.com/dajiaji/python-cwt/pull/303>`__
+
 Version 2.1.0
 -------------
 
