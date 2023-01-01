@@ -2,7 +2,7 @@
 
 [![PyPI version](https://badge.fury.io/py/cwt.svg)](https://badge.fury.io/py/cwt)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/cwt)
-[![Documentation Status](https://readthedocs.org/projects/python-cwt/badge/?version=latest)](https://python-readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/python-cwt/badge/?version=latest)](https://python-cwt.readthedocs.io/en/latest/?badge=latest)
 ![Github CI](https://github.com/dajiaji/python-cwt/actions/workflows/python-package.yml/badge.svg)
 [![codecov](https://codecov.io/gh/dajiaji/python-cwt/branch/main/graph/badge.svg?token=QN8GXEYEP3)](https://codecov.io/gh/dajiaji/python-cwt)
 
@@ -67,7 +67,7 @@ decoded = decode(token, mac_key)
 
 Various usage examples are shown in this README.
 
-See [Documentation](https://python-readthedocs.io/en/stable/) for details of the APIs.
+See [Documentation](https://python-cwt.readthedocs.io/en/stable/) for details of the APIs.
 
 ## Index
 
@@ -129,7 +129,7 @@ pip install cwt
 
 Followings are typical and basic examples which encode various types of COSE messages and decode them.
 
-See [API Reference](https://python-readthedocs.io/en/stable/api.html#cwt.COSE).
+See [API Reference](https://python-cwt.readthedocs.io/en/stable/api.html#cwt.COSE).
 
 ### COSE MAC0
 
@@ -1205,10 +1205,10 @@ assert countersignature.unprotected[4] == b"01"  # kid: b"01"
 
 Followings are typical and basic examples which encode various types of CWTs, verify and decode them.
 
-[CWT API](https://python-readthedocs.io/en/stable/api.html) in the examples are built
-on top of [COSE API](https://python-readthedocs.io/en/stable/api.html#cwt.COSE).
+[CWT API](https://python-cwt.readthedocs.io/en/stable/api.html) in the examples are built
+on top of [COSE API](https://python-cwt.readthedocs.io/en/stable/api.html#cwt.COSE).
 
-See [API Reference](https://python-readthedocs.io/en/stable/api.html).
+See [API Reference](https://python-cwt.readthedocs.io/en/stable/api.html).
 
 ### MACed CWT
 
@@ -1254,7 +1254,7 @@ decoded = decode(token, key)
 ```
 
 MAC algorithms other than `HS256` are listed in
-[Supported COSE Algorithms](https://python-readthedocs.io/en/stable/algorithms.html).
+[Supported COSE Algorithms](https://python-cwt.readthedocs.io/en/stable/algorithms.html).
 
 ### Signed CWT
 
@@ -1316,7 +1316,7 @@ decoded = decode(token, public_key)
 ```
 
 Signing algorithms other than `Ed25519` are listed in
-[Supported COSE Algorithms](https://python-readthedocs.io/en/stable/algorithms.html).
+[Supported COSE Algorithms](https://python-cwt.readthedocs.io/en/stable/algorithms.html).
 
 ### Encrypted CWT
 
@@ -1332,7 +1332,7 @@ decoded = decode(token, enc_key)
 ```
 
 Encryption algorithms other than `ChaCha20/Poly1305` are listed in
-[Supported COSE Algorithms](https://python-readthedocs.io/en/stable/algorithms.html).
+[Supported COSE Algorithms](https://python-cwt.readthedocs.io/en/stable/algorithms.html).
 
 ### Nested CWT
 
@@ -1545,7 +1545,7 @@ extracted_pop_key = COSEKey.new(decoded.cnf)  # = raw[8][1]
 extracted_pop_key.verify(msg, sig)
 ```
 
-[Usage Examples](https://python-readthedocs.io/en/stable/cwt_usage.html#cwt-with-pop-key)
+[Usage Examples](https://python-cwt.readthedocs.io/en/stable/cwt_usage.html#cwt-with-pop-key)
 shows other examples which use other confirmation methods for PoP keys.
 
 ### CWT with Private CA
@@ -1644,15 +1644,15 @@ claims = Claims.new(decoded)
 
 ## API Reference
 
-See [Documentation](https://python-readthedocs.io/en/stable/api.html).
+See [Documentation](https://python-cwt.readthedocs.io/en/stable/api.html).
 
 ## Supported CWT Claims
 
-See [Documentation](https://python-readthedocs.io/en/stable/claims.html).
+See [Documentation](https://python-cwt.readthedocs.io/en/stable/claims.html).
 
 ## Supported COSE Algorithms
 
-See [Documentation](https://python-readthedocs.io/en/stable/algorithms.html).
+See [Documentation](https://python-cwt.readthedocs.io/en/stable/algorithms.html).
 
 ## Referenced Specifications
 
