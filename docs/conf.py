@@ -50,6 +50,8 @@ nitpick_ignore = [
     ("py:class", "cwt.recipient.Recipient"),
     ("py:class", "CBORTag"),
     ("py:class", "cwt.claims.Claims"),
+    ("py:class", "enum.IntEnum"),
+    ("py:class", "cwt.cose_message.Self"),
 ]
 
 # Add any paths that contain templates here, relative to this directory.
