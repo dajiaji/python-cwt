@@ -11,7 +11,7 @@ Python CWT is a CBOR Web Token (CWT) and CBOR Object Signing and Encryption (COS
 implementation compliant with:
 - [RFC9052: CBOR Object Signing and Encryption (COSE): Structures and Process](https://www.rfc-editor.org/rfc/rfc9052.html)
 - [RFC9053: CBOR Object Signing and Encryption (COSE): Initial Algorithms](https://www.rfc-editor.org/rfc/rfc9053.html)
-- [RFC9338: CBOR Object Signing and Encryption (COSE): Countersignatures](https://www.rfc-editor.org/rfc/rfc9338.html)
+- [RFC9338: CBOR Object Signing and Encryption (COSE): Countersignatures](https://www.rfc-editor.org/rfc/rfc9338.html) - experimental
 - [RFC8392: CWT (CBOR Web Token)](https://tools.ietf.org/html/rfc8392)
 - and related various specifications. See [Referenced Specifications](#referenced-specifications).
 
@@ -97,8 +97,10 @@ See [Documentation](https://python-cwt.readthedocs.io/en/stable/) for details of
         - [Countersign (Encrypt)](#countersign-encrypt)
         - [COSE-HPKE (Encrypt)](#cose-hpke-encrypt)
     - [COSE Signature1](#cose-signature1)
+        - [Sign1 with EC P-256](#sign1-with-ec-p-256)
         - [Countersign (Sign1)](#countersign-sign1)
     - [COSE Signature](#cose-signature)
+        - [Sign with EC P-256](#sign-with-ec-p-256)
         - [Countersign (Sign)](#countersign-sign)
 - [CWT Usage Examples](#cwt-usage-examples)
     - [MACed CWT](#maced-cwt)
@@ -1000,6 +1002,8 @@ assert b"This is the content." == recipient.decode(encoded, rsk)
 
 ### COSE Signature1
 
+#### Sign1 with EC P-256
+
 Create a COSE Signature1 message, verify and decode it as follows:
 
 ```py
@@ -1100,6 +1104,8 @@ assert countersignature.unprotected[4] == b"01"  # kid: b"01"
 ```
 
 ### COSE Signature
+
+#### Sign with EC P-256
 
 Create a COSE Signature message, verify and decode it as follows:
 
