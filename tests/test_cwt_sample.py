@@ -327,7 +327,6 @@ class TestSample:
         assert 1 in decoded and decoded[1] == "coaps://as.example"
 
     def test_sample_readme_signed_cwt_ed25519_with_jwk(self):
-
         # The sender side:
         private_key = COSEKey.from_jwk(
             {
@@ -439,7 +438,6 @@ class TestSample:
         assert 1 in decoded and decoded[1] == "coaps://as.example"
 
     def test_sample_readme_cwt_with_pop_jwk(self):
-
         # issuer:
         with open(key_path("private_key_ed25519.pem")) as key_file:
             private_key = COSEKey.from_pem(key_file.read(), kid="issuer-01")
@@ -944,7 +942,6 @@ class TestSample:
         assert 1 in decoded and decoded[1] == "coap://as.example.com"
 
     def test_sample_hcert_testdata_AT_2DCode_raw_1(self):
-
         # A DSC(Document Signing Certificate) issued by a CSCA (Certificate Signing Certificate Authority).
         dsc = "-----BEGIN CERTIFICATE-----\nMIIBvTCCAWOgAwIBAgIKAXk8i88OleLsuTAKBggqhkjOPQQDAjA2MRYwFAYDVQQDDA1BVCBER0MgQ1NDQSAxMQswCQYDVQQGEwJBVDEPMA0GA1UECgwGQk1TR1BLMB4XDTIxMDUwNTEyNDEwNloXDTIzMDUwNTEyNDEwNlowPTERMA8GA1UEAwwIQVQgRFNDIDExCzAJBgNVBAYTAkFUMQ8wDQYDVQQKDAZCTVNHUEsxCjAIBgNVBAUTATEwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASt1Vz1rRuW1HqObUE9MDe7RzIk1gq4XW5GTyHuHTj5cFEn2Rge37+hINfCZZcozpwQKdyaporPUP1TE7UWl0F3o1IwUDAOBgNVHQ8BAf8EBAMCB4AwHQYDVR0OBBYEFO49y1ISb6cvXshLcp8UUp9VoGLQMB8GA1UdIwQYMBaAFP7JKEOflGEvef2iMdtopsetwGGeMAoGCCqGSM49BAMCA0gAMEUCIQDG2opotWG8tJXN84ZZqT6wUBz9KF8D+z9NukYvnUEQ3QIgdBLFSTSiDt0UJaDF6St2bkUQuVHW6fQbONd731/M4nc=\n-----END CERTIFICATE-----"
 

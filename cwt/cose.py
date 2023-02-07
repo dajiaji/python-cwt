@@ -291,7 +291,6 @@ class COSE(CBORProcessor):
         context: Optional[Union[Dict[str, Any], List[Any]]] = None,
         external_aad: bytes = b"",
     ) -> bytes:
-
         """
         Verifies and decodes COSE data.
 
@@ -650,7 +649,6 @@ class COSE(CBORProcessor):
         external_aad: bytes,
         out: str,
     ) -> bytes:
-
         b_protected = self._dumps(p) if p else b""
         ciphertext: bytes = b""
 
@@ -712,7 +710,6 @@ class COSE(CBORProcessor):
         external_aad: bytes,
         out: str,
     ) -> Union[bytes, CBORTag]:
-
         b_protected = self._dumps(p) if p else b""
 
         # MAC0
@@ -756,7 +753,6 @@ class COSE(CBORProcessor):
         external_aad: bytes,
         out: str,
     ) -> Union[bytes, CBORTag]:
-
         b_protected = self._dumps(p) if p else b""
 
         # Signature1

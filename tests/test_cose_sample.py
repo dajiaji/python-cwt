@@ -84,7 +84,6 @@ class TestCOSESample:
         assert encoded == encoded2 == encoded3
 
     def test_cose_usage_examples_cose_mac_direct_hkdf_sha_256(self):
-
         shared_material = token_bytes(32)
         shared_key = COSEKey.from_symmetric_key(shared_material, kid="01")
 
@@ -108,7 +107,6 @@ class TestCOSESample:
         assert b"Hello world!" == recipient.decode(encoded, shared_key, context={"alg": "HS256"})
 
     def test_cose_usage_examples_cose_mac_aes_key_wrap(self):
-
         mac_key = COSEKey.generate_symmetric_key(alg="HS512")
 
         # The sender side:
@@ -129,7 +127,6 @@ class TestCOSESample:
         assert b"Hello world!" == recipient.decode(encoded, enc_key)
 
     def test_cose_usage_examples_cose_mac_ecdh_direct_hkdf_p256(self):
-
         # The sender side:
         # The following key is provided by the recipient in advance.
         pub_key = COSEKey.from_jwk(
@@ -173,7 +170,6 @@ class TestCOSESample:
         assert b"Hello world!" == recipient.decode(encoded, priv_key, context={"alg": "HS256"})
 
     def test_cose_usage_examples_cose_mac_ecdh_ss_a128kw(self):
-
         mac_key = COSEKey.generate_symmetric_key(alg="HS256")
 
         # The sender side:
@@ -225,7 +221,6 @@ class TestCOSESample:
         assert b"Hello world!" == recipient.decode(encoded, priv_key, context={"alg": "HS256"})
 
     def test_cose_usage_examples_cose_mac_ecdh_aes_key_wrap(self):
-
         mac_key = COSEKey.generate_symmetric_key(alg="HS256")
 
         # The sender side:
@@ -379,7 +374,6 @@ class TestCOSESample:
         assert encoded == encoded2
 
     def test_cose_usage_examples_cose_encrypt_hpke(self):
-
         # The sender side:
         enc_key = COSEKey.generate_symmetric_key(alg="A128GCM")
         rpk = COSEKey.from_jwk(
@@ -429,7 +423,6 @@ class TestCOSESample:
         assert b"This is the content." == recipient.decode(encoded, rsk)
 
     def test_cose_usage_examples_cose_encrypt_hpke_with_1st_layer_hpke(self):
-
         # The sender side:
         # enc_key = COSEKey.generate_symmetric_key(alg="A128GCM")
         rpk = COSEKey.from_jwk(
@@ -476,7 +469,6 @@ class TestCOSESample:
         assert "key should be set." in str(err.value)
 
     def test_cose_usage_examples_cose_encrypt_hpke_with_nonce(self):
-
         # The sender side:
         # enc_key = COSEKey.generate_symmetric_key(alg="A128GCM")
         rpk = COSEKey.from_jwk(
@@ -523,7 +515,6 @@ class TestCOSESample:
         assert "key should be set." in str(err.value)
 
     def test_cose_usage_examples_cose_encrypt_direct_hkdf_sha_256(self):
-
         shared_material = token_bytes(32)
         shared_key = COSEKey.from_symmetric_key(shared_material, kid="01")
 
@@ -571,7 +562,6 @@ class TestCOSESample:
         assert b"Hello world!" == recipient.decode(encoded, wrapping_key)
 
     def test_cose_usage_examples_cose_encrypt_ecdh_direct_hkdf_p256(self):
-
         # The sender side:
         pub_key = COSEKey.from_jwk(
             {
@@ -609,7 +599,6 @@ class TestCOSESample:
         assert b"Hello world!" == recipient.decode(encoded, priv_key, context={"alg": "A128GCM"})
 
     def test_cose_usage_examples_cose_encrypt_ecdh_ss_a128kw(self):
-
         # The sender side:
         enc_key = COSEKey.generate_symmetric_key(alg="A128GCM")
         nonce = enc_key.generate_nonce()
@@ -662,7 +651,6 @@ class TestCOSESample:
         assert b"Hello world!" == recipient.decode(encoded, r_priv_key, context={"alg": "A128GCM"})
 
     def test_cose_usage_examples_cose_signature1(self):
-
         # The sender side:
         priv_key = COSEKey.from_jwk(
             {
@@ -709,7 +697,6 @@ class TestCOSESample:
         assert b"Hello world!" == recipient.decode(encoded3, pub_key)
 
     def test_cose_usage_examples_cose_encrypt_ecdh_aes_key_wrap(self):
-
         enc_key = COSEKey.generate_symmetric_key(alg="A128GCM")
 
         # The sender side:
@@ -751,7 +738,6 @@ class TestCOSESample:
         assert b"Hello world!" == recipient.decode(encoded, priv_key, context={"alg": "A128GCM"})
 
     def test_cose_usage_examples_cose_signature(self):
-
         # The sender side:
         signer = Signer.from_jwk(
             {

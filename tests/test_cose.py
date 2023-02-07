@@ -1079,7 +1079,6 @@ class TestCOSE:
         assert msg in str(err.value)
 
     def test_cose_encode_for_mac_with_direct_mode_has_invalid_three_layer(self):
-
         mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
         ctx = COSE.new()
         with pytest.raises(ValueError) as err:
@@ -1095,7 +1094,6 @@ class TestCOSE:
         assert "Recipients for direct encryption mode don't have recipients." in str(err.value)
 
     def test_cose_encode_for_mac_with_direct_mode_with_ciphertext(self):
-
         mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
         ctx = COSE.new()
         with pytest.raises(ValueError) as err:
@@ -1111,7 +1109,6 @@ class TestCOSE:
         )
 
     def test_cose_encode_for_mac_with_key_wrap_mode_with_protected_header(self):
-
         # mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
         wrapping_key = COSEKey.from_symmetric_key(alg="A128KW", kid="our-secret")
         with pytest.raises(ValueError) as err:

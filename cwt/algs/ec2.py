@@ -27,7 +27,6 @@ from .asymmetric import AsymmetricKey
 
 
 class EC2Key(AsymmetricKey):
-
     _ACCEPTABLE_PUBLIC_KEY_OPS = [
         COSE_KEY_OPERATION_VALUES["verify"],
     ]
@@ -271,7 +270,6 @@ class EC2Key(AsymmetricKey):
             raise VerifyError("Invalid signature.") from err
 
     def derive_bytes(self, length: int, material: bytes = b"", info: bytes = b"", public_key: Optional[Any] = None) -> bytes:
-
         if self._public_key:
             raise ValueError("Public key cannot be used for key derivation.")
         if not public_key:
