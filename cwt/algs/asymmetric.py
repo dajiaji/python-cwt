@@ -8,7 +8,6 @@ from ..exceptions import VerifyError
 
 class AsymmetricKey(COSEKeyInterface):
     def __init__(self, params: Dict[int, Any]):
-
         super().__init__(params)
 
         self._key: Any = b""
@@ -25,7 +24,6 @@ class AsymmetricKey(COSEKeyInterface):
             return
 
     def validate_certificate(self, ca_certs: List[bytes]) -> bool:
-
         if not ca_certs:
             raise ValueError("ca_certs should be set.")
         if not self._cert:

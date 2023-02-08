@@ -443,7 +443,6 @@ def encode(
     signers: List[Signer] = [],
     tagged: bool = False,
 ) -> bytes:
-
     return _cwt.encode(claims, key, nonce, recipients, signers, tagged)
 
 
@@ -453,7 +452,6 @@ def encode_and_mac(
     recipients: List[RecipientInterface] = [],
     tagged: bool = False,
 ) -> bytes:
-
     return _cwt.encode_and_mac(claims, key, recipients, tagged)
 
 
@@ -463,7 +461,6 @@ def encode_and_sign(
     signers: List[Signer] = [],
     tagged: bool = False,
 ) -> bytes:
-
     return _cwt.encode_and_sign(claims, key, signers, tagged)
 
 
@@ -474,7 +471,6 @@ def encode_and_encrypt(
     recipients: List[RecipientInterface] = [],
     tagged: bool = False,
 ) -> bytes:
-
     return _cwt.encode_and_encrypt(claims, key, nonce, recipients, tagged)
 
 
@@ -483,10 +479,8 @@ def decode(
     keys: Union[COSEKeyInterface, List[COSEKeyInterface]],
     no_verify: bool = False,
 ) -> Union[Dict[int, Any], bytes]:
-
     return _cwt.decode(data, keys, no_verify)
 
 
 def set_private_claim_names(claim_names: Dict[str, int]):
-
     return _cwt.set_private_claim_names(claim_names)

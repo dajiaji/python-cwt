@@ -24,7 +24,6 @@ class RecipientInterface(CBORProcessor):
         key_ops: List[int] = [],
         key: bytes = b"",
     ):
-
         """
         Constructor.
 

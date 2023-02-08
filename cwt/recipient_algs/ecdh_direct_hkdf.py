@@ -61,7 +61,6 @@ class ECDH_DirectHKDF(Direct):
             self._unprotected[-25] = self._context[2][1]
 
     def encode(self, plaintext: bytes = b"", aad: bytes = b"") -> Tuple[List[Any], Optional[COSEKeyInterface]]:
-
         if not self._recipient_key:
             raise ValueError("recipient_key should be set in advance.")
 

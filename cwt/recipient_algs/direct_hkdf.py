@@ -57,7 +57,6 @@ class DirectHKDF(Direct):
         material: bytes,
         expected_key: bytes,
     ):
-
         try:
             hkdf = HKDF(
                 algorithm=self._hash_alg,
@@ -71,7 +70,6 @@ class DirectHKDF(Direct):
         return
 
     def encode(self, plaintext: bytes = b"", aad: bytes = b"") -> Tuple[List[Any], Optional[COSEKeyInterface]]:
-
         try:
             hkdf = HKDF(
                 algorithm=self._hash_alg,
@@ -87,7 +85,6 @@ class DirectHKDF(Direct):
     def decode(
         self, key: COSEKeyInterface, aad: bytes = b"", alg: int = 0, as_cose_key: bool = False
     ) -> Union[bytes, COSEKeyInterface]:
-
         try:
             hkdf = HKDF(
                 algorithm=self._hash_alg,

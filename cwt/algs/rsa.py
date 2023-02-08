@@ -14,7 +14,6 @@ from .asymmetric import AsymmetricKey
 
 
 class RSAKey(AsymmetricKey):
-
     _ACCEPTABLE_PUBLIC_KEY_OPS = [
         COSE_KEY_OPERATION_VALUES["verify"],
     ]

@@ -36,7 +36,6 @@ from .asymmetric import AsymmetricKey
 
 
 class OKPKey(AsymmetricKey):
-
     _ACCEPTABLE_PUBLIC_KEY_OPS = [
         COSE_KEY_OPERATION_VALUES["verify"],
     ]
@@ -270,7 +269,6 @@ class OKPKey(AsymmetricKey):
             raise VerifyError("Failed to verify.") from err
 
     def derive_bytes(self, length: int, material: bytes = b"", info: bytes = b"", public_key: Optional[Any] = None) -> bytes:
-
         if self._public_key:
             raise ValueError("Public key cannot be used for key derivation.")
         if not public_key:

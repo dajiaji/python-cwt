@@ -39,7 +39,6 @@ class AESKeyWrap(RecipientInterface):
         self._sender_key: COSEKeyInterface = sender_key
 
     def encode(self, plaintext: bytes = b"", aad: bytes = b"") -> Tuple[List[Any], Optional[COSEKeyInterface]]:
-
         self._ciphertext = self._sender_key.wrap_key(plaintext)
         return self.to_list(), None
 
