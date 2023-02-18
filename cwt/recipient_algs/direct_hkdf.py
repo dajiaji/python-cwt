@@ -45,7 +45,6 @@ class DirectHKDF(Direct):
             self._unprotected[-20] = self._salt
 
         # PartyU nonce
-        print(self._context)
         if self._context[1][1]:
             self._unprotected[-22] = self._context[1][1]
         # PartyV nonce

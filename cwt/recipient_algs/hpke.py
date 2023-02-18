@@ -25,7 +25,6 @@ class HPKE(RecipientInterface):
         if -4 not in unprotected:
             raise ValueError("HPKE sender information(-4) not found.")
         if not isinstance(unprotected[-4], list) or len(unprotected[-4]) not in [3, 4]:
-            print(len(unprotected[-4]))
             raise ValueError("HPKE sender information(-4) should be a list of length 3 or 4.")
         self._suite = CipherSuite.new(KEMId(unprotected[-4][0]), KDFId(unprotected[-4][1]), AEADId(unprotected[-4][2]))
         return
