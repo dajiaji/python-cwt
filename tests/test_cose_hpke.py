@@ -51,11 +51,11 @@ class TestCOSE_HPKE:
             },
             unprotected={
                 4: b"01",  # kid: "01"
-                -4: {  # HPKE sender information
-                    1: 0x0010,
-                    2: kdf,
-                    3: aead,
-                },
+                -4: [  # HPKE sender information
+                    0x0010,
+                    kdf,
+                    aead,
+                ],
             },
         )
 
@@ -107,11 +107,11 @@ class TestCOSE_HPKE:
             },
             unprotected={
                 4: b"01",  # kid: "01"
-                -4: {  # HPKE sender information
-                    1: 0x0011,
-                    2: kdf,
-                    3: aead,
-                },
+                -4: [  # HPKE sender information
+                    0x0011,
+                    kdf,
+                    aead,
+                ],
             },
         )
 
@@ -163,11 +163,11 @@ class TestCOSE_HPKE:
             },
             unprotected={
                 4: b"01",  # kid: "01"
-                -4: {  # HPKE sender information
-                    1: 0x0012,
-                    2: kdf,
-                    3: aead,
-                },
+                -4: [  # HPKE sender information
+                    0x0012,
+                    kdf,
+                    aead,
+                ],
             },
         )
 
@@ -220,11 +220,11 @@ class TestCOSE_HPKE:
             },
             unprotected={
                 4: b"01",  # kid: "01"
-                -4: {  # HPKE sender information
-                    1: 0x0020,
-                    2: kdf,
-                    3: aead,
-                },
+                -4: [  # HPKE sender information
+                    0x0020,
+                    kdf,
+                    aead,
+                ],
             },
         )
 
@@ -278,11 +278,11 @@ class TestCOSE_HPKE:
             },
             unprotected={
                 4: b"01",  # kid: "01"
-                -4: {  # HPKE sender information
-                    1: 0x0021,
-                    2: kdf,
-                    3: aead,
-                },
+                -4: [  # HPKE sender information
+                    0x0021,
+                    kdf,
+                    aead,
+                ],
             },
         )
 

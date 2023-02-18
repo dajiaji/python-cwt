@@ -315,11 +315,11 @@ class TestCOSESample:
             },
             unprotected={
                 4: b"01",  # kid: "01"
-                -4: {  # HPKE sender information
-                    1: 0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
-                    2: 0x0001,  # kdf: HKDF-SHA256
-                    3: 0x0001,  # aead: AES-128-GCM
-                },
+                -4: [  # HPKE sender information
+                    0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
+                    0x0001,  # kdf: HKDF-SHA256
+                    0x0001,  # aead: AES-128-GCM
+                ],
             },
         )
 
@@ -391,11 +391,11 @@ class TestCOSESample:
             },
             unprotected={
                 4: b"01",  # kid: "01"
-                -4: {  # HPKE sender information
-                    1: 0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
-                    2: 0x0001,  # kdf: HKDF-SHA256
-                    3: 0x0001,  # aead: AES-128-GCM
-                },
+                -4: [  # HPKE sender information
+                    0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
+                    0x0001,  # kdf: HKDF-SHA256
+                    0x0001,  # aead: AES-128-GCM
+                ],
             },
             recipient_key=rpk,
         )
@@ -440,11 +440,11 @@ class TestCOSESample:
             },
             unprotected={
                 4: b"01",  # kid: "01"
-                -4: {  # HPKE sender information
-                    1: 0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
-                    2: 0x0001,  # kdf: HKDF-SHA256
-                    3: 0x0001,  # aead: AES-128-GCM
-                },
+                -4: [  # HPKE sender information
+                    0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
+                    0x0001,  # kdf: HKDF-SHA256
+                    0x0001,  # aead: AES-128-GCM
+                ],
             },
             recipient_key=rpk,
         )
@@ -457,11 +457,11 @@ class TestCOSESample:
                 },
                 unprotected={
                     4: b"xx",  # kid: "xx"
-                    -4: {  # HPKE sender information
-                        1: 0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
-                        2: 0x0001,  # kdf: HKDF-SHA256
-                        3: 0x0001,  # aead: AES-128-GCM
-                    },
+                    -4: [  # HPKE sender information
+                        0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
+                        0x0001,  # kdf: HKDF-SHA256
+                        0x0001,  # aead: AES-128-GCM
+                    ],
                 },
                 recipients=[r],
             )
@@ -486,11 +486,11 @@ class TestCOSESample:
             },
             unprotected={
                 4: b"01",  # kid: "01"
-                -4: {  # HPKE sender information
-                    1: 0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
-                    2: 0x0001,  # kdf: HKDF-SHA256
-                    3: 0x0001,  # aead: AES-128-GCM
-                },
+                -4: [  # HPKE sender information
+                    0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
+                    0x0001,  # kdf: HKDF-SHA256
+                    0x0001,  # aead: AES-128-GCM
+                ],
             },
             recipient_key=rpk,
         )
@@ -503,11 +503,11 @@ class TestCOSESample:
                 },
                 unprotected={
                     4: b"xx",  # kid: "xx"
-                    -4: {  # HPKE sender information
-                        1: 0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
-                        2: 0x0001,  # kdf: HKDF-SHA256
-                        3: 0x0001,  # aead: AES-128-GCM
-                    },
+                    -4: [  # HPKE sender information
+                        0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
+                        0x0001,  # kdf: HKDF-SHA256
+                        0x0001,  # aead: AES-128-GCM
+                    ],
                 },
                 recipients=[r],
             )
