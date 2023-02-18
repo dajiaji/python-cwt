@@ -649,7 +649,7 @@ class TestRecipients:
         assert msg in str(err.value)
 
     def test_recipients_open_without_key(self):
-        r = RecipientInterface(protected={1: -1}, unprotected={4: b"01", -4: {1: 0x0010, 2: 0x0001, 3: 0x0001}})
+        r = RecipientInterface(protected={1: -1}, unprotected={4: b"01", -4: [0x0010, 0x0001, 0x0001]})
         rs = Recipients([r])
         with pytest.raises(ValueError) as err:
             rs.derive_key([], 0, b"", b"")
@@ -674,7 +674,7 @@ class TestRecipients:
                 "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
             }
         )
-        r = Recipient.new(protected={1: -1}, unprotected={-4: {1: 0x0010, 2: 0x0001, 3: 0x0001}}, recipient_key=rpk)
+        r = Recipient.new(protected={1: -1}, unprotected={-4: [0x0010, 0x0001, 0x0001]}, recipient_key=rpk)
         r.encode(enc_key.key)
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
@@ -699,7 +699,7 @@ class TestRecipients:
                 "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
             }
         )
-        r = Recipient.new(protected={1: -1}, unprotected={-4: {1: 0x0010, 2: 0x0001, 3: 0x0001}}, recipient_key=rpk)
+        r = Recipient.new(protected={1: -1}, unprotected={-4: [0x0010, 0x0001, 0x0001]}, recipient_key=rpk)
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
@@ -724,7 +724,7 @@ class TestRecipients:
                 "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
             }
         )
-        r = Recipient.new(protected={1: -1}, unprotected={-4: {1: 0x0010, 2: 0x0001, 3: 0x0001}}, recipient_key=rpk)
+        r = Recipient.new(protected={1: -1}, unprotected={-4: [0x0010, 0x0001, 0x0001]}, recipient_key=rpk)
         r.encode(enc_key.key)
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
@@ -741,7 +741,7 @@ class TestRecipients:
 
     def test_recipients_open_with_multiple_rsks(self, rpk2, rsk1, rsk2):
         enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
-        r = Recipient.new(protected={1: -1}, unprotected={4: b"02", -4: {1: 0x0010, 2: 0x0001, 3: 0x0001}}, recipient_key=rpk2)
+        r = Recipient.new(protected={1: -1}, unprotected={4: b"02", -4: [0x0010, 0x0001, 0x0001]}, recipient_key=rpk2)
         r.encode(enc_key.key)
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_encrypt(
@@ -757,7 +757,7 @@ class TestRecipients:
 
     def test_recipients_open_with_invalid_rsk(self, rpk1):
         enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
-        r = Recipient.new(protected={1: -1}, unprotected={4: b"02", -4: {1: 0x0010, 2: 0x0001, 3: 0x0001}}, recipient_key=rpk1)
+        r = Recipient.new(protected={1: -1}, unprotected={4: b"02", -4: [0x0010, 0x0001, 0x0001]}, recipient_key=rpk1)
         # r.encode(enc_key.to_bytes())
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
