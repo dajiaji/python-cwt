@@ -4,6 +4,28 @@ Changes
 Unreleased
 ----------
 
+Version 2.3.0
+-------------
+
+Released 2023-02-18
+
+- Remove unused log. `#355 <https://github.com/dajiaji/python-cwt/pull/355>`__
+- Change HPKE sender information from dict to list. `#354 <https://github.com/dajiaji/python-cwt/pull/354>`__
+- Add SECURITY.md. `#352 <https://github.com/dajiaji/python-cwt/pull/352>`__
+- Remove unused function in CBORProcessor. `#333 <https://github.com/dajiaji/python-cwt/pull/333>`__
+- Fix link to readthedocs. `#326 <https://github.com/dajiaji/python-cwt/pull/326>`__
+- Update dependencies.
+    - Bump cryptography from 39.0.1. `#357 <https://github.com/dajiaji/python-cwt/pull/357>`__
+    - Bump pyhpke from 0.4.1. `#356 <https://github.com/dajiaji/python-cwt/pull/356>`__
+- Update dev dependencies.
+    - Bump sphinx-rtd-theme to 1.2.0. `#351 <https://github.com/dajiaji/python-cwt/pull/351>`__
+    - Bump tox to 4.4.5. `#350 <https://github.com/dajiaji/python-cwt/pull/350>`__
+    - Bump pre-commit/black to 23.1.0. `#349 <https://github.com/dajiaji/python-cwt/pull/349>`__
+    - Bump pre-commit/isort to 5.12.0. `#346 <https://github.com/dajiaji/python-cwt/pull/346>`__
+    - Bump pre-commit/blacken-docs to 1.13.0. `#341 <https://github.com/dajiaji/python-cwt/pull/341>`__
+    - Bump sphinx-autodoc-typehints to 1.21.0. `#340 <https://github.com/dajiaji/python-cwt/pull/340>`__
+    - Bump pytest to 7.2.1. `#338 <https://github.com/dajiaji/python-cwt/pull/338>`__
+
 Version 2.2.0
 -------------
 
