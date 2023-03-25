@@ -4,6 +4,19 @@ Changes
 Unreleased
 ----------
 
+Version 2.3.1
+-------------
+
+Released 2023-03-25 
+
+- Fix HPKE sample. `#362 <https://github.com/dajiaji/python-cwt/pull/362>`__
+- Update dependencies.
+    - Bump cryptography from 39.0.2. `#363 <https://github.com/dajiaji/python-cwt/pull/363>`__
+- Update dev dependencies.
+    - Bump pre-commit/mirrors-mypy to 1.1.1. `#366 <https://github.com/dajiaji/python-cwt/pull/366>`__
+    - Bump tox to 4.4.7. `#365 <https://github.com/dajiaji/python-cwt/pull/365>`__
+    - Bump pytest to 7.2.2. `#364 <https://github.com/dajiaji/python-cwt/pull/364>`__
+
 Version 2.3.0
 -------------
 
