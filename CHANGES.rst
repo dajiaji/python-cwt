@@ -7,7 +7,7 @@ Unreleased
 Version 2.3.1
 -------------
 
-Released 2023-03-25 
+Released 2023-03-25
 
 - Fix HPKE sample. `#362 <https://github.com/dajiaji/python-cwt/pull/362>`__
 - Update dependencies.
