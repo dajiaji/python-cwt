@@ -304,7 +304,6 @@ class TestCOSE_HPKE:
         assert b"This is the content." == recipient.decode(encoded, rsk)
 
     def test_cose_hpke_with_t_cose_example(self):
-
         # t_cose/examples/keys/init_keys_psa.c:fixed_test_p256r1_public_key
         pkr_buf = bytes(
             bytearray(
