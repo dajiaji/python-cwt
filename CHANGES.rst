@@ -4,6 +4,26 @@ Changes
 Unreleased
 ----------
 
+Version 2.3.2
+-------------
+
+Released 2023-07-03
+
+- Update the base python version on CI/CD. `#396 <https://github.com/dajiaji/python-cwt/pull/396>`__
+- Drop support for Python 3.7. `#391 <https://github.com/dajiaji/python-cwt/pull/391>`__
+- Update dependencies.
+    - Bump cryptography to 41.0.0. `#395 <https://github.com/dajiaji/python-cwt/pull/395>`__
+- Update dev dependencies.
+    - Bump sphinx to 7.0.1. `#394 <https://github.com/dajiaji/python-cwt/pull/394>`__
+    - Bump pre-commit to 3.3.3. `#393 <https://github.com/dajiaji/python-cwt/pull/393>`__
+    - Bump pre-commit/mirrors-mypy to 1.4.1. `#389 <https://github.com/dajiaji/python-cwt/pull/389>`__
+    - Bump pytest to 7.4.0. `#388 <https://github.com/dajiaji/python-cwt/pull/388>`__
+    - Bump tox to 4.6.3. `#387 <https://github.com/dajiaji/python-cwt/pull/387>`__
+    - Bump pre-commit/blacken-docs to 1.14.0. `#386 <https://github.com/dajiaji/python-cwt/pull/386>`__
+    - Bump sphinx-rtd-theme to 1.2.2. `#384 <https://github.com/dajiaji/python-cwt/pull/384>`__
+    - Bump pytest-cov to 4.1.0. `#381 <https://github.com/dajiaji/python-cwt/pull/381>`__
+    - Bump pre-commit/black to 23.3.0. `#370 <https://github.com/dajiaji/python-cwt/pull/370>`__
+
 Version 2.3.1
 -------------
 
