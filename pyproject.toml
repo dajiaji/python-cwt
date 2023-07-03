@@ -29,11 +29,11 @@ python = "^3.8"
 asn1crypto = "^1.4.0"
 cbor2 = "^5.4.2"
 certvalidator = "^0.11.1"
-cryptography = ">=36,<40"
+cryptography = ">=41,<42"
 Sphinx = {version = "^6.0.0", optional = true, extras = ["docs"]}
 sphinx-autodoc-typehints = {version = "^1.21.0", optional = true, extras = ["docs"]}
 sphinx-rtd-theme = {version = "^1.0.0", optional = true, extras = ["docs"]}
-pyhpke = ">=0.4.1,<1.0.0"
+pyhpke = ">=0.4.2,<1.0.0"
 
 [tool.poetry.extras]
 docs = [
