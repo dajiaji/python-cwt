@@ -36,7 +36,4 @@ class TestHelperHcert:
         with pytest.raises(ValueError) as err:
             load_pem_hcert_dsc(dsc)
             pytest.fail("load_pem_hcert_dsc() should fail.")
-        assert (
-            "Unsupported or unknown key type:"
-            in str(err.value)
-        )
+        assert "Unsupported or unknown key type:" in str(err.value)
