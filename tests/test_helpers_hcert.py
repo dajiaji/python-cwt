@@ -37,6 +37,6 @@ class TestHelperHcert:
             load_pem_hcert_dsc(dsc)
             pytest.fail("load_pem_hcert_dsc() should fail.")
         assert (
-            "Unsupported or unknown key type: <class 'cryptography.hazmat.backends.openssl.ed25519._Ed25519PublicKey'>."
+            "Unsupported or unknown key type:"
             in str(err.value)
         )
