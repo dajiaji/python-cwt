@@ -1,23 +1,23 @@
-from .enums import COSEType
+from .enums import COSETypes
 
 COSE_TAG_TO_TYPE = {
-    16: COSEType.ENCRYPT0,
-    96: COSEType.ENCRYPT,
-    17: COSEType.MAC0,
-    97: COSEType.MAC,
-    18: COSEType.SIGN1,
-    98: COSEType.SIGN,
-    19: COSEType.COUNTERSIGNATURE,
+    16: COSETypes.ENCRYPT0,
+    96: COSETypes.ENCRYPT,
+    17: COSETypes.MAC0,
+    97: COSETypes.MAC,
+    18: COSETypes.SIGN1,
+    98: COSETypes.SIGN,
+    19: COSETypes.COUNTERSIGNATURE,
 }
 
 COSE_TYPE_TO_TAG = {
-    COSEType.ENCRYPT0: 16,
-    COSEType.ENCRYPT: 96,
-    COSEType.MAC0: 17,
-    COSEType.MAC: 97,
-    COSEType.SIGN1: 18,
-    COSEType.SIGN: 98,
-    COSEType.COUNTERSIGNATURE: 19,
+    COSETypes.ENCRYPT0: 16,
+    COSETypes.ENCRYPT: 96,
+    COSETypes.MAC0: 17,
+    COSETypes.MAC: 97,
+    COSETypes.SIGN1: 18,
+    COSETypes.SIGN: 98,
+    COSETypes.COUNTERSIGNATURE: 19,
 }
 
 # Registered CWT Claims
