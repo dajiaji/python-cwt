@@ -64,10 +64,14 @@ from cwt import COSEKey, CWTClaims
 mac_key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
 
 # The sender side:
-token = encode({
-    CWTClaims.ISS: "coaps://as.example",
-    CWTClaims.SUB: "dajiaji",
-    CWTClaims.CTI: b"123"}, mac_key)
+token = encode(
+    {
+        CWTClaims.ISS: "coaps://as.example",
+        CWTClaims.SUB: "dajiaji",
+        CWTClaims.CTI: b"123",
+    },
+    mac_key,
+)
 
 # The recipient side:
 decoded = decode(token, mac_key)
@@ -180,7 +184,7 @@ Following two samples are other ways of writing the above example.
 CBOR object can be used for `protected` and `unprotected` header parameters as follows:
 
 ```py
-from cwt import COSE, COSEHeaders, COSEKey
+from cwt import COSE, COSEAlgs, COSEHeaders, COSEKey
 
 mac_key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
 
@@ -189,7 +193,7 @@ sender = COSE.new()
 encoded = sender.encode(
     b"Hello world!",
     mac_key,
-    protected={COSEHeaders.ALG: 5},
+    protected={COSEHeaders.ALG: COSEAlgs.HS256},
     unprotected={COSEHeaders.KID: b"01"},
 )
 
@@ -507,7 +511,7 @@ assert countersignature.unprotected[4] == b"01"  # kid: b"01"
 Create a COSE-HPKE MAC message, verify and decode it as follows:
 
 ```py
-from cwt import COSE, COSEHeaders, COSEKey, Recipient
+from cwt import COSE, COSEAlgs, COSEHeaders, COSEKey, Recipient
 
 # The sender side:
 mac_key = COSEKey.generate_symmetric_key(alg="HS256")
@@ -522,11 +526,11 @@ rpk = COSEKey.from_jwk(
 )
 r = Recipient.new(
     protected={
-        COSEHeaders.ALG: -1,  # alg: "HPKE"
+        COSEHeaders.ALG: COSEAlgs.HPKE_V1_BASE,
     },
     unprotected={
-        COSEHeaders.KID: b"01",  # kid: "01"
-        COSEHeaders.HPKE_SENDER_INFO: [  # HPKE sender information
+        COSEHeaders.KID: b"01",
+        COSEHeaders.HPKE_SENDER_INFO: [
             0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
             0x0001,  # kdf: HKDF-SHA256
             0x0001,  # aead: AES-128-GCM
@@ -538,7 +542,7 @@ sender = COSE.new()
 encoded = sender.encode(
     b"This is the content.",
     mac_key,
-    protected={COSEHeaders.ALG: 5},  # alg: HS256
+    protected={COSEHeaders.ALG: COSEAlgs.HS256},
     recipients=[r],
 )
 
@@ -657,7 +661,7 @@ assert countersignature.unprotected[4] == b"01"  # kid: b"01"
 Create a COSE-HPKE Encrypt0 message and decrypt it as follows:
 
 ```py
-from cwt import COSE, COSEHeaders, COSEKey
+from cwt import COSE, COSEAlgs, COSEHeaders, COSEKey
 
 # The sender side:
 rpk = COSEKey.from_jwk(
@@ -675,11 +679,11 @@ encoded = sender.encode(
     b"This is the content.",
     rpk,
     protected={
-        COSEHeaders.ALG: -1,  # alg: "HPKE"
+        COSEHeaders.ALG: COSEAlgs.HPKE_V1_BASE,
     },
     unprotected={
-        COSEHeaders.KID: b"01",  # kid: "01"
-        COSEHeaders.HPKE_SENDER_INFO: [  # HPKE sender information
+        COSEHeaders.KID: b"01",
+        COSEHeaders.HPKE_SENDER_INFO: [
             0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
             0x0001,  # kdf: HKDF-SHA256
             0x0001,  # aead: AES-128-GCM
@@ -711,23 +715,23 @@ The follwing example shows the simplest way to make a COSE MAC message, verify a
 key distribution method.
 
 ```py
-from cwt import COSE, COSEHeaders, COSEKey, Recipient
+from cwt import COSE, COSEAlgs, COSEHeaders, COSEKey, Recipient
 
 enc_key = COSEKey.generate_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
 
 # The sender side:
 nonce = enc_key.generate_nonce()
-r = Recipient.new(unprotected={"alg": "direct"})
-# r = Recipient.new(unprotected={COSEHeaders.ALG: -6}) # is also acceptable.
+r = Recipient.new(unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT})
+# r = Recipient.new(unprotected={"alg": "dir"}) # is also acceptable
 
 sender = COSE.new()
 encoded = sender.encode(
     b"Hello world!",
     enc_key,
-    protected={"alg": "ChaCha20/Poly1305"},
-    # protected={COSEHeaders.ALG: 24},  # is also acceptable.
-    unprotected={"kid": enc_key.kid, "iv": nonce},
-    # unprotected={COSEHeaders.KID: enc_key.kid, COSEHeaders.IV: nonce},  # is also acceptable.
+    protected={COSEHeaders.ALG: COSEAlgs.CHACHA20_POLY1305},
+    # protected={"alg": "ChaCha20/Poly1305"},  # is also acceptable.
+    unprotected={COSEHeaders.KID: enc_key.kid, COSEHeaders.IV: nonce},
+    # unprotected={"kid": enc_key.kid, "iv": nonce},  # is also acceptable.
     recipients=[r],
 )
 
@@ -965,7 +969,7 @@ assert countersignature.unprotected[4] == b"01"  # kid: b"01"
 Create a COSE-HPKE Encrypt message and decrypt it as follows:
 
 ```py
-from cwt import COSE, COSEHeaders, COSEKey, Recipient
+from cwt import COSE, COSEAlgs, COSEHeaders, COSEKey, Recipient
 
 # The sender side:
 enc_key = COSEKey.generate_symmetric_key(alg="A128GCM")
@@ -980,11 +984,11 @@ rpk = COSEKey.from_jwk(
 )
 r = Recipient.new(
     protected={
-        COSEHeaders.ALG: -1,  # alg: "HPKE"
+        COSEHeaders.ALG: COSEAlgs.HPKE_V1_BASE,
     },
     unprotected={
-        COSEHeaders.KID: b"01",  # kid: "01"
-        COSEHeaders.HPKE_SENDER_INFO: [  # HPKE sender information
+        COSEHeaders.KID: b"01",
+        COSEHeaders.HPKE_SENDER_INFO: [
             0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
             0x0001,  # kdf: HKDF-SHA256
             0x0001,  # aead: AES-128-GCM

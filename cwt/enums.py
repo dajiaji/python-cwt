@@ -35,6 +35,53 @@ class COSEHeaders(enum.IntEnum):
     CUPH_OWNER_PUB_KEY = 257
 
 
+class COSEAlgs(enum.IntEnum):
+    RS512 = -259
+    RS384 = -258
+    RS256 = -257
+    ES256K = -47
+    PS512 = -39
+    PS384 = -38
+    PS256 = -37
+    ES512 = -36
+    ES384 = -35
+    ECDH_SS_A256KW = -34
+    ECDH_SS_A192KW = -33
+    ECDH_SS_A128KW = -32
+    ECDH_ES_A256KW = -31
+    ECDH_ES_A192KW = -30
+    ECDH_ES_A128KW = -29
+    ECDH_SS_HKDF_512 = -28
+    ECDH_SS_HKDF_256 = -27
+    ECDH_ES_HKDF_512 = -26
+    ECDH_ES_HKDF_256 = -25
+    DIRECT_HKDF_SHA512 = -11
+    DIRECT_HKDF_SHA256 = -10
+    EDDSA = -8
+    ES256 = -7
+    DIRECT = -6
+    A256KW = -5
+    A192KW = -4
+    A128KW = -3
+    HPKE_V1_BASE = -1
+    A128GCM = 1
+    A192GCM = 2
+    A256GCM = 3
+    HS256_64 = 4
+    HS256 = 5
+    HS384 = 6
+    HS512 = 7
+    AES_CCM_16_64_128 = 10
+    AES_CCM_16_64_256 = 11
+    AES_CCM_64_64_128 = 12
+    AES_CCM_64_64_256 = 13
+    CHACHA20_POLY1305 = 24
+    AES_CCM_16_128_128 = 30
+    AES_CCM_16_128_256 = 31
+    AES_CCM_64_128_128 = 32
+    AES_CCM_64_128_256 = 33
+
+
 class CWTClaims(enum.IntEnum):
     HCERT = -260
     EUPH_NONCE = -259
