@@ -125,7 +125,7 @@ See [Documentation](https://python-cwt.readthedocs.io/en/stable/) for details of
     - [Nested CWT](#nested-cwt)
     - [CWT with User Settings (e.g., expires\_in)](#cwt-with-user-settings)
     - [CWT with User-Defined Claims](#cwt-with-user-defined-claims)
-    - [CWT with CWT claims in COSE headers](#cwt-cwt-claims-in-cose-headers)
+    - [CWT with CWT claims in COSE headers](#cwt-with-cwt-claims-in-cose-headers)
     - [CWT with PoP Key](#cwt-with-pop-key)
     - [CWT with Private CA](#cwt-with-private-ca)
     - [CWT for EUDCC (EU Digital COVID Certificate)](#cwt-for-eudcc-eu-digital-covid-certificate)
