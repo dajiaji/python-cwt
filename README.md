@@ -49,6 +49,10 @@ encoded = sender.encode(
 # The recipient side:
 recipient = COSE.new()
 assert b"Hello world!" == recipient.decode(encoded, mac_key)
+
+## You can get decoded protected/unprotected headers with the payload as follows:
+# protected, unprotected, payload = recipient.decode_with_headers(encoded, mac_key)
+# assert b"Hello world!" == payload
 ```
 
 **CWT API**
