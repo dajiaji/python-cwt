@@ -55,7 +55,7 @@ assert b"Hello world!" == recipient.decode(encoded, mac_key)
 
 ```py
 import cwt
-from cwt import COSEKey
+from cwt import COSEKey, CWTClaims
 
 mac_key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
 
@@ -1264,7 +1264,7 @@ A raw CWT structure (Dict[int, Any]) can also be used as follows:
 
 ```py
 import cwt
-from cwt import COSEKey
+from cwt import COSEKey, CWTClaims
 
 key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
 token = cwt.encode({CWTClaims.ISS: "coaps://as.example", CWTClaims.SUB: "dajiaji", CWTClaims.CTI: b"123"}, key)
@@ -1405,7 +1405,7 @@ Note that such user-defined claim's key should be less than -65536.
 
 ```py
 import cwt
-from cwt import COSEKey
+from cwt import COSEKey, CWTClaims
 
 # The sender side:
 with open("./private_key.pem") as key_file:
