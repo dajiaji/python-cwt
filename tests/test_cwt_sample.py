@@ -16,7 +16,9 @@ from cwt import (
     COSE,
     CWT,
     Claims,
+    COSEHeaders,
     COSEKey,
+    CWTClaims,
     EncryptedCOSEKey,
     VerifyError,
     load_pem_hcert_dsc,
@@ -136,13 +138,15 @@ class TestSample:
 
     def test_sample_readme_maced_cwt_old(self):
         key = COSEKey.from_symmetric_key("mysecretpassword", alg="HS256", kid="01")
-        encoded = cwt.encode_and_mac({1: "coaps://as.example", 2: "dajiaji", 7: b"123"}, key)
+        encoded = cwt.encode_and_mac(
+            {CWTClaims.ISS: "coaps://as.example", CWTClaims.SUB: "dajiaji", CWTClaims.CTI: b"123"}, key
+        )
         decoded = cwt.decode(encoded, key)
         assert 1 in decoded and decoded[1] == "coaps://as.example"
 
     def test_sample_readme_maced_cwt(self):
         key = COSEKey.from_symmetric_key(alg="HMAC 256/256", kid="01")
-        token = cwt.encode({1: "coaps://as.example", 2: "dajiaji", 7: b"123"}, key)
+        token = cwt.encode({CWTClaims.ISS: "coaps://as.example", CWTClaims.SUB: "dajiaji", CWTClaims.CTI: b"123"}, key)
         decoded = cwt.decode(token, key)
         assert 1 in decoded and decoded[1] == "coaps://as.example"
 
@@ -555,9 +559,9 @@ class TestSample:
             pop_key = COSEKey.from_pem(key_file.read())
         token = cwt.encode(
             {
-                1: "coaps://as.example",  # iss
-                2: "dajiaji",  # sub
-                7: b"123",  # cti
+                CWTClaims.ISS: "coaps://as.example",  # iss
+                CWTClaims.SUB: "dajiaji",  # sub
+                CWTClaims.CTI: b"123",  # cti
                 8: {  # cnf
                     1: pop_key.to_dict(),
                 },
@@ -588,9 +592,9 @@ class TestSample:
         )
         token = cwt.encode(
             {
-                1: "coaps://as.example",  # iss
-                2: "dajiaji",  # sub
-                7: b"123",  # cti
+                CWTClaims.ISS: "coaps://as.example",  # iss
+                CWTClaims.SUB: "dajiaji",  # sub
+                CWTClaims.CTI: b"123",  # cti
                 8: {  # cnf
                     2: EncryptedCOSEKey.from_cose_key(pop_key, enc_key),
                 },
@@ -613,9 +617,9 @@ class TestSample:
             private_key = COSEKey.from_pem(key_file.read(), kid="01")
         token = cwt.encode(
             {
-                1: "coaps://as.example",  # iss
-                2: "dajiaji",  # sub
-                7: b"123",  # cti
+                CWTClaims.ISS: "coaps://as.example",  # iss
+                CWTClaims.SUB: "dajiaji",  # sub
+                CWTClaims.CTI: b"123",  # cti
                 8: {  # cnf
                     3: b"pop-key-id-of-cwt-presenter",
                 },
@@ -634,9 +638,9 @@ class TestSample:
             private_key = COSEKey.from_pem(key_file.read(), kid="01")
         token = cwt.encode(
             {
-                1: "coaps://as.example",  # iss
-                2: "dajiaji",  # sub
-                7: b"123",  # cti
+                CWTClaims.ISS: "coaps://as.example",  # iss
+                CWTClaims.SUB: "dajiaji",  # sub
+                CWTClaims.CTI: b"123",  # cti
                 -70001: "foo",
                 -70002: ["bar"],
                 -70003: {"baz": "qux"},
@@ -736,13 +740,13 @@ class TestSample:
         key = COSEKey.from_bytes(bytes.fromhex(SAMPLE_COSE_KEY_RFC8392_A2_3))
         encoded = cwt.encode_and_sign(
             {
-                1: "coap://as.example.com",
-                2: "erikw",
-                3: "coap://light.example.com",
-                4: 1444064944,
-                5: 1443944944,
-                6: 1443944944,
-                7: bytes.fromhex("0b71"),
+                CWTClaims.ISS: "coap://as.example.com",
+                CWTClaims.SUB: "erikw",
+                CWTClaims.AUD: "coap://light.example.com",
+                CWTClaims.EXP: 1444064944,
+                CWTClaims.NBF: 1443944944,
+                CWTClaims.IAT: 1443944944,
+                CWTClaims.CTI: bytes.fromhex("0b71"),
             },
             key=key,
         )
@@ -753,13 +757,13 @@ class TestSample:
         key = COSEKey.from_bytes(bytes.fromhex(SAMPLE_COSE_KEY_RFC8392_A2_3))
         token = cwt.encode(
             {
-                1: "coap://as.example.com",
-                2: "erikw",
-                3: "coap://light.example.com",
-                4: 1444064944,
-                5: 1443944944,
-                6: 1443944944,
-                7: bytes.fromhex("0b71"),
+                CWTClaims.ISS: "coap://as.example.com",
+                CWTClaims.SUB: "erikw",
+                CWTClaims.AUD: "coap://light.example.com",
+                CWTClaims.EXP: 1444064944,
+                CWTClaims.NBF: 1443944944,
+                CWTClaims.IAT: 1443944944,
+                CWTClaims.CTI: bytes.fromhex("0b71"),
             },
             key,
         )
@@ -777,13 +781,13 @@ class TestSample:
         )
         encoded = cwt.encode_and_mac(
             {
-                1: "coap://as.example.com",
-                2: "erikw",
-                3: "coap://light.example.com",
-                4: 1444064944,
-                5: 1443944944,
-                6: 1443944944,
-                7: bytes.fromhex("0b71"),
+                CWTClaims.ISS: "coap://as.example.com",
+                CWTClaims.SUB: "erikw",
+                CWTClaims.AUD: "coap://light.example.com",
+                CWTClaims.EXP: 1444064944,
+                CWTClaims.NBF: 1443944944,
+                CWTClaims.IAT: 1443944944,
+                CWTClaims.CTI: bytes.fromhex("0b71"),
             },
             key=key,
             tagged=True,
@@ -803,13 +807,13 @@ class TestSample:
         )
         token = cwt.encode(
             {
-                1: "coap://as.example.com",
-                2: "erikw",
-                3: "coap://light.example.com",
-                4: 1444064944,
-                5: 1443944944,
-                6: 1443944944,
-                7: bytes.fromhex("0b71"),
+                CWTClaims.ISS: "coap://as.example.com",
+                CWTClaims.SUB: "erikw",
+                CWTClaims.AUD: "coap://light.example.com",
+                CWTClaims.EXP: 1444064944,
+                CWTClaims.NBF: 1443944944,
+                CWTClaims.IAT: 1443944944,
+                CWTClaims.CTI: bytes.fromhex("0b71"),
             },
             key,
             tagged=True,
@@ -823,13 +827,13 @@ class TestSample:
         nonce = bytes.fromhex("99a0d7846e762c49ffe8a63e0b")
         encoded = cwt.encode_and_encrypt(
             {
-                1: "coap://as.example.com",
-                2: "erikw",
-                3: "coap://light.example.com",
-                4: 1444064944,
-                5: 1443944944,
-                6: 1443944944,
-                7: bytes.fromhex("0b71"),
+                CWTClaims.ISS: "coap://as.example.com",
+                CWTClaims.SUB: "erikw",
+                CWTClaims.AUD: "coap://light.example.com",
+                CWTClaims.EXP: 1444064944,
+                CWTClaims.NBF: 1443944944,
+                CWTClaims.IAT: 1443944944,
+                CWTClaims.CTI: bytes.fromhex("0b71"),
             },
             key=key,
             nonce=nonce,
@@ -839,18 +843,18 @@ class TestSample:
         token2 = ctx.encode_and_encrypt(
             cbor2.dumps(
                 {
-                    1: "coap://as.example.com",
-                    2: "erikw",
-                    3: "coap://light.example.com",
-                    4: 1444064944,
-                    5: 1443944944,
-                    6: 1443944944,
-                    7: bytes.fromhex("0b71"),
+                    CWTClaims.ISS: "coap://as.example.com",
+                    CWTClaims.SUB: "erikw",
+                    CWTClaims.AUD: "coap://light.example.com",
+                    CWTClaims.EXP: 1444064944,
+                    CWTClaims.NBF: 1443944944,
+                    CWTClaims.IAT: 1443944944,
+                    CWTClaims.CTI: bytes.fromhex("0b71"),
                 }
             ),
             key,
             protected={1: key.alg},
-            unprotected={4: key.kid, 5: nonce},
+            unprotected={COSEHeaders.KID: key.kid, COSEHeaders.IV: nonce},
         )
         assert token2 == bytes.fromhex(SAMPLE_CWT_RFC8392_A5)
         decoded = cwt.decode(encoded, keys=key, no_verify=True)
@@ -861,13 +865,13 @@ class TestSample:
         nonce = bytes.fromhex("99a0d7846e762c49ffe8a63e0b")
         token = cwt.encode(
             {
-                1: "coap://as.example.com",
-                2: "erikw",
-                3: "coap://light.example.com",
-                4: 1444064944,
-                5: 1443944944,
-                6: 1443944944,
-                7: bytes.fromhex("0b71"),
+                CWTClaims.ISS: "coap://as.example.com",
+                CWTClaims.SUB: "erikw",
+                CWTClaims.AUD: "coap://light.example.com",
+                CWTClaims.EXP: 1444064944,
+                CWTClaims.NBF: 1443944944,
+                CWTClaims.IAT: 1443944944,
+                CWTClaims.CTI: bytes.fromhex("0b71"),
             },
             key=key,
             nonce=nonce,
@@ -877,18 +881,18 @@ class TestSample:
         token2 = ctx.encode_and_encrypt(
             cbor2.dumps(
                 {
-                    1: "coap://as.example.com",
-                    2: "erikw",
-                    3: "coap://light.example.com",
-                    4: 1444064944,
-                    5: 1443944944,
-                    6: 1443944944,
-                    7: bytes.fromhex("0b71"),
+                    CWTClaims.ISS: "coap://as.example.com",
+                    CWTClaims.SUB: "erikw",
+                    CWTClaims.AUD: "coap://light.example.com",
+                    CWTClaims.EXP: 1444064944,
+                    CWTClaims.NBF: 1443944944,
+                    CWTClaims.IAT: 1443944944,
+                    CWTClaims.CTI: bytes.fromhex("0b71"),
                 }
             ),
             key,
             protected={1: key.alg},
-            unprotected={4: key.kid, 5: nonce},
+            unprotected={COSEHeaders.KID: key.kid, COSEHeaders.IV: nonce},
         )
         assert token2 == bytes.fromhex(SAMPLE_CWT_RFC8392_A5)
         decoded = cwt.decode(token, keys=key, no_verify=True)
@@ -905,13 +909,13 @@ class TestSample:
         sig_key = COSEKey.from_bytes(bytes.fromhex(SAMPLE_COSE_KEY_RFC8392_A2_3))
         signed = cwt.encode_and_sign(
             {
-                1: "coap://as.example.com",
-                2: "erikw",
-                3: "coap://light.example.com",
-                4: 1444064944,
-                5: 1443944944,
-                6: 1443944944,
-                7: bytes.fromhex("0b71"),
+                CWTClaims.ISS: "coap://as.example.com",
+                CWTClaims.SUB: "erikw",
+                CWTClaims.AUD: "coap://light.example.com",
+                CWTClaims.EXP: 1444064944,
+                CWTClaims.NBF: 1443944944,
+                CWTClaims.IAT: 1443944944,
+                CWTClaims.CTI: bytes.fromhex("0b71"),
             },
             key=sig_key,
         )
@@ -925,13 +929,13 @@ class TestSample:
         sig_key = COSEKey.from_bytes(bytes.fromhex(SAMPLE_COSE_KEY_RFC8392_A2_3))
         signed = cwt.encode(
             {
-                1: "coap://as.example.com",
-                2: "erikw",
-                3: "coap://light.example.com",
-                4: 1444064944,
-                5: 1443944944,
-                6: 1443944944,
-                7: bytes.fromhex("0b71"),
+                CWTClaims.ISS: "coap://as.example.com",
+                CWTClaims.SUB: "erikw",
+                CWTClaims.AUD: "coap://light.example.com",
+                CWTClaims.EXP: 1444064944,
+                CWTClaims.NBF: 1443944944,
+                CWTClaims.IAT: 1443944944,
+                CWTClaims.CTI: bytes.fromhex("0b71"),
             },
             key=sig_key,
         )
