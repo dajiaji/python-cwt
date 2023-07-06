@@ -35,6 +35,31 @@ class COSEHeaders(enum.IntEnum):
     CUPH_OWNER_PUB_KEY = 257
 
 
+class COSEKeyParams(enum.IntEnum):
+    KTY = 1
+    KID = 2
+    ALG = 3
+    KEY_OPS = 4
+    BASE_IV = 5
+    CRV = -1
+    X = -2
+    Y = -3
+    D = -4
+    RSA_N = -1
+    RSA_E = -2
+    RSA_D = -3
+    RSA_P = -4
+    RSA_Q = -5
+    RSA_DP = -6
+    RSA_DQ = -7
+    RSA_QINV = -8
+    RSA_OTHER = -9
+    RSA_R_I = -10
+    RsA_D_I = -11
+    RSA_T_I = -12
+    K = -1
+
+
 class COSEAlgs(enum.IntEnum):
     RS512 = -259
     RS384 = -258

@@ -413,7 +413,7 @@ class TestRecipient:
             (
                 {"foo": "bar"},
                 {"kty": "oct", "foo": "bar"},
-                "alg(3) should be int or str(tstr).",
+                "alg(3) not found.",
             ),
             (
                 {"alg": "xxx"},

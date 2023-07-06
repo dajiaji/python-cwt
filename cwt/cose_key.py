@@ -27,6 +27,7 @@ from .const import (
     COSE_KEY_TYPES,
 )
 from .cose_key_interface import COSEKeyInterface
+from .enums import COSEKeyParams
 from .utils import jwk_to_cose_key_params, uint_to_bytes
 
 
@@ -50,31 +51,33 @@ class COSEKey:
         """
 
         # Validate COSE Key common parameters.
-        if 1 not in params:
+        if COSEKeyParams.KTY not in params:
             raise ValueError("kty(1) not found.")
-        if not isinstance(params[1], int) and not isinstance(params[1], str):
+        if not isinstance(params[COSEKeyParams.KTY], int) and not isinstance(params[COSEKeyParams.KTY], str):
             raise ValueError("kty(1) should be int or str(tstr).")
-        if params[1] == 1:
+        if params[COSEKeyParams.KTY] == 1:
             return OKPKey(params)
-        if params[1] == 2:
+        if params[COSEKeyParams.KTY] == 2:
             return EC2Key(params)
-        if params[1] == 3:
+        if params[COSEKeyParams.KTY] == 3:
             return RSAKey(params)
-        if params[1] == 4:
-            if 3 not in params or (not isinstance(params[3], int) and not isinstance(params[3], str)):
-                raise ValueError("alg(3) should be int or str(tstr).")
-            if params[3] in [1, 2, 3]:
-                return AESGCMKey(params)
-            if params[3] in [4, 5, 6, 7]:
-                return HMACKey(params)
-            if params[3] in [10, 11, 12, 13, 30, 31, 32, 33]:
-                return AESCCMKey(params)
-            if params[3] == 24:
-                return ChaCha20Key(params)
-            if params[3] in [-3, -4, -5]:
-                return AESKeyWrap(params)
-            raise ValueError(f"Unsupported or unknown alg(3): {params[3]}.")
-        raise ValueError(f"Unsupported or unknown kty(1): {params[1]}.")
+        if params[COSEKeyParams.KTY] != 4:
+            raise ValueError(f"Unsupported or unknown kty(1): {params[1]}.")
+        if COSEKeyParams.ALG not in params:
+            raise ValueError("alg(3) not found.")
+        if not isinstance(params[COSEKeyParams.ALG], int) and not isinstance(params[COSEKeyParams.ALG], str):
+            raise ValueError("alg(3) should be int or str(tstr).")
+        if params[COSEKeyParams.ALG] in [1, 2, 3]:
+            return AESGCMKey(params)
+        if params[COSEKeyParams.ALG] in [4, 5, 6, 7]:
+            return HMACKey(params)
+        if params[COSEKeyParams.ALG] in [10, 11, 12, 13, 30, 31, 32, 33]:
+            return AESCCMKey(params)
+        if params[COSEKeyParams.ALG] == 24:
+            return ChaCha20Key(params)
+        if params[COSEKeyParams.ALG] in [-3, -4, -5]:
+            return AESKeyWrap(params)
+        raise ValueError(f"Unsupported or unknown alg(3): {params[3]}.")
 
     @classmethod
     def generate_symmetric_key(
@@ -138,10 +141,10 @@ class COSEKey:
         if alg_id == 0:
             raise ValueError(f"Unsupported or unknown alg(3): {alg}.")
 
-        params = {
-            1: 4,  # kty: 'Symmetric'
-            3: alg_id,  # alg: int
-            -1: key,  # k: bstr
+        params: Dict[int, Any] = {
+            COSEKeyParams.KTY: 4,  # kty: 'Symmetric'
+            COSEKeyParams.ALG: alg_id,  # alg: int
+            COSEKeyParams.K: key,  # k: bstr
         }
         if isinstance(kid, str):
             kid = kid.encode("utf-8")
