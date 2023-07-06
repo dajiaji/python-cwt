@@ -945,6 +945,37 @@ class TestSample:
         decoded = cwt.decode(encrypted, keys=[enc_key, sig_key], no_verify=True)
         assert 1 in decoded and decoded[1] == "coap://as.example.com"
 
+    def test_sample_cwt_with_cwt_claims_in_headers(self):
+        # The sender side:
+        sender = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        payload = cbor2.dumps(
+            {
+                CWTClaims.ISS: "coap://as.example.com",
+                CWTClaims.SUB: "erikw",
+                CWTClaims.AUD: "coap://light.example.com",
+                CWTClaims.EXP: now() + 3600,
+                CWTClaims.NBF: now(),
+                CWTClaims.IAT: now(),
+                CWTClaims.CTI: bytes.fromhex("0b71"),
+            },
+        )
+        protected = {
+            COSEHeaders.CWT_CLAIMS: {  # 13
+                CWTClaims.ISS: "coap://as.example.com",
+            }
+        }
+        enc_key = COSEKey.from_symmetric_key(alg="A128GCM", kid="01")
+        token = sender.encode(payload, enc_key, protected)
+
+        # print(token.hex())
+
+        # The recipient side:
+        recipient = CWT.new()
+        # `decode()` checks the validity of the CWT claims header parameter.
+        decoded = recipient.decode(token, enc_key)
+        assert 1 in decoded and decoded[CWTClaims.ISS] == "coap://as.example.com"
+        assert 2 in decoded and decoded[CWTClaims.SUB] == "erikw"
+
     def test_sample_hcert_testdata_AT_2DCode_raw_1(self):
         # A DSC(Document Signing Certificate) issued by a CSCA (Certificate Signing Certificate Authority).
         dsc = "-----BEGIN CERTIFICATE-----\nMIIBvTCCAWOgAwIBAgIKAXk8i88OleLsuTAKBggqhkjOPQQDAjA2MRYwFAYDVQQDDA1BVCBER0MgQ1NDQSAxMQswCQYDVQQGEwJBVDEPMA0GA1UECgwGQk1TR1BLMB4XDTIxMDUwNTEyNDEwNloXDTIzMDUwNTEyNDEwNlowPTERMA8GA1UEAwwIQVQgRFNDIDExCzAJBgNVBAYTAkFUMQ8wDQYDVQQKDAZCTVNHUEsxCjAIBgNVBAUTATEwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASt1Vz1rRuW1HqObUE9MDe7RzIk1gq4XW5GTyHuHTj5cFEn2Rge37+hINfCZZcozpwQKdyaporPUP1TE7UWl0F3o1IwUDAOBgNVHQ8BAf8EBAMCB4AwHQYDVR0OBBYEFO49y1ISb6cvXshLcp8UUp9VoGLQMB8GA1UdIwQYMBaAFP7JKEOflGEvef2iMdtopsetwGGeMAoGCCqGSM49BAMCA0gAMEUCIQDG2opotWG8tJXN84ZZqT6wUBz9KF8D+z9NukYvnUEQ3QIgdBLFSTSiDt0UJaDF6St2bkUQuVHW6fQbONd731/M4nc=\n-----END CERTIFICATE-----"

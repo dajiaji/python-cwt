@@ -125,6 +125,7 @@ See [Documentation](https://python-cwt.readthedocs.io/en/stable/) for details of
     - [Nested CWT](#nested-cwt)
     - [CWT with User Settings (e.g., expires\_in)](#cwt-with-user-settings)
     - [CWT with User-Defined Claims](#cwt-with-user-defined-claims)
+    - [CWT with CWT claims in COSE headers](#cwt-cwt-claims-in-cose-headers)
     - [CWT with PoP Key](#cwt-with-pop-key)
     - [CWT with Private CA](#cwt-with-private-ca)
     - [CWT for EUDCC (EU Digital COVID Certificate)](#cwt-for-eudcc-eu-digital-covid-certificate)
@@ -1487,6 +1488,45 @@ assert readable.get("ext_3")["baz"] == "qux"
 assert readable.get("ext_4") == 123
 ```
 
+
+### CWT with CWT claims in COSE headers
+
+Python CWT supports [CWT Claims in COSE Headers](https://www.ietf.org/archive/id/draft-ietf-cose-cwt-claims-in-headers-05.html)  experimentally.
+
+If a CWT message has a CWT Claims header parameter in its protected header, `cwt.decode()` checks whether the values of the claims included in that parameter match the values of the corresponding claims in the payload. If they do not match, `VerifyError` is raised.
+
+```py
+from cwt import COSE, COSEHeaders, COSEKey, CWT, CWTClaims
+
+enc_key = COSEKey.from_symmetric_key(alg="A128GCM", kid="01")
+
+# The sender side:
+sender = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+payload = cbor2.dumps(
+    {
+        CWTClaims.ISS: "coap://as.example.com",
+        CWTClaims.SUB: "erikw",
+        CWTClaims.AUD: "coap://light.example.com",
+        CWTClaims.EXP: now() + 3600,
+        CWTClaims.NBF: now(),
+        CWTClaims.IAT: now(),
+        CWTClaims.CTI: bytes.fromhex("0b71"),
+    },
+)
+protected = {
+    COSEHeaders.CWT_CLAIMS: {  # 13
+        CWTClaims.ISS: "coap://as.example.com",
+    }
+}
+token = sender.encode(payload, enc_key, protected)
+
+# The recipient side:
+recipient = CWT.new()
+# `decode()` checks the validity of the CWT claims header parameter.
+decoded = recipient.decode(token, enc_key)
+assert decoded[CWTClaims.ISS] == "coap://as.example.com"
+assert decoded[CWTClaims.SUB] == "erikw"
+```
 
 ### CWT with PoP Key
 
