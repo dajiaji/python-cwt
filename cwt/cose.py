@@ -292,7 +292,7 @@ class COSE(CBORProcessor):
         external_aad: bytes = b"",
     ) -> bytes:
         """
-        Verifies and decodes COSE data.
+        Verifies and decodes COSE data, and returns only payload.
 
         Args:
             data (Union[bytes, CBORTag]): A byte string or cbor2.CBORTag of an
@@ -305,6 +305,35 @@ class COSE(CBORProcessor):
                 application.
         Returns:
             bytes: A byte string of decoded payload.
+        Raises:
+            ValueError: Invalid arguments.
+            DecodeError: Failed to decode data.
+            VerifyError: Failed to verify data.
+        """
+        _, _, res = self.decode_with_headers(data, keys, context, external_aad)
+        return res
+
+    def decode_with_headers(
+        self,
+        data: Union[bytes, CBORTag],
+        keys: Union[COSEKeyInterface, List[COSEKeyInterface]],
+        context: Optional[Union[Dict[str, Any], List[Any]]] = None,
+        external_aad: bytes = b"",
+    ) -> Tuple[Dict[int, Any], Dict[int, Any], bytes]:
+        """
+        Verifies and decodes COSE data, and returns protected headers, unprotected headers and payload.
+
+        Args:
+            data (Union[bytes, CBORTag]): A byte string or cbor2.CBORTag of an
+                encoded data.
+            keys (Union[COSEKeyInterface, List[COSEKeyInterface]]): COSE key(s)
+                to verify and decrypt the encoded data.
+            context (Optional[Union[Dict[str, Any], List[Any]]]): A context information
+                structure for key deriviation functions.
+            external_aad(bytes): External additional authenticated data supplied by
+                application.
+        Returns:
+            Tuple[Dict[int, Any], Dict[int, Any], bytes]: A dictionary data of decoded protected headers, and a dictionary data of unprotected headers, and a byte string of decoded payload.
         Raises:
             ValueError: Invalid arguments.
             DecodeError: Failed to decode data.
@@ -371,14 +400,14 @@ class COSE(CBORProcessor):
                             res = hpke.decode(k, aad)
                             if not isinstance(res, bytes):
                                 raise TypeError("Internal type error.")
-                            return res
-                        return k.decrypt(data.value[2], nonce, aad)
+                            return p, u, res
+                        return p, u, k.decrypt(data.value[2], nonce, aad)
                     except Exception as e:
                         err = e
                 raise err
             for _, k in enumerate(keys):
                 try:
-                    return k.decrypt(data.value[2], nonce, aad)
+                    return p, u, k.decrypt(data.value[2], nonce, aad)
                 except Exception as e:
                     err = e
             raise err
@@ -389,7 +418,7 @@ class COSE(CBORProcessor):
             nonce = u.get(5, b"")
             enc_key = rs.derive_key(keys, alg, external_aad, "Enc_Recipient")
             aad = self._dumps(["Encrypt", data.value[0], external_aad])
-            return enc_key.decrypt(data.value[2], nonce, aad)
+            return p, u, enc_key.decrypt(data.value[2], nonce, aad)
 
         # MAC0
         if data.tag == 17:
@@ -401,14 +430,14 @@ class COSE(CBORProcessor):
                         continue
                     try:
                         k.verify(msg, data.value[3])
-                        return data.value[2]
+                        return p, u, data.value[2]
                     except Exception as e:
                         err = e
                 raise err
             for _, k in enumerate(keys):
                 try:
                     k.verify(msg, data.value[3])
-                    return data.value[2]
+                    return p, u, data.value[2]
                 except Exception as e:
                     err = e
             raise err
@@ -419,7 +448,7 @@ class COSE(CBORProcessor):
             rs = Recipients.from_list(data.value[4], self._verify_kid, context)
             mac_auth_key = rs.derive_key(keys, alg, external_aad, "Mac_Recipient")
             mac_auth_key.verify(to_be_maced, data.value[3])
-            return data.value[2]
+            return p, u, data.value[2]
 
         # Signature1
         if data.tag == 18:
@@ -433,7 +462,7 @@ class COSE(CBORProcessor):
                         if self._ca_certs:
                             k.validate_certificate(self._ca_certs)
                         k.verify(to_be_signed, data.value[3])
-                        return data.value[2]
+                        return p, u, data.value[2]
                     except Exception as e:
                         err = e
                 raise err
@@ -442,7 +471,7 @@ class COSE(CBORProcessor):
                     if self._ca_certs:
                         k.validate_certificate(self._ca_certs)
                     k.verify(to_be_signed, data.value[3])
-                    return data.value[2]
+                    return p, u, data.value[2]
                 except Exception as e:
                     err = e
             raise err
@@ -476,7 +505,7 @@ class COSE(CBORProcessor):
                             ]
                         )
                         k.verify(to_be_signed, sig[2])
-                        return data.value[2]
+                        return p, u, data.value[2]
                     except Exception as e:
                         err = e
                 continue
@@ -492,7 +521,7 @@ class COSE(CBORProcessor):
                         ]
                     )
                     k.verify(to_be_signed, sig[2])
-                    return data.value[2]
+                    return p, u, data.value[2]
                 except Exception as e:
                     err = e
         raise err
