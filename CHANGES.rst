@@ -4,6 +4,19 @@ Changes
 Unreleased
 ----------
 
+Version 2.4.0
+-------------
+
+Released 2023-07-08
+
+- Fix and update examples in README. `#405 <https://github.com/dajiaji/python-cwt/pull/405>`__
+- Add enum CWTClaims. `#404 <https://github.com/dajiaji/python-cwt/pull/404>`__
+- Rename COSEType to COSETypes. `#403 <https://github.com/dajiaji/python-cwt/pull/403>`__
+- Add enum COSEHeaders. `#401 <https://github.com/dajiaji/python-cwt/pull/401>`__
+- Add experimental support for CWT claims in COSE headers. `#400 <https://github.com/dajiaji/python-cwt/pull/400>`__
+- Update dev dependencies.
+    - Bump tox to 4.6.4. `#398 <https://github.com/dajiaji/python-cwt/pull/398>`__
+
 Version 2.3.2
 -------------
 
