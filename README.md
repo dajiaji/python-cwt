@@ -60,11 +60,21 @@ from cwt import COSEKey
 mac_key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
 
 # The sender side:
-token = encode({1: "coaps://as.example", 2: "dajiaji", 7: b"123"}, mac_key)
+token = encode({
+    CWTClaims.ISS: "coaps://as.example",
+    CWTClaims.SUB: "dajiaji",
+    CWTClaims.CTI: b"123"}, mac_key)
 
 # The recipient side:
 decoded = decode(token, mac_key)
-# decoded == {1: 'coaps://as.example', 2: 'dajiaji', 7: b'123', 4: 1620088759, 5: 1620085159, 6: 1620085159}
+# decoded == {
+#     CWTClaims.ISS: 'coaps://as.example',
+#     CWTClaims.SUB: 'dajiaji',
+#     CWTClaims.CTI: b'123',
+#     CWTClaims.EXP: 1620088759,
+#     CWTClaims.NBF: 1620085159,
+#     CWTClaims.IAT: 1620085159
+# }
 ```
 
 Various usage examples are shown in this README.
@@ -556,7 +566,7 @@ enc_key = COSEKey.generate_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
 # The sender side:
 nonce = enc_key.generate_nonce()
 sender = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
-encoded = sender.encode(b"Hello world!", enc_key, unprotected={5: nonce})
+encoded = sender.encode(b"Hello world!", enc_key, unprotected={COSEHeaders.IV: nonce})
 
 # The recipient side:
 recipient = COSE.new()
@@ -599,7 +609,7 @@ enc_key = COSEKey.generate_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
 # The sender side:
 nonce = enc_key.generate_nonce()
 sender = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
-encoded = sender.encode(b"Hello world!", enc_key, unprotected={5: nonce})
+encoded = sender.encode(b"Hello world!", enc_key, unprotected={COSEHeaders.IV: nonce})
 
 # The notary side:
 notary = Signer.from_jwk(
@@ -864,7 +874,7 @@ sender = COSE.new(alg_auto_inclusion=True)
 encoded = sender.encode(
     b"Hello world!",
     key=enc_key,
-    unprotected={5: nonce},
+    unprotected={COSEHeaders.IV: nonce},
     recipients=[r],
 )
 
@@ -1257,7 +1267,7 @@ import cwt
 from cwt import COSEKey
 
 key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
-token = cwt.encode({1: "coaps://as.example", 2: "dajiaji", 7: b"123"}, key)
+token = cwt.encode({CWTClaims.ISS: "coaps://as.example", CWTClaims.SUB: "dajiaji", CWTClaims.CTI: b"123"}, key)
 decoded = decode(token, key)
 ```
 
@@ -1402,9 +1412,9 @@ with open("./private_key.pem") as key_file:
     private_key = COSEKey.from_pem(key_file.read(), kid="01")
 token =
     {
-        1: "coaps://as.example",  # iss
-        2: "dajiaji",  # sub
-        7: b"123",  # cti
+        CWTClaims.ISS: "coaps://as.example",  # iss
+        CWTClaims.SUB: "dajiaji",  # sub
+        CWTClaims.CTI: b"123",  # cti
         -70001: "foo",
         -70002: ["bar"],
         -70003: {"baz": "qux"},

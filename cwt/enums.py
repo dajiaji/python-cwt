@@ -33,3 +33,27 @@ class COSEHeaders(enum.IntEnum):
     X5U = 35
     CUPH_NONCE = 256
     CUPH_OWNER_PUB_KEY = 257
+
+
+class CWTClaims(enum.IntEnum):
+    HCERT = -260
+    EUPH_NONCE = -259
+    EAT_MAROE_PREFIX = -258
+    EAT_FDO = -257
+    ISS = 1
+    SUB = 2
+    AUD = 3
+    EXP = 4
+    NBF = 5
+    IAT = 6
+    CTI = 7
+    CNF = 8
+    NONCE = 10
+    UEID = 11
+    OEMID = 13
+    SEC_LEVEL = 14
+    SEC_BOOT = 15
+    DBG_STAT = 16
+    LOCATION = 17
+    EAT_PROFILE = 18
+    SUBMODS = 20
