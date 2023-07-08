@@ -49,13 +49,17 @@ encoded = sender.encode(
 # The recipient side:
 recipient = COSE.new()
 assert b"Hello world!" == recipient.decode(encoded, mac_key)
+
+## You can get decoded protected/unprotected headers with the payload as follows:
+# protected, unprotected, payload = recipient.decode_with_headers(encoded, mac_key)
+# assert b"Hello world!" == payload
 ```
 
 **CWT API**
 
 ```py
 import cwt
-from cwt import COSEKey
+from cwt import COSEKey, CWTClaims
 
 mac_key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
 
@@ -121,6 +125,7 @@ See [Documentation](https://python-cwt.readthedocs.io/en/stable/) for details of
     - [Nested CWT](#nested-cwt)
     - [CWT with User Settings (e.g., expires\_in)](#cwt-with-user-settings)
     - [CWT with User-Defined Claims](#cwt-with-user-defined-claims)
+    - [CWT with CWT claims in COSE headers](#cwt-cwt-claims-in-cose-headers)
     - [CWT with PoP Key](#cwt-with-pop-key)
     - [CWT with Private CA](#cwt-with-private-ca)
     - [CWT for EUDCC (EU Digital COVID Certificate)](#cwt-for-eudcc-eu-digital-covid-certificate)
@@ -1238,8 +1243,8 @@ from cwt import Claims, COSEKey
 
 try:
     key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
-    token = {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
-    decoded = decode(token, key)
+    token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
+    decoded = cwt.decode(token, key)
 
     # If you want to treat the result like a JWT;
     readable = Claims.new(decoded)
@@ -1264,11 +1269,11 @@ A raw CWT structure (Dict[int, Any]) can also be used as follows:
 
 ```py
 import cwt
-from cwt import COSEKey
+from cwt import COSEKey, CWTClaims
 
 key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
 token = cwt.encode({CWTClaims.ISS: "coaps://as.example", CWTClaims.SUB: "dajiaji", CWTClaims.CTI: b"123"}, key)
-decoded = decode(token, key)
+decoded = cwt.decode(token, key)
 ```
 
 MAC algorithms other than `HS256` are listed in
@@ -1292,14 +1297,14 @@ from cwt import COSEKey
 # The sender side:
 with open("./private_key.pem") as key_file:
     private_key = COSEKey.from_pem(key_file.read(), kid="01")
-token = encode(
+token = cwt.encode(
     {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
 )
 
 # The recipient side:
 with open("./public_key.pem") as key_file:
     public_key = COSEKey.from_pem(key_file.read(), kid="01")
-decoded = decode(token, public_key)
+decoded = cwt.decode(token, public_key)
 ```
 
 JWKs can also be used instead of the PEM-formatted keys as follows:
@@ -1318,7 +1323,7 @@ private_key = COSEKey.from_jwk({
     "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
     "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
 })
-token =
+token = cwt.encode(
     {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
 )
 
@@ -1330,7 +1335,7 @@ public_key = COSEKey.from_jwk({
     "crv": "Ed25519",
     "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
 })
-decoded = decode(token, public_key)
+decoded = cwt.decode(token, public_key)
 ```
 
 Signing algorithms other than `Ed25519` are listed in
@@ -1345,8 +1350,8 @@ import cwt
 from cwt import COSEKey
 
 enc_key = COSEKey.generate_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
-token = {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, enc_key)
-decoded = decode(token, enc_key)
+token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, enc_key)
+decoded = cwt.decode(token, enc_key)
 ```
 
 Encryption algorithms other than `ChaCha20/Poly1305` are listed in
@@ -1366,17 +1371,17 @@ enc_key = COSEKey.generate_symmetric_key(alg="ChaCha20/Poly1305", kid="enc-01")
 # Creates a CWT with ES256 signing.
 with open("./private_key.pem") as key_file:
     private_key = COSEKey.from_pem(key_file.read(), kid="sig-01")
-token =
+token = cwt.encode(
     {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
 )
 
 # Encrypts the signed CWT.
-nested = token, enc_key)
+nested = cwt.encode(token, enc_key)
 
 # Decrypts and verifies the nested CWT.
 with open("./public_key.pem") as key_file:
     public_key = COSEKey.from_pem(key_file.read(), kid="sig-01")
-decoded = decode(nested, [enc_key, public_key])
+decoded = cwt.decode(nested, [enc_key, public_key])
 ```
 
 ### CWT with User Settings
@@ -1393,8 +1398,8 @@ from cwt import COSEKey, CWT
 
 key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
 mycwt = CWT.new(expires_in=3600*24, leeway=10)
-token = my{"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
-decoded = mydecode(token, key)
+token = mycwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
+decoded = mycwt.decode(token, key)
 ```
 
 ### CWT with User-Defined Claims
@@ -1405,12 +1410,12 @@ Note that such user-defined claim's key should be less than -65536.
 
 ```py
 import cwt
-from cwt import COSEKey
+from cwt import COSEKey, CWTClaims
 
 # The sender side:
 with open("./private_key.pem") as key_file:
     private_key = COSEKey.from_pem(key_file.read(), kid="01")
-token =
+token = cwt.encode(
     {
         CWTClaims.ISS: "coaps://as.example",  # iss
         CWTClaims.SUB: "dajiaji",  # sub
@@ -1426,7 +1431,7 @@ token =
 # The recipient side:
 with open("./public_key.pem") as key_file:
     public_key = COSEKey.from_pem(key_file.read(), kid="01")
-raw = decode(token, public_key)
+raw = cwt.decode(token, public_key)
 assert raw[-70001] == "foo"
 assert raw[-70002][0] == "bar"
 assert raw[-70003]["baz"] == "qux"
@@ -1456,7 +1461,7 @@ my_claim_names = {
 }
 
 set_private_claim_names(my_claim_names)
-token =
+token = cwt.encode(
     {
         "iss": "coaps://as.example",
         "sub": "dajiaji",
@@ -1472,7 +1477,7 @@ token =
 with open("./public_key.pem") as key_file:
     public_key = COSEKey.from_pem(key_file.read(), kid="01")
 
-raw = decode(token, public_key)
+raw = cwt.decode(token, public_key)
 readable = Claims.new(
     raw,
     private_claims_names=my_claim_names,
@@ -1483,6 +1488,45 @@ assert readable.get("ext_3")["baz"] == "qux"
 assert readable.get("ext_4") == 123
 ```
 
+
+### CWT with CWT claims in COSE headers
+
+Python CWT supports [CWT Claims in COSE Headers](https://www.ietf.org/archive/id/draft-ietf-cose-cwt-claims-in-headers-05.html)  experimentally.
+
+If a CWT message has a CWT Claims header parameter in its protected header, `cwt.decode()` checks whether the values of the claims included in that parameter match the values of the corresponding claims in the payload. If they do not match, `VerifyError` is raised.
+
+```py
+from cwt import COSE, COSEHeaders, COSEKey, CWT, CWTClaims
+
+enc_key = COSEKey.from_symmetric_key(alg="A128GCM", kid="01")
+
+# The sender side:
+sender = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+payload = cbor2.dumps(
+    {
+        CWTClaims.ISS: "coap://as.example.com",
+        CWTClaims.SUB: "erikw",
+        CWTClaims.AUD: "coap://light.example.com",
+        CWTClaims.EXP: now() + 3600,
+        CWTClaims.NBF: now(),
+        CWTClaims.IAT: now(),
+        CWTClaims.CTI: bytes.fromhex("0b71"),
+    },
+)
+protected = {
+    COSEHeaders.CWT_CLAIMS: {  # 13
+        CWTClaims.ISS: "coap://as.example.com",
+    }
+}
+token = sender.encode(payload, enc_key, protected)
+
+# The recipient side:
+recipient = CWT.new()
+# `decode()` checks the validity of the CWT claims header parameter.
+decoded = recipient.decode(token, enc_key)
+assert decoded[CWTClaims.ISS] == "coap://as.example.com"
+assert decoded[CWTClaims.SUB] == "erikw"
+```
 
 ### CWT with PoP Key
 
@@ -1500,7 +1544,7 @@ with open("./private_key_of_issuer.pem") as key_file:
     private_key = COSEKey.from_pem(key_file.read(), kid="issuer-01")
 
 # Sets the PoP key to a CWT for the presenter.
-token =
+token = cwt.encode(
     {
         "iss": "coaps://as.example",
         "sub": "dajiaji",
@@ -1552,7 +1596,7 @@ with open("./public_key_of_issuer.pem") as key_file:
     public_key = COSEKey.from_pem(key_file.read(), kid="issuer-01")
 
 # Verifies and decodes the CWT received from the presenter.
-raw = decode(token, public_key)
+raw = cwt.decode(token, public_key)
 decoded = Claims.new(raw)
 
 # Extracts the PoP key from the CWT.
@@ -1580,7 +1624,7 @@ from cwt import Claims, COSEKey
 with open("./private_key_of_cert.pem")) as f:
     private_key = COSEKey.from_pem(f.read(), kid="01")
 
-token =
+token = cwt.encode(
     {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
 )
 
@@ -1631,7 +1675,7 @@ eudcc = bytes.fromhex(
 )
 
 public_key = load_pem_hcert_dsc(dsc)
-decoded = decode(eudcc, keys=[public_key])
+decoded = cwt.decode(eudcc, keys=[public_key])
 claims = Claims.new(decoded)
 # claims.hcert[1] ==
 # {
