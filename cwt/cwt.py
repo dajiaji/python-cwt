@@ -337,11 +337,12 @@ class CWT(CBORProcessor):
         if isinstance(cwt, CBORTag) and cwt.tag == CWT.CBOR_TAG:
             cwt = cwt.value
         keys = [keys] if isinstance(keys, COSEKeyInterface) else keys
+        p: Dict[int, Any] = {}
         while isinstance(cwt, CBORTag):
-            cwt = self._cose.decode(cwt, keys)
+            p, u, cwt = self._cose.decode_with_headers(cwt, keys)
             cwt = self._loads(cwt)
         if not no_verify:
-            self._verify(cwt)
+            self._verify(cwt, p)
         return cwt
 
     def set_private_claim_names(self, claim_names: Dict[str, int]):
@@ -398,7 +399,7 @@ class CWT(CBORProcessor):
         Claims.validate(claims)
         return
 
-    def _verify(self, claims: Union[Dict[int, Any], bytes]):
+    def _verify(self, claims: Union[Dict[int, Any], bytes], protected: Dict[int, Any] = {}):
         if not isinstance(claims, dict):
             raise DecodeError("Failed to decode.")
 
@@ -416,6 +417,11 @@ class CWT(CBORProcessor):
                     raise VerifyError("The token is not yet valid.")
             else:
                 raise ValueError("nbf should be int or float.")
+
+        if 13 in protected:  # CWT claims in protected headers
+            for k, v in protected[13].items():
+                if k in claims and claims[k] != v:
+                    raise VerifyError(f"The CWT claim({k}) value in protected header does not match the values in the payload.")
         return
 
     def _set_default_value(self, claims: Union[Dict[int, Any], bytes]):

@@ -10,9 +10,9 @@ from secrets import token_bytes
 
 import cbor2
 import pytest
-from cbor2 import CBORTag
+from cbor2 import CBORTag, dumps
 
-from cwt import CWT, Claims, COSEKey, DecodeError, Recipient, VerifyError
+from cwt import COSE, CWT, Claims, COSEKey, DecodeError, Recipient, VerifyError
 from cwt.cose_key_interface import COSEKeyInterface
 from cwt.signer import Signer
 
@@ -604,4 +604,38 @@ class TestCWT:
         with pytest.raises(ValueError) as err:
             ctx._verify(invalid)
             pytest.fail("_verify should fail.")
+        assert msg in str(err.value)
+
+    def test_cwt_decode_with_cwt_claims_in_headers(self, ctx):
+        cose = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        payload = dumps({1: "https://as.example", 2: "someone"})
+        protected = {13: {1: "https://as.example"}}
+        mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+        cwt = cose.encode_and_mac(payload, mac_key, protected)
+        decoded = ctx.decode(cwt, mac_key)
+        assert 1 in decoded and decoded[1] == "https://as.example"
+        assert 2 in decoded and decoded[2] == "someone"
+
+    @pytest.mark.parametrize(
+        "invalid, msg",
+        [
+            (
+                {1: "https://asx.example", 2: "someone"},
+                "The CWT claim(1) value in protected header does not match the values in the payload.",
+            ),
+            (
+                {1: "https://as.example", 2: "someonex"},
+                "The CWT claim(2) value in protected header does not match the values in the payload.",
+            ),
+        ],
+    )
+    def test_cwt_decode_with_invalid_cwt_claims_in_headers(self, ctx, invalid, msg):
+        cose = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        payload = dumps({1: "https://as.example", 2: "someone"})
+        protected = {13: invalid}
+        mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+        cwt = cose.encode_and_mac(payload, mac_key, protected)
+        with pytest.raises(VerifyError) as err:
+            ctx.decode(cwt, mac_key)
+            pytest.fail("verify should fail.")
         assert msg in str(err.value)
