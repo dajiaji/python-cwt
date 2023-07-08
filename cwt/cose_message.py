@@ -5,7 +5,7 @@ from cbor2 import CBORTag, loads
 from .cbor_processor import CBORProcessor
 from .const import COSE_TAG_TO_TYPE, COSE_TYPE_TO_TAG
 from .cose_key_interface import COSEKeyInterface
-from .enums import COSEType
+from .enums import COSETypes
 from .signer import Signer
 
 Self = TypeVar("Self", bound="COSEMessage")
@@ -16,7 +16,7 @@ class COSEMessage(CBORProcessor):
     The COSE message.
     """
 
-    def __init__(self, type: COSEType, msg: List[Any]):
+    def __init__(self, type: COSETypes, msg: List[Any]):
         """
         Constructor.
 
@@ -34,11 +34,11 @@ class COSEMessage(CBORProcessor):
         self._recipients: List[List[Any]] = []
         self._signatures: List[List[Any]] = []
 
-        if self._type == COSEType.ENCRYPT0:
+        if self._type == COSETypes.ENCRYPT0:
             if len(self._msg) != 3:
                 raise ValueError("Invalid COSE_Encrypt0 message.")
 
-        elif self._type == COSEType.ENCRYPT:
+        elif self._type == COSETypes.ENCRYPT:
             if len(self._msg) != 4:
                 raise ValueError("Invalid COSE_Encrypt message.")
             if not isinstance(self._msg[3], list):
@@ -47,14 +47,14 @@ class COSEMessage(CBORProcessor):
                 self._validate_cose_message(recipient)
             self._recipients = self._msg[3]
 
-        elif self._type == COSEType.MAC0:
+        elif self._type == COSETypes.MAC0:
             if len(self._msg) != 4:
                 raise ValueError("Invalid COSE_Mac0 message.")
             if not isinstance(self._msg[3], bytes):
                 raise ValueError("tag should be bytes.")
             self._otther_fields = [self._msg[3]]  # tag
 
-        elif self._type == COSEType.MAC:
+        elif self._type == COSETypes.MAC:
             if len(self._msg) != 5:
                 raise ValueError("Invalid COSE_Mac message.")
             if not isinstance(self._msg[3], bytes):
@@ -66,14 +66,14 @@ class COSEMessage(CBORProcessor):
                 self._validate_cose_message(recipient)
             self._recipients = self._msg[4]
 
-        elif self._type == COSEType.SIGN1:
+        elif self._type == COSETypes.SIGN1:
             if len(self._msg) != 4:
                 raise ValueError("Invalid COSE_Sign1 message.")
             if not isinstance(self._msg[3], bytes):
                 raise ValueError("The COSE signature should be bytes.")
             self._otther_fields = [self._msg[3]]
 
-        elif self._type == COSEType.SIGN:
+        elif self._type == COSETypes.SIGN:
             if len(self._msg) != 4:
                 raise ValueError("Invalid COSE_Sign message.")
             if not isinstance(self._msg[3], list):
@@ -82,20 +82,20 @@ class COSEMessage(CBORProcessor):
                 self._validate_cose_message(signature)
             self._signatures = self._msg[3]
 
-        elif self._type == COSEType.COUNTERSIGNATURE:
+        elif self._type == COSETypes.COUNTERSIGNATURE:
             if len(self._msg) != 3:
                 raise ValueError("Invalid COSE_Countersignature.")
 
-        elif self._type == COSEType.SIGNATURE:
+        elif self._type == COSETypes.SIGNATURE:
             if len(self._msg) != 3:
                 raise ValueError("Invalid COSE_Signature.")
 
-        elif self._type == COSEType.RECIPIENT:
+        elif self._type == COSETypes.RECIPIENT:
             if len(self._msg) != 3:
                 raise ValueError("Invalid COSE_Recipient.")
 
         else:
-            raise ValueError(f"Invalid COSEType({type}) for COSE message.")
+            raise ValueError(f"Invalid COSETypes({type}) for COSE message.")
         return
 
     @classmethod
@@ -110,14 +110,14 @@ class COSEMessage(CBORProcessor):
 
     @classmethod
     def from_cose_signature(cls, signature: List[Any]):
-        return cls(COSEType.SIGNATURE, signature)
+        return cls(COSETypes.SIGNATURE, signature)
 
     @classmethod
     def from_cose_recipient(cls, recipient: List[Any]):
-        return cls(COSEType.RECIPIENT, recipient)
+        return cls(COSETypes.RECIPIENT, recipient)
 
     @property
-    def type(self) -> COSEType:
+    def type(self) -> COSETypes:
         """
         The identifier of the key type.
         """

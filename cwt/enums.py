@@ -1,7 +1,7 @@
 import enum
 
 
-class COSEType(enum.IntEnum):
+class COSETypes(enum.IntEnum):
     ENCRYPT0 = 1
     ENCRYPT = 2
     MAC0 = 3

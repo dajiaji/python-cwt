@@ -12,7 +12,7 @@ from .cwt import (
     set_private_claim_names,
 )
 from .encrypted_cose_key import EncryptedCOSEKey
-from .enums import COSEHeaders, COSEType
+from .enums import COSEHeaders, COSETypes
 from .exceptions import CWTError, DecodeError, EncodeError, VerifyError
 from .helpers.hcert import load_pem_hcert_dsc
 from .recipient import Recipient
@@ -40,7 +40,7 @@ __all__ = [
     "COSEKey",
     "COSEMessage",
     "COSESignature",
-    "COSEType",
+    "COSETypes",
     "COSEHeaders",
     "EncryptedCOSEKey",
     "HPKECipherSuite",

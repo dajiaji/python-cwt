@@ -10,7 +10,7 @@ Tests for COSEMessage.
 import cbor2
 import pytest
 
-from cwt import COSE, COSEKey, COSEMessage, COSEType, Recipient, Signer, VerifyError
+from cwt import COSE, COSEKey, COSEMessage, COSETypes, Recipient, Signer, VerifyError
 
 
 class TestCOSEMessage:
@@ -23,7 +23,7 @@ class TestCOSEMessage:
         sender = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
         encoded = sender.encode(b"Hello world!", mac_key)
         sig = COSEMessage.loads(encoded)
-        assert sig.type == COSEType.MAC0
+        assert sig.type == COSETypes.MAC0
         assert sig.payload == b"Hello world!"
         assert sig.signatures == []
         assert sig.recipients == []
@@ -303,32 +303,32 @@ class TestCOSEMessage:
     @pytest.mark.parametrize(
         "type, msg, err_msg",
         [
-            (COSEType.MAC0, [], "Invalid COSE message."),
-            (COSEType.MAC0, [{}, {}, b""], "The protected headers should be bytes."),
-            (COSEType.MAC0, [b"", b"", b""], "The unprotected headers should be Dict[int, Any]."),
-            (COSEType.MAC0, [b"", {}, {}], "The payload should be bytes."),
-            (COSEType.MAC0, [b"", {11: {}}, b""], "The countersignature should be array."),
-            (COSEType.MAC0, [b"", {11: []}, b""], "Invalid countersignature."),
-            (COSEType.MAC0, [b"", {11: [b""]}, b""], "Invalid COSE message."),
-            (COSEType.MAC0, [b"", {11: [""]}, b""], "Invalid countersignature."),
-            (COSEType.MAC0, [b"", {}, b""], "Invalid COSE_Mac0 message."),
-            (COSEType.MAC0, [b"", {}, b"", {}], "tag should be bytes."),
-            (COSEType.ENCRYPT0, [b"", {}, b"", {}], "Invalid COSE_Encrypt0 message."),
-            (COSEType.ENCRYPT, [b"", {}, b""], "Invalid COSE_Encrypt message."),
-            (COSEType.ENCRYPT, [b"", {}, b"", {}], "The COSE recipients should be array."),
-            (COSEType.MAC, [b"", {}, b"", {}], "Invalid COSE_Mac message."),
-            (COSEType.MAC, [b"", {}, b"", {}, {}], "The tag value should be bytes."),
-            (COSEType.MAC, [b"", {}, b"", b"", {}], "The COSE recipients should be array."),
-            (COSEType.MAC, [b"", {}, b"", b"", [[]]], "Invalid COSE message."),
-            (COSEType.SIGN1, [b"", {}, b""], "Invalid COSE_Sign1 message."),
-            (COSEType.SIGN1, [b"", {}, b"", {}], "The COSE signature should be bytes."),
-            (COSEType.SIGN, [b"", {}, b""], "Invalid COSE_Sign message."),
-            (COSEType.SIGN, [b"", {}, b"", {}], "The COSE signatures should be array."),
-            (COSEType.SIGN, [b"", {}, b"", [[]]], "Invalid COSE message."),
-            (COSEType.COUNTERSIGNATURE, [b"", {}, b"", {}], "Invalid COSE_Countersignature."),
-            (COSEType.SIGNATURE, [b"", {}, b"", {}], "Invalid COSE_Signature."),
-            (COSEType.RECIPIENT, [b"", {}, b"", {}], "Invalid COSE_Recipient."),
-            (-1, [b"", {}, b""], "Invalid COSEType(-1) for COSE message."),
+            (COSETypes.MAC0, [], "Invalid COSE message."),
+            (COSETypes.MAC0, [{}, {}, b""], "The protected headers should be bytes."),
+            (COSETypes.MAC0, [b"", b"", b""], "The unprotected headers should be Dict[int, Any]."),
+            (COSETypes.MAC0, [b"", {}, {}], "The payload should be bytes."),
+            (COSETypes.MAC0, [b"", {11: {}}, b""], "The countersignature should be array."),
+            (COSETypes.MAC0, [b"", {11: []}, b""], "Invalid countersignature."),
+            (COSETypes.MAC0, [b"", {11: [b""]}, b""], "Invalid COSE message."),
+            (COSETypes.MAC0, [b"", {11: [""]}, b""], "Invalid countersignature."),
+            (COSETypes.MAC0, [b"", {}, b""], "Invalid COSE_Mac0 message."),
+            (COSETypes.MAC0, [b"", {}, b"", {}], "tag should be bytes."),
+            (COSETypes.ENCRYPT0, [b"", {}, b"", {}], "Invalid COSE_Encrypt0 message."),
+            (COSETypes.ENCRYPT, [b"", {}, b""], "Invalid COSE_Encrypt message."),
+            (COSETypes.ENCRYPT, [b"", {}, b"", {}], "The COSE recipients should be array."),
+            (COSETypes.MAC, [b"", {}, b"", {}], "Invalid COSE_Mac message."),
+            (COSETypes.MAC, [b"", {}, b"", {}, {}], "The tag value should be bytes."),
+            (COSETypes.MAC, [b"", {}, b"", b"", {}], "The COSE recipients should be array."),
+            (COSETypes.MAC, [b"", {}, b"", b"", [[]]], "Invalid COSE message."),
+            (COSETypes.SIGN1, [b"", {}, b""], "Invalid COSE_Sign1 message."),
+            (COSETypes.SIGN1, [b"", {}, b"", {}], "The COSE signature should be bytes."),
+            (COSETypes.SIGN, [b"", {}, b""], "Invalid COSE_Sign message."),
+            (COSETypes.SIGN, [b"", {}, b"", {}], "The COSE signatures should be array."),
+            (COSETypes.SIGN, [b"", {}, b"", [[]]], "Invalid COSE message."),
+            (COSETypes.COUNTERSIGNATURE, [b"", {}, b"", {}], "Invalid COSE_Countersignature."),
+            (COSETypes.SIGNATURE, [b"", {}, b"", {}], "Invalid COSE_Signature."),
+            (COSETypes.RECIPIENT, [b"", {}, b"", {}], "Invalid COSE_Recipient."),
+            (-1, [b"", {}, b""], "Invalid COSETypes(-1) for COSE message."),
         ],
     )
     def test_cose_message_constructor_with_invalid_args(self, type, msg, err_msg):
