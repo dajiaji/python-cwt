@@ -39,11 +39,10 @@ class COSEKey:
     @staticmethod
     def new(params: Dict[int, Any]) -> COSEKeyInterface:
         """
-        Creates a COSE key from a CBOR-like dictionary with numeric keys.
+        Creates a COSE_Key object from a COSE_Key structure, which is a dictionary with numeric keys.
 
         Args:
-            params (Dict[int, Any]): A CBOR-like dictionary with numeric keys
-                of a COSE key.
+            params (Dict[int, Any]): A dictionary with numeric keys of a COSE key.
         Returns:
             COSEKeyInterface: A COSE key object.
         Raises:

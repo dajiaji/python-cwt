@@ -13,8 +13,8 @@ implementation compliant with:
 - [RFC9053: CBOR Object Signing and Encryption (COSE): Initial Algorithms](https://www.rfc-editor.org/rfc/rfc9053.html)
 - [RFC9338: CBOR Object Signing and Encryption (COSE): Countersignatures](https://www.rfc-editor.org/rfc/rfc9338.html) - experimental
 - [RFC8392: CWT (CBOR Web Token)](https://tools.ietf.org/html/rfc8392)
-- [draft-04: Use of HPKE with COSE](https://www.ietf.org/archive/id/draft-ietf-cose-hpke-04.html) - experimental
-- [draft-05: CWT Claims in COSE Headers](https://www.ietf.org/archive/id/draft-ietf-cose-cwt-claims-in-headers-05.html) - experimental
+- [draft-05: Use of HPKE with COSE](https://www.ietf.org/archive/id/draft-ietf-cose-hpke-05.html) - experimental
+- [draft-06: CWT Claims in COSE Headers](https://www.ietf.org/archive/id/draft-ietf-cose-cwt-claims-in-headers-06.html) - experimental
 - and related various specifications. See [Referenced Specifications](#referenced-specifications).
 
 It is designed to make users who already know about [JWS](https://tools.ietf.org/html/rfc7515)/[JWE](https://tools.ietf.org/html/rfc7516)/[JWT](https://tools.ietf.org/html/rfc7519)
@@ -1491,7 +1491,7 @@ assert readable.get("ext_4") == 123
 
 ### CWT with CWT claims in COSE headers
 
-Python CWT supports [CWT Claims in COSE Headers](https://www.ietf.org/archive/id/draft-ietf-cose-cwt-claims-in-headers-05.html)  experimentally.
+Python CWT supports [CWT Claims in COSE Headers](https://www.ietf.org/archive/id/draft-ietf-cose-cwt-claims-in-headers-06.html)  experimentally.
 
 If a CWT message has a CWT Claims header parameter in its protected header, `cwt.decode()` checks whether the values of the claims included in that parameter match the values of the corresponding claims in the payload. If they do not match, `VerifyError` is raised.
 
@@ -1728,8 +1728,8 @@ Python CWT is (partially) compliant with following specifications:
 - [RFC8392: CWT (CBOR Web Token)](https://tools.ietf.org/html/rfc8392)
 - [RFC8230: Using RSA Algorithms with COSE Messages](https://tools.ietf.org/html/rfc8230)
 - [RFC8152: CBOR Object Signing and Encryption (COSE)](https://tools.ietf.org/html/rfc8152)
-- [draft-04: Use of HPKE with COSE](https://www.ietf.org/archive/id/draft-ietf-cose-hpke-04.html) - experimental
-- [draft-05: CWT Claims in COSE Headers](https://www.ietf.org/archive/id/draft-ietf-cose-cwt-claims-in-headers-05.html) - experimental
+- [draft-05: Use of HPKE with COSE](https://www.ietf.org/archive/id/draft-ietf-cose-hpke-05.html) - experimental
+- [draft-06: CWT Claims in COSE Headers](https://www.ietf.org/archive/id/draft-ietf-cose-cwt-claims-in-headers-06.html) - experimental
 - [Electronic Health Certificate Specification](https://github.com/ehn-dcc-development/hcert-spec/blob/main/hcert_spec.md)
 - [Technical Specifications for Digital Green Certificates Volume 1](https://ec.europa.eu/health/sites/default/files/ehealth/docs/digital-green-certificates_v1_en.pdf)
 
