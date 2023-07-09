@@ -12,7 +12,7 @@ from .cwt import (
     set_private_claim_names,
 )
 from .encrypted_cose_key import EncryptedCOSEKey
-from .enums import COSEHeaders, COSETypes, CWTClaims
+from .enums import COSEAlgs, COSEHeaders, COSETypes, CWTClaims
 from .exceptions import CWTError, DecodeError, EncodeError, VerifyError
 from .helpers.hcert import load_pem_hcert_dsc
 from .recipient import Recipient
@@ -37,11 +37,12 @@ __all__ = [
     "set_private_claim_names",
     "CWT",
     "COSE",
+    "COSEAlgs",
+    "COSEHeaders",
+    "COSETypes",
     "COSEKey",
     "COSEMessage",
     "COSESignature",
-    "COSETypes",
-    "COSEHeaders",
     "CWTClaims",
     "EncryptedCOSEKey",
     "HPKECipherSuite",
