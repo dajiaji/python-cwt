@@ -4,6 +4,27 @@ Changes
 Unreleased
 ----------
 
+Version 2.5.0
+-------------
+
+Released 2023-09-09
+
+- Update IETF I-D references in README. `#412 <https://github.com/dajiaji/python-cwt/pull/412>`__
+- Add enum COSEKeyParams. `#411 <https://github.com/dajiaji/python-cwt/pull/411>`__
+- Add enum COSEAlgs. `#409 <https://github.com/dajiaji/python-cwt/pull/409>`__
+- Update dependencies.
+    - Bump cryptography to 41.0.3. `#416 <https://github.com/dajiaji/python-cwt/pull/416>`__
+- Update dev dependencies.
+    - Bump pytest to 7.4.2. `#430 <https://github.com/dajiaji/python-cwt/pull/430>`__
+    - Bump tox to 4.11.2. `#429 <https://github.com/dajiaji/python-cwt/pull/429>`__
+    - Bump pre-commit to 3.4.0. `#427 <https://github.com/dajiaji/python-cwt/pull/427>`__
+    - Bump sphinx-autodoc-typehints to 1.24.0. `#424 <https://github.com/dajiaji/python-cwt/pull/424>`__
+    - Bump sphinx to 7.1.2. `#423 <https://github.com/dajiaji/python-cwt/pull/423>`__
+    - Bump certifi to 2023.7.22. `#422 <https://github.com/dajiaji/python-cwt/pull/422>`__
+    - Bump sphinx-rtd-theme to 1.3.0. `#420 <https://github.com/dajiaji/python-cwt/pull/420>`__
+    - Bump pre-commit/blacken-docs to 1.15.0. `#413 <https://github.com/dajiaji/python-cwt/pull/413>`__
+    - Bump pre-commit/black to 23.7.0. `#413 <https://github.com/dajiaji/python-cwt/pull/413>`__
+
 Version 2.4.0
 -------------
 
