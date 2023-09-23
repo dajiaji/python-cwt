@@ -64,10 +64,14 @@ from cwt import COSEKey, CWTClaims
 mac_key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
 
 # The sender side:
-token = encode({
-    CWTClaims.ISS: "coaps://as.example",
-    CWTClaims.SUB: "dajiaji",
-    CWTClaims.CTI: b"123"}, mac_key)
+token = encode(
+    {
+        CWTClaims.ISS: "coaps://as.example",
+        CWTClaims.SUB: "dajiaji",
+        CWTClaims.CTI: b"123",
+    },
+    mac_key,
+)
 
 # The recipient side:
 decoded = decode(token, mac_key)
@@ -285,7 +289,9 @@ mac_key = COSEKey.generate_symmetric_key(alg="HS512", kid="01")
 r = Recipient.new(unprotected={"alg": "direct", "kid": mac_key.kid})
 
 sender = COSE.new()
-encoded = sender.encode(b"Hello world!", mac_key, protected={"alg": "HS512"}, recipients=[r])
+encoded = sender.encode(
+    b"Hello world!", mac_key, protected={"alg": "HS512"}, recipients=[r]
+)
 
 # The recipient side:
 recipient = COSE.new()
@@ -319,7 +325,9 @@ encoded = sender.encode(
 
 # The recipient side:
 recipient = COSE.new()
-assert b"Hello world!" == recipient.decode(encoded, shared_key, context={"alg": "HS256"})
+assert b"Hello world!" == recipient.decode(
+    encoded, shared_key, context={"alg": "HS256"}
+)
 ```
 
 #### AES Key Wrap for MAC
@@ -463,7 +471,9 @@ mac_key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
 # The sender side:
 r = Recipient.new(unprotected={"alg": "direct", "kid": mac_key.kid})
 sender = COSE.new()
-encoded = sender.encode(b"Hello world!", mac_key, protected={"alg": "HS256"}, recipients=[r])
+encoded = sender.encode(
+    b"Hello world!", mac_key, protected={"alg": "HS256"}, recipients=[r]
+)
 
 # The notary side:
 notary = Signer.from_jwk(
@@ -762,7 +772,9 @@ encoded = sender.encode(
 
 # The recipient side:
 recipient = COSE.new()
-assert b"Hello world!" == recipient.decode(encoded, shared_key, context={"alg": "A256GCM"})
+assert b"Hello world!" == recipient.decode(
+    encoded, shared_key, context={"alg": "A256GCM"}
+)
 ```
 
 #### AES Key Wrap for encryption
@@ -816,9 +828,9 @@ pub_key = COSEKey.from_jwk(
     }
 )
 r = Recipient.new(
-  unprotected={"alg": "ECDH-ES+HKDF-256"},
-  recipient_key=pub_key,
-  context={"alg": "A128GCM"},
+    unprotected={"alg": "ECDH-ES+HKDF-256"},
+    recipient_key=pub_key,
+    context={"alg": "A128GCM"},
 )
 sender = COSE.new(alg_auto_inclusion=True)
 encoded = sender.encode(
@@ -839,7 +851,9 @@ priv_key = COSEKey.from_jwk(
         "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",
     }
 )
-assert b"Hello world!" == recipient.decode(encoded, priv_key, context={"alg": "A128GCM"})
+assert b"Hello world!" == recipient.decode(
+    encoded, priv_key, context={"alg": "A128GCM"}
+)
 ```
 
 #### Key Agreement with Key Wrap for encryption
@@ -870,10 +884,10 @@ s_priv_key = COSEKey.from_jwk(
     }
 )
 r = Recipient.new(
-  unprotected={"alg": "ECDH-SS+A128KW"},
-  sender_key=s_priv_key,
-  recipient_key=r_pub_key,
-  context={"alg": "A128GCM"},
+    unprotected={"alg": "ECDH-SS+A128KW"},
+    sender_key=s_priv_key,
+    recipient_key=r_pub_key,
+    context={"alg": "A128GCM"},
 )
 sender = COSE.new(alg_auto_inclusion=True)
 encoded = sender.encode(
@@ -896,7 +910,9 @@ r_priv_key = COSEKey.from_jwk(
         "d": "r_kHyZ-a06rmxM3yESK84r1otSg-aQcVStkRhA-iCM8",
     }
 )
-assert b"Hello world!" == recipient.decode(encoded, r_priv_key, context={"alg": "A128GCM"})
+assert b"Hello world!" == recipient.decode(
+    encoded, r_priv_key, context={"alg": "A128GCM"}
+)
 ```
 
 #### Countersign (Encrypt)
@@ -1243,14 +1259,16 @@ from cwt import Claims, COSEKey
 
 try:
     key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
-    token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
+    token = cwt.encode(
+        {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key
+    )
     decoded = cwt.decode(token, key)
 
     # If you want to treat the result like a JWT;
     readable = Claims.new(decoded)
-    assert readable.iss == 'coaps://as.example'
-    assert readable.sub == 'dajiaji'
-    assert readable.cti == '123'
+    assert readable.iss == "coaps://as.example"
+    assert readable.sub == "dajiaji"
+    assert readable.cti == "123"
     # readable.exp == 1620088759
     # readable.nbf == 1620085159
     # readable.iat == 1620085159
@@ -1272,7 +1290,14 @@ import cwt
 from cwt import COSEKey, CWTClaims
 
 key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
-token = cwt.encode({CWTClaims.ISS: "coaps://as.example", CWTClaims.SUB: "dajiaji", CWTClaims.CTI: b"123"}, key)
+token = cwt.encode(
+    {
+        CWTClaims.ISS: "coaps://as.example",
+        CWTClaims.SUB: "dajiaji",
+        CWTClaims.CTI: b"123",
+    },
+    key,
+)
 decoded = cwt.decode(token, key)
 ```
 
@@ -1314,27 +1339,31 @@ import cwt
 from cwt import COSEKey
 
 # The sender side:
-private_key = COSEKey.from_jwk({
-    "kid": "01",
-    "kty": "OKP",
-    "key_ops": ["sign"],
-    "alg": "EdDSA",
-    "crv": "Ed25519",
-    "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
-    "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
-})
+private_key = COSEKey.from_jwk(
+    {
+        "kid": "01",
+        "kty": "OKP",
+        "key_ops": ["sign"],
+        "alg": "EdDSA",
+        "crv": "Ed25519",
+        "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+        "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
+    }
+)
 token = cwt.encode(
     {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key
 )
 
 # The recipient side:
-public_key = COSEKey.from_jwk({
-    "kid": "01",
-    "kty": "OKP",
-    "key_ops": ["verify"],
-    "crv": "Ed25519",
-    "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
-})
+public_key = COSEKey.from_jwk(
+    {
+        "kid": "01",
+        "kty": "OKP",
+        "key_ops": ["verify"],
+        "crv": "Ed25519",
+        "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+    }
+)
 decoded = cwt.decode(token, public_key)
 ```
 
@@ -1350,7 +1379,9 @@ import cwt
 from cwt import COSEKey
 
 enc_key = COSEKey.generate_symmetric_key(alg="ChaCha20/Poly1305", kid="01")
-token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, enc_key)
+token = cwt.encode(
+    {"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, enc_key
+)
 decoded = cwt.decode(token, enc_key)
 ```
 
@@ -1397,7 +1428,7 @@ If you want to change the settings, you can create your own `CWT` class instance
 from cwt import COSEKey, CWT
 
 key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
-mycwt = CWT.new(expires_in=3600*24, leeway=10)
+mycwt = CWT.new(expires_in=3600 * 24, leeway=10)
 token = mycwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, key)
 decoded = mycwt.decode(token, key)
 ```
@@ -1621,7 +1652,7 @@ import cwt
 from cwt import Claims, COSEKey
 
 # The sernder side:
-with open("./private_key_of_cert.pem")) as f:
+with open("./private_key_of_cert.pem") as f:
     private_key = COSEKey.from_pem(f.read(), kid="01")
 
 token = cwt.encode(
@@ -1638,13 +1669,14 @@ public_key = COSEKey.from_jwk(
         "x": "oONCv1QoiajIbcW21Dqy6EnGvBTuF26GU7dy6JzOfXk",
         "y": "sl6k77K0TS36FW-TyEGLHY14ovZfdZ9DZWsbA8BTHGc",
         "x5c": [
-          # The DER formatted X509 certificate which pairs with the private_key_of_cert.pem above.
-          "MIIClDCCAXygAwIBAgIBBDANBgkqhkiG9w0BAQsFADBmMQswCQYDVQQGEwJKUDEOMAwGA1UECAwFVG9reW8xEDAOBgNVBAoMB2RhamlhamkxEzARBgNVBAMMCnB5dGhvbi1jd3QxIDAeBgkqhkiG9w0BCQEWEWRhamlhamlAZ21haWwuY29tMB4XDTIxMTAwMzEzMDE1MFoXDTMxMTAwMTEzMDE1MFowZDELMAkGA1UEBhMCSlAxDjAMBgNVBAgMBVRva3lvMQ0wCwYDVQQKDAR0ZXN0MRUwEwYDVQQDDAx0ZXN0LmV4YW1wbGUxHzAdBgkqhkiG9w0BCQEWEHRlc3RAZXhhbXBsZS5jb20wWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASg40K_VCiJqMhtxbbUOrLoSca8FO4XboZTt3LonM59ebJepO-ytE0t-hVvk8hBix2NeKL2X3WfQ2VrGwPAUxxnoxowGDAJBgNVHRMEAjAAMAsGA1UdDwQEAwIE8DANBgkqhkiG9w0BAQsFAAOCAQEAZFfvFbaDk_DmG2cPGTwqwnFok1QnH2Tzkjk7p4vs1ycWzEDltkhyzcJxTSHoQGdykf7fG8NCrEqfi1G3hOyAtGxVIVcqsI-KIJCESp43zrNz5HsbwEY8l5rvcwohKGlE_idIFt5IuDTv7vsg_FaCIDeruw0NrXAACnLTwksawsxaCvtY12U0wsI2aC2Sb6V3HL-OLgcN6ZWzZ054L88JllckYnqJB8wCVBzzX2K2sZH3yeS39oRWZOVG6fwXsX4k0fHFx-Fn6KlrBU15pbjMLMn0ow0X3Y8e7FOgfkkph-N7e2SxceXNjrLiumOdclPm9yGSWoGsOJdId53dPvqAsQ",
-          # The root certificate which is used for signing the above certificate (optional).
-          "MIIDrzCCApegAwIBAgIUIK_CYzdq4BLLVXqSclNBgXy6mgswDQYJKoZIhvcNAQELBQAwZjELMAkGA1UEBhMCSlAxDjAMBgNVBAgMBVRva3lvMRAwDgYDVQQKDAdkYWppYWppMRMwEQYDVQQDDApweXRob24tY3d0MSAwHgYJKoZIhvcNAQkBFhFkYWppYWppQGdtYWlsLmNvbTAgFw0yMTEwMDIyMzU0NTZaGA8yMDcxMDkyMDIzNTQ1NlowZjELMAkGA1UEBhMCSlAxDjAMBgNVBAgMBVRva3lvMRAwDgYDVQQKDAdkYWppYWppMRMwEQYDVQQDDApweXRob24tY3d0MSAwHgYJKoZIhvcNAQkBFhFkYWppYWppQGdtYWlsLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANFg4sw-uPWbPBbkJuohXc89O0gaqG1H2i1wzxxka32XNKIdwrxOJvsB2eALo3q7dTqLKCgzrjdd5N07gi0KzqjoIXIXqKpV5tm0fP5gCzEOWgxySCfBJOJyyvO6WvYXdvukEBnL-48D8RSjQH9fQEju5RG0taFZE-0nQ7n3P0J-Q-OfBUEoRiHvCd8oUx0s-fBpKdfhMAbD1sGAQ9CokUFeWc49em8inNqia5xljBtSYo6_2Zx9eb7B53wvBC0EmtS4SRyksR2emlr6GxMj_EZW7hcTfZCM4V2JYXliuAEdxA0sB7q-WqLg4OvltBQxCBgTTEXRCzxj3XXZy7QyUacCAwEAAaNTMFEwHQYDVR0OBBYEFA9id2cL_Chjv6liRN3HD849TARsMB8GA1UdIwQYMBaAFA9id2cL_Chjv6liRN3HD849TARsMA8GA1UdEwEB_wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAArIej5eJN1OmD3l3ef9QzosCxKThNwqNY55CoSSC3IRl-IAXy9Lvx7cgiliwBgCv99RbXZ1ZnptTHC_1kzMzPhPg9pGKDowFP-rywaB9-NTuHTWQ4hkKDsru5dpf75ILNI5PTUi1iiBM7TdgSerpEVroUWZiOpGAdlKkmE1h4gkR6eQY9Q0IvVXwagy_PPoQ1XO1i5Hyg3aXeDZBgkE7AuW9uxtYQHzg8JG2TNko_yp497yf_Ew4t6KzGDhSa8L1euMPtclALDWFhgl6WmYsHOqAOsyZOLwpsifWa533wI9mtTvLEg8TFKMOdU0sbAoQSbrrI9m4QS7mzDLchngj3E"
+            # The DER formatted X509 certificate which pairs with the private_key_of_cert.pem above.
+            "MIIClDCCAXygAwIBAgIBBDANBgkqhkiG9w0BAQsFADBmMQswCQYDVQQGEwJKUDEOMAwGA1UECAwFVG9reW8xEDAOBgNVBAoMB2RhamlhamkxEzARBgNVBAMMCnB5dGhvbi1jd3QxIDAeBgkqhkiG9w0BCQEWEWRhamlhamlAZ21haWwuY29tMB4XDTIxMTAwMzEzMDE1MFoXDTMxMTAwMTEzMDE1MFowZDELMAkGA1UEBhMCSlAxDjAMBgNVBAgMBVRva3lvMQ0wCwYDVQQKDAR0ZXN0MRUwEwYDVQQDDAx0ZXN0LmV4YW1wbGUxHzAdBgkqhkiG9w0BCQEWEHRlc3RAZXhhbXBsZS5jb20wWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASg40K_VCiJqMhtxbbUOrLoSca8FO4XboZTt3LonM59ebJepO-ytE0t-hVvk8hBix2NeKL2X3WfQ2VrGwPAUxxnoxowGDAJBgNVHRMEAjAAMAsGA1UdDwQEAwIE8DANBgkqhkiG9w0BAQsFAAOCAQEAZFfvFbaDk_DmG2cPGTwqwnFok1QnH2Tzkjk7p4vs1ycWzEDltkhyzcJxTSHoQGdykf7fG8NCrEqfi1G3hOyAtGxVIVcqsI-KIJCESp43zrNz5HsbwEY8l5rvcwohKGlE_idIFt5IuDTv7vsg_FaCIDeruw0NrXAACnLTwksawsxaCvtY12U0wsI2aC2Sb6V3HL-OLgcN6ZWzZ054L88JllckYnqJB8wCVBzzX2K2sZH3yeS39oRWZOVG6fwXsX4k0fHFx-Fn6KlrBU15pbjMLMn0ow0X3Y8e7FOgfkkph-N7e2SxceXNjrLiumOdclPm9yGSWoGsOJdId53dPvqAsQ",
+            # The root certificate which is used for signing the above certificate (optional).
+            "MIIDrzCCApegAwIBAgIUIK_CYzdq4BLLVXqSclNBgXy6mgswDQYJKoZIhvcNAQELBQAwZjELMAkGA1UEBhMCSlAxDjAMBgNVBAgMBVRva3lvMRAwDgYDVQQKDAdkYWppYWppMRMwEQYDVQQDDApweXRob24tY3d0MSAwHgYJKoZIhvcNAQkBFhFkYWppYWppQGdtYWlsLmNvbTAgFw0yMTEwMDIyMzU0NTZaGA8yMDcxMDkyMDIzNTQ1NlowZjELMAkGA1UEBhMCSlAxDjAMBgNVBAgMBVRva3lvMRAwDgYDVQQKDAdkYWppYWppMRMwEQYDVQQDDApweXRob24tY3d0MSAwHgYJKoZIhvcNAQkBFhFkYWppYWppQGdtYWlsLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANFg4sw-uPWbPBbkJuohXc89O0gaqG1H2i1wzxxka32XNKIdwrxOJvsB2eALo3q7dTqLKCgzrjdd5N07gi0KzqjoIXIXqKpV5tm0fP5gCzEOWgxySCfBJOJyyvO6WvYXdvukEBnL-48D8RSjQH9fQEju5RG0taFZE-0nQ7n3P0J-Q-OfBUEoRiHvCd8oUx0s-fBpKdfhMAbD1sGAQ9CokUFeWc49em8inNqia5xljBtSYo6_2Zx9eb7B53wvBC0EmtS4SRyksR2emlr6GxMj_EZW7hcTfZCM4V2JYXliuAEdxA0sB7q-WqLg4OvltBQxCBgTTEXRCzxj3XXZy7QyUacCAwEAAaNTMFEwHQYDVR0OBBYEFA9id2cL_Chjv6liRN3HD849TARsMB8GA1UdIwQYMBaAFA9id2cL_Chjv6liRN3HD849TARsMA8GA1UdEwEB_wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAArIej5eJN1OmD3l3ef9QzosCxKThNwqNY55CoSSC3IRl-IAXy9Lvx7cgiliwBgCv99RbXZ1ZnptTHC_1kzMzPhPg9pGKDowFP-rywaB9-NTuHTWQ4hkKDsru5dpf75ILNI5PTUi1iiBM7TdgSerpEVroUWZiOpGAdlKkmE1h4gkR6eQY9Q0IvVXwagy_PPoQ1XO1i5Hyg3aXeDZBgkE7AuW9uxtYQHzg8JG2TNko_yp497yf_Ew4t6KzGDhSa8L1euMPtclALDWFhgl6WmYsHOqAOsyZOLwpsifWa533wI9mtTvLEg8TFKMOdU0sbAoQSbrrI9m4QS7mzDLchngj3E",
         ],
-        "alg": "ES256"
-    })
+        "alg": "ES256",
+    }
+)
 
 # The recipient can specify trusted CAs as follows:
 decoder = CWT.new(ca_certs="/path/to/cacerts.pem")

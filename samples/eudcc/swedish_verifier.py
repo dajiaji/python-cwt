@@ -74,7 +74,7 @@ class SwedishVerifier:
                 self._trustlist = json.load(f)
             self._dscs = [COSEKey.from_jwk(k) for k in self._trustlist]
         except Exception as err:
-            if type(err) != FileNotFoundError:
+            if type(err) is not FileNotFoundError:
                 raise err
             self._trustlist = []
         return

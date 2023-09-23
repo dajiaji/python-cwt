@@ -78,7 +78,7 @@ class Verifier:
             with open(self._trustlist_store_path) as f:
                 self._trustlist = json.load(f)
         except Exception as err:
-            if type(err) != FileNotFoundError:
+            if type(err) is not FileNotFoundError:
                 raise err
             self._trustlist = []
         return

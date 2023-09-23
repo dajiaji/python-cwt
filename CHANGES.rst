@@ -4,6 +4,19 @@ Changes
 Unreleased
 ----------
 
+Version 2.5.1
+-------------
+
+Released 2023-09-23
+
+- Update dependencies.
+    - Bump cryptography to 41.0.4. `#433 <https://github.com/dajiaji/python-cwt/pull/433>`__
+- Update dev dependencies.
+    - Bump pre-commit/blacken-docs to 1.15.0. `#434 <https://github.com/dajiaji/python-cwt/pull/434>`__
+    - Bump pre-commit/flake8 to 6.1.0. `#434 <https://github.com/dajiaji/python-cwt/pull/434>`__
+    - Bump pre-commit/mirrors-mypy to 1.5.1. `#434 <https://github.com/dajiaji/python-cwt/pull/434>`__
+    - Bump tox to 4.11.3. `#432 <https://github.com/dajiaji/python-cwt/pull/432>`__
+
 Version 2.5.0
 -------------
 
