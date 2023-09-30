@@ -30,7 +30,7 @@ class COSEMessage(CBORProcessor):
         self._protected = msg[0]
         self._unprotected = msg[1]
         self._payload = msg[2]
-        self._otther_fields: List[bytes] = []
+        self._other_fields: List[bytes] = []
         self._recipients: List[List[Any]] = []
         self._signatures: List[List[Any]] = []
 
@@ -52,14 +52,14 @@ class COSEMessage(CBORProcessor):
                 raise ValueError("Invalid COSE_Mac0 message.")
             if not isinstance(self._msg[3], bytes):
                 raise ValueError("tag should be bytes.")
-            self._otther_fields = [self._msg[3]]  # tag
+            self._other_fields = [self._msg[3]]  # tag
 
         elif self._type == COSETypes.MAC:
             if len(self._msg) != 5:
                 raise ValueError("Invalid COSE_Mac message.")
             if not isinstance(self._msg[3], bytes):
                 raise ValueError("The tag value should be bytes.")
-            self._otther_fields = [self._msg[3]]  # tag
+            self._other_fields = [self._msg[3]]  # tag
             if not isinstance(self._msg[4], list):
                 raise ValueError("The COSE recipients should be array.")
             for recipient in self._msg[4]:
@@ -71,7 +71,7 @@ class COSEMessage(CBORProcessor):
                 raise ValueError("Invalid COSE_Sign1 message.")
             if not isinstance(self._msg[3], bytes):
                 raise ValueError("The COSE signature should be bytes.")
-            self._otther_fields = [self._msg[3]]
+            self._other_fields = [self._msg[3]]
 
         elif self._type == COSETypes.SIGN:
             if len(self._msg) != 4:
@@ -149,7 +149,7 @@ class COSEMessage(CBORProcessor):
         """
         The list of other fields of the COSE message.
         """
-        return self._otther_fields
+        return self._other_fields
 
     @property
     def signatures(self) -> List[List[Any]]:
@@ -189,14 +189,14 @@ class COSEMessage(CBORProcessor):
         """
         if abbreviated:
             to_be_signed = ["CounterSignature0V2", self._protected, aad, self._payload]
-            for other_field in self._otther_fields:
+            for other_field in self._other_fields:
                 to_be_signed.append(other_field)
             signer.sign(self._dumps(to_be_signed))
             self._unprotected[12] = signer.signature
             return self
 
         to_be_signed = ["CounterSignatureV2", self._protected, signer.protected, aad, self._payload]
-        for other_field in self._otther_fields:
+        for other_field in self._other_fields:
             to_be_signed.append(other_field)
         signer.sign(self._dumps(to_be_signed))
         cs = self._unprotected.get(11, None)
@@ -226,7 +226,7 @@ class COSEMessage(CBORProcessor):
         acs = self._unprotected.get(12, None)
         if acs:
             to_be_signed = ["CounterSignature0V2", self._protected, aad, self._payload]
-            for other_field in self._otther_fields:
+            for other_field in self._other_fields:
                 to_be_signed.append(other_field)
             try:
                 key.verify(self._dumps(to_be_signed), acs)
@@ -238,7 +238,7 @@ class COSEMessage(CBORProcessor):
         if not cs:
             raise err
         to_be_signed = ["CounterSignatureV2", self._protected, b"", aad, self._payload]
-        for other_field in self._otther_fields:
+        for other_field in self._other_fields:
             to_be_signed.append(other_field)
         if isinstance(cs[0], bytes):
             kid = self._get_kid(cs)
