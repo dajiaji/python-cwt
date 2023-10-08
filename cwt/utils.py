@@ -6,6 +6,7 @@ import cbor2
 
 from .const import (
     COSE_ALGORITHMS_CEK,
+    COSE_ALGORITHMS_KEY_WRAP,
     COSE_ALGORITHMS_MAC,
     COSE_ALGORITHMS_SYMMETRIC,
     COSE_HEADER_PARAMETERS,
@@ -121,7 +122,7 @@ def to_cis(context: Dict[str, Any], recipient_alg: Optional[int] = None) -> List
     if "alg" not in context:
         raise ValueError("alg not found.")
     # if context["alg"] not in COSE_NAMED_ALGORITHMS_SUPPORTED:
-    if context["alg"] not in COSE_ALGORITHMS_CEK and context["alg"] not in COSE_ALGORITHMS_MAC:
+    if context["alg"] not in COSE_ALGORITHMS_CEK and context["alg"] not in COSE_ALGORITHMS_MAC and context["alg"] not in COSE_ALGORITHMS_KEY_WRAP:
         raise ValueError(f'Unsupported or unknown alg for context information: {context["alg"]}.')
     alg = COSE_NAMED_ALGORITHMS_SUPPORTED[context["alg"]]
     res.append(alg)
