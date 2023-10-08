@@ -310,15 +310,10 @@ class TestCOSESample:
             b"This is the content.",
             rpk,
             protected={
-                COSEHeaders.ALG: COSEAlgs.HPKE_V1_BASE,
+                COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
             },
             unprotected={
                 COSEHeaders.KID: b"01",
-                COSEHeaders.HPKE_SENDER_INFO: [
-                    0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
-                    0x0001,  # kdf: HKDF-SHA256
-                    0x0001,  # aead: AES-128-GCM
-                ],
             },
         )
 
@@ -386,15 +381,10 @@ class TestCOSESample:
         )
         r = Recipient.new(
             protected={
-                COSEHeaders.ALG: COSEAlgs.HPKE_V1_BASE,
+                COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
             },
             unprotected={
                 COSEHeaders.KID: b"01",
-                COSEHeaders.HPKE_SENDER_INFO: [
-                    0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
-                    0x0001,  # kdf: HKDF-SHA256
-                    0x0001,  # aead: AES-128-GCM
-                ],
             },
             recipient_key=rpk,
         )
@@ -435,15 +425,10 @@ class TestCOSESample:
         )
         r = Recipient.new(
             protected={
-                COSEHeaders.ALG: COSEAlgs.HPKE_V1_BASE,
+                COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
             },
             unprotected={
                 COSEHeaders.KID: b"01",
-                COSEHeaders.HPKE_SENDER_INFO: [
-                    0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
-                    0x0001,  # kdf: HKDF-SHA256
-                    0x0001,  # aead: AES-128-GCM
-                ],
             },
             recipient_key=rpk,
         )
@@ -452,15 +437,10 @@ class TestCOSESample:
             sender.encode_and_encrypt(
                 b"This is the content.",
                 protected={
-                    COSEHeaders.ALG: COSEAlgs.HPKE_V1_BASE,
+                    COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
                 },
                 unprotected={
                     COSEHeaders.KID: b"xx",
-                    COSEHeaders.HPKE_SENDER_INFO: [
-                        0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
-                        0x0001,  # kdf: HKDF-SHA256
-                        0x0001,  # aead: AES-128-GCM
-                    ],
                 },
                 recipients=[r],
             )
@@ -481,15 +461,10 @@ class TestCOSESample:
         )
         r = Recipient.new(
             protected={
-                COSEHeaders.ALG: COSEAlgs.HPKE_V1_BASE,
+                COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
             },
             unprotected={
                 COSEHeaders.KID: b"01",
-                COSEHeaders.HPKE_SENDER_INFO: [
-                    0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
-                    0x0001,  # kdf: HKDF-SHA256
-                    0x0001,  # aead: AES-128-GCM
-                ],
             },
             recipient_key=rpk,
         )
@@ -498,15 +473,10 @@ class TestCOSESample:
             sender.encode_and_encrypt(
                 b"This is the content.",
                 protected={
-                    COSEHeaders.ALG: COSEAlgs.HPKE_V1_BASE,
+                    COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
                 },
                 unprotected={
                     COSEHeaders.KID: b"xx",  # kid: "xx"
-                    COSEHeaders.HPKE_SENDER_INFO: [  # HPKE sender information
-                        0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
-                        0x0001,  # kdf: HKDF-SHA256
-                        0x0001,  # aead: AES-128-GCM
-                    ],
                 },
                 recipients=[r],
             )

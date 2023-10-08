@@ -18,20 +18,13 @@ class TestCOSE_HPKE:
     """
 
     @pytest.mark.parametrize(
-        "kdf, aead",
+        "alg",
         [
-            (0x0001, 0x0001),
-            (0x0001, 0x0002),
-            (0x0001, 0x0003),
-            (0x0002, 0x0001),
-            (0x0002, 0x0002),
-            (0x0002, 0x0003),
-            (0x0003, 0x0001),
-            (0x0003, 0x0002),
-            (0x0003, 0x0003),
+            35,
+            36,
         ],
     )
-    def test_cose_hpke_kem_0x0010(self, kdf, aead):
+    def test_cose_hpke_kem_0x0010(self, alg):
         rpk = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -47,15 +40,10 @@ class TestCOSE_HPKE:
             b"This is the content.",
             rpk,
             protected={
-                1: -1,  # alg: "HPKE"
+                1: alg,
             },
             unprotected={
                 4: b"01",  # kid: "01"
-                -4: [  # HPKE sender information
-                    0x0010,
-                    kdf,
-                    aead,
-                ],
             },
         )
 
@@ -74,20 +62,13 @@ class TestCOSE_HPKE:
         assert b"This is the content." == recipient.decode(encoded, rsk)
 
     @pytest.mark.parametrize(
-        "kdf, aead",
+        "alg",
         [
-            (0x0001, 0x0001),
-            (0x0001, 0x0002),
-            (0x0001, 0x0003),
-            (0x0002, 0x0001),
-            (0x0002, 0x0002),
-            (0x0002, 0x0003),
-            (0x0003, 0x0001),
-            (0x0003, 0x0002),
-            (0x0003, 0x0003),
+            37,
+            38,
         ],
     )
-    def test_cose_hpke_kem_0x0011(self, kdf, aead):
+    def test_cose_hpke_kem_0x0011(self, alg):
         rpk = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -103,15 +84,10 @@ class TestCOSE_HPKE:
             b"This is the content.",
             rpk,
             protected={
-                1: -1,  # alg: "HPKE"
+                1: alg,
             },
             unprotected={
                 4: b"01",  # kid: "01"
-                -4: [  # HPKE sender information
-                    0x0011,
-                    kdf,
-                    aead,
-                ],
             },
         )
 
@@ -130,20 +106,13 @@ class TestCOSE_HPKE:
         assert b"This is the content." == recipient.decode(encoded, rsk)
 
     @pytest.mark.parametrize(
-        "kdf, aead",
+        "alg",
         [
-            (0x0001, 0x0001),
-            (0x0001, 0x0002),
-            (0x0001, 0x0003),
-            (0x0002, 0x0001),
-            (0x0002, 0x0002),
-            (0x0002, 0x0003),
-            (0x0003, 0x0001),
-            (0x0003, 0x0002),
-            (0x0003, 0x0003),
+            39,
+            40,
         ],
     )
-    def test_cose_hpke_kem_0x0012(self, kdf, aead):
+    def test_cose_hpke_kem_0x0012(self, alg):
         rpk = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -159,15 +128,10 @@ class TestCOSE_HPKE:
             b"This is the content.",
             rpk,
             protected={
-                1: -1,  # alg: "HPKE"
+                1: alg,
             },
             unprotected={
                 4: b"01",  # kid: "01"
-                -4: [  # HPKE sender information
-                    0x0012,
-                    kdf,
-                    aead,
-                ],
             },
         )
 
@@ -186,26 +150,18 @@ class TestCOSE_HPKE:
         assert b"This is the content." == recipient.decode(encoded, rsk)
 
     @pytest.mark.parametrize(
-        "kdf, aead",
+        "alg",
         [
-            (0x0001, 0x0001),
-            (0x0001, 0x0002),
-            (0x0001, 0x0003),
-            (0x0002, 0x0001),
-            (0x0002, 0x0002),
-            (0x0002, 0x0003),
-            (0x0003, 0x0001),
-            (0x0003, 0x0002),
-            (0x0003, 0x0003),
+            41,
+            42,
         ],
     )
-    def test_cose_hpke_kem_0x0020(self, kdf, aead):
+    def test_cose_hpke_kem_0x0020(self, alg):
         rpk = COSEKey.from_jwk(
             {
                 "kty": "OKP",
                 "crv": "X25519",
                 "kid": "01",
-                "alg": "HPKE",
                 "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
                 "key_ops": ["deriveKey", "deriveBits"],
             }
@@ -216,15 +172,10 @@ class TestCOSE_HPKE:
             b"This is the content.",
             rpk,
             protected={
-                1: -1,  # alg: "HPKE"
+                1: alg,
             },
             unprotected={
                 4: b"01",  # kid: "01"
-                -4: [  # HPKE sender information
-                    0x0020,
-                    kdf,
-                    aead,
-                ],
             },
         )
 
@@ -234,7 +185,6 @@ class TestCOSE_HPKE:
                 "kty": "OKP",
                 "crv": "X25519",
                 "kid": "01",
-                "alg": "HPKE",
                 "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
                 "d": "vsJ1oX5NNi0IGdwGldiac75r-Utmq3Jq4LGv48Q_Qc4",
                 "key_ops": ["deriveKey", "deriveBits"],
@@ -244,26 +194,18 @@ class TestCOSE_HPKE:
         assert b"This is the content." == recipient.decode(encoded, rsk)
 
     @pytest.mark.parametrize(
-        "kdf, aead",
+        "alg",
         [
-            (0x0001, 0x0001),
-            (0x0001, 0x0002),
-            (0x0001, 0x0003),
-            (0x0002, 0x0001),
-            (0x0002, 0x0002),
-            (0x0002, 0x0003),
-            (0x0003, 0x0001),
-            (0x0003, 0x0002),
-            (0x0003, 0x0003),
+            43,
+            44,
         ],
     )
-    def test_cose_hpke_kem_0x0021(self, kdf, aead):
+    def test_cose_hpke_kem_0x0021(self, alg):
         rpk = COSEKey.from_jwk(
             {
                 "kty": "OKP",
                 "crv": "X448",
                 "kid": "01",
-                "alg": "HPKE",
                 "x": "IkLmc0klvEMXYneHMKAB6ePohryAwAPVe2pRSffIDY6NrjeYNWVX5J-fG4NV2OoU77C88A0mvxI",
                 "key_ops": ["deriveKey"],
             }
@@ -274,15 +216,10 @@ class TestCOSE_HPKE:
             b"This is the content.",
             rpk,
             protected={
-                1: -1,  # alg: "HPKE"
+                1: alg,
             },
             unprotected={
                 4: b"01",  # kid: "01"
-                -4: [  # HPKE sender information
-                    0x0021,
-                    kdf,
-                    aead,
-                ],
             },
         )
 
@@ -292,7 +229,6 @@ class TestCOSE_HPKE:
                 "kty": "OKP",
                 "crv": "X448",
                 "kid": "01",
-                "alg": "HPKE",
                 "x": "IkLmc0klvEMXYneHMKAB6ePohryAwAPVe2pRSffIDY6NrjeYNWVX5J-fG4NV2OoU77C88A0mvxI",
                 "d": "rJJRG3nshyCtd9CgXld8aNaB9YXKR0UOi7zj7hApg9YH4XdBO0G8NcAFNz_uPH2GnCZVcSDgV5c",
                 "key_ops": ["deriveKey"],
