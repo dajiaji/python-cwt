@@ -15,6 +15,7 @@ from .encrypted_cose_key import EncryptedCOSEKey
 from .enums import (
     COSEAlgs,
     COSEHeaders,
+    COSEKeyCrvs,
     COSEKeyOps,
     COSEKeyParams,
     COSEKeyTypes,
@@ -46,6 +47,7 @@ __all__ = [
     "COSE",
     "COSEAlgs",
     "COSEHeaders",
+    "COSEKeyCrvs",
     "COSEKeyOps",
     "COSEKeyParams",
     "COSEKeyTypes",

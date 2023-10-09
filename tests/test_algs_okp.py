@@ -7,7 +7,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from cwt.algs.okp import OKPKey
 from cwt.cose_key import COSEKey
-from cwt.enums import COSEKeyOps, COSEKeyParams, COSEKeyTypes
+from cwt.enums import COSEKeyCrvs, COSEKeyOps, COSEKeyParams, COSEKeyTypes
 from cwt.exceptions import VerifyError
 
 from .utils import key_path
@@ -23,7 +23,7 @@ class TestOKPKey:
             {
                 COSEKeyParams.KTY: COSEKeyTypes.OKP,
                 COSEKeyParams.ALG: -8,
-                COSEKeyParams.CRV: 6,
+                COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                 COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                 COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
             }
@@ -32,7 +32,7 @@ class TestOKPKey:
             {
                 COSEKeyParams.KTY: COSEKeyTypes.OKP,
                 COSEKeyParams.ALG: -8,
-                COSEKeyParams.CRV: 6,
+                COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                 COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
             }
         )
@@ -72,7 +72,7 @@ class TestOKPKey:
             {
                 COSEKeyParams.KTY: COSEKeyTypes.OKP,
                 COSEKeyParams.ALG: -8,
-                COSEKeyParams.CRV: 7,
+                COSEKeyParams.CRV: COSEKeyCrvs.ED448,
                 COSEKeyParams.X: b"\xdb\x98\xacQb(\xb1I\x0c\xdb)\xce<S\xf9\xb7\xb0[\xc0\xcd\x7f\x88T&(\x1aG\xbc\r!\x81zQ_\xac\xb2\xbb\xe9\xea\xe8\x10f\xa5-\xc9\xd06\x13\x95\x92(\x03\x8a\xb0\x81*\x80",
                 COSEKeyParams.D: b"\xbc\xe1\xe0\xdf\x1f@\\@Q\x0e|\xcc\xe5\xbe\xbcl\xb1l\xc2'\xb2\xc2\x92sL\xe91i\xf59~ \xf1\xc8\xaa0\xb9\xebg\x06\x08\xd0\xb2\x04\xd1Z\x874\xeb\xb5\xfd\xc6\xf6V\x13D\x9d",
             }
@@ -81,7 +81,7 @@ class TestOKPKey:
             {
                 COSEKeyParams.KTY: COSEKeyTypes.OKP,
                 COSEKeyParams.ALG: -8,
-                COSEKeyParams.CRV: 7,
+                COSEKeyParams.CRV: COSEKeyCrvs.ED448,
                 COSEKeyParams.X: b"\xdb\x98\xacQb(\xb1I\x0c\xdb)\xce<S\xf9\xb7\xb0[\xc0\xcd\x7f\x88T&(\x1aG\xbc\r!\x81zQ_\xac\xb2\xbb\xe9\xea\xe8\x10f\xa5-\xc9\xd06\x13\x95\x92(\x03\x8a\xb0\x81*\x80",
             }
         )
@@ -121,7 +121,7 @@ class TestOKPKey:
             {
                 COSEKeyParams.KTY: COSEKeyTypes.OKP,
                 COSEKeyParams.ALG: -25,
-                COSEKeyParams.CRV: 4,
+                COSEKeyParams.CRV: COSEKeyCrvs.X25519,
                 COSEKeyParams.D: b"\xbe\xc2u\xa1~M6-\x08\x19\xdc\x06\x95\xd8\x9as\xbek\xf9Kf\xabrj\xe0\xb1\xaf\xe3\xc4?A\xce",
                 COSEKeyParams.X: b'\xcb|\t\xab{\x97<w\xa8\x08\xee\x05\xb9\xbb\xd3s\xb5\\\x06\xea\xa9\xbdJ\xd2\xbdN\x991\xb1\xc3L"',
             }
@@ -130,7 +130,7 @@ class TestOKPKey:
             {
                 COSEKeyParams.KTY: COSEKeyTypes.OKP,
                 COSEKeyParams.ALG: -25,
-                COSEKeyParams.CRV: 4,
+                COSEKeyParams.CRV: COSEKeyCrvs.X25519,
                 COSEKeyParams.X: b'\xcb|\t\xab{\x97<w\xa8\x08\xee\x05\xb9\xbb\xd3s\xb5\\\x06\xea\xa9\xbdJ\xd2\xbdN\x991\xb1\xc3L"',
             }
         )
@@ -165,7 +165,7 @@ class TestOKPKey:
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
                     COSEKeyParams.ALG: -25,
-                    COSEKeyParams.CRV: 4,
+                    COSEKeyParams.CRV: COSEKeyCrvs.X25519,
                     COSEKeyParams.X: b'\xcb|\t\xab{\x97<w\xa8\x08\xee\x05\xb9\xbb\xd3s\xb5\\\x06\xea\xa9\xbdJ\xd2\xbdN\x991\xb1\xc3L"',
                 }
             )
@@ -177,7 +177,7 @@ class TestOKPKey:
             {
                 COSEKeyParams.KTY: COSEKeyTypes.OKP,
                 COSEKeyParams.ALG: -25,
-                COSEKeyParams.CRV: 5,
+                COSEKeyParams.CRV: COSEKeyCrvs.X448,
                 COSEKeyParams.D: b"\xac\x92Q\x1by\xec\x87 \xadw\xd0\xa0^W|h\xd6\x81\xf5\x85\xcaGE\x0e\x8b\xbc\xe3\xee\x10)\x83\xd6\x07\xe1wA;A\xbc5\xc0\x057?\xee<}\x86\x9c&Uq \xe0W\x97",
                 COSEKeyParams.X: b'"B\xe6sI%\xbcC\x17bw\x870\xa0\x01\xe9\xe3\xe8\x86\xbc\x80\xc0\x03\xd5{jQI\xf7\xc8\r\x8e\x8d\xae7\x985eW\xe4\x9f\x9f\x1b\x83U\xd8\xea\x14\xef\xb0\xbc\xf0\r&\xbf\x12',
             }
@@ -186,7 +186,7 @@ class TestOKPKey:
             {
                 COSEKeyParams.KTY: COSEKeyTypes.OKP,
                 COSEKeyParams.ALG: -25,
-                COSEKeyParams.CRV: 5,
+                COSEKeyParams.CRV: COSEKeyCrvs.X448,
                 COSEKeyParams.X: b'"B\xe6sI%\xbcC\x17bw\x870\xa0\x01\xe9\xe3\xe8\x86\xbc\x80\xc0\x03\xd5{jQI\xf7\xc8\r\x8e\x8d\xae7\x985eW\xe4\x9f\x9f\x1b\x83U\xd8\xea\x14\xef\xb0\xbc\xf0\r&\xbf\x12',
             }
         )
@@ -222,7 +222,7 @@ class TestOKPKey:
             {
                 COSEKeyParams.KTY: COSEKeyTypes.OKP,
                 COSEKeyParams.ALG: -8,
-                COSEKeyParams.CRV: 6,
+                COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                 COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
             }
         )
@@ -236,7 +236,7 @@ class TestOKPKey:
             {
                 COSEKeyParams.KTY: COSEKeyTypes.OKP,
                 COSEKeyParams.ALG: -8,
-                COSEKeyParams.CRV: 6,
+                COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                 COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
             }
         )
@@ -357,7 +357,7 @@ class TestOKPKey:
             (
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                    COSEKeyParams.CRV: 6,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.ALG: -999,
                 },
@@ -366,26 +366,30 @@ class TestOKPKey:
             (
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                    COSEKeyParams.CRV: 6,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.ALG: 35,
                 },
                 "Invalid key_ops for HPKE.",
             ),
             (
-                {COSEKeyParams.KTY: COSEKeyTypes.OKP, COSEKeyParams.CRV: 6, COSEKeyParams.X: "xxxxxxxxxxxxxxxx"},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.X: "xxxxxxxxxxxxxxxx",
+                },
                 "x(-2) should be bytes(bstr).",
             ),
             (
-                {COSEKeyParams.KTY: COSEKeyTypes.OKP, COSEKeyParams.CRV: 6, COSEKeyParams.X: {}},
+                {COSEKeyParams.KTY: COSEKeyTypes.OKP, COSEKeyParams.CRV: COSEKeyCrvs.ED25519, COSEKeyParams.X: {}},
                 "x(-2) should be bytes(bstr).",
             ),
             (
-                {COSEKeyParams.KTY: COSEKeyTypes.OKP, COSEKeyParams.CRV: 6, COSEKeyParams.X: []},
+                {COSEKeyParams.KTY: COSEKeyTypes.OKP, COSEKeyParams.CRV: COSEKeyCrvs.ED25519, COSEKeyParams.X: []},
                 "x(-2) should be bytes(bstr).",
             ),
             (
-                {COSEKeyParams.KTY: COSEKeyTypes.OKP, COSEKeyParams.X: b"invalid-x", COSEKeyParams.CRV: 6},
+                {COSEKeyParams.KTY: COSEKeyTypes.OKP, COSEKeyParams.X: b"invalid-x", COSEKeyParams.CRV: COSEKeyCrvs.ED25519},
                 "Invalid key parameter.",
             ),
             (
@@ -393,7 +397,7 @@ class TestOKPKey:
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: "invalid-type-d",
-                    COSEKeyParams.CRV: 6,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                 },
                 "d(-4) should be bytes(bstr).",
             ),
@@ -402,7 +406,7 @@ class TestOKPKey:
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: {},
-                    COSEKeyParams.CRV: 6,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                 },
                 "d(-4) should be bytes(bstr).",
             ),
@@ -411,14 +415,14 @@ class TestOKPKey:
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: [],
-                    COSEKeyParams.CRV: 6,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                 },
                 "d(-4) should be bytes(bstr).",
             ),
             (
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                    COSEKeyParams.CRV: 6,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: 123,
                 },
@@ -427,7 +431,7 @@ class TestOKPKey:
             (
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                    COSEKeyParams.CRV: 6,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"invalid-d",
                 },
@@ -437,7 +441,7 @@ class TestOKPKey:
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
                     COSEKeyParams.ALG: -8,
-                    COSEKeyParams.CRV: 6,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [
@@ -451,7 +455,7 @@ class TestOKPKey:
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
                     COSEKeyParams.ALG: -8,
-                    COSEKeyParams.CRV: 6,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [
@@ -467,7 +471,7 @@ class TestOKPKey:
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
                     COSEKeyParams.ALG: -8,
-                    COSEKeyParams.CRV: 6,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     # COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [
@@ -481,7 +485,7 @@ class TestOKPKey:
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
                     COSEKeyParams.ALG: -25,
-                    COSEKeyParams.CRV: 6,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [
@@ -495,7 +499,7 @@ class TestOKPKey:
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
                     COSEKeyParams.ALG: -25,
-                    COSEKeyParams.CRV: 6,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [
@@ -509,7 +513,7 @@ class TestOKPKey:
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
                     COSEKeyParams.ALG: -25,
-                    COSEKeyParams.CRV: 6,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [
@@ -525,7 +529,7 @@ class TestOKPKey:
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
                     COSEKeyParams.ALG: -25,
-                    COSEKeyParams.CRV: 4,
+                    COSEKeyParams.CRV: COSEKeyCrvs.X25519,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.KEY_OPS: [
                         COSEKeyOps.DERIVE_KEY,
@@ -538,7 +542,7 @@ class TestOKPKey:
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
                     COSEKeyParams.ALG: -25,
-                    COSEKeyParams.CRV: 4,
+                    COSEKeyParams.CRV: COSEKeyCrvs.X25519,
                     COSEKeyParams.X: "invalid-type-x",
                     # COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [],
@@ -549,7 +553,7 @@ class TestOKPKey:
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
                     # COSEKeyParams.ALG: -25,
-                    COSEKeyParams.CRV: 6,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [
@@ -565,7 +569,7 @@ class TestOKPKey:
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
                     # COSEKeyParams.ALG: -25,
-                    COSEKeyParams.CRV: 6,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     # COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [
@@ -581,7 +585,7 @@ class TestOKPKey:
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
                     # COSEKeyParams.ALG: -25,
-                    COSEKeyParams.CRV: 6,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     # COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [
@@ -595,7 +599,7 @@ class TestOKPKey:
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
                     COSEKeyParams.ALG: -25,
-                    COSEKeyParams.CRV: 4,
+                    COSEKeyParams.CRV: COSEKeyCrvs.X25519,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     33: 123,
@@ -609,7 +613,7 @@ class TestOKPKey:
             # (
             #     {
             #         COSEKeyParams.KTY: COSEKeyTypes.OKP,
-            #         COSEKeyParams.CRV: 4,
+            #         COSEKeyParams.CRV: COSEKeyCrvs.X25519,
             #         COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
             #         COSEKeyParams.KEY_OPS: [
             #             COSEKeyOps.DERIVE_KEY,
@@ -622,7 +626,7 @@ class TestOKPKey:
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
                     # COSEKeyParams.ALG: -25,
-                    COSEKeyParams.CRV: 6,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                     # COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [
@@ -635,7 +639,7 @@ class TestOKPKey:
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
                     COSEKeyParams.ALG: -8,
-                    COSEKeyParams.CRV: 4,
+                    COSEKeyParams.CRV: COSEKeyCrvs.X25519,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     # COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [
@@ -647,7 +651,7 @@ class TestOKPKey:
             (
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                    COSEKeyParams.CRV: 6,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                     COSEKeyParams.KEY_OPS: [
                         COSEKeyOps.DERIVE_KEY,
                         COSEKeyOps.DERIVE_BITS,
@@ -659,7 +663,7 @@ class TestOKPKey:
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
                     # COSEKeyParams.ALG: -8,
-                    COSEKeyParams.CRV: 6,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [
                         COSEKeyOps.DERIVE_KEY,
@@ -681,7 +685,7 @@ class TestOKPKey:
             {
                 COSEKeyParams.KTY: COSEKeyTypes.OKP,
                 COSEKeyParams.ALG: -8,
-                COSEKeyParams.CRV: 6,
+                COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                 COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
             }
         )
@@ -695,7 +699,7 @@ class TestOKPKey:
             {
                 COSEKeyParams.KTY: COSEKeyTypes.OKP,
                 COSEKeyParams.ALG: -8,
-                COSEKeyParams.CRV: 6,
+                COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                 COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                 COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
             }

@@ -34,15 +34,6 @@ class COSEHeaders(enum.IntEnum):
     CUPH_OWNER_PUB_KEY = 257
 
 
-class COSEKeyTypes(enum.IntEnum):
-    OKP = 1
-    EC2 = 2
-    RSA = 3
-    ASYMMETRIC = 4
-    # HSS_LMS = 5
-    # WALNUT_DSA = 6
-
-
 class COSEKeyParams(enum.IntEnum):
     KTY = 1
     KID = 2
@@ -146,6 +137,26 @@ class CWTClaims(enum.IntEnum):
     LOCATION = 17
     EAT_PROFILE = 18
     SUBMODS = 20
+
+
+class COSEKeyTypes(enum.IntEnum):
+    OKP = 1
+    EC2 = 2
+    RSA = 3
+    ASYMMETRIC = 4
+    # HSS_LMS = 5
+    # WALNUT_DSA = 6
+
+
+class COSEKeyCrvs(enum.IntEnum):
+    P256 = 1
+    P384 = 2
+    P521 = 3
+    X25519 = 4
+    X448 = 5
+    ED25519 = 6
+    ED448 = 7
+    SECP256K1 = 8
 
 
 class COSEKeyOps(enum.IntEnum):
