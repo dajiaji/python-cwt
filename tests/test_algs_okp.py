@@ -7,6 +7,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from cwt.algs.okp import OKPKey
 from cwt.cose_key import COSEKey
+from cwt.enums import COSEKeyCrvs, COSEKeyOps, COSEKeyParams, COSEKeyTypes
 from cwt.exceptions import VerifyError
 
 from .utils import key_path
@@ -20,19 +21,19 @@ class TestOKPKey:
     def test_okp_key_constructor_with_ed25519_key(self):
         private_key = OKPKey(
             {
-                1: 1,
-                3: -8,
-                -1: 6,
-                -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                -4: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
+                COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                COSEKeyParams.ALG: -8,
+                COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
             }
         )
         public_key = OKPKey(
             {
-                1: 1,
-                3: -8,
-                -1: 6,
-                -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                COSEKeyParams.ALG: -8,
+                COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
             }
         )
         assert private_key.kty == 1
@@ -69,19 +70,19 @@ class TestOKPKey:
     def test_okp_key_constructor_with_ed448_key(self):
         private_key = OKPKey(
             {
-                1: 1,
-                3: -8,
-                -1: 7,
-                -2: b"\xdb\x98\xacQb(\xb1I\x0c\xdb)\xce<S\xf9\xb7\xb0[\xc0\xcd\x7f\x88T&(\x1aG\xbc\r!\x81zQ_\xac\xb2\xbb\xe9\xea\xe8\x10f\xa5-\xc9\xd06\x13\x95\x92(\x03\x8a\xb0\x81*\x80",
-                -4: b"\xbc\xe1\xe0\xdf\x1f@\\@Q\x0e|\xcc\xe5\xbe\xbcl\xb1l\xc2'\xb2\xc2\x92sL\xe91i\xf59~ \xf1\xc8\xaa0\xb9\xebg\x06\x08\xd0\xb2\x04\xd1Z\x874\xeb\xb5\xfd\xc6\xf6V\x13D\x9d",
+                COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                COSEKeyParams.ALG: -8,
+                COSEKeyParams.CRV: COSEKeyCrvs.ED448,
+                COSEKeyParams.X: b"\xdb\x98\xacQb(\xb1I\x0c\xdb)\xce<S\xf9\xb7\xb0[\xc0\xcd\x7f\x88T&(\x1aG\xbc\r!\x81zQ_\xac\xb2\xbb\xe9\xea\xe8\x10f\xa5-\xc9\xd06\x13\x95\x92(\x03\x8a\xb0\x81*\x80",
+                COSEKeyParams.D: b"\xbc\xe1\xe0\xdf\x1f@\\@Q\x0e|\xcc\xe5\xbe\xbcl\xb1l\xc2'\xb2\xc2\x92sL\xe91i\xf59~ \xf1\xc8\xaa0\xb9\xebg\x06\x08\xd0\xb2\x04\xd1Z\x874\xeb\xb5\xfd\xc6\xf6V\x13D\x9d",
             }
         )
         public_key = OKPKey(
             {
-                1: 1,
-                3: -8,
-                -1: 7,
-                -2: b"\xdb\x98\xacQb(\xb1I\x0c\xdb)\xce<S\xf9\xb7\xb0[\xc0\xcd\x7f\x88T&(\x1aG\xbc\r!\x81zQ_\xac\xb2\xbb\xe9\xea\xe8\x10f\xa5-\xc9\xd06\x13\x95\x92(\x03\x8a\xb0\x81*\x80",
+                COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                COSEKeyParams.ALG: -8,
+                COSEKeyParams.CRV: COSEKeyCrvs.ED448,
+                COSEKeyParams.X: b"\xdb\x98\xacQb(\xb1I\x0c\xdb)\xce<S\xf9\xb7\xb0[\xc0\xcd\x7f\x88T&(\x1aG\xbc\r!\x81zQ_\xac\xb2\xbb\xe9\xea\xe8\x10f\xa5-\xc9\xd06\x13\x95\x92(\x03\x8a\xb0\x81*\x80",
             }
         )
         assert private_key.kty == 1
@@ -118,19 +119,19 @@ class TestOKPKey:
     def test_okp_key_constructor_with_x25519_key(self):
         private_key = OKPKey(
             {
-                1: 1,
-                3: -25,
-                -1: 4,
-                -4: b"\xbe\xc2u\xa1~M6-\x08\x19\xdc\x06\x95\xd8\x9as\xbek\xf9Kf\xabrj\xe0\xb1\xaf\xe3\xc4?A\xce",
-                -2: b'\xcb|\t\xab{\x97<w\xa8\x08\xee\x05\xb9\xbb\xd3s\xb5\\\x06\xea\xa9\xbdJ\xd2\xbdN\x991\xb1\xc3L"',
+                COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                COSEKeyParams.ALG: -25,
+                COSEKeyParams.CRV: COSEKeyCrvs.X25519,
+                COSEKeyParams.D: b"\xbe\xc2u\xa1~M6-\x08\x19\xdc\x06\x95\xd8\x9as\xbek\xf9Kf\xabrj\xe0\xb1\xaf\xe3\xc4?A\xce",
+                COSEKeyParams.X: b'\xcb|\t\xab{\x97<w\xa8\x08\xee\x05\xb9\xbb\xd3s\xb5\\\x06\xea\xa9\xbdJ\xd2\xbdN\x991\xb1\xc3L"',
             }
         )
         public_key = OKPKey(
             {
-                1: 1,
-                3: -25,
-                -1: 4,
-                -2: b'\xcb|\t\xab{\x97<w\xa8\x08\xee\x05\xb9\xbb\xd3s\xb5\\\x06\xea\xa9\xbdJ\xd2\xbdN\x991\xb1\xc3L"',
+                COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                COSEKeyParams.ALG: -25,
+                COSEKeyParams.CRV: COSEKeyCrvs.X25519,
+                COSEKeyParams.X: b'\xcb|\t\xab{\x97<w\xa8\x08\xee\x05\xb9\xbb\xd3s\xb5\\\x06\xea\xa9\xbdJ\xd2\xbdN\x991\xb1\xc3L"',
             }
         )
         assert private_key.kty == 1
@@ -160,26 +161,33 @@ class TestOKPKey:
 
     def test_okp_key_constructor_with_x25519_key_without_key(self):
         try:
-            OKPKey({1: 1, 3: -25, -1: 4})
+            OKPKey(
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.ALG: -25,
+                    COSEKeyParams.CRV: COSEKeyCrvs.X25519,
+                    COSEKeyParams.X: b'\xcb|\t\xab{\x97<w\xa8\x08\xee\x05\xb9\xbb\xd3s\xb5\\\x06\xea\xa9\xbdJ\xd2\xbdN\x991\xb1\xc3L"',
+                }
+            )
         except Exception:
             pytest.fail("OKPKey() should not fail.")
 
     def test_okp_key_constructor_with_x448_key(self):
         private_key = OKPKey(
             {
-                1: 1,
-                3: -25,
-                -1: 5,
-                -4: b"\xac\x92Q\x1by\xec\x87 \xadw\xd0\xa0^W|h\xd6\x81\xf5\x85\xcaGE\x0e\x8b\xbc\xe3\xee\x10)\x83\xd6\x07\xe1wA;A\xbc5\xc0\x057?\xee<}\x86\x9c&Uq \xe0W\x97",
-                -2: b'"B\xe6sI%\xbcC\x17bw\x870\xa0\x01\xe9\xe3\xe8\x86\xbc\x80\xc0\x03\xd5{jQI\xf7\xc8\r\x8e\x8d\xae7\x985eW\xe4\x9f\x9f\x1b\x83U\xd8\xea\x14\xef\xb0\xbc\xf0\r&\xbf\x12',
+                COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                COSEKeyParams.ALG: -25,
+                COSEKeyParams.CRV: COSEKeyCrvs.X448,
+                COSEKeyParams.D: b"\xac\x92Q\x1by\xec\x87 \xadw\xd0\xa0^W|h\xd6\x81\xf5\x85\xcaGE\x0e\x8b\xbc\xe3\xee\x10)\x83\xd6\x07\xe1wA;A\xbc5\xc0\x057?\xee<}\x86\x9c&Uq \xe0W\x97",
+                COSEKeyParams.X: b'"B\xe6sI%\xbcC\x17bw\x870\xa0\x01\xe9\xe3\xe8\x86\xbc\x80\xc0\x03\xd5{jQI\xf7\xc8\r\x8e\x8d\xae7\x985eW\xe4\x9f\x9f\x1b\x83U\xd8\xea\x14\xef\xb0\xbc\xf0\r&\xbf\x12',
             }
         )
         public_key = OKPKey(
             {
-                1: 1,
-                3: -25,
-                -1: 5,
-                -2: b'"B\xe6sI%\xbcC\x17bw\x870\xa0\x01\xe9\xe3\xe8\x86\xbc\x80\xc0\x03\xd5{jQI\xf7\xc8\r\x8e\x8d\xae7\x985eW\xe4\x9f\x9f\x1b\x83U\xd8\xea\x14\xef\xb0\xbc\xf0\r&\xbf\x12',
+                COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                COSEKeyParams.ALG: -25,
+                COSEKeyParams.CRV: COSEKeyCrvs.X448,
+                COSEKeyParams.X: b'"B\xe6sI%\xbcC\x17bw\x870\xa0\x01\xe9\xe3\xe8\x86\xbc\x80\xc0\x03\xd5{jQI\xf7\xc8\r\x8e\x8d\xae7\x985eW\xe4\x9f\x9f\x1b\x83U\xd8\xea\x14\xef\xb0\xbc\xf0\r&\xbf\x12',
             }
         )
         assert private_key.kty == 1
@@ -212,10 +220,10 @@ class TestOKPKey:
     def test_okp_key_validate_certificate_with_empty_ca_certs(self):
         public_key = OKPKey(
             {
-                1: 1,
-                3: -8,
-                -1: 6,
-                -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                COSEKeyParams.ALG: -8,
+                COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
             }
         )
         with pytest.raises(ValueError) as err:
@@ -226,10 +234,10 @@ class TestOKPKey:
     def test_okp_key_validate_certificate_without_x5c(self):
         public_key = OKPKey(
             {
-                1: 1,
-                3: -8,
-                -1: 6,
-                -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                COSEKeyParams.ALG: -8,
+                COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
             }
         )
         assert public_key.validate_certificate(ca_certs=[b"xxxxx"]) is False
@@ -288,328 +296,379 @@ class TestOKPKey:
         "invalid, msg",
         [
             (
-                {1: 2},
+                {COSEKeyParams.KTY: 2},
                 "kty(1) should be OKP(1).",
             ),
             (
-                {1: b"invalid"},
+                {COSEKeyParams.KTY: b"invalid"},
                 "kty(1) should be int or str(tstr).",
             ),
             (
-                {1: {}},
+                {COSEKeyParams.KTY: {}},
                 "kty(1) should be int or str(tstr).",
             ),
             (
-                {1: []},
+                {COSEKeyParams.KTY: []},
                 "kty(1) should be int or str(tstr).",
             ),
             (
-                {1: 1},
+                {COSEKeyParams.KTY: COSEKeyTypes.OKP},
                 "crv(-1) not found.",
             ),
             (
                 {
-                    1: 1,
-                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                 },
                 "crv(-1) not found.",
             ),
             (
-                {1: 1, -1: {}},
+                {COSEKeyParams.KTY: COSEKeyTypes.OKP, COSEKeyParams.CRV: {}},
                 "crv(-1) should be int.",
             ),
             (
-                {1: 1, -1: []},
+                {COSEKeyParams.KTY: COSEKeyTypes.OKP, COSEKeyParams.CRV: []},
                 "crv(-1) should be int.",
             ),
             (
-                {1: 1, -1: "Ed25519"},
+                {COSEKeyParams.KTY: COSEKeyTypes.OKP, COSEKeyParams.CRV: "Ed25519"},
                 "crv(-1) should be int.",
             ),
             (
-                {1: 1, -1: 0},
+                {COSEKeyParams.KTY: COSEKeyTypes.OKP, COSEKeyParams.CRV: 0},
                 "Unsupported or unknown crv(-1) for OKP: 0.",
             ),
             (
                 {
-                    1: 1,
-                    -1: 3,
-                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.CRV: 3,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                 },
                 "Unsupported or unknown crv(-1) for OKP: 3.",
             ),
             (
                 {
-                    1: 1,
-                    -1: 8,
-                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.CRV: 8,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                 },
                 "Unsupported or unknown crv(-1) for OKP: 8.",
             ),
             (
                 {
-                    1: 1,
-                    -1: 6,
-                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                    3: -999,
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    COSEKeyParams.ALG: -999,
                 },
                 "Unsupported or unknown alg(3) for OKP: -999.",
             ),
             (
                 {
-                    1: 1,
-                    -1: 6,
-                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                    3: -1,
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    COSEKeyParams.ALG: 35,
                 },
                 "Invalid key_ops for HPKE.",
             ),
             (
-                {1: 1, -1: 6, -2: "xxxxxxxxxxxxxxxx"},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.X: "xxxxxxxxxxxxxxxx",
+                },
                 "x(-2) should be bytes(bstr).",
             ),
             (
-                {1: 1, -1: 6, -2: {}},
+                {COSEKeyParams.KTY: COSEKeyTypes.OKP, COSEKeyParams.CRV: COSEKeyCrvs.ED25519, COSEKeyParams.X: {}},
                 "x(-2) should be bytes(bstr).",
             ),
             (
-                {1: 1, -1: 6, -2: []},
+                {COSEKeyParams.KTY: COSEKeyTypes.OKP, COSEKeyParams.CRV: COSEKeyCrvs.ED25519, COSEKeyParams.X: []},
                 "x(-2) should be bytes(bstr).",
             ),
             (
-                {1: 1, -2: b"invalid-x", -1: 6},
+                {COSEKeyParams.KTY: COSEKeyTypes.OKP, COSEKeyParams.X: b"invalid-x", COSEKeyParams.CRV: COSEKeyCrvs.ED25519},
                 "Invalid key parameter.",
             ),
             (
                 {
-                    1: 1,
-                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                    -4: "invalid-type-d",
-                    -1: 6,
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    COSEKeyParams.D: "invalid-type-d",
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                 },
                 "d(-4) should be bytes(bstr).",
             ),
             (
                 {
-                    1: 1,
-                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                    -4: {},
-                    -1: 6,
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    COSEKeyParams.D: {},
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                 },
                 "d(-4) should be bytes(bstr).",
             ),
             (
                 {
-                    1: 1,
-                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                    -4: [],
-                    -1: 6,
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    COSEKeyParams.D: [],
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
                 },
                 "d(-4) should be bytes(bstr).",
             ),
             (
                 {
-                    1: 1,
-                    -1: 6,
-                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                    -4: 123,
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    COSEKeyParams.D: 123,
                 },
                 "d(-4) should be bytes(bstr).",
             ),
             (
                 {
-                    1: 1,
-                    -1: 6,
-                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                    -4: b"invalid-d",
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    COSEKeyParams.D: b"invalid-d",
                 },
                 "Invalid key parameter.",
             ),
             (
                 {
-                    1: 1,
-                    3: -8,
-                    -1: 6,
-                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                    -4: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    4: [7, 8],
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.ALG: -8,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.DERIVE_KEY,
+                        COSEKeyOps.DERIVE_BITS,
+                    ],
                 },
                 "Invalid key_ops for signing key.",
             ),
             (
                 {
-                    1: 1,
-                    3: -8,
-                    -1: 6,
-                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                    -4: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    4: [1, 2, 7, 8],
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.ALG: -8,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.SIGN,
+                        COSEKeyOps.VERIFY,
+                        COSEKeyOps.DERIVE_KEY,
+                        COSEKeyOps.DERIVE_BITS,
+                    ],
                 },
                 "Signing key should not be used for key derivation.",
             ),
             (
                 {
-                    1: 1,
-                    3: -8,
-                    -1: 6,
-                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                    # -4: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    4: [1, 2],
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.ALG: -8,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    # COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.SIGN,
+                        COSEKeyOps.VERIFY,
+                    ],
                 },
                 "Invalid key_ops for public key.",
             ),
             (
                 {
-                    1: 1,
-                    3: -25,
-                    -1: 6,
-                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                    -4: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    4: [1, 2],
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.ALG: -25,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.SIGN,
+                        COSEKeyOps.VERIFY,
+                    ],
                 },
                 "Invalid key_ops for key derivation.",
             ),
             (
                 {
-                    1: 1,
-                    3: -25,
-                    -1: 6,
-                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                    -4: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    4: [1, 2],
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.ALG: -25,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.SIGN,
+                        COSEKeyOps.VERIFY,
+                    ],
                 },
                 "Invalid key_ops for key derivation.",
             ),
             (
                 {
-                    1: 1,
-                    3: -25,
-                    -1: 6,
-                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                    -4: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    4: [1, 2, 7, 8],
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.ALG: -25,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.SIGN,
+                        COSEKeyOps.VERIFY,
+                        COSEKeyOps.DERIVE_KEY,
+                        COSEKeyOps.DERIVE_BITS,
+                    ],
                 },
                 "Private key for ECDHE should not be used for signing.",
             ),
             (
                 {
-                    1: 1,
-                    3: -25,
-                    -1: 4,
-                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                    # -4: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    4: [7, 8],
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.ALG: -25,
+                    COSEKeyParams.CRV: COSEKeyCrvs.X25519,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.DERIVE_KEY,
+                        COSEKeyOps.DERIVE_BITS,
+                    ],
                 },
                 "Public key for ECDHE should not have key_ops.",
             ),
             (
                 {
-                    1: 1,
-                    3: -25,
-                    -1: 4,
-                    -2: "invalid-type-x",
-                    # -4: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    4: [],
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.ALG: -25,
+                    COSEKeyParams.CRV: COSEKeyCrvs.X25519,
+                    COSEKeyParams.X: "invalid-type-x",
+                    # COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
+                    COSEKeyParams.KEY_OPS: [],
                 },
                 "x(-2) should be bytes(bstr).",
             ),
             (
                 {
-                    1: 1,
-                    # 3: -25,
-                    -1: 6,
-                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                    -4: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    4: [1, 2, 7, 8],
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    # COSEKeyParams.ALG: -25,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.SIGN,
+                        COSEKeyOps.VERIFY,
+                        COSEKeyOps.DERIVE_KEY,
+                        COSEKeyOps.DERIVE_BITS,
+                    ],
                 },
                 "OKP private key should not be used for both signing and key derivation.",
             ),
             (
                 {
-                    1: 1,
-                    # 3: -25,
-                    -1: 6,
-                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                    # -4: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    4: [1, 2, 7, 8],
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    # COSEKeyParams.ALG: -25,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    # COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.SIGN,
+                        COSEKeyOps.VERIFY,
+                        COSEKeyOps.DERIVE_KEY,
+                        COSEKeyOps.DERIVE_BITS,
+                    ],
                 },
                 "Invalid key_ops for public key.",
             ),
             (
                 {
-                    1: 1,
-                    # 3: -25,
-                    -1: 6,
-                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                    # -4: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    4: [7, 8],
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    # COSEKeyParams.ALG: -25,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    # COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.DERIVE_KEY,
+                        COSEKeyOps.DERIVE_BITS,
+                    ],
                 },
                 "Invalid key_ops for public key.",
             ),
             (
                 {
-                    1: 1,
-                    3: -25,
-                    -1: 4,
-                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                    -4: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.ALG: -25,
+                    COSEKeyParams.CRV: COSEKeyCrvs.X25519,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     33: 123,
-                    4: [7, 8],
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.DERIVE_KEY,
+                        COSEKeyOps.DERIVE_BITS,
+                    ],
                 },
                 "x5c(33) should be bytes(bstr) or list.",
             ),
+            # (
+            #     {
+            #         COSEKeyParams.KTY: COSEKeyTypes.OKP,
+            #         COSEKeyParams.CRV: COSEKeyCrvs.X25519,
+            #         COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+            #         COSEKeyParams.KEY_OPS: [
+            #             COSEKeyOps.DERIVE_KEY,
+            #             COSEKeyOps.DERIVE_BITS,
+            #         ],
+            #     },
+            #     "X25519/X448 needs alg explicitly.",
+            # ),
             (
                 {
-                    1: 1,
-                    # 3: -25,
-                    -1: 4,
-                    -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                    # -4: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    4: [7, 8],
-                },
-                "X25519/X448 needs alg explicitly.",
-            ),
-            (
-                {
-                    1: 1,
-                    # 3: -25,
-                    -1: 6,
-                    # -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                    # -4: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    4: [2],
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    # COSEKeyParams.ALG: -25,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    # COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.VERIFY,
+                    ],
                 },
                 "x(-2) not found.",
             ),
             (
                 {
-                    1: 1,
-                    3: -8,
-                    -1: 4,
-                    # -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                    # -4: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    4: [2],
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.ALG: -8,
+                    COSEKeyParams.CRV: COSEKeyCrvs.X25519,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    # COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.VERIFY,
+                    ],
                 },
                 "Unsupported or unknown alg used with X25519/X448: -8.",
             ),
-            # (
-            #     {
-            #         1: 1,
-            #         # 3: -8,
-            #         -1: 6,
-            #         # -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-            #         # -4: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-            #         4: [7, 8],
-            #     },
-            #     "x(-2) not found.",
-            # ),
             (
                 {
-                    1: 1,
-                    # 3: -8,
-                    -1: 6,
-                    # -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                    -4: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    4: [7, 8],
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.DERIVE_KEY,
+                        COSEKeyOps.DERIVE_BITS,
+                    ],
+                },
+                "The body of the key not found.",
+            ),
+            (
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    # COSEKeyParams.ALG: -8,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.DERIVE_KEY,
+                        COSEKeyOps.DERIVE_BITS,
+                    ],
                 },
                 "x(-2) not found.",
             ),
@@ -624,10 +683,10 @@ class TestOKPKey:
     def test_okp_key_sign_with_es256_public_key(self):
         public_key = OKPKey(
             {
-                1: 1,
-                3: -8,
-                -1: 6,
-                -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                COSEKeyParams.ALG: -8,
+                COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
             }
         )
         with pytest.raises(ValueError) as err:
@@ -638,11 +697,11 @@ class TestOKPKey:
     def test_okp_key_verify_with_invalid_signature(self):
         private_key = OKPKey(
             {
-                1: 1,
-                3: -8,
-                -1: 6,
-                -2: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                -4: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
+                COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                COSEKeyParams.ALG: -8,
+                COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
             }
         )
         sig = private_key.sign(b"Hello world!")

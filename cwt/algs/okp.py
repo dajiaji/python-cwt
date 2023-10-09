@@ -68,16 +68,20 @@ class OKPKey(AsymmetricKey):
         if self._crv not in [4, 5, 6, 7]:
             raise ValueError(f"Unsupported or unknown crv(-1) for OKP: {self._crv}.")
         if self._crv in [4, 5]:
-            if not self._alg:
-                raise ValueError("X25519/X448 needs alg explicitly.")
+            # if not self._alg:
+            #     raise ValueError("X25519/X448 needs alg explicitly.")
             if self._alg in [-25, -27]:
                 self._hash_alg = hashes.SHA256
             elif self._alg in [-26, -28]:
                 self._hash_alg = hashes.SHA512
-            elif self._alg == -1:
+            elif self._alg in COSE_ALGORITHMS_HPKE.values():
                 self._hash_alg = hashes.SHA256 if self._crv == 4 else hashes.SHA512
-            else:
+            elif self._alg is not None:
                 raise ValueError(f"Unsupported or unknown alg used with X25519/X448: {self._alg}.")
+
+        # Check the existence of the key.
+        if -2 not in params and -4 not in params:
+            raise ValueError("The body of the key not found.")
 
         # Validate alg and key_ops.
         if self._key_ops:
@@ -126,11 +130,13 @@ class OKPKey(AsymmetricKey):
                     self._alg = -8  # EdDSA
             else:
                 # public key.
-                if 2 in self._key_ops:
-                    if len(self._key_ops) > 1:
+                if self._crv in [4, 5]:  # X25519/X448
+                    if not set(self._key_ops) & set([7, 8]):
                         raise ValueError("Invalid key_ops for public key.")
-                else:
-                    raise ValueError("Invalid key_ops for public key.")
+                else:  # Ed25519/Ed448
+                    if len(self._key_ops) != 1 or self._key_ops[0] != 2:
+                        raise ValueError("Invalid key_ops for public key.")
+                    self._alg = -8  # EdDSA
 
         if self._alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_ES.values():
             if -2 not in params:

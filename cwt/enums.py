@@ -14,7 +14,6 @@ class COSETypes(enum.IntEnum):
 
 
 class COSEHeaders(enum.IntEnum):
-    HPKE_SENDER_INFO = -4
     ALG = 1
     CRIT = 2
     CTY = 3
@@ -88,7 +87,6 @@ class COSEAlgs(enum.IntEnum):
     A256KW = -5
     A192KW = -4
     A128KW = -3
-    HPKE_V1_BASE = -1
     A128GCM = 1
     A192GCM = 2
     A256GCM = 3
@@ -105,6 +103,16 @@ class COSEAlgs(enum.IntEnum):
     AES_CCM_16_128_256 = 31
     AES_CCM_64_128_128 = 32
     AES_CCM_64_128_256 = 33
+    HPKE_BASE_P256_SHA256_AES128GCM = 35
+    HPKE_BASE_P256_SHA256_CHACHA20POLY1305 = 36
+    HPKE_BASE_P384_SHA384_AES256GCM = 37
+    HPKE_BASE_P384_SHA384_CHACHA20POLY1305 = 38
+    HPKE_BASE_P521_SHA512_AES256GCM = 39
+    HPKE_BASE_P521_SHA512_CHACHA20POLY1305 = 40
+    HPKE_BASE_X25519_SHA256_AES128GCM = 41
+    HPKE_BASE_X25519_SHA256_CHACHA20POLY1305 = 42
+    HPKE_BASE_X448_SHA512_AES256GCM = 43
+    HPKE_BASE_X448_SHA512_CHACHA20POLY1305 = 44
 
 
 class CWTClaims(enum.IntEnum):
@@ -129,3 +137,36 @@ class CWTClaims(enum.IntEnum):
     LOCATION = 17
     EAT_PROFILE = 18
     SUBMODS = 20
+
+
+class COSEKeyTypes(enum.IntEnum):
+    OKP = 1
+    EC2 = 2
+    RSA = 3
+    ASYMMETRIC = 4
+    # HSS_LMS = 5
+    # WALNUT_DSA = 6
+
+
+class COSEKeyCrvs(enum.IntEnum):
+    P256 = 1
+    P384 = 2
+    P521 = 3
+    X25519 = 4
+    X448 = 5
+    ED25519 = 6
+    ED448 = 7
+    SECP256K1 = 8
+
+
+class COSEKeyOps(enum.IntEnum):
+    SIGN = 1
+    VERIFY = 2
+    ENCRYPT = 3
+    DECRYPT = 4
+    WRAP_KEY = 5
+    UNWRAP_KEY = 6
+    DERIVE_KEY = 7
+    DERIVE_BITS = 8
+    MAC_CREATE = 9
+    MAC_VERIFY = 10
