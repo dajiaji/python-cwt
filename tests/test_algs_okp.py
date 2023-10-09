@@ -7,7 +7,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from cwt.algs.okp import OKPKey
 from cwt.cose_key import COSEKey
-from cwt.enums import COSEKeyParams
+from cwt.enums import COSEKeyOps, COSEKeyParams
 from cwt.exceptions import VerifyError
 
 from .utils import key_path
@@ -440,7 +440,10 @@ class TestOKPKey:
                     COSEKeyParams.CRV: 6,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    COSEKeyParams.KEY_OPS: [7, 8],
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.DERIVE_KEY,
+                        COSEKeyOps.DERIVE_BITS,
+                    ],
                 },
                 "Invalid key_ops for signing key.",
             ),
@@ -451,7 +454,12 @@ class TestOKPKey:
                     COSEKeyParams.CRV: 6,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    COSEKeyParams.KEY_OPS: [1, 2, 7, 8],
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.SIGN,
+                        COSEKeyOps.VERIFY,
+                        COSEKeyOps.DERIVE_KEY,
+                        COSEKeyOps.DERIVE_BITS,
+                    ],
                 },
                 "Signing key should not be used for key derivation.",
             ),
@@ -462,7 +470,10 @@ class TestOKPKey:
                     COSEKeyParams.CRV: 6,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     # COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    COSEKeyParams.KEY_OPS: [1, 2],
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.SIGN,
+                        COSEKeyOps.VERIFY,
+                    ],
                 },
                 "Invalid key_ops for public key.",
             ),
@@ -473,7 +484,10 @@ class TestOKPKey:
                     COSEKeyParams.CRV: 6,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    COSEKeyParams.KEY_OPS: [1, 2],
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.SIGN,
+                        COSEKeyOps.VERIFY,
+                    ],
                 },
                 "Invalid key_ops for key derivation.",
             ),
@@ -484,7 +498,10 @@ class TestOKPKey:
                     COSEKeyParams.CRV: 6,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    COSEKeyParams.KEY_OPS: [1, 2],
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.SIGN,
+                        COSEKeyOps.VERIFY,
+                    ],
                 },
                 "Invalid key_ops for key derivation.",
             ),
@@ -495,7 +512,12 @@ class TestOKPKey:
                     COSEKeyParams.CRV: 6,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    COSEKeyParams.KEY_OPS: [1, 2, 7, 8],
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.SIGN,
+                        COSEKeyOps.VERIFY,
+                        COSEKeyOps.DERIVE_KEY,
+                        COSEKeyOps.DERIVE_BITS,
+                    ],
                 },
                 "Private key for ECDHE should not be used for signing.",
             ),
@@ -505,8 +527,10 @@ class TestOKPKey:
                     COSEKeyParams.ALG: -25,
                     COSEKeyParams.CRV: 4,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-                    # COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    COSEKeyParams.KEY_OPS: [7, 8],
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.DERIVE_KEY,
+                        COSEKeyOps.DERIVE_BITS,
+                    ],
                 },
                 "Public key for ECDHE should not have key_ops.",
             ),
@@ -528,7 +552,12 @@ class TestOKPKey:
                     COSEKeyParams.CRV: 6,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    COSEKeyParams.KEY_OPS: [1, 2, 7, 8],
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.SIGN,
+                        COSEKeyOps.VERIFY,
+                        COSEKeyOps.DERIVE_KEY,
+                        COSEKeyOps.DERIVE_BITS,
+                    ],
                 },
                 "OKP private key should not be used for both signing and key derivation.",
             ),
@@ -539,7 +568,12 @@ class TestOKPKey:
                     COSEKeyParams.CRV: 6,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     # COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    COSEKeyParams.KEY_OPS: [1, 2, 7, 8],
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.SIGN,
+                        COSEKeyOps.VERIFY,
+                        COSEKeyOps.DERIVE_KEY,
+                        COSEKeyOps.DERIVE_BITS,
+                    ],
                 },
                 "Invalid key_ops for public key.",
             ),
@@ -550,7 +584,10 @@ class TestOKPKey:
                     COSEKeyParams.CRV: 6,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     # COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    COSEKeyParams.KEY_OPS: [7, 8],
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.DERIVE_KEY,
+                        COSEKeyOps.DERIVE_BITS,
+                    ],
                 },
                 "Invalid key_ops for public key.",
             ),
@@ -562,7 +599,10 @@ class TestOKPKey:
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     33: 123,
-                    COSEKeyParams.KEY_OPS: [7, 8],
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.DERIVE_KEY,
+                        COSEKeyOps.DERIVE_BITS,
+                    ],
                 },
                 "x5c(33) should be bytes(bstr) or list.",
             ),
@@ -571,7 +611,10 @@ class TestOKPKey:
             #         COSEKeyParams.KTY: 1,
             #         COSEKeyParams.CRV: 4,
             #         COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
-            #         COSEKeyParams.KEY_OPS: [7, 8],
+            #         COSEKeyParams.KEY_OPS: [
+            #             COSEKeyOps.DERIVE_KEY,
+            #             COSEKeyOps.DERIVE_BITS,
+            #         ],
             #     },
             #     "X25519/X448 needs alg explicitly.",
             # ),
@@ -582,7 +625,9 @@ class TestOKPKey:
                     COSEKeyParams.CRV: 6,
                     # COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    COSEKeyParams.KEY_OPS: [2],
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.VERIFY,
+                    ],
                 },
                 "x(-2) not found.",
             ),
@@ -593,7 +638,9 @@ class TestOKPKey:
                     COSEKeyParams.CRV: 4,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     # COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    COSEKeyParams.KEY_OPS: [2],
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.VERIFY,
+                    ],
                 },
                 "Unsupported or unknown alg used with X25519/X448: -8.",
             ),
@@ -601,7 +648,10 @@ class TestOKPKey:
                 {
                     COSEKeyParams.KTY: 1,
                     COSEKeyParams.CRV: 6,
-                    COSEKeyParams.KEY_OPS: [7, 8],
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.DERIVE_KEY,
+                        COSEKeyOps.DERIVE_BITS,
+                    ],
                 },
                 "The body of the key not found.",
             ),
@@ -611,7 +661,10 @@ class TestOKPKey:
                     # COSEKeyParams.ALG: -8,
                     COSEKeyParams.CRV: 6,
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
-                    COSEKeyParams.KEY_OPS: [7, 8],
+                    COSEKeyParams.KEY_OPS: [
+                        COSEKeyOps.DERIVE_KEY,
+                        COSEKeyOps.DERIVE_BITS,
+                    ],
                 },
                 "x(-2) not found.",
             ),

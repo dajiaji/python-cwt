@@ -137,3 +137,16 @@ class CWTClaims(enum.IntEnum):
     LOCATION = 17
     EAT_PROFILE = 18
     SUBMODS = 20
+
+
+class COSEKeyOps(enum.IntEnum):
+    SIGN = 1
+    VERIFY = 2
+    ENCRYPT = 3
+    DECRYPT = 4
+    WRAP_KEY = 5
+    UNWRAP_KEY = 6
+    DERIVE_KEY = 7
+    DERIVE_BITS = 8
+    MAC_CREATE = 9
+    MAC_VERIFY = 10
