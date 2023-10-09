@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional
 
 from cryptography.hazmat.primitives.ciphers.aead import AESCCM, AESGCM, ChaCha20Poly1305
 from cryptography.hazmat.primitives.keywrap import aes_key_unwrap, aes_key_wrap
+from .non_aead import AESCTR, AESCBC
 
 from ..const import COSE_KEY_OPERATION_VALUES
 from ..cose_key_interface import COSEKeyInterface
@@ -353,3 +354,101 @@ class AESKeyWrap(SymmetricKey):
             return aes_key_unwrap(self._key, wrapped_key)
         except Exception as err:
             raise DecodeError("Failed to unwrap key.") from err
+
+
+class AESCTRKey(SymmetricKey):
+    """ """
+
+    def __init__(self, params: Dict[int, Any]):
+        """ """
+        super().__init__(params)
+
+        self._cipher: AESCTR
+
+        # Validate alg.
+        if self._alg == -65534:  # A128CTR
+            if not self._key:
+                self._key = AESCTRKey.generate_key(bit_length=128)
+            if len(self._key) != 16:
+                raise ValueError("The length of A128CTR key should be 16 bytes.")
+        elif self._alg == -65533:  # A192CTR
+            if not self._key:
+                self._key = AESCTRKey.generate_key(bit_length=192)
+            if len(self._key) != 24:
+                raise ValueError("The length of A192CTR key should be 24 bytes.")
+        elif self._alg == -65532:  # A256CTR
+            if not self._key:
+                self._key = AESCTRKey.generate_key(bit_length=256)
+            if len(self._key) != 32:
+                raise ValueError("The length of A256CTR key should be 32 bytes.")
+        else:
+            raise ValueError(f"Unsupported or unknown alg(3) for AES CTR: {self._alg}.")
+
+        self._cipher = AESCTR(self._key)
+        return
+
+    def generate_nonce(self):
+        return token_bytes(len(self._key))
+
+    def encrypt(self, msg: bytes, nonce: bytes, aad = None) -> bytes:
+        """ """
+        try:
+            return self._cipher.encrypt(nonce, msg)
+        except Exception as err:
+            raise EncodeError("Failed to encrypt.") from err
+
+    def decrypt(self, msg: bytes, nonce: bytes, aad = None) -> bytes:
+        """ """
+        try:
+            return self._cipher.decrypt(nonce, msg)
+        except Exception as err:
+            raise DecodeError("Failed to decrypt.") from err
+
+
+class AESCBCKey(SymmetricKey):
+    """ """
+
+    def __init__(self, params: Dict[int, Any]):
+        """ """
+        super().__init__(params)
+
+        self._cipher: AESCBC
+
+        # Validate alg.
+        if self._alg == -65531:  # A128CBC
+            if not self._key:
+                self._key = AESCBCKey.generate_key(bit_length=128)
+            if len(self._key) != 16:
+                raise ValueError("The length of A128CBC key should be 16 bytes.")
+        elif self._alg == -65530:  # A192CBC
+            if not self._key:
+                self._key = AESCBCKey.generate_key(bit_length=192)
+            if len(self._key) != 24:
+                raise ValueError("The length of A192CBC key should be 24 bytes.")
+        elif self._alg == -65529:  # A256CBC
+            if not self._key:
+                self._key = AESCBCKey.generate_key(bit_length=256)
+            if len(self._key) != 32:
+                raise ValueError("The length of A256CBC key should be 32 bytes.")
+        else:
+            raise ValueError(f"Unsupported or unknown alg(3) for AES CBC: {self._alg}.")
+
+        self._cipher = AESCBC(self._key)
+        return
+
+    def generate_nonce(self):
+        return token_bytes(len(self._key))
+
+    def encrypt(self, msg: bytes, nonce: bytes, aad = None) -> bytes:
+        """ """
+        try:
+            return self._cipher.encrypt(nonce, msg)
+        except Exception as err:
+            raise EncodeError("Failed to encrypt.") from err
+
+    def decrypt(self, msg: bytes, nonce: bytes, aad = None) -> bytes:
+        """ """
+        try:
+            return self._cipher.decrypt(nonce, msg)
+        except Exception as err:
+            raise DecodeError("Failed to decrypt.") from err
