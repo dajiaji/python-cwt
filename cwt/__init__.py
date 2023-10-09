@@ -17,6 +17,7 @@ from .enums import (
     COSEHeaders,
     COSEKeyOps,
     COSEKeyParams,
+    COSEKeyTypes,
     COSETypes,
     CWTClaims,
 )
@@ -47,6 +48,7 @@ __all__ = [
     "COSEHeaders",
     "COSEKeyOps",
     "COSEKeyParams",
+    "COSEKeyTypes",
     "COSETypes",
     "COSEKey",
     "COSEMessage",

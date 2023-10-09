@@ -34,6 +34,15 @@ class COSEHeaders(enum.IntEnum):
     CUPH_OWNER_PUB_KEY = 257
 
 
+class COSEKeyTypes(enum.IntEnum):
+    OKP = 1
+    EC2 = 2
+    RSA = 3
+    ASYMMETRIC = 4
+    # HSS_LMS = 5
+    # WALNUT_DSA = 6
+
+
 class COSEKeyParams(enum.IntEnum):
     KTY = 1
     KID = 2
