@@ -72,6 +72,19 @@ class TestUtils:
         )
         assert isinstance(res, list)
 
+    def test_to_cis_without_apu_apv_supp_pub_other(self):
+        res = to_cis(
+            {
+                "alg": "A128KW",
+                "supp_pub": {
+                    "key_data_length": 128,
+                    "protected": {"alg": "ECDH-ES+A128KW"},
+                    "other": "SUIT Payload Encryption",
+                },
+            }
+        )
+        assert isinstance(res, list)
+
     @pytest.mark.parametrize(
         "invalid, msg",
         [
