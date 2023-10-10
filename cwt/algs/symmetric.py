@@ -389,7 +389,7 @@ class AESCTRKey(ContentEncryptionKey):
         return
 
     def generate_nonce(self):
-        return token_bytes(len(self._key))
+        return token_bytes(_CWT_NONCE_SIZE_AES)
 
     def encrypt(self, msg: bytes, nonce: bytes, aad = None) -> bytes:
         """ """
@@ -438,7 +438,7 @@ class AESCBCKey(ContentEncryptionKey):
         return
 
     def generate_nonce(self):
-        return token_bytes(len(self._key))
+        return token_bytes(_CWT_NONCE_SIZE_AES)
 
     def encrypt(self, msg: bytes, nonce: bytes, aad = None) -> bytes:
         """ """
