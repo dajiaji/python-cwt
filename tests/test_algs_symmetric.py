@@ -913,6 +913,32 @@ class TestAESCBCKey:
         except Exception:
             pytest.fail("sign/verify should not fail.")
 
+    def test_aescbc_padding_with_aes_cbc_a128cbc(self):
+        key = AESCBCKey(
+            {
+                1: 4,
+                -1: token_bytes(16),
+                3: -65531,  # A128CBC
+            }
+        )
+        nonce = token_bytes(16)
+
+        try:
+            # if len(msg) is multiple of block size 16,
+            # it would be the padding value (like b'\x16') and its length
+            encrypted = key.encrypt(b"t" * 16, nonce=nonce)
+            decrypted_raw = key._cipher.decrypt(data=encrypted, nonce=nonce)
+            assert decrypted_raw[-16:] == (16).to_bytes(1, "big") * 16
+
+            # otherwise, the remaining length = 16 - len(data) % 16
+            # would be the padding value and its length
+            for i in range(1, 16):
+                encrypted = key.encrypt(b"t" * (16 + (16 - i)), nonce=nonce)
+                decrypted_raw = key._cipher.decrypt(data=encrypted, nonce=nonce)
+                assert decrypted_raw[-i:] == (i).to_bytes(1, "big") * i
+        except Exception:
+            pytest.fail("padding check should not fail.")
+
     @pytest.mark.parametrize(
         "key_args",
         [
