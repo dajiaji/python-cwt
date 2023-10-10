@@ -781,3 +781,153 @@ class TestRecipients:
             recipient.decode(encoded, [invalid_rsk])
             pytest.fail("decode() should fail.")
         assert "Failed to open." in str(err.value)
+
+    def test_recipients_a128ctr(self, rsk1, rsk2):
+        enc_key = COSEKey.from_symmetric_key(alg="A128CTR")
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                # "kid": "02",
+                "crv": "P-256",
+                "x": "-eZXC6nV-xgthy8zZMCN8pcYSeE2XfWWqckA2fsxHPc",
+                "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
+            }
+        )
+        r = Recipient.new(protected={1: -1}, unprotected={-4: [0x0010, 0x0001, 0x0001]}, recipient_key=rpk)
+        r.encode(enc_key.key)
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            enc_key,
+            protected={
+                1: -65534,  # alg: "A128CTR"
+            },
+            recipients=[r],
+        )
+        recipient = COSE.new()
+        assert b"This is the content." == recipient.decode(encoded, [rsk1, rsk2])
+
+    def test_recipients_a192ctr(self, rsk1, rsk2):
+        enc_key = COSEKey.from_symmetric_key(alg="A192CTR")
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                # "kid": "02",
+                "crv": "P-256",
+                "x": "-eZXC6nV-xgthy8zZMCN8pcYSeE2XfWWqckA2fsxHPc",
+                "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
+            }
+        )
+        r = Recipient.new(protected={1: -1}, unprotected={-4: [0x0010, 0x0001, 0x0001]}, recipient_key=rpk)
+        r.encode(enc_key.key)
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            enc_key,
+            protected={
+                1: -65533,  # alg: "A192CTR"
+            },
+            recipients=[r],
+        )
+        recipient = COSE.new()
+        assert b"This is the content." == recipient.decode(encoded, [rsk1, rsk2])
+
+    def test_recipients_a256ctr(self, rsk1, rsk2):
+        enc_key = COSEKey.from_symmetric_key(alg="A256CTR")
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                # "kid": "02",
+                "crv": "P-256",
+                "x": "-eZXC6nV-xgthy8zZMCN8pcYSeE2XfWWqckA2fsxHPc",
+                "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
+            }
+        )
+        r = Recipient.new(protected={1: -1}, unprotected={-4: [0x0010, 0x0001, 0x0001]}, recipient_key=rpk)
+        r.encode(enc_key.key)
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            enc_key,
+            protected={
+                1: -65532,  # alg: "A256CTR"
+            },
+            recipients=[r],
+        )
+        recipient = COSE.new()
+        assert b"This is the content." == recipient.decode(encoded, [rsk1, rsk2])
+
+    def test_recipients_a128cbc(self, rsk1, rsk2):
+        enc_key = COSEKey.from_symmetric_key(alg="A128CBC")
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                # "kid": "02",
+                "crv": "P-256",
+                "x": "-eZXC6nV-xgthy8zZMCN8pcYSeE2XfWWqckA2fsxHPc",
+                "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
+            }
+        )
+        r = Recipient.new(protected={1: -1}, unprotected={-4: [0x0010, 0x0001, 0x0001]}, recipient_key=rpk)
+        r.encode(enc_key.key)
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            enc_key,
+            protected={
+                1: -65531,  # alg: "A128CBC"
+            },
+            recipients=[r],
+        )
+        recipient = COSE.new()
+        assert b"This is the content." == recipient.decode(encoded, [rsk1, rsk2])
+
+    def test_recipients_a192cbc(self, rsk1, rsk2):
+        enc_key = COSEKey.from_symmetric_key(alg="A192CBC")
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                # "kid": "02",
+                "crv": "P-256",
+                "x": "-eZXC6nV-xgthy8zZMCN8pcYSeE2XfWWqckA2fsxHPc",
+                "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
+            }
+        )
+        r = Recipient.new(protected={1: -1}, unprotected={-4: [0x0010, 0x0001, 0x0001]}, recipient_key=rpk)
+        r.encode(enc_key.key)
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            enc_key,
+            protected={
+                1: -65530,  # alg: "A192CBC"
+            },
+            recipients=[r],
+        )
+        recipient = COSE.new()
+        assert b"This is the content." == recipient.decode(encoded, [rsk1, rsk2])
+
+    def test_recipients_a256cbc(self, rsk1, rsk2):
+        enc_key = COSEKey.from_symmetric_key(alg="A256CBC")
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                # "kid": "02",
+                "crv": "P-256",
+                "x": "-eZXC6nV-xgthy8zZMCN8pcYSeE2XfWWqckA2fsxHPc",
+                "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
+            }
+        )
+        r = Recipient.new(protected={1: -1}, unprotected={-4: [0x0010, 0x0001, 0x0001]}, recipient_key=rpk)
+        r.encode(enc_key.key)
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            enc_key,
+            protected={
+                1: -65529,  # alg: "A256CBC"
+            },
+            recipients=[r],
+        )
+        recipient = COSE.new()
+        assert b"This is the content." == recipient.decode(encoded, [rsk1, rsk2])
