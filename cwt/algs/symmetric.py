@@ -357,7 +357,7 @@ class AESKeyWrap(SymmetricKey):
             raise DecodeError("Failed to unwrap key.") from err
 
 
-class AESCTRKey(SymmetricKey):
+class AESCTRKey(ContentEncryptionKey):
     """ """
 
     def __init__(self, params: Dict[int, Any]):
@@ -369,17 +369,17 @@ class AESCTRKey(SymmetricKey):
         # Validate alg.
         if self._alg == -65534:  # A128CTR
             if not self._key:
-                self._key = AESCTRKey.generate_key(bit_length=128)
+                self._key = AESCTR.generate_key(bit_length=128)
             if len(self._key) != 16:
                 raise ValueError("The length of A128CTR key should be 16 bytes.")
         elif self._alg == -65533:  # A192CTR
             if not self._key:
-                self._key = AESCTRKey.generate_key(bit_length=192)
+                self._key = AESCTR.generate_key(bit_length=192)
             if len(self._key) != 24:
                 raise ValueError("The length of A192CTR key should be 24 bytes.")
         elif self._alg == -65532:  # A256CTR
             if not self._key:
-                self._key = AESCTRKey.generate_key(bit_length=256)
+                self._key = AESCTR.generate_key(bit_length=256)
             if len(self._key) != 32:
                 raise ValueError("The length of A256CTR key should be 32 bytes.")
         else:
@@ -406,7 +406,7 @@ class AESCTRKey(SymmetricKey):
             raise DecodeError("Failed to decrypt.") from err
 
 
-class AESCBCKey(SymmetricKey):
+class AESCBCKey(ContentEncryptionKey):
     """ """
 
     def __init__(self, params: Dict[int, Any]):
@@ -418,17 +418,17 @@ class AESCBCKey(SymmetricKey):
         # Validate alg.
         if self._alg == -65531:  # A128CBC
             if not self._key:
-                self._key = AESCBCKey.generate_key(bit_length=128)
+                self._key = AESCBC.generate_key(bit_length=128)
             if len(self._key) != 16:
                 raise ValueError("The length of A128CBC key should be 16 bytes.")
         elif self._alg == -65530:  # A192CBC
             if not self._key:
-                self._key = AESCBCKey.generate_key(bit_length=192)
+                self._key = AESCBC.generate_key(bit_length=192)
             if len(self._key) != 24:
                 raise ValueError("The length of A192CBC key should be 24 bytes.")
         elif self._alg == -65529:  # A256CBC
             if not self._key:
-                self._key = AESCBCKey.generate_key(bit_length=256)
+                self._key = AESCBC.generate_key(bit_length=256)
             if len(self._key) != 32:
                 raise ValueError("The length of A256CBC key should be 32 bytes.")
         else:
