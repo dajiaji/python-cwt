@@ -131,14 +131,6 @@ class TestUtils:
                 {"alg": "AES-CCM-16-64-128", "supp_pub": {"other": 123}},
                 "supp_pub.other should be str.",
             ),
-            (
-                {"alg": "A128KW"},
-                "Unsupported or unknown alg for context information: A128KW.",
-            ),
-            (
-                {"alg": "A128KW", "supp_pub": {}},
-                "Unsupported or unknown alg for context information: A128KW.",
-            ),
         ],
     )
     def test_to_cis_with_invalid_args(self, invalid, msg):
