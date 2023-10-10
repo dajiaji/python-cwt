@@ -5,11 +5,11 @@ from typing import Any, Dict, Optional
 
 from cryptography.hazmat.primitives.ciphers.aead import AESCCM, AESGCM, ChaCha20Poly1305
 from cryptography.hazmat.primitives.keywrap import aes_key_unwrap, aes_key_wrap
-from .non_aead import AESCTR, AESCBC
 
 from ..const import COSE_KEY_OPERATION_VALUES
 from ..cose_key_interface import COSEKeyInterface
 from ..exceptions import DecodeError, EncodeError, VerifyError
+from .non_aead import AESCBC, AESCTR
 
 _CWT_DEFAULT_KEY_SIZE_HMAC256 = 32  # bytes
 _CWT_DEFAULT_KEY_SIZE_HMAC384 = 48
@@ -391,14 +391,14 @@ class AESCTRKey(ContentEncryptionKey):
     def generate_nonce(self):
         return token_bytes(_CWT_NONCE_SIZE_AES)
 
-    def encrypt(self, msg: bytes, nonce: bytes, aad = None) -> bytes:
+    def encrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
         """ """
         try:
             return self._cipher.encrypt(nonce, msg)
         except Exception as err:
             raise EncodeError("Failed to encrypt.") from err
 
-    def decrypt(self, msg: bytes, nonce: bytes, aad = None) -> bytes:
+    def decrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
         """ """
         try:
             return self._cipher.decrypt(nonce, msg)
@@ -440,7 +440,7 @@ class AESCBCKey(ContentEncryptionKey):
     def generate_nonce(self):
         return token_bytes(_CWT_NONCE_SIZE_AES)
 
-    def encrypt(self, msg: bytes, nonce: bytes, aad = None) -> bytes:
+    def encrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
         """ """
         try:
             # Add padding (see RFC 9459 and 5652)
@@ -451,7 +451,7 @@ class AESCBCKey(ContentEncryptionKey):
         except Exception as err:
             raise EncodeError("Failed to encrypt.") from err
 
-    def decrypt(self, msg: bytes, nonce: bytes, aad = None) -> bytes:
+    def decrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
         """ """
         try:
             decrypted = self._cipher.decrypt(nonce, msg)

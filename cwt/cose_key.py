@@ -16,7 +16,15 @@ from .algs.ec2 import EC2Key
 from .algs.okp import OKPKey
 from .algs.raw import RawKey
 from .algs.rsa import RSAKey
-from .algs.symmetric import AESCCMKey, AESGCMKey, AESKeyWrap, ChaCha20Key, HMACKey, AESCTRKey, AESCBCKey
+from .algs.symmetric import (
+    AESCBCKey,
+    AESCCMKey,
+    AESCTRKey,
+    AESGCMKey,
+    AESKeyWrap,
+    ChaCha20Key,
+    HMACKey,
+)
 from .const import (
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT,
     COSE_ALGORITHMS_RSA,

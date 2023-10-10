@@ -1,5 +1,7 @@
 import os
+
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+
 
 class AESCTR:
     _MAX_SIZE = 2**31 - 1
