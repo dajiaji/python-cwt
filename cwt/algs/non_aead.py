@@ -74,11 +74,7 @@ class AESCBC:
             modes.CBC(nonce),
         ).encryptor()
 
-        # Add padding (see RFC 9459 and 5652)
-        padding_value = len(self._key) - len(data) % len(self._key)
-        padding_length = len(self._key) if padding_value == 0 else padding_value
-        padding = (padding_value).to_bytes(1, 'big') * padding_length
-        return encryptor.update(data + padding) + encryptor.finalize()
+        return encryptor.update(data) + encryptor.finalize()
 
     def decrypt(
         self,
@@ -90,6 +86,4 @@ class AESCBC:
             modes.CBC(nonce),
         ).decryptor()
 
-        decrypted = decryptor.update(data) + decryptor.finalize()
-        # Remove padding (see RFC 9459 and 5652)
-        return decrypted[0:-(decrypted[-1])]
+        return decryptor.update(data) + decryptor.finalize()

@@ -16,6 +16,7 @@ _CWT_DEFAULT_KEY_SIZE_HMAC384 = 48
 _CWT_DEFAULT_KEY_SIZE_HMAC512 = 64
 _CWT_NONCE_SIZE_AESGCM = 12
 _CWT_NONCE_SIZE_CHACHA20_POLY1305 = 12
+_CWT_NONCE_SIZE_AES = 16
 
 
 class SymmetricKey(COSEKeyInterface):
@@ -442,13 +443,19 @@ class AESCBCKey(SymmetricKey):
     def encrypt(self, msg: bytes, nonce: bytes, aad = None) -> bytes:
         """ """
         try:
-            return self._cipher.encrypt(nonce, msg)
+            # Add padding (see RFC 9459 and 5652)
+            padding_value = 16 - len(msg) % 16
+            padding_length = 16 if padding_value == 0 else padding_value
+            padding = (padding_value).to_bytes(1, "big") * padding_length
+            return self._cipher.encrypt(nonce, msg + padding)
         except Exception as err:
             raise EncodeError("Failed to encrypt.") from err
 
     def decrypt(self, msg: bytes, nonce: bytes, aad = None) -> bytes:
         """ """
         try:
-            return self._cipher.decrypt(nonce, msg)
+            decrypted = self._cipher.decrypt(nonce, msg)
+            # Remove padding (see RFC 9459 and 5652)
+            return decrypted[0 : -(decrypted[-1])]
         except Exception as err:
             raise DecodeError("Failed to decrypt.") from err
