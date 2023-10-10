@@ -5,7 +5,15 @@ from secrets import token_bytes
 
 import pytest
 
-from cwt.algs.symmetric import AESCCMKey, AESGCMKey, ChaCha20Key, HMACKey, SymmetricKey
+from cwt.algs.symmetric import (
+    AESCBCKey,
+    AESCCMKey,
+    AESCTRKey,
+    AESGCMKey,
+    ChaCha20Key,
+    HMACKey,
+    SymmetricKey,
+)
 from cwt.exceptions import DecodeError, EncodeError, VerifyError
 
 
@@ -742,3 +750,267 @@ class TestChaCha20Key:
             key.decrypt(encrypted, nonce=token_bytes(8))
             pytest.fail("decrypt should fail.")
         assert "Failed to decrypt." in str(err.value)
+
+
+class TestAESCTRKey:
+    """
+    Tests for AESCTRKey.
+    """
+
+    def test_aesctr_key_constructor_with_aes_ctr_a128ctr(self):
+        key = AESCTRKey(
+            {
+                1: 4,
+                -1: token_bytes(16),
+                3: -65534,  # A128CTR
+            }
+        )
+        assert key.kty == 4
+        assert key.kid is None
+        assert key.alg == -65534
+        assert len(key.key_ops) == 4
+        assert 3 in key.key_ops
+        assert 4 in key.key_ops
+        assert 5 in key.key_ops
+        assert 6 in key.key_ops
+        assert key.base_iv is None
+        nonce = token_bytes(16)
+        try:
+            encrypted = key.encrypt(b"Hello world!", nonce=nonce)
+            assert key.decrypt(encrypted, nonce) == b"Hello world!"
+        except Exception:
+            pytest.fail("sign/verify should not fail.")
+
+    @pytest.mark.parametrize(
+        "key_args",
+        [
+            {1: 4, 3: -65534},
+            {1: 4, 3: -65533},
+            {1: 4, 3: -65532},
+        ],
+    )
+    def test_aesctr_key_constructor_with_aes_ctr_without_key(self, key_args):
+        key = AESCTRKey(key_args)
+        assert key.kty == 4
+        assert key.kid is None
+        assert len(key.key_ops) == 4
+        assert 3 in key.key_ops
+        assert 4 in key.key_ops
+        assert 5 in key.key_ops
+        assert 6 in key.key_ops
+        assert key.base_iv is None
+        nonce = token_bytes(16)
+        try:
+            encrypted = key.encrypt(b"Hello world!", nonce=nonce)
+            assert key.decrypt(encrypted, nonce) == b"Hello world!"
+        except Exception:
+            pytest.fail("sign/verify should not fail.")
+
+    @pytest.mark.parametrize(
+        "invalid, msg",
+        [
+            (
+                {1: 4, -1: b"mysecret", 3: 4},
+                "Unsupported or unknown alg(3) for AES CTR: 4",
+            ),
+            (
+                {1: 4, -1: b"mysecret", 3: -65534},
+                "The length of A128CTR key should be 16 bytes.",
+            ),
+            (
+                {1: 4, -1: b"mysecret", 3: -65533},
+                "The length of A192CTR key should be 24 bytes.",
+            ),
+            (
+                {1: 4, -1: b"mysecret", 3: -65532},
+                "The length of A256CTR key should be 32 bytes.",
+            ),
+            (
+                {1: 4, 3: -65534, 4: [1, 2]},
+                "Unknown or not permissible key_ops(4) for ContentEncryptionKey: 1.",
+            ),
+            (
+                {1: 4, 3: -65534, 4: [3, 4, 11]},
+                "key_ops(4) includes invalid value: 11.",
+            ),
+            (
+                {1: 4, 3: -65534, 4: [5, 6, 11]},
+                "key_ops(4) includes invalid value: 11.",
+            ),
+        ],
+    )
+    def test_aesctr_key_constructor_with_invalid_args(self, invalid, msg):
+        with pytest.raises(ValueError) as err:
+            AESCTRKey(invalid)
+            pytest.fail("AESCTRKey should fail.")
+        assert msg in str(err.value)
+
+    def test_aesgcm_key_encrypt_with_empty_nonce(self):
+        key = AESCTRKey(
+            {
+                1: 4,
+                -1: token_bytes(16),
+                3: -65534,  # A128CTR
+            }
+        )
+        with pytest.raises(EncodeError) as err:
+            key.encrypt(b"Hello world!", nonce=b"")
+        assert "Failed to encrypt." in str(err.value)
+
+    def test_aesctr_key_decrypt_with_invalid_nonce(self):
+        key = AESCTRKey(
+            {
+                1: 4,
+                -1: token_bytes(16),
+                3: -65534,  # A128CTR
+            }
+        )
+        assert key.kty == 4
+        assert key.kid is None
+        assert key.alg == -65534
+        assert len(key.key_ops) == 4
+        assert 3 in key.key_ops
+        assert 4 in key.key_ops
+        assert 5 in key.key_ops
+        assert 6 in key.key_ops
+        assert key.base_iv is None
+        nonce = token_bytes(16)
+        encrypted = key.encrypt(b"Hello world!", nonce=nonce)
+        # alternate the nonce by incrementing the last byte
+        invalid_nonce = nonce[0:-1] + (nonce[-1] + 1 % 256).to_bytes(1, "big")
+        assert nonce != invalid_nonce
+        decrypted = key.decrypt(encrypted, nonce=invalid_nonce)
+        assert encrypted != decrypted
+        # as AES-CTR is non-AEAD cipher, integrity and authenticity is not guaranteed
+
+
+class TestAESCBCKey:
+    """
+    Tests for AESCBCKey.
+    """
+
+    def test_aescbc_key_constructor_with_aes_cbc_a128cbc(self):
+        key = AESCBCKey(
+            {
+                1: 4,
+                -1: token_bytes(16),
+                3: -65531,  # A128CBC
+            }
+        )
+        assert key.kty == 4
+        assert key.kid is None
+        assert key.alg == -65531
+        assert len(key.key_ops) == 4
+        assert 3 in key.key_ops
+        assert 4 in key.key_ops
+        assert 5 in key.key_ops
+        assert 6 in key.key_ops
+        assert key.base_iv is None
+        nonce = token_bytes(16)
+        try:
+            encrypted = key.encrypt(b"Hello world!", nonce=nonce)
+            assert key.decrypt(encrypted, nonce) == b"Hello world!"
+        except Exception:
+            pytest.fail("sign/verify should not fail.")
+
+    @pytest.mark.parametrize(
+        "key_args",
+        [
+            {1: 4, 3: -65531},
+            {1: 4, 3: -65530},
+            {1: 4, 3: -65529},
+        ],
+    )
+    def test_aescbc_key_constructor_with_aes_cbc_without_key(self, key_args):
+        key = AESCBCKey(key_args)
+        assert key.kty == 4
+        assert key.kid is None
+        assert len(key.key_ops) == 4
+        assert 3 in key.key_ops
+        assert 4 in key.key_ops
+        assert 5 in key.key_ops
+        assert 6 in key.key_ops
+        assert key.base_iv is None
+        nonce = token_bytes(16)
+        try:
+            encrypted = key.encrypt(b"Hello world!", nonce=nonce)
+            assert key.decrypt(encrypted, nonce) == b"Hello world!"
+        except Exception:
+            pytest.fail("sign/verify should not fail.")
+
+    @pytest.mark.parametrize(
+        "invalid, msg",
+        [
+            (
+                {1: 4, -1: b"mysecret", 3: 4},
+                "Unsupported or unknown alg(3) for AES CBC: 4",
+            ),
+            (
+                {1: 4, -1: b"mysecret", 3: -65531},
+                "The length of A128CBC key should be 16 bytes.",
+            ),
+            (
+                {1: 4, -1: b"mysecret", 3: -65530},
+                "The length of A192CBC key should be 24 bytes.",
+            ),
+            (
+                {1: 4, -1: b"mysecret", 3: -65529},
+                "The length of A256CBC key should be 32 bytes.",
+            ),
+            (
+                {1: 4, 3: -65531, 4: [1, 2]},
+                "Unknown or not permissible key_ops(4) for ContentEncryptionKey: 1.",
+            ),
+            (
+                {1: 4, 3: -65531, 4: [3, 4, 11]},
+                "key_ops(4) includes invalid value: 11.",
+            ),
+            (
+                {1: 4, 3: -65531, 4: [5, 6, 11]},
+                "key_ops(4) includes invalid value: 11.",
+            ),
+        ],
+    )
+    def test_aescbc_key_constructor_with_invalid_args(self, invalid, msg):
+        with pytest.raises(ValueError) as err:
+            AESCBCKey(invalid)
+            pytest.fail("AESCBCKey should fail.")
+        assert msg in str(err.value)
+
+    def test_aesgcm_key_encrypt_with_empty_nonce(self):
+        key = AESCBCKey(
+            {
+                1: 4,
+                -1: token_bytes(16),
+                3: -65531,  # A128CBC
+            }
+        )
+        with pytest.raises(EncodeError) as err:
+            key.encrypt(b"Hello world!", nonce=b"")
+        assert "Failed to encrypt." in str(err.value)
+
+    def test_aescbc_key_decrypt_with_invalid_nonce(self):
+        key = AESCBCKey(
+            {
+                1: 4,
+                -1: token_bytes(16),
+                3: -65531,  # A128CBC
+            }
+        )
+        assert key.kty == 4
+        assert key.kid is None
+        assert key.alg == -65531
+        assert len(key.key_ops) == 4
+        assert 3 in key.key_ops
+        assert 4 in key.key_ops
+        assert 5 in key.key_ops
+        assert 6 in key.key_ops
+        assert key.base_iv is None
+        nonce = token_bytes(16)
+        encrypted = key.encrypt(b"Hello world!", nonce=nonce)
+        # alternate the nonce by incrementing the last byte
+        invalid_nonce = nonce[0:-1] + (nonce[-1] + 1 % 256).to_bytes(1, "big")
+        assert nonce != invalid_nonce
+        decrypted = key.decrypt(encrypted, nonce=invalid_nonce)
+        assert encrypted != decrypted
+        # as AES-CBC is non-AEAD cipher, integrity and authenticity is not guaranteed
