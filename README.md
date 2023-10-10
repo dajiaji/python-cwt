@@ -1744,6 +1744,7 @@ Python CWT is (partially) compliant with following specifications:
 - [RFC8747: Proof-of-Possession Key Semantics for CBOR Web Tokens (CWTs)](https://tools.ietf.org/html/rfc8747)
 - [RFC8392: CWT (CBOR Web Token)](https://tools.ietf.org/html/rfc8392)
 - [RFC8230: Using RSA Algorithms with COSE Messages](https://tools.ietf.org/html/rfc8230)
+- [RFC9459: CBOR Object Signing and Encryption (COSE): AES-CTR and AES-CBC](https://www.rfc-editor.org/rfc/rfc9459.html) - experimental
 - [RFC8152: CBOR Object Signing and Encryption (COSE)](https://tools.ietf.org/html/rfc8152)
 - [draft-05: Use of HPKE with COSE](https://www.ietf.org/archive/id/draft-ietf-cose-hpke-06.html) - experimental
 - [draft-06: CWT Claims in COSE Headers](https://www.ietf.org/archive/id/draft-ietf-cose-cwt-claims-in-headers-06.html) - experimental

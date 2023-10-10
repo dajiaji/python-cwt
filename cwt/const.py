@@ -120,6 +120,12 @@ COSE_KEY_OPERATION_VALUES = {
 
 # COSE Algorithms for Content Encryption Key (CEK).
 COSE_ALGORITHMS_CEK = {
+    "A128CTR": -65534,  # AES-CTR mode w/ 128-bit key (Deprecated)
+    "A192CTR": -65533,  # AES-CTR mode w/ 192-bit key (Deprecated)
+    "A256CTR": -65532,  # AES-CTR mode w/ 256-bit key (Deprecated)
+    "A128CBC": -65531,  # AES-CBC mode w/ 128-bit key (Deprecated)
+    "A192CBC": -65530,  # AES-CBC mode w/ 192-bit key (Deprecated)
+    "A256CBC": -65529,  # AES-CBC mode w/ 256-bit key (Deprecated)
     "A128GCM": 1,  # AES-GCM mode w/ 128-bit key, 128-bit tag
     "A192GCM": 2,  # AES-GCM mode w/ 192-bit key, 128-bit tag
     "A256GCM": 3,  # AES-GCM mode w/ 256-bit key, 128-bit tag
@@ -136,6 +142,12 @@ COSE_ALGORITHMS_CEK = {
 }
 
 COSE_KEY_LEN = {
+    -65534: 128,  # AES-CTR w/ 128-bit key (Deprecated)
+    -65533: 192,  # AES-CTR w/ 192-bit key (Deprecated)
+    -65532: 256,  # AES-CTR w/ 256-bit key (Deprecated)
+    -65531: 128,  # AES-CBC w/ 128-bit key (Deprecated)
+    -65530: 192,  # AES-CBC w/ 192-bit key (Deprecated)
+    -65529: 256,  # AES-CBC w/ 256-bit key (Deprecated)
     -5: 256,  # AES Key Wrap w/ 256-bit key
     -4: 192,  # AES Key Wrap w/ 192-bit key
     -3: 128,  # AES Key Wrap w/ 128-bit key

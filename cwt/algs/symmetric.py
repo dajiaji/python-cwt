@@ -9,12 +9,14 @@ from cryptography.hazmat.primitives.keywrap import aes_key_unwrap, aes_key_wrap
 from ..const import COSE_KEY_OPERATION_VALUES
 from ..cose_key_interface import COSEKeyInterface
 from ..exceptions import DecodeError, EncodeError, VerifyError
+from .non_aead import AESCBC, AESCTR
 
 _CWT_DEFAULT_KEY_SIZE_HMAC256 = 32  # bytes
 _CWT_DEFAULT_KEY_SIZE_HMAC384 = 48
 _CWT_DEFAULT_KEY_SIZE_HMAC512 = 64
 _CWT_NONCE_SIZE_AESGCM = 12
 _CWT_NONCE_SIZE_CHACHA20_POLY1305 = 12
+_CWT_NONCE_SIZE_AES = 16
 
 
 class SymmetricKey(COSEKeyInterface):
@@ -353,3 +355,107 @@ class AESKeyWrap(SymmetricKey):
             return aes_key_unwrap(self._key, wrapped_key)
         except Exception as err:
             raise DecodeError("Failed to unwrap key.") from err
+
+
+class AESCTRKey(ContentEncryptionKey):
+    """ """
+
+    def __init__(self, params: Dict[int, Any]):
+        """ """
+        super().__init__(params)
+
+        self._cipher: AESCTR
+
+        # Validate alg.
+        if self._alg == -65534:  # A128CTR
+            if not self._key:
+                self._key = AESCTR.generate_key(bit_length=128)
+            if len(self._key) != 16:
+                raise ValueError("The length of A128CTR key should be 16 bytes.")
+        elif self._alg == -65533:  # A192CTR
+            if not self._key:
+                self._key = AESCTR.generate_key(bit_length=192)
+            if len(self._key) != 24:
+                raise ValueError("The length of A192CTR key should be 24 bytes.")
+        elif self._alg == -65532:  # A256CTR
+            if not self._key:
+                self._key = AESCTR.generate_key(bit_length=256)
+            if len(self._key) != 32:
+                raise ValueError("The length of A256CTR key should be 32 bytes.")
+        else:
+            raise ValueError(f"Unsupported or unknown alg(3) for AES CTR: {self._alg}.")
+
+        self._cipher = AESCTR(self._key)
+        return
+
+    def generate_nonce(self):
+        return token_bytes(_CWT_NONCE_SIZE_AES)
+
+    def encrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
+        """ """
+        try:
+            return self._cipher.encrypt(nonce, msg)
+        except Exception as err:
+            raise EncodeError("Failed to encrypt.") from err
+
+    def decrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
+        """ """
+        try:
+            return self._cipher.decrypt(nonce, msg)
+        except Exception as err:
+            raise DecodeError("Failed to decrypt.") from err
+
+
+class AESCBCKey(ContentEncryptionKey):
+    """ """
+
+    def __init__(self, params: Dict[int, Any]):
+        """ """
+        super().__init__(params)
+
+        self._cipher: AESCBC
+
+        # Validate alg.
+        if self._alg == -65531:  # A128CBC
+            if not self._key:
+                self._key = AESCBC.generate_key(bit_length=128)
+            if len(self._key) != 16:
+                raise ValueError("The length of A128CBC key should be 16 bytes.")
+        elif self._alg == -65530:  # A192CBC
+            if not self._key:
+                self._key = AESCBC.generate_key(bit_length=192)
+            if len(self._key) != 24:
+                raise ValueError("The length of A192CBC key should be 24 bytes.")
+        elif self._alg == -65529:  # A256CBC
+            if not self._key:
+                self._key = AESCBC.generate_key(bit_length=256)
+            if len(self._key) != 32:
+                raise ValueError("The length of A256CBC key should be 32 bytes.")
+        else:
+            raise ValueError(f"Unsupported or unknown alg(3) for AES CBC: {self._alg}.")
+
+        self._cipher = AESCBC(self._key)
+        return
+
+    def generate_nonce(self):
+        return token_bytes(_CWT_NONCE_SIZE_AES)
+
+    def encrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
+        """ """
+        try:
+            # Add padding (see RFC 9459 and 5652)
+            padding_value = 16 - len(msg) % 16
+            padding_length = 16 if padding_value == 0 else padding_value
+            padding = (padding_value).to_bytes(1, "big") * padding_length
+            return self._cipher.encrypt(nonce, msg + padding)
+        except Exception as err:
+            raise EncodeError("Failed to encrypt.") from err
+
+    def decrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
+        """ """
+        try:
+            decrypted = self._cipher.decrypt(nonce, msg)
+            # Remove padding (see RFC 9459 and 5652)
+            return decrypted[0 : -(decrypted[-1])]
+        except Exception as err:
+            raise DecodeError("Failed to decrypt.") from err

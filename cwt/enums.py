@@ -60,6 +60,12 @@ class COSEKeyParams(enum.IntEnum):
 
 
 class COSEAlgs(enum.IntEnum):
+    A128CTR = -65534
+    A192CTR = -65533
+    A256CTR = -65532
+    A128CBC = -65531
+    A192CBC = -65530
+    A256CBC = -65529
     RS512 = -259
     RS384 = -258
     RS256 = -257

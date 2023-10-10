@@ -16,7 +16,15 @@ from .algs.ec2 import EC2Key
 from .algs.okp import OKPKey
 from .algs.raw import RawKey
 from .algs.rsa import RSAKey
-from .algs.symmetric import AESCCMKey, AESGCMKey, AESKeyWrap, ChaCha20Key, HMACKey
+from .algs.symmetric import (
+    AESCBCKey,
+    AESCCMKey,
+    AESCTRKey,
+    AESGCMKey,
+    AESKeyWrap,
+    ChaCha20Key,
+    HMACKey,
+)
 from .const import (
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT,
     COSE_ALGORITHMS_RSA,
@@ -76,6 +84,10 @@ class COSEKey:
             return ChaCha20Key(params)
         if params[COSEKeyParams.ALG] in [-3, -4, -5]:
             return AESKeyWrap(params)
+        if params[COSEKeyParams.ALG] in [-65534, -65533, -65532]:
+            return AESCTRKey(params)
+        if params[COSEKeyParams.ALG] in [-65531, -65530, -65529]:
+            return AESCBCKey(params)
         raise ValueError(f"Unsupported or unknown alg(3): {params[3]}.")
 
     @classmethod
