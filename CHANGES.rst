@@ -4,6 +4,19 @@ Changes
 Unreleased
 ----------
 
+Version 2.6.0
+-------------
+
+Released 2023-10-09
+
+- Add enum COSEKeyTypes. `#437 <https://github.com/dajiaji/python-cwt/pull/437>`__
+- Add enum COSEKeyCrvs. `#437 <https://github.com/dajiaji/python-cwt/pull/437>`__
+- Add enum COSEKeyOps. `#437 <https://github.com/dajiaji/python-cwt/pull/437>`__
+- Follow draft-cose-hpke-06. `#437 <https://github.com/dajiaji/python-cwt/pull/437>`__
+- Fix typo of private attribute. `#435 <https://github.com/dajiaji/python-cwt/pull/435>`__
+- Update dev dependencies.
+    - Bump urllib3 to 2.0.6. `#436 <https://github.com/dajiaji/python-cwt/pull/436>`__
+
 Version 2.5.1
 -------------
 

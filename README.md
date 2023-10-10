@@ -13,7 +13,7 @@ implementation compliant with:
 - [RFC9053: CBOR Object Signing and Encryption (COSE): Initial Algorithms](https://www.rfc-editor.org/rfc/rfc9053.html)
 - [RFC9338: CBOR Object Signing and Encryption (COSE): Countersignatures](https://www.rfc-editor.org/rfc/rfc9338.html) - experimental
 - [RFC8392: CWT (CBOR Web Token)](https://tools.ietf.org/html/rfc8392)
-- [draft-05: Use of HPKE with COSE](https://www.ietf.org/archive/id/draft-ietf-cose-hpke-05.html) - experimental
+- [draft-06: Use of HPKE with COSE](https://www.ietf.org/archive/id/draft-ietf-cose-hpke-06.html) - experimental
 - [draft-06: CWT Claims in COSE Headers](https://www.ietf.org/archive/id/draft-ietf-cose-cwt-claims-in-headers-06.html) - experimental
 - and related various specifications. See [Referenced Specifications](#referenced-specifications).
 
@@ -517,7 +517,7 @@ assert countersignature.unprotected[4] == b"01"  # kid: b"01"
 Create a COSE-HPKE MAC message, verify and decode it as follows:
 
 ```py
-from cwt import COSE, COSEHeaders, COSEKey, Recipient
+from cwt import COSE, COSEAlgs, COSEHeaders, COSEKey, Recipient
 
 # The sender side:
 mac_key = COSEKey.generate_symmetric_key(alg="HS256")
@@ -532,15 +532,10 @@ rpk = COSEKey.from_jwk(
 )
 r = Recipient.new(
     protected={
-        COSEHeaders.ALG: -1,  # alg: "HPKE"
+        COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
     },
     unprotected={
         COSEHeaders.KID: b"01",  # kid: "01"
-        COSEHeaders.HPKE_SENDER_INFO: [  # HPKE sender information
-            0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
-            0x0001,  # kdf: HKDF-SHA256
-            0x0001,  # aead: AES-128-GCM
-        ],
     },
     recipient_key=rpk,
 )
@@ -548,7 +543,7 @@ sender = COSE.new()
 encoded = sender.encode(
     b"This is the content.",
     mac_key,
-    protected={COSEHeaders.ALG: 5},  # alg: HS256
+    protected={COSEHeaders.ALG: COSEAlgs.HS256},
     recipients=[r],
 )
 
@@ -667,7 +662,7 @@ assert countersignature.unprotected[4] == b"01"  # kid: b"01"
 Create a COSE-HPKE Encrypt0 message and decrypt it as follows:
 
 ```py
-from cwt import COSE, COSEHeaders, COSEKey
+from cwt import COSE, COSEAlgs, COSEHeaders, COSEKey
 
 # The sender side:
 rpk = COSEKey.from_jwk(
@@ -685,15 +680,10 @@ encoded = sender.encode(
     b"This is the content.",
     rpk,
     protected={
-        COSEHeaders.ALG: -1,  # alg: "HPKE"
+        COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
     },
     unprotected={
         COSEHeaders.KID: b"01",  # kid: "01"
-        COSEHeaders.HPKE_SENDER_INFO: [  # HPKE sender information
-            0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
-            0x0001,  # kdf: HKDF-SHA256
-            0x0001,  # aead: AES-128-GCM
-        ],
     },
 )
 
@@ -981,7 +971,7 @@ assert countersignature.unprotected[4] == b"01"  # kid: b"01"
 Create a COSE-HPKE Encrypt message and decrypt it as follows:
 
 ```py
-from cwt import COSE, COSEHeaders, COSEKey, Recipient
+from cwt import COSE, COSEAlgs, COSEHeaders, COSEKey, Recipient
 
 # The sender side:
 enc_key = COSEKey.generate_symmetric_key(alg="A128GCM")
@@ -996,15 +986,10 @@ rpk = COSEKey.from_jwk(
 )
 r = Recipient.new(
     protected={
-        COSEHeaders.ALG: -1,  # alg: "HPKE"
+        COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
     },
     unprotected={
         COSEHeaders.KID: b"01",  # kid: "01"
-        COSEHeaders.HPKE_SENDER_INFO: [  # HPKE sender information
-            0x0010,  # kem: DHKEM(P-256, HKDF-SHA256)
-            0x0001,  # kdf: HKDF-SHA256
-            0x0001,  # aead: AES-128-GCM
-        ],
     },
     recipient_key=rpk,
 )
@@ -1761,7 +1746,7 @@ Python CWT is (partially) compliant with following specifications:
 - [RFC8230: Using RSA Algorithms with COSE Messages](https://tools.ietf.org/html/rfc8230)
 - [RFC9459: CBOR Object Signing and Encryption (COSE): AES-CTR and AES-CBC](https://www.rfc-editor.org/rfc/rfc9459.html) - experimental
 - [RFC8152: CBOR Object Signing and Encryption (COSE)](https://tools.ietf.org/html/rfc8152)
-- [draft-05: Use of HPKE with COSE](https://www.ietf.org/archive/id/draft-ietf-cose-hpke-05.html) - experimental
+- [draft-05: Use of HPKE with COSE](https://www.ietf.org/archive/id/draft-ietf-cose-hpke-06.html) - experimental
 - [draft-06: CWT Claims in COSE Headers](https://www.ietf.org/archive/id/draft-ietf-cose-cwt-claims-in-headers-06.html) - experimental
 - [Electronic Health Certificate Specification](https://github.com/ehn-dcc-development/hcert-spec/blob/main/hcert_spec.md)
 - [Technical Specifications for Digital Green Certificates Volume 1](https://ec.europa.eu/health/sites/default/files/ehealth/docs/digital-green-certificates_v1_en.pdf)

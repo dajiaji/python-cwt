@@ -4,8 +4,33 @@ from pyhpke import AEADId, CipherSuite, KDFId, KEMId, KEMKey, KEMKeyInterface
 
 from ..cose_key import COSEKey
 from ..cose_key_interface import COSEKeyInterface
+from ..enums import COSEAlgs
 from ..exceptions import DecodeError, EncodeError
 from ..recipient_interface import RecipientInterface
+
+
+def to_hpke_ciphersuites(alg: int) -> Tuple[int, int, int]:
+    if alg == COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM:
+        return 16, 1, 1
+    if alg == COSEAlgs.HPKE_BASE_P256_SHA256_CHACHA20POLY1305:
+        return 16, 1, 3
+    if alg == COSEAlgs.HPKE_BASE_P384_SHA384_AES256GCM:
+        return 17, 2, 2
+    if alg == COSEAlgs.HPKE_BASE_P384_SHA384_CHACHA20POLY1305:
+        return 17, 2, 3
+    if alg == COSEAlgs.HPKE_BASE_P521_SHA512_AES256GCM:
+        return 18, 3, 2
+    if alg == COSEAlgs.HPKE_BASE_P521_SHA512_CHACHA20POLY1305:
+        return 18, 3, 3
+    if alg == COSEAlgs.HPKE_BASE_X25519_SHA256_AES128GCM:
+        return 32, 1, 1
+    if alg == COSEAlgs.HPKE_BASE_X25519_SHA256_CHACHA20POLY1305:
+        return 32, 1, 3
+    if alg == COSEAlgs.HPKE_BASE_X448_SHA512_AES256GCM:
+        return 33, 3, 2
+    if alg == COSEAlgs.HPKE_BASE_X448_SHA512_CHACHA20POLY1305:
+        return 33, 3, 3
+    raise ValueError("alg should be one of the HPKE algorithms.")
 
 
 class HPKE(RecipientInterface):
@@ -19,14 +44,8 @@ class HPKE(RecipientInterface):
     ):
         super().__init__(protected, unprotected, ciphertext, recipients)
         self._recipient_key = recipient_key
-
-        if self._alg != -1:
-            raise ValueError("alg should be HPKE(-1).")
-        if -4 not in unprotected:
-            raise ValueError("HPKE sender information(-4) not found.")
-        if not isinstance(unprotected[-4], list) or len(unprotected[-4]) not in [3, 4]:
-            raise ValueError("HPKE sender information(-4) should be a list of length 3 or 4.")
-        self._suite = CipherSuite.new(KEMId(unprotected[-4][0]), KDFId(unprotected[-4][1]), AEADId(unprotected[-4][2]))
+        kem, kdf, aead = to_hpke_ciphersuites(self._alg)
+        self._suite = CipherSuite.new(KEMId(kem), KDFId(kdf), AEADId(aead))
         return
 
     def encode(self, plaintext: bytes = b"", aad: bytes = b"") -> Tuple[List[Any], Optional[COSEKeyInterface]]:
@@ -35,10 +54,7 @@ class HPKE(RecipientInterface):
         self._kem_key = self._to_kem_key(self._recipient_key)
         try:
             enc, ctx = self._suite.create_sender_context(self._kem_key)
-            if len(self._unprotected[-4]) == 3:
-                self._unprotected[-4].append(enc)
-            else:
-                self._unprotected[-4][3] = enc
+            self._unprotected[-4] = enc
             self._ciphertext = ctx.seal(plaintext, aad=aad)
         except Exception as err:
             raise EncodeError("Failed to seal.") from err
@@ -52,7 +68,7 @@ class HPKE(RecipientInterface):
         as_cose_key: bool = False,
     ) -> Union[bytes, COSEKeyInterface]:
         try:
-            ctx = self._suite.create_recipient_context(self._unprotected[-4][3], self._to_kem_key(key))
+            ctx = self._suite.create_recipient_context(self._unprotected[-4], self._to_kem_key(key))
             raw = ctx.open(self._ciphertext, aad=aad)
             if not as_cose_key:
                 return raw

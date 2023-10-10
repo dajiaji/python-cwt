@@ -395,7 +395,7 @@ class COSE(CBORProcessor):
                     if k.kid != kid:
                         continue
                     try:
-                        if not isinstance(p, bytes) and alg == -1:  # HPKE
+                        if not isinstance(p, bytes) and alg in COSE_ALGORITHMS_HPKE.values():  # HPKE
                             hpke = HPKE(p, u, data.value[2])
                             res = hpke.decode(k, aad)
                             if not isinstance(res, bytes):
@@ -685,7 +685,7 @@ class COSE(CBORProcessor):
         if len(recipients) == 0:
             enc_structure = ["Encrypt0", b_protected, external_aad]
             aad = self._dumps(enc_structure)
-            if 1 in p and p[1] == -1:  # HPKE
+            if 1 in p and p[1] in COSE_ALGORITHMS_HPKE.values():  # HPKE
                 hpke = HPKE(p, u, recipient_key=key)
                 encoded, _ = hpke.encode(payload, aad)
                 res = CBORTag(16, encoded)
