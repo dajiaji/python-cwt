@@ -782,110 +782,47 @@ class TestRecipients:
             pytest.fail("decode() should fail.")
         assert "Failed to open." in str(err.value)
 
-    def test_recipients_a128ctr_aeskw(self, rsk1, rsk2):
-        a128kw_key = COSEKey.from_symmetric_key(alg="A128KW")
-        a128ctr_key = COSEKey.from_symmetric_key(alg="A128CTR", kid="A128CTR key")
+    @pytest.mark.parametrize(
+        "kw_alg, enc_alg",
+        [
+            ("A128KW", "A128CTR"),
+            ("A192KW", "A192CTR"),
+            ("A256KW", "A256CTR"),
+            ("A128KW", "A128CBC"),
+            ("A192KW", "A192CBC"),
+            ("A256KW", "A256CBC"),
+        ],
+    )
+    def test_recipients_aes(self, kw_alg, enc_alg):
+        kw_key = COSEKey.from_symmetric_key(alg=kw_alg)
+        enc_key = COSEKey.from_symmetric_key(alg=enc_alg)
 
         # The sender side:
-        r = Recipient.new(unprotected={"alg": "A128KW"}, sender_key=a128kw_key)
+        r = Recipient.new(unprotected={"alg": kw_alg}, sender_key=kw_key)
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_encrypt(
             b"Hello world!",
-            a128ctr_key,
+            enc_key,
             recipients=[r],
         )
 
         # The recipient side:
         recipient = COSE.new()
-        assert b"Hello world!" == recipient.decode(encoded, keys=[a128kw_key])
+        assert b"Hello world!" == recipient.decode(encoded, keys=[kw_key])
 
-    def test_recipients_a192ctr_aeskw(self, rsk1, rsk2):
-        a192kw_key = COSEKey.from_symmetric_key(alg="A192KW")
-        a192ctr_key = COSEKey.from_symmetric_key(alg="A192CTR", kid="A192CTR key")
-
-        # The sender side:
-        r = Recipient.new(unprotected={"alg": "A192KW"}, sender_key=a192kw_key)
-        sender = COSE.new(alg_auto_inclusion=True)
-        encoded = sender.encode_and_encrypt(
-            b"Hello world!",
-            a192ctr_key,
-            recipients=[r],
-        )
-
-        # The recipient side:
-        recipient = COSE.new()
-        assert b"Hello world!" == recipient.decode(encoded, keys=[a192kw_key])
-
-    def test_recipients_a256_aeskw(self, rsk1, rsk2):
-        a256kw_key = COSEKey.from_symmetric_key(alg="A256KW")
-        a256ctr_key = COSEKey.from_symmetric_key(alg="A256CTR", kid="A256CTR key")
-
-        # The sender side:
-        r = Recipient.new(unprotected={"alg": "A256KW"}, sender_key=a256kw_key)
-        sender = COSE.new(alg_auto_inclusion=True)
-        encoded = sender.encode_and_encrypt(
-            b"Hello world!",
-            a256ctr_key,
-            recipients=[r],
-        )
-
-        # The recipient side:
-        recipient = COSE.new()
-        assert b"Hello world!" == recipient.decode(encoded, keys=[a256kw_key])
-
-    def test_recipients_a128cbc_aeskw(self, rsk1, rsk2):
-        a128kw_key = COSEKey.from_symmetric_key(alg="A128KW")
-        a128cbc_key = COSEKey.from_symmetric_key(alg="A128CBC", kid="A128CBC key")
-
-        # The sender side:
-        r = Recipient.new(unprotected={"alg": "A128KW"}, sender_key=a128kw_key)
-        sender = COSE.new(alg_auto_inclusion=True)
-        encoded = sender.encode_and_encrypt(
-            b"Hello world!",
-            a128cbc_key,
-            recipients=[r],
-        )
-
-        # The recipient side:
-        recipient = COSE.new()
-        assert b"Hello world!" == recipient.decode(encoded, keys=[a128kw_key])
-
-    def test_recipients_a192cbc_aeskw(self, rsk1, rsk2):
-        a192kw_key = COSEKey.from_symmetric_key(alg="A192KW")
-        a192cbc_key = COSEKey.from_symmetric_key(alg="A192CBC", kid="A192CBC key")
-
-        # The sender side:
-        r = Recipient.new(unprotected={"alg": "A192KW"}, sender_key=a192kw_key)
-        sender = COSE.new(alg_auto_inclusion=True)
-        encoded = sender.encode_and_encrypt(
-            b"Hello world!",
-            a192cbc_key,
-            recipients=[r],
-        )
-
-        # The recipient side:
-        recipient = COSE.new()
-        assert b"Hello world!" == recipient.decode(encoded, keys=[a192kw_key])
-
-    def test_recipients_a256cbc_aeskw(self, rsk1, rsk2):
-        a256kw_key = COSEKey.from_symmetric_key(alg="A256KW")
-        a256cbc_key = COSEKey.from_symmetric_key(alg="A256CBC", kid="A256CBC key")
-
-        # The sender side:
-        r = Recipient.new(unprotected={"alg": "A256KW"}, sender_key=a256kw_key)
-        sender = COSE.new(alg_auto_inclusion=True)
-        encoded = sender.encode_and_encrypt(
-            b"Hello world!",
-            a256cbc_key,
-            recipients=[r],
-        )
-
-        # The recipient side:
-        recipient = COSE.new()
-        assert b"Hello world!" == recipient.decode(encoded, keys=[a256kw_key])
-
-    def test_recipients_a128ctr_hpke(self, rsk1, rsk2):
-        enc_key = COSEKey.from_symmetric_key(alg="A128CTR")
+    @pytest.mark.parametrize(
+        "enc_alg",
+        [
+            ("A128CTR"),
+            ("A192CTR"),
+            ("A256CTR"),
+            ("A128CBC"),
+            ("A192CBC"),
+            ("A256CBC"),
+        ],
+    )
+    def test_recipients_hpke(self, rsk1, rsk2, enc_alg):
+        enc_key = COSEKey.from_symmetric_key(alg=enc_alg)
         rpk = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -901,59 +838,7 @@ class TestRecipients:
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
             enc_key,
-            protected={
-                1: -65534,  # alg: "A128CTR"
-            },
-            recipients=[r],
-        )
-        recipient = COSE.new()
-        assert b"This is the content." == recipient.decode(encoded, [rsk1, rsk2])
-
-    def test_recipients_a192ctr_hpke(self, rsk1, rsk2):
-        enc_key = COSEKey.from_symmetric_key(alg="A192CTR")
-        rpk = COSEKey.from_jwk(
-            {
-                "kty": "EC",
-                # "kid": "02",
-                "crv": "P-256",
-                "x": "-eZXC6nV-xgthy8zZMCN8pcYSeE2XfWWqckA2fsxHPc",
-                "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
-            }
-        )
-        r = Recipient.new(protected={1: 35}, recipient_key=rpk)
-        r.encode(enc_key.key)
-        sender = COSE.new()
-        encoded = sender.encode_and_encrypt(
-            b"This is the content.",
-            enc_key,
-            protected={
-                1: -65533,  # alg: "A192CTR"
-            },
-            recipients=[r],
-        )
-        recipient = COSE.new()
-        assert b"This is the content." == recipient.decode(encoded, [rsk1, rsk2])
-
-    def test_recipients_a256ctr_hpke(self, rsk1, rsk2):
-        enc_key = COSEKey.from_symmetric_key(alg="A256CTR")
-        rpk = COSEKey.from_jwk(
-            {
-                "kty": "EC",
-                # "kid": "02",
-                "crv": "P-256",
-                "x": "-eZXC6nV-xgthy8zZMCN8pcYSeE2XfWWqckA2fsxHPc",
-                "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
-            }
-        )
-        r = Recipient.new(protected={1: 35}, recipient_key=rpk)
-        r.encode(enc_key.key)
-        sender = COSE.new()
-        encoded = sender.encode_and_encrypt(
-            b"This is the content.",
-            enc_key,
-            protected={
-                1: -65532,  # alg: "A256CTR"
-            },
+            protected={"alg": enc_alg},
             recipients=[r],
         )
         recipient = COSE.new()
