@@ -662,6 +662,8 @@ class COSE(CBORProcessor):
                 return 0  # Encrypt
             if recipients[0].context[0] in COSE_ALGORITHMS_HPKE.values():
                 return 0  # Encrypt
+            if recipients[0].context[0] in COSE_ALGORITHMS_KEY_WRAP.values():
+                return 0  # Encrypt
             if recipients[0].context[0] in COSE_ALGORITHMS_MAC.values():
                 return 1  # MAC
             raise ValueError(f"Invalid alg in recipients' context information: {recipients[0]._context[0]}.")

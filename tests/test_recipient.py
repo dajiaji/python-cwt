@@ -843,3 +843,72 @@ class TestRecipients:
         )
         recipient = COSE.new()
         assert b"This is the content." == recipient.decode(encoded, [rsk1, rsk2])
+
+    @pytest.mark.parametrize(
+        "key_agreement_alg, key_agreement_alg_id, kw_alg, enc_alg",
+        [
+            ("ECDH-ES+A128KW", -29, "A128KW", "A128CTR"),
+            ("ECDH-ES+A192KW", -30, "A192KW", "A192CTR"),
+            ("ECDH-ES+A256KW", -31, "A256KW", "A256CTR"),
+            ("ECDH-ES+A128KW", -29, "A128KW", "A128CBC"),
+            ("ECDH-ES+A192KW", -30, "A192KW", "A192CBC"),
+            ("ECDH-ES+A256KW", -31, "A256KW", "A256CBC"),
+        ],
+    )
+    def test_recipients_ecdh_es(self, key_agreement_alg, key_agreement_alg_id, kw_alg, enc_alg):
+        enc_key = COSEKey.from_symmetric_key(alg=enc_alg)
+        context = {
+            "alg": kw_alg,
+            "supp_pub": {
+                "key_data_length": len(enc_key.key) * 8,
+                "protected": {1: key_agreement_alg_id},
+            },
+        }
+
+        # The sender side:
+        rsk1 = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+                "alg": key_agreement_alg,
+            }
+        )
+        rpk2 = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                # "kid": "02",
+                "crv": "P-256",
+                "x": "-eZXC6nV-xgthy8zZMCN8pcYSeE2XfWWqckA2fsxHPc",
+                "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
+            }
+        )
+        r = Recipient.new(protected={"alg": key_agreement_alg}, sender_key=rsk1, recipient_key=rpk2, context=context)
+
+        nonce = enc_key.generate_nonce()
+        sender = COSE.new()
+        encoded = sender.encode(
+            b"Hello world!",
+            enc_key,
+            protected={"alg": enc_alg},
+            unprotected={"iv": nonce},
+            recipients=[r],
+        )
+
+        # The recipient side:
+        rsk2 = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "02",
+                "crv": "P-256",
+                "x": "-eZXC6nV-xgthy8zZMCN8pcYSeE2XfWWqckA2fsxHPc",
+                "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
+                "d": "kwibx3gas6Kz1V2fyQHKSnr-ybflddSjN0eOnbmLmyo",
+                "alg": key_agreement_alg,
+            }
+        )
+        recipient = COSE.new()
+        assert b"Hello world!" == recipient.decode(encoded, rsk2, context)
