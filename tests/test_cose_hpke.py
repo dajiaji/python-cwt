@@ -8,8 +8,10 @@ Tests for COSE.
 """
 
 import pytest
+from cryptography.hazmat.primitives.asymmetric import ec
 
 from cwt import COSE, COSEKey
+from cwt.algs.ec2 import EC2Key
 
 
 class TestCOSE_HPKE:
@@ -236,3 +238,133 @@ class TestCOSE_HPKE:
         )
         recipient = COSE.new()
         assert b"This is the content." == recipient.decode(encoded, rsk)
+
+    def test_cose_hpke_with_t_cose_example(self):
+        # t_cose/examples/keys/init_keys_psa.c:fixed_test_p256r1_public_key
+        #
+        # pkr_buf = bytes(
+        #     bytearray(
+        #         [
+        #             0x04,
+        #             0x6D,
+        #             0x35,
+        #             0xE7,
+        #             0xA0,
+        #             0x75,
+        #             0x42,
+        #             0xC1,
+        #             0x2C,
+        #             0x6D,
+        #             0x2A,
+        #             0x0D,
+        #             0x2D,
+        #             0x45,
+        #             0xA4,
+        #             0xE9,
+        #             0x46,
+        #             0x68,
+        #             0x95,
+        #             0x27,
+        #             0x65,
+        #             0xDA,
+        #             0x9F,
+        #             0x68,
+        #             0xB4,
+        #             0x7C,
+        #             0x75,
+        #             0x5F,
+        #             0x38,
+        #             0x00,
+        #             0xFB,
+        #             0x95,
+        #             0x85,
+        #             0xDD,
+        #             0x7D,
+        #             0xED,
+        #             0xA7,
+        #             0xDB,
+        #             0xFD,
+        #             0x2D,
+        #             0xF0,
+        #             0xD1,
+        #             0x2C,
+        #             0xF3,
+        #             0xCC,
+        #             0x3D,
+        #             0xB6,
+        #             0xA0,
+        #             0x75,
+        #             0xD6,
+        #             0xB9,
+        #             0x35,
+        #             0xA8,
+        #             0x2A,
+        #             0xAC,
+        #             0x3C,
+        #             0x38,
+        #             0xA5,
+        #             0xB7,
+        #             0xE8,
+        #             0x62,
+        #             0x80,
+        #             0x93,
+        #             0x84,
+        #             0x55,
+        #         ]
+        #     )
+        # )
+        # pkr = COSEKey.new(EC2Key.to_cose_key(ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), pkr_buf)))
+
+        # t_cose/examples/keys/init_keys_psa.c:fixed_test_p256r1_private_key
+        skr_buf = bytes(
+            bytearray(
+                [
+                    0x37,
+                    0x0B,
+                    0xAF,
+                    0x20,
+                    0x45,
+                    0x17,
+                    0x01,
+                    0xF6,
+                    0x64,
+                    0xE1,
+                    0x28,
+                    0x57,
+                    0x4E,
+                    0xB1,
+                    0x7A,
+                    0xD3,
+                    0x5B,
+                    0xDD,
+                    0x96,
+                    0x65,
+                    0x0A,
+                    0xA8,
+                    0xA3,
+                    0xCD,
+                    0xBD,
+                    0xD6,
+                    0x6F,
+                    0x57,
+                    0xA8,
+                    0xCC,
+                    0xE8,
+                    0x09,
+                ]
+            )
+        )
+        params = EC2Key.to_cose_key(ec.derive_private_key(int.from_bytes(skr_buf, byteorder="big"), ec.SECP256R1()))
+        params[2] = b"fixed_test_key_p256r1"
+        skr = COSEKey.new(params)
+
+        # from the output of t_cose/examples/encryption_examples
+        msg = bytes.fromhex(
+            "d8608443a10101a10550d146ace746b2a860b273f03f0534d0bb58231405f78e061fb13f400df1bfd156c9b9f7460325dfe9adc762e9d208196a3bdfd8dc19818343a10120a22384100101584104371c3c31426b7f84340757509836ab7ed60bca356cf9570a2858473827297959633fd597bc4202b409552ada2c81825897eafb0a402d6ea2f74fbe0dcea2b47e045566697865645f746573745f6b65795f7032353672315820c452a5bc660a268fa04c05744d16f17dc28d7593897d2c3dbc54223d9ca5eec6"
+        )
+
+        # from the output of t_cose/examples/encryption_examples
+        pt = bytes.fromhex("5468697320697320746865207061796c6f6164")
+
+        recipient = COSE.new()
+        assert pt == recipient.decode(msg, skr)
