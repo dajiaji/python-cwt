@@ -1130,12 +1130,42 @@ class TestCOSE:
         assert "There must be only one recipient in direct key agreement mode." in str(err.value)
 
     def test_cose_detach_and_attach(self):
+        """
+        Detach the payload from a COSE message.
+        For example, [an example message](https://github.com/cose-wg/Examples/blob/master/ecdsa-examples/ecdsa-sig-01.json)
+        ```
+        18([
+          / protected: / h'A201260300',
+          / unprotected: / {4: h'3131'},
+          / payload: / h'546869732069732074686520636F6E74656E742E',
+          / signature: / h'6520BBAF2081D7E0ED0F95F76EB0733D667005F7467CEC4B87B9381A6BA1EDE8E00DF29F32A37230F39A842A54821FDD223092819D7728EFB9D3A0080B75380B'
+        ])
+        ```
+        would be separated into
+        ```
+        18([
+          / protected: / h'A201260300',
+          / unprotected: / {4: h'3131'},
+          / payload: / null / detached /,
+          / signature: / h'6520BBAF2081D7E0ED0F95F76EB0733D667005F7467CEC4B87B9381A6BA1EDE8E00DF29F32A37230F39A842A54821FDD223092819D7728EFB9D3A0080B75380B'
+        ])
+        ```
+        and
+        ```
+        546869732069732074686520636F6E74656E742E
+        ```
+
+        """
         ecdsa_cose_sign1_example = bytes.fromhex(
             "D28445A201260300A10442313154546869732069732074686520636F6E74656E742E58406520BBAF2081D7E0ED0F95F76EB0733D667005F7467CEC4B87B9381A6BA1EDE8E00DF29F32A37230F39A842A54821FDD223092819D7728EFB9D3A0080B75380B"
+        )
+        expected_detached_cose_message = bytes.fromhex(
+            "D28445A201260300A104423131F658406520BBAF2081D7E0ED0F95F76EB0733D667005F7467CEC4B87B9381A6BA1EDE8E00DF29F32A37230F39A842A54821FDD223092819D7728EFB9D3A0080B75380B"
         )
         expected_payload = bytes.fromhex("546869732069732074686520636F6E74656E742E")
 
         detached_content_cose_message, detached_payload = COSE.attached_to_detached(ecdsa_cose_sign1_example)
+        assert expected_detached_cose_message == detached_content_cose_message
         assert expected_payload == detached_payload
 
         reverted_cose_message = COSE.detached_to_attached(detached_content_cose_message, detached_payload)
