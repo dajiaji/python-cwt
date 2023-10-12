@@ -823,3 +823,71 @@ class COSE(CBORProcessor):
         elif self._verify_kid:
             raise ValueError("kid should be specified.")
         return kid
+
+    @classmethod
+    def attached_to_detached(cls, data: Union[bytes, CBORTag], out: str = "") -> Tuple[Union[bytes, CBORTag], bytes]:
+        """
+        Convert COSE message to detached content COSE message and detached payload
+
+        Args:
+            data (Union[bytes, CBORTag]): A byte string or cbor2.CBORTag of an
+                encoded data.
+            out(str): An output format. Only ``"cbor2/CBORTag"`` can be used. If ``"cbor2/CBORTag"``
+                is specified. This function will return encoded data as
+                `cbor2 <https://cbor2.readthedocs.io/en/stable/>`_'s ``CBORTag`` object.
+                If any other value is specified, it will return encoded data as bytes.
+        Returns:
+            Tuple[Union[bytes, CBORTag], bytes]: A byte string of the encoded COSE or a
+                cbor2.CBORTag object, and a byte string of the detached payload.
+        Raises:
+            ValueError: Invalid arguments.
+            EncodeError: Failed to encode data.
+        """
+        if isinstance(data, bytes):
+            data = COSE.new()._loads(data)
+        if not isinstance(data, CBORTag):
+            raise ValueError("Invalid COSE format.")
+        if not isinstance(data.value, list) or len(data.value) < 3:
+            raise ValueError("Invalid COSE format.")
+        if not isinstance(data.value[2], bytes):
+            raise ValueError("Invalid COSE format or payload does not exist.")
+        # This method does not check the format of data precisely
+
+        payload = data.value[2]
+        data.value[2] = None
+        res = CBORTag(data.tag, data.value)
+        return (res, payload) if out == "cbor2/CBORTag" else (COSE.new()._dumps(res), payload)
+
+    @classmethod
+    def detached_to_attached(cls, data: Union[bytes, CBORTag], payload: bytes, out: str = "") -> Union[bytes, CBORTag]:
+        """
+        Combine detached content COSE message and detached payload
+
+        Args:
+            data (Union[bytes, CBORTag]): A byte string or cbor2.CBORTag of an
+                encoded data.
+            payload (bytes): A byte string of detached payload.
+            out(str): An output format. Only ``"cbor2/CBORTag"`` can be used. If ``"cbor2/CBORTag"``
+                is specified. This function will return encoded data as
+                `cbor2 <https://cbor2.readthedocs.io/en/stable/>`_'s ``CBORTag`` object.
+                If any other value is specified, it will return encoded data as bytes.
+        Returns:
+            Union[bytes, CBORTag]: A byte string of the encoded COSE or a
+                cbor2.CBORTag object.
+        Raises:
+            ValueError: Invalid arguments.
+            EncodeError: Failed to encode data.
+        """
+        if isinstance(data, bytes):
+            data = COSE.new()._loads(data)
+        if not isinstance(data, CBORTag):
+            raise ValueError("Invalid COSE format.")
+        if not isinstance(data.value, list) or len(data.value) < 3:
+            raise ValueError("Invalid COSE format.")
+        if data.value[2] is not None:
+            raise ValueError("Invalid COSE format or payload does exist.")
+        # This method does not check the format of data precisely
+
+        data.value[2] = payload
+        res = CBORTag(data.tag, data.value)
+        return res if out == "cbor2/CBORTag" else COSE.new()._dumps(res)
