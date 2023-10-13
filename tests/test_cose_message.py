@@ -500,9 +500,9 @@ class TestCOSEMessage:
         )
         expected_payload = bytes.fromhex("546869732069732074686520636F6E74656E742E")
 
-        detached_content_cose_message, detached_payload = ecdsa_cose_sign1_example.to_detached()
+        detached_content_cose_message, detached_payload = ecdsa_cose_sign1_example.detach_payload()
         assert expected_detached_cose_message == detached_content_cose_message
         assert expected_payload == detached_payload
 
-        reverted_cose_message = detached_content_cose_message.from_detached(detached_payload)
+        reverted_cose_message = detached_content_cose_message.attach_payload(detached_payload)
         assert ecdsa_cose_sign1_example == reverted_cose_message

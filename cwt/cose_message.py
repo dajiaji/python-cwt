@@ -300,7 +300,7 @@ class COSEMessage(CBORProcessor):
         kid = sig[1].get(4, None)
         return kid if kid else self._loads(sig[0]).get(4, None)
 
-    def to_detached(self: Self) -> Tuple[Self, bytes]:
+    def detach_payload(self: Self) -> Tuple[Self, bytes]:
         """
         Detach a payload from the COSE message
 
@@ -316,7 +316,7 @@ class COSEMessage(CBORProcessor):
 
         return COSEMessage(self._type, [self._msg[0], self._msg[1], None, *self._msg[3:]]), self._payload
 
-    def from_detached(self: Self, payload: bytes) -> Self:
+    def attach_payload(self: Self, payload: bytes) -> Self:
         """
         Attach a detached content to the COSE message
 
