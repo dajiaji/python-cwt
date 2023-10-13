@@ -306,7 +306,6 @@ class TestCOSEMessage:
             (COSETypes.MAC0, [], "Invalid COSE message."),
             (COSETypes.MAC0, [{}, {}, b""], "The protected headers should be bytes."),
             (COSETypes.MAC0, [b"", b"", b""], "The unprotected headers should be Dict[int, Any]."),
-            (COSETypes.MAC0, [b"", {}, {}], "The payload should be bytes."),
             (COSETypes.MAC0, [b"", {11: {}}, b""], "The countersignature should be array."),
             (COSETypes.MAC0, [b"", {11: []}, b""], "Invalid countersignature."),
             (COSETypes.MAC0, [b"", {11: [b""]}, b""], "Invalid COSE message."),

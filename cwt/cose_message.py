@@ -266,8 +266,8 @@ class COSEMessage(CBORProcessor):
             raise ValueError("The protected headers should be bytes.")
         if not isinstance(msg[1], dict):
             raise ValueError("The unprotected headers should be Dict[int, Any].")
-        if not isinstance(msg[2], bytes):
-            raise ValueError("The payload should be bytes.")
+        if not isinstance(msg[2], bytes) and msg[2] is not None:
+            raise ValueError("The payload should be bytes or null.")
 
         countersignatures = msg[1].get(11, None)
         if countersignatures is None:
