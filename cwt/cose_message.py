@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, TypeVar
+from typing import Any, Dict, List, Optional, Tuple, TypeVar
 
 from cbor2 import CBORTag, loads
 
@@ -97,6 +97,18 @@ class COSEMessage(CBORProcessor):
         else:
             raise ValueError(f"Invalid COSETypes({type}) for COSE message.")
         return
+
+    def __eq__(self: Self, other: Self) -> bool:
+        return (
+            self._type == other._type
+            and self._protected == other._protected
+            and self._unprotected == other._unprotected
+            and self._payload == other._payload
+            and self._other_fields == other._other_fields
+        )
+
+    def __ne__(self: Self, other: Self) -> bool:
+        return not self.__eq__(other)
 
     @classmethod
     def loads(cls, msg: bytes):
@@ -287,3 +299,36 @@ class COSEMessage(CBORProcessor):
     def _get_kid(self, sig: list) -> Optional[bytes]:
         kid = sig[1].get(4, None)
         return kid if kid else self._loads(sig[0]).get(4, None)
+
+    def to_detached(self: Self) -> Tuple[Self, bytes]:
+        """
+        Detach a payload from the COSE message
+
+        Returns:
+            Tuple[COSEMessage, bytes]: A byte string of the encoded COSE or a
+                cbor2.CBORTag object, and a byte string of the detached payload.
+        Raises:
+            ValueError: The payload does not exist.
+        """
+
+        if not isinstance(self._payload, bytes):
+            raise ValueError("The payload does not exist.")
+
+        return COSEMessage(self._type, [self._msg[0], self._msg[1], None, *self._msg[3:]]), self._payload
+
+    def from_detached(self: Self, payload: bytes) -> Self:
+        """
+        Attach a detached content to the COSE message
+
+        Args:
+            payload (bytes): A byte string of detached payload.
+        Returns:
+            COSEMessage: The COSE message (self).
+        Raises:
+            ValueError: The payload already exist.
+        """
+
+        if self._payload is not None:
+            raise ValueError("The payload already exist.")
+
+        return COSEMessage(self._type, [self._msg[0], self._msg[1], payload, *self._msg[3:]])
