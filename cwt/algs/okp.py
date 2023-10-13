@@ -131,7 +131,7 @@ class OKPKey(AsymmetricKey):
             else:
                 # public key.
                 if self._crv in [4, 5]:  # X25519/X448
-                    if not set(self._key_ops) & set([7, 8]):
+                    if len(self._key_ops) != 0 and not (set(self._key_ops) & set([7, 8])):
                         raise ValueError("Invalid key_ops for public key.")
                 else:  # Ed25519/Ed448
                     if len(self._key_ops) != 1 or self._key_ops[0] != 2:
