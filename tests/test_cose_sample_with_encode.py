@@ -672,7 +672,6 @@ class TestCOSESampleWithEncode:
             },
         )
         assert b"This is the content." == recipient.decode(encoded, rsk2, external_aad=b"COSE-HPKE app")
-        assert False
 
     def test_cose_usage_examples_cose_encrypt_hpke_with_1st_layer_hpke(self):
         # The sender side:
