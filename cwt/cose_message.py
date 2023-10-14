@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Any, Dict, List, Optional, Tuple, TypeVar
 
 from cbor2 import CBORTag, loads
@@ -98,7 +100,9 @@ class COSEMessage(CBORProcessor):
             raise ValueError(f"Invalid COSETypes({type}) for COSE message.")
         return
 
-    def __eq__(self: Self, other: Self) -> bool:
+    def __eq__(self: COSEMessage, other: object) -> bool:
+        if not isinstance(other, COSEMessage):
+            return NotImplemented
         return (
             self._type == other._type
             and self._protected == other._protected
@@ -107,7 +111,7 @@ class COSEMessage(CBORProcessor):
             and self._other_fields == other._other_fields
         )
 
-    def __ne__(self: Self, other: Self) -> bool:
+    def __ne__(self: COSEMessage, other: object) -> bool:
         return not self.__eq__(other)
 
     @classmethod
@@ -300,7 +304,7 @@ class COSEMessage(CBORProcessor):
         kid = sig[1].get(4, None)
         return kid if kid else self._loads(sig[0]).get(4, None)
 
-    def detach_payload(self: Self) -> Tuple[Self, bytes]:
+    def detach_payload(self: Self) -> Tuple[COSEMessage, bytes]:
         """
         Detach a payload from the COSE message
 
@@ -316,7 +320,7 @@ class COSEMessage(CBORProcessor):
 
         return COSEMessage(self._type, [self._msg[0], self._msg[1], None, *self._msg[3:]]), self._payload
 
-    def attach_payload(self: Self, payload: bytes) -> Self:
+    def attach_payload(self: Self, payload: bytes) -> COSEMessage:
         """
         Attach a detached content to the COSE message
 
