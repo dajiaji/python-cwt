@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Optional, TypeVar
+from __future__ import annotations
+
+from typing import Any, Dict, List, Optional, Tuple, TypeVar
 
 from cbor2 import CBORTag, loads
 
@@ -97,6 +99,20 @@ class COSEMessage(CBORProcessor):
         else:
             raise ValueError(f"Invalid COSETypes({type}) for COSE message.")
         return
+
+    def __eq__(self: COSEMessage, other: object) -> bool:
+        if not isinstance(other, COSEMessage):
+            return NotImplemented
+        return (
+            self._type == other._type
+            and self._protected == other._protected
+            and self._unprotected == other._unprotected
+            and self._payload == other._payload
+            and self._other_fields == other._other_fields
+        )
+
+    def __ne__(self: COSEMessage, other: object) -> bool:
+        return not self.__eq__(other)
 
     @classmethod
     def loads(cls, msg: bytes):
@@ -266,8 +282,8 @@ class COSEMessage(CBORProcessor):
             raise ValueError("The protected headers should be bytes.")
         if not isinstance(msg[1], dict):
             raise ValueError("The unprotected headers should be Dict[int, Any].")
-        if not isinstance(msg[2], bytes):
-            raise ValueError("The payload should be bytes.")
+        if not isinstance(msg[2], bytes) and msg[2] is not None:
+            raise ValueError("The payload should be bytes or null.")
 
         countersignatures = msg[1].get(11, None)
         if countersignatures is None:
@@ -287,3 +303,36 @@ class COSEMessage(CBORProcessor):
     def _get_kid(self, sig: list) -> Optional[bytes]:
         kid = sig[1].get(4, None)
         return kid if kid else self._loads(sig[0]).get(4, None)
+
+    def detach_payload(self: Self) -> Tuple[COSEMessage, bytes]:
+        """
+        Detach a payload from the COSE message
+
+        Returns:
+            Tuple[COSEMessage, bytes]: A byte string of the encoded COSE or a
+                cbor2.CBORTag object, and a byte string of the detached payload.
+        Raises:
+            ValueError: The payload does not exist.
+        """
+
+        if not isinstance(self._payload, bytes):
+            raise ValueError("The payload does not exist.")
+
+        return COSEMessage(self._type, [self._msg[0], self._msg[1], None, *self._msg[3:]]), self._payload
+
+    def attach_payload(self: Self, payload: bytes) -> COSEMessage:
+        """
+        Attach a detached content to the COSE message
+
+        Args:
+            payload (bytes): A byte string of detached payload.
+        Returns:
+            COSEMessage: The COSE message (self).
+        Raises:
+            ValueError: The payload already exist.
+        """
+
+        if self._payload is not None:
+            raise ValueError("The payload already exist.")
+
+        return COSEMessage(self._type, [self._msg[0], self._msg[1], payload, *self._msg[3:]])
