@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Tuple, TypeVar
+from typing import Any, Dict, List, Optional, Tuple
 
 from cbor2 import CBORTag, loads
 
@@ -9,8 +9,6 @@ from .const import COSE_TAG_TO_TYPE, COSE_TYPE_TO_TAG
 from .cose_key_interface import COSEKeyInterface
 from .enums import COSETypes
 from .signer import Signer
-
-Self = TypeVar("Self", bound="COSEMessage")
 
 
 class COSEMessage(CBORProcessor):
@@ -188,7 +186,7 @@ class COSEMessage(CBORProcessor):
         tag = COSE_TYPE_TO_TAG.get(self._type, -1)
         return self._dumps(CBORTag(tag, self._msg)) if tag > 0 else self._dumps(self._msg)
 
-    def countersign(self: Self, signer: Signer, aad: bytes = b"", abbreviated: bool = False, tagged: bool = False) -> Self:
+    def countersign(self, signer: Signer, aad: bytes = b"", abbreviated: bool = False, tagged: bool = False) -> COSEMessage:
         """
         Countersigns to the COSE message with the signer specified.
 
@@ -304,7 +302,7 @@ class COSEMessage(CBORProcessor):
         kid = sig[1].get(4, None)
         return kid if kid else self._loads(sig[0]).get(4, None)
 
-    def detach_payload(self: Self) -> Tuple[COSEMessage, bytes]:
+    def detach_payload(self) -> Tuple[COSEMessage, bytes]:
         """
         Detach a payload from the COSE message
 
@@ -320,7 +318,7 @@ class COSEMessage(CBORProcessor):
 
         return COSEMessage(self._type, [self._msg[0], self._msg[1], None, *self._msg[3:]]), self._payload
 
-    def attach_payload(self: Self, payload: bytes) -> COSEMessage:
+    def attach_payload(self, payload: bytes) -> COSEMessage:
         """
         Attach a detached content to the COSE message
 
