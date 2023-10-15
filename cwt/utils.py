@@ -150,7 +150,7 @@ def to_cis(context: Dict[str, Any], recipient_alg: Optional[int] = None) -> List
         if "protected" in context["supp_pub"]:
             if not isinstance(context["supp_pub"]["protected"], dict):
                 raise ValueError("supp_pub.protected should be dict.")
-            protected = context["supp_pub"]["protected"]
+            protected = to_cose_header(context["supp_pub"]["protected"])
             supp_pub[1] = cbor2.dumps(protected)
         if "other" in context["supp_pub"]:
             if not isinstance(context["supp_pub"]["other"], str):
