@@ -1055,24 +1055,34 @@ class TestCOSESampleWithEncode:
 
     def test_cose_usage_examples_cose_signature_countersignature(self):
         # The sender side:
-        signer = Signer.from_jwk(
+        s1 = Signer.from_jwk(
             {
                 "kty": "EC",
-                "kid": "01",
+                "kid": "s01",
                 "crv": "P-256",
                 "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
                 "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
                 "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
             },
         )
+        s2 = Signer.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "s02",
+                "crv": "P-384",
+                "x": "_XyN9woHaS0mPimSW-etwJMEDSzxIMjp4PjezavU8SHJoClz1bQrcmPb1ZJxHxhI",
+                "y": "GCNfc32p9sRotx7u2oDGJ3Eqz6q5zPHLdizNn83oRsUTN31eCWfGLHWRury3xF50",
+                "d": "1pImEKbrr771-RKi8Tb7tou_WjiR7kwui_nMu16449rk3lzAqf9buUhTkJ-pogkb",
+            },
+        )
         sender = COSE.new()
-        encoded = sender.encode(b"Hello world!", signers=[signer])
+        encoded = sender.encode(b"Hello world!", signers=[s1, s2])
 
         # The notary side:
         notary = Signer.from_jwk(
             {
-                "kid": "01",
                 "kty": "OKP",
+                "kid": "n01",
                 "crv": "Ed25519",
                 "alg": "EdDSA",
                 "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
@@ -1082,31 +1092,131 @@ class TestCOSESampleWithEncode:
         countersigned = COSEMessage.loads(encoded).countersign(notary).dumps()
 
         # The recipient side:
-        pub_key = COSEKey.from_jwk(
+        pk1 = COSEKey.from_jwk(
             {
                 "kty": "EC",
-                "kid": "01",
+                "kid": "s01",
                 "crv": "P-256",
                 "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
                 "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
             }
         )
-        notary_pub_key = COSEKey.from_jwk(
+        pk2 = COSEKey.from_jwk(
             {
-                "kid": "01",
+                "kty": "EC",
+                "kid": "s02",
+                "crv": "P-384",
+                "x": "_XyN9woHaS0mPimSW-etwJMEDSzxIMjp4PjezavU8SHJoClz1bQrcmPb1ZJxHxhI",
+                "y": "GCNfc32p9sRotx7u2oDGJ3Eqz6q5zPHLdizNn83oRsUTN31eCWfGLHWRury3xF50",
+            },
+        )
+        pkn = COSEKey.from_jwk(
+            {
                 "kty": "OKP",
+                "kid": "n01",
                 "crv": "Ed25519",
                 "alg": "EdDSA",
                 "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
             },
         )
         recipient = COSE.new()
-        assert b"Hello world!" == recipient.decode(encoded, pub_key)
+        assert b"Hello world!" == recipient.decode(countersigned, pk1)
+        assert b"Hello world!" == recipient.decode(countersigned, pk2)
 
         try:
-            sig = COSEMessage.loads(countersigned).counterverify(notary_pub_key)
+            sig = COSEMessage.loads(countersigned).counterverify(pkn)
         except Exception as err:
             pytest.fail(f"failed to verify: {err}")
         countersignature = COSEMessage.from_cose_signature(sig)
-        assert countersignature.protected[1] == -8  # alg: "EdDSA"
-        assert countersignature.unprotected[4] == b"01"  # kid: b"01"
+        assert countersignature.protected[COSEHeaders.ALG] == COSEAlgs.EDDSA
+        assert countersignature.unprotected[COSEHeaders.KID] == b"n01"
+
+    def test_cose_usage_examples_detached_cose_sign_with_countersignature(self):
+        # The sender side:
+        s1 = Signer.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "s01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            },
+        )
+        s2 = Signer.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "s02",
+                "crv": "P-384",
+                "x": "_XyN9woHaS0mPimSW-etwJMEDSzxIMjp4PjezavU8SHJoClz1bQrcmPb1ZJxHxhI",
+                "y": "GCNfc32p9sRotx7u2oDGJ3Eqz6q5zPHLdizNn83oRsUTN31eCWfGLHWRury3xF50",
+                "d": "1pImEKbrr771-RKi8Tb7tou_WjiR7kwui_nMu16449rk3lzAqf9buUhTkJ-pogkb",
+            },
+        )
+        sender = COSE.new()
+        encoded = sender.encode(b"Hello world!", signers=[s1, s2])
+
+        # The notary side:
+        notary = Signer.from_jwk(
+            {
+                "kty": "OKP",
+                "kid": "n01",
+                "crv": "Ed25519",
+                "alg": "EdDSA",
+                "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+                "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
+            },
+        )
+        countersigned = COSEMessage.loads(encoded).countersign(notary).dumps()
+
+        msg, payload = COSEMessage.loads(countersigned).detach_payload()
+        # _, sig0 = COSEMessage.from_cose_signature(msg.signatures[0]).detach_payload()
+        # _, sig1 = COSEMessage.from_cose_signature(msg.signatures[1]).detach_payload()
+        detached = msg.dumps()
+
+        # print(detached.hex())
+
+        # The recipient side:
+        pk1 = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "s01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+        pk2 = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "s02",
+                "crv": "P-384",
+                "x": "_XyN9woHaS0mPimSW-etwJMEDSzxIMjp4PjezavU8SHJoClz1bQrcmPb1ZJxHxhI",
+                "y": "GCNfc32p9sRotx7u2oDGJ3Eqz6q5zPHLdizNn83oRsUTN31eCWfGLHWRury3xF50",
+            },
+        )
+        pkn = COSEKey.from_jwk(
+            {
+                "kty": "OKP",
+                "kid": "n01",
+                "crv": "Ed25519",
+                "alg": "EdDSA",
+                "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+            },
+        )
+
+        recipient = COSE.new()
+        # msg = COSEMessage.loads(detached)
+        # msg.signatures[0][2] = sig0
+        # msg.signatures[1][2] = sig1
+        # attached = msg.dumps()
+        assert b"Hello world!" == recipient.decode(detached, pk1, detached_payload=payload)
+        assert b"Hello world!" == recipient.decode(detached, pk2, detached_payload=payload)
+
+        try:
+            sig = COSEMessage.loads(countersigned).counterverify(pkn)
+        except Exception as err:
+            pytest.fail(f"failed to verify: {err}")
+        countersignature = COSEMessage.from_cose_signature(sig)
+        assert countersignature.protected[COSEHeaders.ALG] == COSEAlgs.EDDSA
+        assert countersignature.unprotected[COSEHeaders.KID] == b"n01"

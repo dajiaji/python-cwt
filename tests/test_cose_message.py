@@ -461,7 +461,7 @@ class TestCOSEMessage:
             pytest.fail("counterverify() should not fail.")
         assert "Failed to verify." in str(err.value)
 
-    def test_cose_message_detach_and_attach(self):
+    def test_cose_message_detach_payload(self):
         """
         Detach the payload from a COSE message.
         For example, [an example message](https://github.com/cose-wg/Examples/blob/master/ecdsa-examples/ecdsa-sig-01.json)
@@ -505,5 +505,95 @@ class TestCOSEMessage:
         assert expected_detached_cose_message.dumps() == detached_content_cose_message.dumps()
         assert expected_payload == detached_payload
 
+        data = cbor2.loads(detached_content_cose_message.dumps())
+        assert data.value[2] is None
+        data.value[2] = detached_payload
+        reverted_cose_message = COSEMessage.loads(cbor2.dumps(data))
+        assert reverted_cose_message.payload == expected_payload
+
         reverted_cose_message = detached_content_cose_message.attach_payload(detached_payload)
         assert ecdsa_cose_sign1_example == reverted_cose_message
+
+    def test_cose_message_detach_payload_with_mac0(self):
+        mac_key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
+        sender = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        encoded = sender.encode(b"Hello world!", mac_key)
+        msg = COSEMessage.loads(encoded)
+        with pytest.raises(ValueError) as err:
+            msg.attach_payload(b"Hello world!")
+            pytest.fail("attach_payload() should fail.")
+        assert "The payload already exists." in str(err.value)
+
+        detached, payload = msg.detach_payload()
+        assert payload == b"Hello world!"
+        assert msg.payload is None
+        with pytest.raises(ValueError) as err:
+            detached.detach_payload()
+            pytest.fail("detach_payload() should fail.")
+        assert "The payload does not exist." in str(err.value)
+
+        recipient = COSE.new()
+
+        assert b"Hello world!" == recipient.decode(detached.dumps(), mac_key, detached_payload=payload)
+
+        with pytest.raises(ValueError) as err:
+            recipient.decode(detached.dumps(), mac_key)
+            pytest.fail("decode() should fail.")
+        assert "detached_payload should be set." in str(err.value)
+
+        with pytest.raises(ValueError) as err:
+            recipient.decode(encoded, mac_key, detached_payload=payload)
+            pytest.fail("decode() should fail.")
+        assert "The payload already exists." in str(err.value)
+
+    def test_cose_message_detach_payload_with_mac0_countersignature(self):
+        mac_key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
+
+        # The sender side:
+        sender = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        encoded = sender.encode(b"Hello world!", mac_key)
+
+        # The notary side:
+        notary = Signer.from_jwk(
+            {
+                "kid": "01",
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "alg": "EdDSA",
+                "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+                "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
+            },
+        )
+        detached, payload = COSEMessage.loads(encoded).detach_payload()
+        countersigned = COSEMessage.loads(detached.dumps()).countersign(notary, detached_payload=payload).dumps()
+        with pytest.raises(ValueError) as err:
+            COSEMessage.loads(encoded).countersign(notary, detached_payload=payload)
+            pytest.fail("countersign() should fail.")
+        assert "The payload already exists." in str(err.value)
+
+        countersigned2 = COSEMessage.loads(encoded).countersign(notary).dumps()
+        with pytest.raises(ValueError) as err:
+            COSEMessage.loads(countersigned2).counterverify(notary, detached_payload=payload)
+            pytest.fail("counterverify() should fail.")
+        assert "The payload already exists." in str(err.value)
+
+        # The recipient side:
+        pub_key = COSEKey.from_jwk(
+            {
+                "kid": "01",
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "alg": "EdDSA",
+                "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+            },
+        )
+        recipient = COSE.new()
+        assert b"Hello world!" == recipient.decode(countersigned, mac_key, detached_payload=payload)
+        try:
+            sig = COSEMessage.loads(countersigned).counterverify(pub_key, detached_payload=payload)
+        except Exception as err:
+            pytest.fail(f"failed to verify: {err}")
+
+        countersignature = COSEMessage.from_cose_signature(sig)
+        assert countersignature.protected[1] == -8  # alg: "EdDSA"
+        assert countersignature.unprotected[4] == b"01"  # kid: b"01"
