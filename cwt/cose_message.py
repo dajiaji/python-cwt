@@ -309,8 +309,8 @@ class COSEMessage(CBORProcessor):
         Detach a payload from the COSE message
 
         Returns:
-            Tuple[COSEMessage, bytes]: A byte string of the encoded COSE or a
-                cbor2.CBORTag object, and a byte string of the detached payload.
+            Tuple[COSEMessage, bytes]: The COSE message (self),
+            and a byte string of the detached payload.
         Raises:
             ValueError: The payload does not exist.
         """
