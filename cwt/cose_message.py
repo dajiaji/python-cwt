@@ -319,7 +319,7 @@ class COSEMessage(CBORProcessor):
             ValueError: The payload does not exist.
         """
 
-        if not isinstance(self._payload, bytes):
+        if self._msg[2] is None:
             raise ValueError("The payload does not exist.")
 
         payload = self._payload
