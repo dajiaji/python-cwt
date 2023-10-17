@@ -322,10 +322,8 @@ class COSEMessage(CBORProcessor):
         if self._msg[2] is None:
             raise ValueError("The payload does not exist.")
 
-        payload = self._payload
-        self._payload = None
-
-        return self, payload
+        self._msg[2] = None
+        return self, self._payload
 
     def attach_payload(self: Self, payload: bytes) -> COSEMessage:
         """
