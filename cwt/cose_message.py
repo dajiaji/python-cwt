@@ -337,7 +337,7 @@ class COSEMessage(CBORProcessor):
             ValueError: The payload already exist.
         """
 
-        if self._payload is not None:
+        if self._msg[2] is not None:
             raise ValueError("The payload already exist.")
         self._payload = payload
 
