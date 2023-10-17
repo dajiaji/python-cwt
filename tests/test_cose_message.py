@@ -502,6 +502,7 @@ class TestCOSEMessage:
 
         detached_content_cose_message, detached_payload = ecdsa_cose_sign1_example.detach_payload()
         assert expected_detached_cose_message == detached_content_cose_message
+        assert expected_detached_cose_message.dumps() == detached_content_cose_message.dumps()
         assert expected_payload == detached_payload
 
         reverted_cose_message = detached_content_cose_message.attach_payload(detached_payload)

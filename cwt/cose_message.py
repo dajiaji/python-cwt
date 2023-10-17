@@ -101,13 +101,7 @@ class COSEMessage(CBORProcessor):
     def __eq__(self: COSEMessage, other: object) -> bool:
         if not isinstance(other, COSEMessage):
             return NotImplemented
-        return (
-            self._type == other._type
-            and self._protected == other._protected
-            and self._unprotected == other._unprotected
-            and self._payload == other._payload
-            and self._other_fields == other._other_fields
-        )
+        return self._type == other._type and self._msg == other._msg
 
     def __ne__(self: COSEMessage, other: object) -> bool:
         return not self.__eq__(other)
@@ -307,16 +301,17 @@ class COSEMessage(CBORProcessor):
         Detach a payload from the COSE message
 
         Returns:
-            Tuple[COSEMessage, bytes]: A byte string of the encoded COSE or a
-                cbor2.CBORTag object, and a byte string of the detached payload.
+            Tuple[COSEMessage, bytes]: The COSE message (self),
+            and a byte string of the detached payload.
         Raises:
             ValueError: The payload does not exist.
         """
 
-        if not isinstance(self._payload, bytes):
+        if self._msg[2] is None:
             raise ValueError("The payload does not exist.")
 
-        return COSEMessage(self._type, [self._msg[0], self._msg[1], None, *self._msg[3:]]), self._payload
+        self._msg[2] = None
+        return self, self._payload
 
     def attach_payload(self, payload: bytes) -> COSEMessage:
         """
@@ -330,7 +325,8 @@ class COSEMessage(CBORProcessor):
             ValueError: The payload already exist.
         """
 
-        if self._payload is not None:
+        if self._msg[2] is not None:
             raise ValueError("The payload already exist.")
+        self._payload = payload
 
-        return COSEMessage(self._type, [self._msg[0], self._msg[1], payload, *self._msg[3:]])
+        return self
