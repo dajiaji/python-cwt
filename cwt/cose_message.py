@@ -186,7 +186,11 @@ class COSEMessage(CBORProcessor):
         Serializes the COSE message structure to a byte string.
         """
         tag = COSE_TYPE_TO_TAG.get(self._type, -1)
-        return self._dumps(CBORTag(tag, self._msg)) if tag > 0 else self._dumps(self._msg)
+        return (
+            self._dumps(CBORTag(tag, [self._protected, self._unprotected, self._payload, *self._msg[3:]]))
+            if tag > 0
+            else self._dumps([self._protected, self._unprotected, self._payload, *self._msg[3:]])
+        )
 
     def countersign(self: Self, signer: Signer, aad: bytes = b"", abbreviated: bool = False, tagged: bool = False) -> Self:
         """
