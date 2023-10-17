@@ -103,13 +103,7 @@ class COSEMessage(CBORProcessor):
     def __eq__(self: COSEMessage, other: object) -> bool:
         if not isinstance(other, COSEMessage):
             return NotImplemented
-        return (
-            self._type == other._type
-            and self._protected == other._protected
-            and self._unprotected == other._unprotected
-            and self._payload == other._payload
-            and self._other_fields == other._other_fields
-        )
+        return self._type == other._type and self._msg == other._msg
 
     def __ne__(self: COSEMessage, other: object) -> bool:
         return not self.__eq__(other)
@@ -186,11 +180,7 @@ class COSEMessage(CBORProcessor):
         Serializes the COSE message structure to a byte string.
         """
         tag = COSE_TYPE_TO_TAG.get(self._type, -1)
-        return (
-            self._dumps(CBORTag(tag, [self._protected, self._unprotected, self._payload, *self._msg[3:]]))
-            if tag > 0
-            else self._dumps([self._protected, self._unprotected, self._payload, *self._msg[3:]])
-        )
+        return self._dumps(CBORTag(tag, self._msg)) if tag > 0 else self._dumps(self._msg)
 
     def countersign(self: Self, signer: Signer, aad: bytes = b"", abbreviated: bool = False, tagged: bool = False) -> Self:
         """
