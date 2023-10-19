@@ -4,6 +4,28 @@ Changes
 Unreleased
 ----------
 
+Version 2.7.0
+-------------
+
+Released 2023-10-20
+
+- Fix to_cis to convert protected from Dict[str, Any] to Dict[int, Any]. `#452 <https://github.com/dajiaji/python-cwt/pull/452>`__
+- Add detached_payload parameter to sign/verify funcs. `#451 <https://github.com/dajiaji/python-cwt/pull/451>`__
+- Fix detach&attach not to create new COSEMessage instance. `#447 <https://github.com/dajiaji/python-cwt/pull/447>`__
+- Remove Self from COSEMessage. `#446 <https://github.com/dajiaji/python-cwt/pull/446>`__
+- Update test for COSE-HPKE. `#445 <https://github.com/dajiaji/python-cwt/pull/445>`__
+- Add detached content converter. `#444 <https://github.com/dajiaji/python-cwt/pull/444>`__
+- Add ECDH-ES+AES-KW test. `#443 <https://github.com/dajiaji/python-cwt/pull/443>`__
+- Parametrize test for AES-KW/HPKE and CTR/CBC. `#442 <https://github.com/dajiaji/python-cwt/pull/442>`__
+- Add AES-CTR and AES-CBC support. `#441 <https://github.com/dajiaji/python-cwt/pull/441>`__
+- Allow AES-KW algorithm in context. `#439 <https://github.com/dajiaji/python-cwt/pull/439>`__
+- Update dev dependencies.
+    - Bump urllib3 to 2.0.6. `#450 <https://github.com/dajiaji/python-cwt/pull/450>`__
+    - Bump pre-commit/mirrors-mypy to 1.5.1. `#449 <https://github.com/dajiaji/python-cwt/pull/449>`__
+    - Bump pre-commit to 3.5.0. `#448 <https://github.com/dajiaji/python-cwt/pull/448>`__
+    - Bump pre-commit/black to 23.9.1. `#438 <https://github.com/dajiaji/python-cwt/pull/438>`__
+    - Bump pre-commit/pre-commit-hooks to 4.5.0. `#438 <https://github.com/dajiaji/python-cwt/pull/438>`__
+
 Version 2.6.0
 -------------
 
@@ -16,6 +38,7 @@ Released 2023-10-09
 - Fix typo of private attribute. `#435 <https://github.com/dajiaji/python-cwt/pull/435>`__
 - Update dev dependencies.
     - Bump urllib3 to 2.0.6. `#436 <https://github.com/dajiaji/python-cwt/pull/436>`__
+    - Bump pre-commit/mirrors-mypy to 1.5.1. `#434 <https://github.com/dajiaji/python-cwt/pull/434>`__
 
 Version 2.5.1
 -------------
