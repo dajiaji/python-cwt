@@ -290,6 +290,7 @@ class COSE(CBORProcessor):
         keys: Union[COSEKeyInterface, List[COSEKeyInterface]],
         context: Optional[Union[Dict[str, Any], List[Any]]] = None,
         external_aad: bytes = b"",
+        detached_payload: Optional[bytes] = None,
     ) -> bytes:
         """
         Verifies and decodes COSE data, and returns only payload.
@@ -303,6 +304,7 @@ class COSE(CBORProcessor):
                 structure for key deriviation functions.
             external_aad(bytes): External additional authenticated data supplied by
                 application.
+            detached_payload (Optional[bytes]): The detached payload that should be verified with data.
         Returns:
             bytes: A byte string of decoded payload.
         Raises:
@@ -310,7 +312,7 @@ class COSE(CBORProcessor):
             DecodeError: Failed to decode data.
             VerifyError: Failed to verify data.
         """
-        _, _, res = self.decode_with_headers(data, keys, context, external_aad)
+        _, _, res = self.decode_with_headers(data, keys, context, external_aad, detached_payload)
         return res
 
     def decode_with_headers(
@@ -319,6 +321,7 @@ class COSE(CBORProcessor):
         keys: Union[COSEKeyInterface, List[COSEKeyInterface]],
         context: Optional[Union[Dict[str, Any], List[Any]]] = None,
         external_aad: bytes = b"",
+        detached_payload: Optional[bytes] = None,
     ) -> Tuple[Dict[int, Any], Dict[int, Any], bytes]:
         """
         Verifies and decodes COSE data, and returns protected headers, unprotected headers and payload.
@@ -332,6 +335,7 @@ class COSE(CBORProcessor):
                 structure for key deriviation functions.
             external_aad(bytes): External additional authenticated data supplied by
                 application.
+            detached_payload (Optional[bytes]): The detached payload that should be verified with data.
         Returns:
             Tuple[Dict[int, Any], Dict[int, Any], bytes]: A dictionary data of decoded protected headers, and a dictionary data of unprotected headers, and a byte string of decoded payload.
         Raises:
@@ -376,6 +380,14 @@ class COSE(CBORProcessor):
         else:
             raise ValueError(f"Unsupported or unknown CBOR tag({data.tag}).")
 
+        payload = data.value[2]
+        if detached_payload is not None:
+            if data.value[2] is not None:
+                raise ValueError("The payload already exists.")
+            payload = detached_payload
+        if payload is None:
+            raise ValueError("detached_payload should be set.")
+
         # protected: Union[Dict[int, Any], bytes] = self._loads(data.value[0]) if data.value[0] else b""
         # unprotected = data.value[1]
         # if not isinstance(unprotected, dict):
@@ -396,18 +408,18 @@ class COSE(CBORProcessor):
                         continue
                     try:
                         if not isinstance(p, bytes) and alg in COSE_ALGORITHMS_HPKE.values():  # HPKE
-                            hpke = HPKE(p, u, data.value[2])
+                            hpke = HPKE(p, u, payload)
                             res = hpke.decode(k, aad)
                             if not isinstance(res, bytes):
                                 raise TypeError("Internal type error.")
                             return p, u, res
-                        return p, u, k.decrypt(data.value[2], nonce, aad)
+                        return p, u, k.decrypt(payload, nonce, aad)
                     except Exception as e:
                         err = e
                 raise err
             for _, k in enumerate(keys):
                 try:
-                    return p, u, k.decrypt(data.value[2], nonce, aad)
+                    return p, u, k.decrypt(payload, nonce, aad)
                 except Exception as e:
                     err = e
             raise err
@@ -418,42 +430,42 @@ class COSE(CBORProcessor):
             nonce = u.get(5, b"")
             enc_key = rs.derive_key(keys, alg, external_aad, "Enc_Recipient")
             aad = self._dumps(["Encrypt", data.value[0], external_aad])
-            return p, u, enc_key.decrypt(data.value[2], nonce, aad)
+            return p, u, enc_key.decrypt(payload, nonce, aad)
 
         # MAC0
         if data.tag == 17:
             kid = self._get_kid(p, u)
-            msg = self._dumps(["MAC0", data.value[0], external_aad, data.value[2]])
+            msg = self._dumps(["MAC0", data.value[0], external_aad, payload])
             if kid:
                 for _, k in enumerate(keys):
                     if k.kid != kid:
                         continue
                     try:
                         k.verify(msg, data.value[3])
-                        return p, u, data.value[2]
+                        return p, u, payload
                     except Exception as e:
                         err = e
                 raise err
             for _, k in enumerate(keys):
                 try:
                     k.verify(msg, data.value[3])
-                    return p, u, data.value[2]
+                    return p, u, payload
                 except Exception as e:
                     err = e
             raise err
 
         # MAC
         if data.tag == 97:
-            to_be_maced = self._dumps(["MAC", data.value[0], external_aad, data.value[2]])
+            to_be_maced = self._dumps(["MAC", data.value[0], external_aad, payload])
             rs = Recipients.from_list(data.value[4], self._verify_kid, context)
             mac_auth_key = rs.derive_key(keys, alg, external_aad, "Mac_Recipient")
             mac_auth_key.verify(to_be_maced, data.value[3])
-            return p, u, data.value[2]
+            return p, u, payload
 
         # Signature1
         if data.tag == 18:
             kid = self._get_kid(p, u)
-            to_be_signed = self._dumps(["Signature1", data.value[0], external_aad, data.value[2]])
+            to_be_signed = self._dumps(["Signature1", data.value[0], external_aad, payload])
             if kid:
                 for _, k in enumerate(keys):
                     if k.kid != kid:
@@ -462,7 +474,7 @@ class COSE(CBORProcessor):
                         if self._ca_certs:
                             k.validate_certificate(self._ca_certs)
                         k.verify(to_be_signed, data.value[3])
-                        return p, u, data.value[2]
+                        return p, u, payload
                     except Exception as e:
                         err = e
                 raise err
@@ -471,7 +483,7 @@ class COSE(CBORProcessor):
                     if self._ca_certs:
                         k.validate_certificate(self._ca_certs)
                     k.verify(to_be_signed, data.value[3])
-                    return p, u, data.value[2]
+                    return p, u, payload
                 except Exception as e:
                     err = e
             raise err
@@ -501,11 +513,11 @@ class COSE(CBORProcessor):
                                 data.value[0],
                                 sig[0],
                                 external_aad,
-                                data.value[2],
+                                payload,
                             ]
                         )
                         k.verify(to_be_signed, sig[2])
-                        return p, u, data.value[2]
+                        return p, u, payload
                     except Exception as e:
                         err = e
                 continue
@@ -517,11 +529,11 @@ class COSE(CBORProcessor):
                             data.value[0],
                             sig[0],
                             external_aad,
-                            data.value[2],
+                            payload,
                         ]
                     )
                     k.verify(to_be_signed, sig[2])
-                    return p, u, data.value[2]
+                    return p, u, payload
                 except Exception as e:
                     err = e
         raise err

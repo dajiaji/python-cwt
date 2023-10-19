@@ -29,7 +29,7 @@ class COSEMessage(CBORProcessor):
         self._type = type
         self._protected = msg[0]
         self._unprotected = msg[1]
-        self._payload = msg[2]
+        # self._payload = msg[2]  # msg[2] is mutable and has no readable alias to avoid complexity.
         self._other_fields: List[bytes] = []
         self._recipients: List[List[Any]] = []
         self._signatures: List[List[Any]] = []
@@ -150,7 +150,7 @@ class COSEMessage(CBORProcessor):
         """
         The payload of the COSE message.
         """
-        return self._payload
+        return self._msg[2]
 
     @property
     def other_fields(self) -> List[bytes]:
@@ -180,7 +180,14 @@ class COSEMessage(CBORProcessor):
         tag = COSE_TYPE_TO_TAG.get(self._type, -1)
         return self._dumps(CBORTag(tag, self._msg)) if tag > 0 else self._dumps(self._msg)
 
-    def countersign(self, signer: Signer, aad: bytes = b"", abbreviated: bool = False, tagged: bool = False) -> COSEMessage:
+    def countersign(
+        self,
+        signer: Signer,
+        aad: bytes = b"",
+        abbreviated: bool = False,
+        tagged: bool = False,
+        detached_payload: Optional[bytes] = None,
+    ) -> COSEMessage:
         """
         Countersigns to the COSE message with the signer specified.
 
@@ -189,21 +196,29 @@ class COSEMessage(CBORProcessor):
             aad (bytes): The application supplied additional authenticated data.
             abbreviated(bool): The type of the countersignature (abbreviated or not).
             tagged(bool): The indicator whether the countersignature is tagged or not.
+            detached_payload (Optional[bytes]): The detached payload that should be
+                countersigned with the COSEMessage.
         Returns:
             COSEMessage: The COSE message (self).
         Raises:
             ValueError: Invalid arguments.
             EncodeError: Failed to countersign.
         """
+        payload = self._msg[2]
+        if detached_payload is not None:
+            if self._msg[2] is not None:
+                raise ValueError("The payload already exists.")
+            payload = detached_payload
+
         if abbreviated:
-            to_be_signed = ["CounterSignature0V2", self._protected, aad, self._payload]
+            to_be_signed = ["CounterSignature0V2", self._protected, aad, payload]
             for other_field in self._other_fields:
                 to_be_signed.append(other_field)
             signer.sign(self._dumps(to_be_signed))
             self._unprotected[12] = signer.signature
             return self
 
-        to_be_signed = ["CounterSignatureV2", self._protected, signer.protected, aad, self._payload]
+        to_be_signed = ["CounterSignatureV2", self._protected, signer.protected, aad, payload]
         for other_field in self._other_fields:
             to_be_signed.append(other_field)
         signer.sign(self._dumps(to_be_signed))
@@ -217,23 +232,36 @@ class COSEMessage(CBORProcessor):
         self._unprotected[11].append([signer.protected, signer.unprotected, signer.signature])
         return self
 
-    def counterverify(self, key: COSEKeyInterface, aad: bytes = b"") -> Optional[List[Any]]:
+    def counterverify(
+        self,
+        key: COSEKeyInterface,
+        aad: bytes = b"",
+        detached_payload: Optional[bytes] = None,
+    ) -> Optional[List[Any]]:
         """
         Verifies a countersignature in the COSE message with the verification key specified.
 
         Args:
             key(COSEKeyInterface): A COSEKey that is used to verify a signature in the COSE message.
             aad (bytes): The application supplied additional authenticated data.
+            detached_payload (Optional[bytes]): The detached payload that should be
+                counterverified with the COSEMessage.
         Returns:
             Optional[List[Any]]: The COSE signature verified.
         Raises:
             ValueError: Invalid arguments.
             VerifyError: Failed to verify.
         """
+        payload = self._msg[2]
+        if detached_payload is not None:
+            if self._msg[2] is not None:
+                raise ValueError("The payload already exists.")
+            payload = detached_payload
+
         err: Exception = ValueError("Countersignature not found.")
         acs = self._unprotected.get(12, None)
         if acs:
-            to_be_signed = ["CounterSignature0V2", self._protected, aad, self._payload]
+            to_be_signed = ["CounterSignature0V2", self._protected, aad, payload]
             for other_field in self._other_fields:
                 to_be_signed.append(other_field)
             try:
@@ -245,7 +273,7 @@ class COSEMessage(CBORProcessor):
         cs = self._unprotected.get(11, None)
         if not cs:
             raise err
-        to_be_signed = ["CounterSignatureV2", self._protected, b"", aad, self._payload]
+        to_be_signed = ["CounterSignatureV2", self._protected, b"", aad, payload]
         for other_field in self._other_fields:
             to_be_signed.append(other_field)
         if isinstance(cs[0], bytes):
@@ -310,8 +338,9 @@ class COSEMessage(CBORProcessor):
         if self._msg[2] is None:
             raise ValueError("The payload does not exist.")
 
+        payload = self._msg[2]
         self._msg[2] = None
-        return self, self._payload
+        return self, payload
 
     def attach_payload(self, payload: bytes) -> COSEMessage:
         """
@@ -326,7 +355,6 @@ class COSEMessage(CBORProcessor):
         """
 
         if self._msg[2] is not None:
-            raise ValueError("The payload already exist.")
-        self._payload = payload
-
+            raise ValueError("The payload already exists.")
+        self._msg[2] = payload
         return self
