@@ -49,6 +49,10 @@ class TestUtils:
             }
         )
         assert isinstance(res, list)
+        assert len(res) == 4
+        assert res[3][0] == 128
+        assert res[3][1] == b"\xa1\x01)"
+        assert res[3][2] == b"Encryption Example 02"
 
     def test_to_cis_without_supp_pub_other(self):
         res = to_cis(
