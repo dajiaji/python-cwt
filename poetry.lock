@@ -782,20 +782,20 @@ plugins = ["importlib-metadata"]
 
 [[package]]
 name = "pyhpke"
-version = "0.4.2"
+version = "0.5.1"
 description = "A Python implementation of HPKE."
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "pyhpke-0.4.2-py3-none-any.whl", hash = "sha256:a2019c98fb31c6b45df1a55999e5bdeca7a87119f811ff7b3dd62892dfd569f7"},
-    {file = "pyhpke-0.4.2.tar.gz", hash = "sha256:9a0ed17dbf5225ae31e7e5d105e64dbdb642cec73a1c28a94378f7f89f7bf378"},
+    {file = "pyhpke-0.5.1-py3-none-any.whl", hash = "sha256:5f753567db41651cf0cc99e55d8c793e09f613748bee6275146c1cc721e4f2dc"},
+    {file = "pyhpke-0.5.1.tar.gz", hash = "sha256:a197aa5859a4f271e32dfdcfdf12ad3c4a282b90cd0a21848b5992b363fbdefc"},
 ]
 
 [package.dependencies]
-cryptography = ">=41,<42"
+cryptography = ">=41.0.3"
 
 [package.extras]
-docs = ["Sphinx[docs] (>=4.3.2,<6.0.0)", "sphinx-autodoc-typehints[docs] (==1.21.0)", "sphinx-rtd-theme[docs] (>=1.0.0,<2.0.0)"]
+docs = ["Sphinx[docs] (>=6,<8)", "sphinx-autodoc-typehints[docs] (>=1.24.0)", "sphinx-rtd-theme[docs] (>=1.2.1)"]
 
 [[package]]
 name = "pyproject-api"
