@@ -118,14 +118,9 @@ COSE_KEY_OPERATION_VALUES = {
     "verifyMAC": 10,  # JWK-like lowerCamelCase
 }
 
-# COSE Algorithms for Content Encryption Key (CEK).
-COSE_ALGORITHMS_CEK = {
-    "A128CTR": -65534,  # AES-CTR mode w/ 128-bit key (Deprecated)
-    "A192CTR": -65533,  # AES-CTR mode w/ 192-bit key (Deprecated)
-    "A256CTR": -65532,  # AES-CTR mode w/ 256-bit key (Deprecated)
-    "A128CBC": -65531,  # AES-CBC mode w/ 128-bit key (Deprecated)
-    "A192CBC": -65530,  # AES-CBC mode w/ 192-bit key (Deprecated)
-    "A256CBC": -65529,  # AES-CBC mode w/ 256-bit key (Deprecated)
+
+# COSE AEAD Algorithms
+COSE_ALGORITHMS_CEK_AEAD = {
     "A128GCM": 1,  # AES-GCM mode w/ 128-bit key, 128-bit tag
     "A192GCM": 2,  # AES-GCM mode w/ 192-bit key, 128-bit tag
     "A256GCM": 3,  # AES-GCM mode w/ 256-bit key, 128-bit tag
@@ -139,6 +134,22 @@ COSE_ALGORITHMS_CEK = {
     "AES-CCM-64-128-128": 32,  # AES-CCM mode 128-bit key, 128-bit tag, 7-byte nonce
     "AES-CCM-64-128-256": 33,  # AES-CCM mode 256-bit key, 128-bit tag, 7-byte nonce
     # etc.
+}
+
+# COSE non AEAD Algorithms defined in RFC9459
+COSE_ALGORITHMS_CEK_NON_AEAD = {
+    "A128CTR": -65534,  # AES-CTR mode w/ 128-bit key (Deprecated)
+    "A192CTR": -65533,  # AES-CTR mode w/ 192-bit key (Deprecated)
+    "A256CTR": -65532,  # AES-CTR mode w/ 256-bit key (Deprecated)
+    "A128CBC": -65531,  # AES-CBC mode w/ 128-bit key (Deprecated)
+    "A192CBC": -65530,  # AES-CBC mode w/ 192-bit key (Deprecated)
+    "A256CBC": -65529,  # AES-CBC mode w/ 256-bit key (Deprecated)
+}
+
+# COSE Algorithms for Content Encryption Key (CEK).
+COSE_ALGORITHMS_CEK = {
+    **COSE_ALGORITHMS_CEK_AEAD,
+    **COSE_ALGORITHMS_CEK_NON_AEAD,
 }
 
 COSE_KEY_LEN = {
