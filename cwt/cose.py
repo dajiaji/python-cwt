@@ -6,6 +6,7 @@ from cbor2 import CBORTag
 from .cbor_processor import CBORProcessor
 from .const import (
     COSE_ALGORITHMS_CEK,
+    COSE_ALGORITHMS_CEK_NON_AEAD,
     COSE_ALGORITHMS_CKDM,
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT,
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT,
@@ -551,6 +552,12 @@ class COSE(CBORProcessor):
                 p[1] = key.alg
             if self._kid_auto_inclusion and key.kid:
                 u[4] = key.kid
+
+        # Check the protected header is empty if the algorithm is non AEAD (AES-CBC or AES-CTR)
+        # because section 4 of RFC9459 says "The 'protected' header MUST be a zero-length byte string."
+        alg = p[1] if 1 in p else u.get(1, 0)
+        if alg in COSE_ALGORITHMS_CEK_NON_AEAD.values() and len(p) > 0:
+            raise ValueError("protected header MUST be zero-length")
         return p, u
 
     def _decode_headers(self, protected: Any, unprotected: Any) -> Tuple[Dict[int, Any], Dict[int, Any]]:
