@@ -393,7 +393,7 @@ class COSE(CBORProcessor):
         # if not isinstance(unprotected, dict):
         #     raise ValueError("unprotected header should be dict.")
         p, u = self._decode_headers(data.value[0], data.value[1])
-        alg = self._get_alg(p)
+        alg = p[1] if 1 in p else u.get(1, 0)
 
         err: Exception = ValueError("key is not found.")
 
