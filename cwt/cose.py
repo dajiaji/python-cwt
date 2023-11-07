@@ -549,7 +549,10 @@ class COSE(CBORProcessor):
         u = to_cose_header(unprotected)
         if key is not None:
             if self._alg_auto_inclusion:
-                p[1] = key.alg
+                if key.alg in COSE_ALGORITHMS_CEK_NON_AEAD.values():
+                    u[1] = key.alg
+                else:
+                    p[1] = key.alg
             if self._kid_auto_inclusion and key.kid:
                 u[4] = key.kid
 
