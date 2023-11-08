@@ -1,6 +1,7 @@
 from secrets import token_bytes
 
 import pytest
+from cbor2 import dumps, loads
 
 from cwt import COSE, COSEAlgs, COSEHeaders, COSEKey, COSEMessage, Recipient, Signer
 
@@ -967,6 +968,17 @@ class TestCOSESampleWithEncode:
             unprotected={COSEHeaders.KID: b"01"},
         )
         assert b"Hello world!" == recipient.decode(encoded3, pub_key)
+
+        # zero-length map protected header
+        encoded4 = sender.encode(
+            b"Hello world!",
+            priv_key,
+            unprotected={COSEHeaders.ALG: COSEAlgs.ES256, COSEHeaders.KID: b"01"},
+        )
+        loaded_encoded4 = loads(encoded4)
+        loaded_encoded4.value[0] = bytes.fromhex("a0")  # << {} >>
+        encoded4 = dumps(loaded_encoded4)
+        assert b"Hello world!" == recipient.decode(encoded4, pub_key)
 
     def test_cose_usage_examples_cose_signature1_countersignature(self):
         # The sender side:
