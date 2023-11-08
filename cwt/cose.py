@@ -738,7 +738,7 @@ class COSE(CBORProcessor):
         b_key = key.to_bytes() if isinstance(key, COSEKeyInterface) else b""
         cek: Optional[COSEKeyInterface] = None
         for rec in recipients:
-            aad = self._dumps(["Enc_Recipient", self._dumps(rec.protected), external_aad])
+            aad = self._dumps(["Enc_Recipient", self._dumps(rec.protected) if len(rec.protected) > 0 else b"", external_aad])
             encoded, derived_key = rec.encode(b_key, aad)
             cek = derived_key if derived_key else key
             recs.append(encoded)
