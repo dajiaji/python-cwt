@@ -877,7 +877,7 @@ class TestAESCTRKey:
         nonce = token_bytes(16)
         encrypted = key.encrypt(b"Hello world!", nonce=nonce)
         # alternate the nonce by incrementing the last byte
-        invalid_nonce = nonce[0:-1] + (nonce[-1] + 1 % 256).to_bytes(1, "big")
+        invalid_nonce = nonce[0:-1] + ((nonce[-1] + 1) % 256).to_bytes(1, "big")
         assert nonce != invalid_nonce
         decrypted = key.decrypt(encrypted, nonce=invalid_nonce)
         assert encrypted != decrypted
@@ -1035,7 +1035,7 @@ class TestAESCBCKey:
         nonce = token_bytes(16)
         encrypted = key.encrypt(b"Hello world!", nonce=nonce)
         # alternate the nonce by incrementing the last byte
-        invalid_nonce = nonce[0:-1] + (nonce[-1] + 1 % 256).to_bytes(1, "big")
+        invalid_nonce = nonce[0:-1] + ((nonce[-1] + 1) % 256).to_bytes(1, "big")
         assert nonce != invalid_nonce
         decrypted = key.decrypt(encrypted, nonce=invalid_nonce)
         assert encrypted != decrypted
