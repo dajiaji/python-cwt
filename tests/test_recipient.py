@@ -797,6 +797,25 @@ class TestRecipients:
         kw_key = COSEKey.from_symmetric_key(alg=kw_alg)
         enc_key = COSEKey.from_symmetric_key(alg=enc_alg)
 
+        # The sender side (must fail):
+        with pytest.raises(ValueError) as err:
+            r = Recipient.new(protected={"alg": kw_alg}, sender_key=kw_key)
+            pytest.fail("encode_and_encrypt() should fail.")
+        assert "The protected header must be a zero-length string in key wrap mode with an AE algorithm." in str(err.value)
+
+        # The sender side (must fail):
+        r = Recipient.new(unprotected={"alg": kw_alg}, sender_key=kw_key)
+        sender = COSE.new(alg_auto_inclusion=True)
+        with pytest.raises(ValueError) as err:
+            encoded = sender.encode_and_encrypt(
+                b"Hello world!",
+                enc_key,
+                protected={"kid": "actually-not-protected"},
+                recipients=[r],
+            )
+            pytest.fail("encode_and_encrypt() should fail.")
+        assert "protected header MUST be zero-length" in str(err.value)
+
         # The sender side:
         r = Recipient.new(unprotected={"alg": kw_alg}, sender_key=kw_key)
         sender = COSE.new(alg_auto_inclusion=True)
@@ -832,13 +851,13 @@ class TestRecipients:
                 "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
             }
         )
-        r = Recipient.new(protected={1: 35}, recipient_key=rpk)
+        r = Recipient.new(unprotected={1: 35}, recipient_key=rpk)
         r.encode(enc_key.key)
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
             enc_key,
-            protected={"alg": enc_alg},
+            unprotected={"alg": enc_alg},
             recipients=[r],
         )
         recipient = COSE.new()
@@ -861,7 +880,7 @@ class TestRecipients:
             "alg": kw_alg,
             "supp_pub": {
                 "key_data_length": len(enc_key.key) * 8,
-                "protected": {1: key_agreement_alg_id},
+                "protected": {},
             },
         }
 
@@ -886,15 +905,15 @@ class TestRecipients:
                 "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
             }
         )
-        r = Recipient.new(protected={"alg": key_agreement_alg}, sender_key=rsk1, recipient_key=rpk2, context=context)
+        r = Recipient.new(unprotected={"alg": key_agreement_alg}, sender_key=rsk1, recipient_key=rpk2, context=context)
 
         nonce = enc_key.generate_nonce()
         sender = COSE.new()
         encoded = sender.encode(
             b"Hello world!",
             enc_key,
-            protected={"alg": enc_alg},
-            unprotected={"iv": nonce},
+            protected={},
+            unprotected={"alg": enc_alg, "iv": nonce},
             recipients=[r],
         )
 

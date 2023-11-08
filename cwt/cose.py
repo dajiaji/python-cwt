@@ -6,6 +6,7 @@ from cbor2 import CBORTag
 from .cbor_processor import CBORProcessor
 from .const import (
     COSE_ALGORITHMS_CEK,
+    COSE_ALGORITHMS_CEK_NON_AEAD,
     COSE_ALGORITHMS_CKDM,
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT,
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT,
@@ -393,7 +394,7 @@ class COSE(CBORProcessor):
         # if not isinstance(unprotected, dict):
         #     raise ValueError("unprotected header should be dict.")
         p, u = self._decode_headers(data.value[0], data.value[1])
-        alg = self._get_alg(p)
+        alg = p[1] if 1 in p else u.get(1, 0)
 
         # Local variable `protected` is byte encoded protected header
         # Sender is allowed to encode empty protected header into a bstr-wrapped zero-length map << {} >> (0x40A0)
@@ -553,9 +554,18 @@ class COSE(CBORProcessor):
         u = to_cose_header(unprotected)
         if key is not None:
             if self._alg_auto_inclusion:
-                p[1] = key.alg
+                if key.alg in COSE_ALGORITHMS_CEK_NON_AEAD.values():
+                    u[1] = key.alg
+                else:
+                    p[1] = key.alg
             if self._kid_auto_inclusion and key.kid:
                 u[4] = key.kid
+
+        # Check the protected header is empty if the algorithm is non AEAD (AES-CBC or AES-CTR)
+        # because section 4 of RFC9459 says "The 'protected' header MUST be a zero-length byte string."
+        alg = p[1] if 1 in p else u.get(1, 0)
+        if alg in COSE_ALGORITHMS_CEK_NON_AEAD.values() and len(p) > 0:
+            raise ValueError("protected header MUST be zero-length")
         return p, u
 
     def _decode_headers(self, protected: Any, unprotected: Any) -> Tuple[Dict[int, Any], Dict[int, Any]]:
