@@ -395,12 +395,17 @@ class COSE(CBORProcessor):
         p, u = self._decode_headers(data.value[0], data.value[1])
         alg = self._get_alg(p)
 
+        # Local variable `protected` is byte encoded protected header
+        # Sender is allowed to encode empty protected header into a bstr-wrapped zero-length map << {} >> (0x40A0)
+        # but Recipient MUST treat it as a zero-length byte string h'' (0x40) while decoding
+        protected = data.value[0] if len(p) > 0 else b""
+
         err: Exception = ValueError("key is not found.")
 
         # Encrypt0
         if data.tag == 16:
             kid = self._get_kid(p, u)
-            aad = self._dumps(["Encrypt0", data.value[0] if len(p) > 0 else b"", external_aad])
+            aad = self._dumps(["Encrypt0", protected, external_aad])
             nonce = u.get(5, None)
             if kid:
                 for _, k in enumerate(keys):
@@ -435,7 +440,7 @@ class COSE(CBORProcessor):
         # MAC0
         if data.tag == 17:
             kid = self._get_kid(p, u)
-            msg = self._dumps(["MAC0", data.value[0] if len(p) > 0 else b"", external_aad, payload])
+            msg = self._dumps(["MAC0", protected, external_aad, payload])
             if kid:
                 for _, k in enumerate(keys):
                     if k.kid != kid:
@@ -456,7 +461,7 @@ class COSE(CBORProcessor):
 
         # MAC
         if data.tag == 97:
-            to_be_maced = self._dumps(["MAC", data.value[0] if len(p) > 0 else b"", external_aad, payload])
+            to_be_maced = self._dumps(["MAC", protected, external_aad, payload])
             rs = Recipients.from_list(data.value[4], self._verify_kid, context)
             mac_auth_key = rs.derive_key(keys, alg, external_aad, "Mac_Recipient")
             mac_auth_key.verify(to_be_maced, data.value[3])
@@ -465,7 +470,7 @@ class COSE(CBORProcessor):
         # Signature1
         if data.tag == 18:
             kid = self._get_kid(p, u)
-            to_be_signed = self._dumps(["Signature1", data.value[0] if len(p) > 0 else b"", external_aad, payload])
+            to_be_signed = self._dumps(["Signature1", protected, external_aad, payload])
             if kid:
                 for _, k in enumerate(keys):
                     if k.kid != kid:
@@ -510,7 +515,7 @@ class COSE(CBORProcessor):
                         to_be_signed = self._dumps(
                             [
                                 "Signature",
-                                data.value[0] if len(p) > 0 else b"",
+                                protected,
                                 sig[0],
                                 external_aad,
                                 payload,
@@ -526,7 +531,7 @@ class COSE(CBORProcessor):
                     to_be_signed = self._dumps(
                         [
                             "Signature",
-                            data.value[0] if len(p) > 0 else b"",
+                            protected,
                             sig[0],
                             external_aad,
                             payload,
