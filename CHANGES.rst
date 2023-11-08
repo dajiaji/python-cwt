@@ -4,6 +4,26 @@ Changes
 Unreleased
 ----------
 
+Version 2.7.1
+-------------
+
+Released 2023-11-09
+
+- Fix recipient encoding with empty protected header. `#467 <https://github.com/dajiaji/python-cwt/pull/467>`__
+- Fix nonce modification test. `#466 <https://github.com/dajiaji/python-cwt/pull/466>`__
+- Accept zero length map protected header. `#465 <https://github.com/dajiaji/python-cwt/pull/465>`__
+- Generate zero-length protected header for non-AEAD. `#463 <https://github.com/dajiaji/python-cwt/pull/463>`__
+- Update dependencies.
+    - Bump cbor2 to 5.5.1. `#461 <https://github.com/dajiaji/python-cwt/pull/461>`__
+    - Bump pyhpke to 0.5.1. `#459 <https://github.com/dajiaji/python-cwt/pull/459>`__
+    - Bump cryptography to 41.0.5. `#457 <https://github.com/dajiaji/python-cwt/pull/457>`__
+- Update dev dependencies.
+    - Bump sphinx-autodoc-typehints to 1.24.1. `#460 <https://github.com/dajiaji/python-cwt/pull/460>`__
+    - Bump pytest to 7.4.3. `#456 <https://github.com/dajiaji/python-cwt/pull/456>`__
+    - Bump pre-commit/mirrors-mypy to 1.5.1. `#449 <https://github.com/dajiaji/python-cwt/pull/449>`__
+    - Bump pre-commit/black to 23.10.1. `#455 <https://github.com/dajiaji/python-cwt/pull/455>`__
+    - Bump pre-commit/mirrors-mypy to 1.6.1. `#455 <https://github.com/dajiaji/python-cwt/pull/455>`__
+
 Version 2.7.0
 -------------
 
