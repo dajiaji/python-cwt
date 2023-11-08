@@ -797,6 +797,25 @@ class TestRecipients:
         kw_key = COSEKey.from_symmetric_key(alg=kw_alg)
         enc_key = COSEKey.from_symmetric_key(alg=enc_alg)
 
+        # The sender side (must fail):
+        with pytest.raises(ValueError) as err:
+            r = Recipient.new(protected={"alg": kw_alg}, sender_key=kw_key)
+            pytest.fail("encode_and_encrypt() should fail.")
+        assert "The protected header must be a zero-length string in key wrap mode with an AE algorithm." in str(err.value)
+
+        # The sender side (must fail):
+        r = Recipient.new(unprotected={"alg": kw_alg}, sender_key=kw_key)
+        sender = COSE.new(alg_auto_inclusion=True)
+        with pytest.raises(ValueError) as err:
+            encoded = sender.encode_and_encrypt(
+                b"Hello world!",
+                enc_key,
+                protected={"kid": "actually-not-protected"},
+                recipients=[r],
+            )
+            pytest.fail("encode_and_encrypt() should fail.")
+        assert "protected header MUST be zero-length" in str(err.value)
+
         # The sender side:
         r = Recipient.new(unprotected={"alg": kw_alg}, sender_key=kw_key)
         sender = COSE.new(alg_auto_inclusion=True)
