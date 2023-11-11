@@ -24,7 +24,6 @@ from cryptography.hazmat.primitives.serialization import (
 )
 
 from ..const import (
-    COSE_ALGORITHMS_CKDM_KEY_AGREEMENT,
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_ES,
     COSE_ALGORITHMS_HPKE,
     COSE_ALGORITHMS_SIG_OKP,
@@ -65,8 +64,6 @@ class OKPKey(AsymmetricKey):
         self._crv = params[-1]
         if not isinstance(self._crv, int):
             raise ValueError("crv(-1) should be int.")
-        if self._crv not in [4, 5, 6, 7]:
-            raise ValueError(f"Unsupported or unknown crv(-1) for OKP: {self._crv}.")
         if self._crv in [4, 5]:
             # if not self._alg:
             #     raise ValueError("X25519/X448 needs alg explicitly.")
@@ -78,6 +75,11 @@ class OKPKey(AsymmetricKey):
                 self._hash_alg = hashes.SHA256 if self._crv == 4 else hashes.SHA512
             elif self._alg is not None:
                 raise ValueError(f"Unsupported or unknown alg used with X25519/X448: {self._alg}.")
+        elif self._crv in [6, 7]:
+            if self._alg is not None and self._alg != -8:
+                raise ValueError(f"Unsupported or unknown alg used with Ed25519/Ed448: {self._alg}.")
+        else:
+            raise ValueError(f"Unsupported or unknown crv(-1) for OKP: {self._crv}.")
 
         # Check the existence of the key.
         if -2 not in params and -4 not in params:
@@ -87,55 +89,82 @@ class OKPKey(AsymmetricKey):
         if self._key_ops:
             if set(self._key_ops) & set([3, 4, 5, 6, 9, 10]):
                 raise ValueError("Unknown or not permissible key_ops(4) for OKP.")
-        else:
-            if self._crv in [4, 5]:
-                self._key_ops = [7, 8] if -4 in params else []
-            else:  # self._crv in [6, 7]
-                self._key_ops = [1, 2] if -4 in params else [2]
         if self._alg:
             if self._alg in COSE_ALGORITHMS_SIG_OKP.values():
-                if -4 in params:
-                    # private key for signing.
-                    if not (set(self._key_ops) & set([1, 2])):
-                        raise ValueError("Invalid key_ops for signing key.")
-                    if set(self._key_ops) & set([7, 8]):
-                        raise ValueError("Signing key should not be used for key derivation.")
+                if self._key_ops:
+                    if -4 in params:
+                        # private key for signing.
+                        if not (set(self._key_ops) & set([1, 2])):
+                            raise ValueError("Invalid key_ops for signing key.")
+                        if set(self._key_ops) & set([7, 8]):
+                            raise ValueError("Signing key should not be used for key derivation.")
+                    else:
+                        # public key for signing.
+                        if 2 not in self._key_ops or len(self._key_ops) != 1:
+                            raise ValueError("Invalid key_ops for public key.")
                 else:
-                    # public key for signing.
-                    if 2 not in self._key_ops or len(self._key_ops) != 1:
-                        raise ValueError("Invalid key_ops for public key.")
-            elif self._alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.values():
-                if -4 in params:
-                    # private key for key derivation.
-                    if not (set(self._key_ops) & set([7, 8])):
-                        raise ValueError("Invalid key_ops for key derivation.")
-                    if set(self._key_ops) & set([1, 2]):
-                        raise ValueError("Private key for ECDHE should not be used for signing.")
-                else:
-                    # public key for key derivation.
-                    if self._key_ops:
-                        raise ValueError("Public key for ECDHE should not have key_ops.")
+                    self._key_ops = [1, 2] if -4 in params else [2]
             elif self._alg in COSE_ALGORITHMS_HPKE.values():
-                if not (set(self._key_ops) & set([7, 8])):
-                    raise ValueError("Invalid key_ops for HPKE.")
+                if self._key_ops:
+                    if -4 in params:
+                        # private key for key derivation.
+                        if len(self._key_ops) != 1 or self._key_ops[0] != 8:
+                            raise ValueError("Invalid key_ops for HPKE private key.")
+                    else:
+                        # public key for key derivation.
+                        if len(self._key_ops) > 0:
+                            raise ValueError("Invalid key_ops for HPKE public key.")
+                else:
+                    if -4 in params and isinstance(self._key_ops, list) and len(self._key_ops) == 0:
+                        raise ValueError("Invalid key_ops for HPKE private key.")
+                    self._key_ops = [8] if -4 in params else []
             else:
-                raise ValueError(f"Unsupported or unknown alg(3) for OKP: {self._alg}.")
+                # self._alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.values():
+                if self._key_ops:
+                    if -4 in params:
+                        # private key for key derivation.
+                        if not (set(self._key_ops) & set([7, 8])):
+                            raise ValueError("Invalid key_ops for key derivation.")
+                        if set(self._key_ops) & set([1, 2]):
+                            raise ValueError("Private key for ECDHE should not be used for signing.")
+                    else:
+                        # public key for key derivation.
+                        if self._key_ops:
+                            raise ValueError("Public key for ECDHE should not have key_ops.")
+                else:
+                    self._key_ops = [7, 8] if -4 in params else []
         else:
             if -4 in params:
                 # private key.
-                if set(self._key_ops) & set([1, 2]):
-                    # private key for signing.
-                    if set(self._key_ops) & set([7, 8]):
-                        raise ValueError("OKP private key should not be used for both signing and key derivation.")
+                if self._crv in [4, 5]:  # X25519/X448
+                    if self._key_ops:
+                        # private key for key derivation.
+                        if not (set(self._key_ops) & set([7, 8])):
+                            raise ValueError("Invalid key_ops for X25519/448 private key.")
+                        if set(self._key_ops) & set([1, 2]):
+                            raise ValueError("Invalid key_ops for X25519/448 private key.")
+                    else:
+                        self._key_ops = [7, 8]
+                else:  # Ed25519/Ed448
+                    if self._key_ops:
+                        if not (set(self._key_ops) & set([1, 2])):
+                            raise ValueError("Invalid key_ops for Ed25519/448 private key.")
+                        if set(self._key_ops) & set([7, 8]):
+                            raise ValueError("Invalid key_ops for Ed25519/448 private key.")
+                    else:
+                        self._key_ops = [1, 2]
                     self._alg = -8  # EdDSA
             else:
                 # public key.
                 if self._crv in [4, 5]:  # X25519/X448
-                    if len(self._key_ops) != 0 and not (set(self._key_ops) & set([7, 8])):
-                        raise ValueError("Invalid key_ops for public key.")
+                    if self._key_ops is not None and len(self._key_ops) != 0:
+                        raise ValueError("Invalid key_ops for X25519/448 public key.")
                 else:  # Ed25519/Ed448
-                    if len(self._key_ops) != 1 or self._key_ops[0] != 2:
-                        raise ValueError("Invalid key_ops for public key.")
+                    if self._key_ops:
+                        if len(self._key_ops) != 1 or self._key_ops[0] != 2:
+                            raise ValueError("Invalid key_ops for Ed25519/448 public key.")
+                    else:
+                        self._key_ops = [2]
                     self._alg = -8  # EdDSA
 
         if self._alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_ES.values():

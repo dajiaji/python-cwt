@@ -119,10 +119,18 @@ class EC2Key(AsymmetricKey):
                         self._key_ops = [7, 8]
             elif self._alg in COSE_ALGORITHMS_HPKE.values():
                 if self._key_ops:
-                    if not (set(self._key_ops) & set([7, 8])):
-                        raise ValueError("Invalid key_ops for key derivation.")
+                    if -4 in params:
+                        # private key for key derivation.
+                        if len(self._key_ops) != 1 or self._key_ops[0] != 8:
+                            raise ValueError("Invalid key_ops for HPKE private key.")
+                    else:
+                        # public key for key derivation.
+                        if len(self._key_ops) > 0:
+                            raise ValueError("Invalid key_ops for HPKE public key.")
                 else:
-                    self._key_ops = [7, 8]
+                    if -4 in params and isinstance(self._key_ops, list) and len(self._key_ops) == 0:
+                        raise ValueError("Invalid key_ops for HPKE private key.")
+                    self._key_ops = [8] if -4 in params else []
             else:
                 raise ValueError(f"Unsupported or unknown alg(3) for EC2: {self._alg}.")
         else:

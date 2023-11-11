@@ -9,7 +9,7 @@ Tests for COSE.
 
 import pytest
 
-from cwt import COSE, COSEAlgs, COSEKey, COSEHeaders
+from cwt import COSE, COSEAlgs, COSEHeaders, COSEKey
 
 
 class TestCOSE_HPKE:
