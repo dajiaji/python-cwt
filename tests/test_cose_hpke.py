@@ -9,7 +9,7 @@ Tests for COSE.
 
 import pytest
 
-from cwt import COSE, COSEKey
+from cwt import COSE, COSEAlgs, COSEHeaders, COSEKey
 
 
 class TestCOSE_HPKE:
@@ -20,8 +20,8 @@ class TestCOSE_HPKE:
     @pytest.mark.parametrize(
         "alg",
         [
-            35,
-            36,
+            COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
+            COSEAlgs.HPKE_BASE_P256_SHA256_CHACHA20POLY1305,
         ],
     )
     def test_cose_hpke_kem_0x0010(self, alg):
@@ -40,10 +40,10 @@ class TestCOSE_HPKE:
             b"This is the content.",
             rpk,
             protected={
-                1: alg,
+                COSEHeaders.ALG: alg,
             },
             unprotected={
-                4: b"01",  # kid: "01"
+                COSEHeaders.KID: b"01",  # kid: "01"
             },
         )
 
@@ -64,8 +64,8 @@ class TestCOSE_HPKE:
     @pytest.mark.parametrize(
         "alg",
         [
-            37,
-            38,
+            COSEAlgs.HPKE_BASE_P384_SHA384_AES256GCM,
+            COSEAlgs.HPKE_BASE_P384_SHA384_CHACHA20POLY1305,
         ],
     )
     def test_cose_hpke_kem_0x0011(self, alg):
@@ -84,10 +84,10 @@ class TestCOSE_HPKE:
             b"This is the content.",
             rpk,
             protected={
-                1: alg,
+                COSEHeaders.ALG: alg,
             },
             unprotected={
-                4: b"01",  # kid: "01"
+                COSEHeaders.KID: b"01",  # kid: "01"
             },
         )
 
@@ -108,8 +108,8 @@ class TestCOSE_HPKE:
     @pytest.mark.parametrize(
         "alg",
         [
-            39,
-            40,
+            COSEAlgs.HPKE_BASE_P521_SHA512_AES256GCM,
+            COSEAlgs.HPKE_BASE_P521_SHA512_CHACHA20POLY1305,
         ],
     )
     def test_cose_hpke_kem_0x0012(self, alg):
@@ -128,10 +128,10 @@ class TestCOSE_HPKE:
             b"This is the content.",
             rpk,
             protected={
-                1: alg,
+                COSEHeaders.ALG: alg,
             },
             unprotected={
-                4: b"01",  # kid: "01"
+                COSEHeaders.KID: b"01",  # kid: "01"
             },
         )
 
@@ -152,8 +152,8 @@ class TestCOSE_HPKE:
     @pytest.mark.parametrize(
         "alg",
         [
-            41,
-            42,
+            COSEAlgs.HPKE_BASE_X25519_SHA256_AES128GCM,
+            COSEAlgs.HPKE_BASE_X25519_SHA256_CHACHA20POLY1305,
         ],
     )
     def test_cose_hpke_kem_0x0020(self, alg):
@@ -163,7 +163,7 @@ class TestCOSE_HPKE:
                 "crv": "X25519",
                 "kid": "01",
                 "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
-                "key_ops": ["deriveKey", "deriveBits"],
+                "key_ops": [],
             }
         )
 
@@ -172,10 +172,10 @@ class TestCOSE_HPKE:
             b"This is the content.",
             rpk,
             protected={
-                1: alg,
+                COSEHeaders.ALG: alg,
             },
             unprotected={
-                4: b"01",  # kid: "01"
+                COSEHeaders.KID: b"01",  # kid: "01"
             },
         )
 
@@ -187,7 +187,7 @@ class TestCOSE_HPKE:
                 "kid": "01",
                 "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
                 "d": "vsJ1oX5NNi0IGdwGldiac75r-Utmq3Jq4LGv48Q_Qc4",
-                "key_ops": ["deriveKey", "deriveBits"],
+                "key_ops": ["deriveBits"],
             }
         )
         recipient = COSE.new()
@@ -196,8 +196,8 @@ class TestCOSE_HPKE:
     @pytest.mark.parametrize(
         "alg",
         [
-            43,
-            44,
+            COSEAlgs.HPKE_BASE_X448_SHA512_AES256GCM,
+            COSEAlgs.HPKE_BASE_X448_SHA512_CHACHA20POLY1305,
         ],
     )
     def test_cose_hpke_kem_0x0021(self, alg):
@@ -207,7 +207,6 @@ class TestCOSE_HPKE:
                 "crv": "X448",
                 "kid": "01",
                 "x": "IkLmc0klvEMXYneHMKAB6ePohryAwAPVe2pRSffIDY6NrjeYNWVX5J-fG4NV2OoU77C88A0mvxI",
-                "key_ops": ["deriveKey"],
             }
         )
 
@@ -216,10 +215,10 @@ class TestCOSE_HPKE:
             b"This is the content.",
             rpk,
             protected={
-                1: alg,
+                COSEHeaders.ALG: alg,
             },
             unprotected={
-                4: b"01",  # kid: "01"
+                COSEHeaders.KID: b"01",  # kid: "01"
             },
         )
 
@@ -231,7 +230,7 @@ class TestCOSE_HPKE:
                 "kid": "01",
                 "x": "IkLmc0klvEMXYneHMKAB6ePohryAwAPVe2pRSffIDY6NrjeYNWVX5J-fG4NV2OoU77C88A0mvxI",
                 "d": "rJJRG3nshyCtd9CgXld8aNaB9YXKR0UOi7zj7hApg9YH4XdBO0G8NcAFNz_uPH2GnCZVcSDgV5c",
-                "key_ops": ["deriveKey"],
+                "key_ops": ["deriveBits"],
             }
         )
         recipient = COSE.new()

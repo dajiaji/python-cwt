@@ -604,7 +604,6 @@ class TestEC2Key:
                 },
                 "Invalid key_ops for public key.",
             ),
-            # ???
         ],
     )
     def test_ec2_key_constructor_with_invalid_args(self, invalid, msg):
@@ -624,7 +623,7 @@ class TestEC2Key:
         )
         with pytest.raises(ValueError) as err:
             public_key.sign(b"Hello world!")
-            pytest.fail("sign should not fail.")
+            pytest.fail("sign should fail.")
         assert "Public key cannot be used for signing." in str(err.value)
 
     def test_ec2_key_verify_with_another_es256_public_key(self):
@@ -649,7 +648,7 @@ class TestEC2Key:
         sig = private_key.sign(b"Hello world!")
         with pytest.raises(VerifyError) as err:
             public_key2.verify(b"Hello world!", sig)
-            pytest.fail("verify should not fail.")
+            pytest.fail("verify should fail.")
         assert "Failed to verify." in str(err.value)
 
     def test_ec2_key_verify_with_invalid_signature(self):
@@ -816,14 +815,91 @@ class TestEC2Key:
         assert "Unsupported or unknown key for EC2." in str(err.value)
 
     @pytest.mark.parametrize(
-        "key_ops",
+        "alg, key_ops",
         [
-            ["sign"],
-            ["verify"],
-            ["sign", "verify"],
+            (
+                "HPKE-Base-P256-SHA256-AES128GCM",
+                ["deriveBits"],
+            ),
+            (
+                "HPKE-Base-P256-SHA256-ChaCha20Poly1305",
+                ["deriveBits"],
+            ),
         ],
     )
-    def test_ec2_key_hpke_with_alg_hpke_and_invalid_key_ops(self, key_ops):
+    def test_ec2_key_private_with_alg_hpke(self, alg, key_ops):
+        try:
+            _ = COSEKey.from_jwk(
+                {
+                    "kty": "EC",
+                    "kid": "01",
+                    "crv": "P-256",
+                    "alg": alg,
+                    "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                    "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                    "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+                    "key_ops": key_ops,
+                }
+            )
+        except Exception:
+            pytest.fail("from_jwk should not fail.")
+
+    @pytest.mark.parametrize(
+        "alg, key_ops",
+        [
+            (
+                "HPKE-Base-P256-SHA256-AES128GCM",
+                [],
+            ),
+            (
+                "HPKE-Base-P256-SHA256-ChaCha20Poly1305",
+                [],
+            ),
+        ],
+    )
+    def test_ec2_key_public_with_alg_hpke(self, alg, key_ops):
+        try:
+            _ = COSEKey.from_jwk(
+                {
+                    "kty": "EC",
+                    "kid": "01",
+                    "crv": "P-256",
+                    "alg": alg,
+                    "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                    "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                    # "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+                    "key_ops": key_ops,
+                }
+            )
+        except Exception:
+            pytest.fail("from_jwk should not fail.")
+
+    @pytest.mark.parametrize(
+        "invalid, msg",
+        [
+            (
+                0,
+                "key_ops should be list.",
+            ),
+            (
+                [],
+                "Invalid key_ops for HPKE private key.",
+            ),
+            (
+                ["sign"],
+                "Invalid key_ops for HPKE private key.",
+            ),
+            (
+                ["deriveKey"],
+                "Invalid key_ops for HPKE private key.",
+            ),
+            (
+                ["deriveKey", "deriveBits"],
+                "Invalid key_ops for HPKE private key.",
+            ),
+        ],
+    )
+    def test_ec2_key_private_with_alg_hpke_and_invalid_key_ops(self, invalid, msg):
         with pytest.raises(ValueError) as err:
             COSEKey.from_jwk(
                 {
@@ -831,32 +907,51 @@ class TestEC2Key:
                     "kid": "01",
                     "crv": "P-256",
                     "alg": "HPKE-Base-P256-SHA256-AES128GCM",
-                    "key_ops": key_ops,
                     "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
                     "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
                     "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+                    "key_ops": invalid,
                 }
             )
-        assert "Invalid key_ops for key derivation." in str(err.value)
+        assert msg in str(err.value)
 
     @pytest.mark.parametrize(
-        "key_ops",
+        "invalid, msg",
         [
-            ["sign"],
+            (
+                0,
+                "key_ops should be list.",
+            ),
+            (
+                ["sign"],
+                "Invalid key_ops for HPKE public key.",
+            ),
+            (
+                ["deriveKey"],
+                "Invalid key_ops for HPKE public key.",
+            ),
+            (
+                ["deriveBits"],
+                "Invalid key_ops for HPKE public key.",
+            ),
+            (
+                ["deriveKey", "deriveBits"],
+                "Invalid key_ops for HPKE public key.",
+            ),
         ],
     )
-    def test_ec2_key_hpke_with_invalid_key_ops(self, key_ops):
+    def test_ec2_key_public_with_alg_hpke_and_invalid_key_ops(self, invalid, msg):
         with pytest.raises(ValueError) as err:
             COSEKey.from_jwk(
                 {
                     "kty": "EC",
                     "kid": "01",
                     "crv": "P-256",
-                    # "alg": "HPKE-Base-P256-SHA256-AES128GCM",
-                    "key_ops": key_ops,
+                    "alg": "HPKE-Base-P256-SHA256-AES128GCM",
                     "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
                     "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
-                    # "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+                    "key_ops": invalid,
                 }
             )
-        assert "Invalid key_ops for public key." in str(err.value)
+            pytest.fail("COSEKey.from_jwk should fail.")
+        assert msg in str(err.value)

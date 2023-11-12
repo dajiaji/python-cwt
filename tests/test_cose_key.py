@@ -288,8 +288,8 @@ class TestCOSEKey:
     @pytest.mark.parametrize(
         "invalid, msg",
         [
-            ([1], "Invalid key_ops for public key."),
-            (["sign"], "Invalid key_ops for public key."),
+            ([1], "Invalid key_ops for Ed25519/448 public key."),
+            (["sign"], "Invalid key_ops for Ed25519/448 public key."),
         ],
     )
     def test_key_builder_from_pem_public_with_invalid_key_ops(self, invalid, msg):

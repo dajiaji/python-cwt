@@ -7,7 +7,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from cwt.algs.okp import OKPKey
 from cwt.cose_key import COSEKey
-from cwt.enums import COSEKeyCrvs, COSEKeyOps, COSEKeyParams, COSEKeyTypes
+from cwt.enums import COSEAlgs, COSEKeyCrvs, COSEKeyOps, COSEKeyParams, COSEKeyTypes
 from cwt.exceptions import VerifyError
 
 from .utils import key_path
@@ -22,8 +22,8 @@ class TestOKPKey:
         private_key = OKPKey(
             {
                 COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                COSEKeyParams.ALG: -8,
                 COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                COSEKeyParams.ALG: COSEAlgs.EDDSA,
                 COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                 COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
             }
@@ -31,8 +31,8 @@ class TestOKPKey:
         public_key = OKPKey(
             {
                 COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                COSEKeyParams.ALG: -8,
                 COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                COSEKeyParams.ALG: COSEAlgs.EDDSA,
                 COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
             }
         )
@@ -71,8 +71,8 @@ class TestOKPKey:
         private_key = OKPKey(
             {
                 COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                COSEKeyParams.ALG: -8,
                 COSEKeyParams.CRV: COSEKeyCrvs.ED448,
+                COSEKeyParams.ALG: COSEAlgs.EDDSA,
                 COSEKeyParams.X: b"\xdb\x98\xacQb(\xb1I\x0c\xdb)\xce<S\xf9\xb7\xb0[\xc0\xcd\x7f\x88T&(\x1aG\xbc\r!\x81zQ_\xac\xb2\xbb\xe9\xea\xe8\x10f\xa5-\xc9\xd06\x13\x95\x92(\x03\x8a\xb0\x81*\x80",
                 COSEKeyParams.D: b"\xbc\xe1\xe0\xdf\x1f@\\@Q\x0e|\xcc\xe5\xbe\xbcl\xb1l\xc2'\xb2\xc2\x92sL\xe91i\xf59~ \xf1\xc8\xaa0\xb9\xebg\x06\x08\xd0\xb2\x04\xd1Z\x874\xeb\xb5\xfd\xc6\xf6V\x13D\x9d",
             }
@@ -80,8 +80,8 @@ class TestOKPKey:
         public_key = OKPKey(
             {
                 COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                COSEKeyParams.ALG: -8,
                 COSEKeyParams.CRV: COSEKeyCrvs.ED448,
+                COSEKeyParams.ALG: COSEAlgs.EDDSA,
                 COSEKeyParams.X: b"\xdb\x98\xacQb(\xb1I\x0c\xdb)\xce<S\xf9\xb7\xb0[\xc0\xcd\x7f\x88T&(\x1aG\xbc\r!\x81zQ_\xac\xb2\xbb\xe9\xea\xe8\x10f\xa5-\xc9\xd06\x13\x95\x92(\x03\x8a\xb0\x81*\x80",
             }
         )
@@ -120,8 +120,8 @@ class TestOKPKey:
         private_key = OKPKey(
             {
                 COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                COSEKeyParams.ALG: -25,
                 COSEKeyParams.CRV: COSEKeyCrvs.X25519,
+                COSEKeyParams.ALG: COSEAlgs.ECDH_ES_HKDF_256,
                 COSEKeyParams.D: b"\xbe\xc2u\xa1~M6-\x08\x19\xdc\x06\x95\xd8\x9as\xbek\xf9Kf\xabrj\xe0\xb1\xaf\xe3\xc4?A\xce",
                 COSEKeyParams.X: b'\xcb|\t\xab{\x97<w\xa8\x08\xee\x05\xb9\xbb\xd3s\xb5\\\x06\xea\xa9\xbdJ\xd2\xbdN\x991\xb1\xc3L"',
             }
@@ -129,14 +129,14 @@ class TestOKPKey:
         public_key = OKPKey(
             {
                 COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                COSEKeyParams.ALG: -25,
                 COSEKeyParams.CRV: COSEKeyCrvs.X25519,
                 COSEKeyParams.X: b'\xcb|\t\xab{\x97<w\xa8\x08\xee\x05\xb9\xbb\xd3s\xb5\\\x06\xea\xa9\xbdJ\xd2\xbdN\x991\xb1\xc3L"',
+                COSEKeyParams.ALG: COSEAlgs.ECDH_ES_HKDF_256,
             }
         )
         assert private_key.kty == 1
         assert private_key.kid is None
-        assert private_key.alg == -25
+        assert private_key.alg == COSEAlgs.ECDH_ES_HKDF_256
         assert private_key.crv == 4
         assert len(private_key.key_ops) == 2
         assert 7 in private_key.key_ops
@@ -145,7 +145,7 @@ class TestOKPKey:
 
         assert public_key.kty == 1
         assert public_key.kid is None
-        assert public_key.alg == -25
+        assert public_key.alg == COSEAlgs.ECDH_ES_HKDF_256
         assert public_key.crv == 4
         assert len(public_key.key_ops) == 0
         assert public_key.base_iv is None
@@ -164,8 +164,8 @@ class TestOKPKey:
             OKPKey(
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                    COSEKeyParams.ALG: -25,
                     COSEKeyParams.CRV: COSEKeyCrvs.X25519,
+                    COSEKeyParams.ALG: COSEAlgs.ECDH_ES_HKDF_256,
                     COSEKeyParams.X: b'\xcb|\t\xab{\x97<w\xa8\x08\xee\x05\xb9\xbb\xd3s\xb5\\\x06\xea\xa9\xbdJ\xd2\xbdN\x991\xb1\xc3L"',
                 }
             )
@@ -176,8 +176,8 @@ class TestOKPKey:
         private_key = OKPKey(
             {
                 COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                COSEKeyParams.ALG: -25,
                 COSEKeyParams.CRV: COSEKeyCrvs.X448,
+                COSEKeyParams.ALG: COSEAlgs.ECDH_ES_HKDF_256,
                 COSEKeyParams.D: b"\xac\x92Q\x1by\xec\x87 \xadw\xd0\xa0^W|h\xd6\x81\xf5\x85\xcaGE\x0e\x8b\xbc\xe3\xee\x10)\x83\xd6\x07\xe1wA;A\xbc5\xc0\x057?\xee<}\x86\x9c&Uq \xe0W\x97",
                 COSEKeyParams.X: b'"B\xe6sI%\xbcC\x17bw\x870\xa0\x01\xe9\xe3\xe8\x86\xbc\x80\xc0\x03\xd5{jQI\xf7\xc8\r\x8e\x8d\xae7\x985eW\xe4\x9f\x9f\x1b\x83U\xd8\xea\x14\xef\xb0\xbc\xf0\r&\xbf\x12',
             }
@@ -185,14 +185,14 @@ class TestOKPKey:
         public_key = OKPKey(
             {
                 COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                COSEKeyParams.ALG: -25,
                 COSEKeyParams.CRV: COSEKeyCrvs.X448,
+                COSEKeyParams.ALG: COSEAlgs.ECDH_ES_HKDF_256,
                 COSEKeyParams.X: b'"B\xe6sI%\xbcC\x17bw\x870\xa0\x01\xe9\xe3\xe8\x86\xbc\x80\xc0\x03\xd5{jQI\xf7\xc8\r\x8e\x8d\xae7\x985eW\xe4\x9f\x9f\x1b\x83U\xd8\xea\x14\xef\xb0\xbc\xf0\r&\xbf\x12',
             }
         )
         assert private_key.kty == 1
         assert private_key.kid is None
-        assert private_key.alg == -25
+        assert private_key.alg == COSEAlgs.ECDH_ES_HKDF_256
         assert private_key.crv == 5
         assert len(private_key.key_ops) == 2
         assert 7 in private_key.key_ops
@@ -201,7 +201,7 @@ class TestOKPKey:
 
         assert public_key.kty == 1
         assert public_key.kid is None
-        assert public_key.alg == -25
+        assert public_key.alg == COSEAlgs.ECDH_ES_HKDF_256
         assert public_key.crv == 5
         assert len(public_key.key_ops) == 0
         assert public_key.base_iv is None
@@ -221,8 +221,8 @@ class TestOKPKey:
         public_key = OKPKey(
             {
                 COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                COSEKeyParams.ALG: -8,
                 COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                COSEKeyParams.ALG: COSEAlgs.EDDSA,
                 COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
             }
         )
@@ -235,8 +235,8 @@ class TestOKPKey:
         public_key = OKPKey(
             {
                 COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                COSEKeyParams.ALG: -8,
                 COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                COSEKeyParams.ALG: COSEAlgs.EDDSA,
                 COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
             }
         )
@@ -285,7 +285,7 @@ class TestOKPKey:
             1,
             [None, None, None],
             [None, None, None],
-            [128, cbor2.dumps({1: -25})],
+            [128, cbor2.dumps({1: COSEAlgs.ECDH_ES_HKDF_256})],
         ]
         try:
             private_key.derive_bytes(16, b"xxxxxxxx", info=cbor2.dumps(context), public_key=pub_key)
@@ -358,19 +358,19 @@ class TestOKPKey:
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
                     COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
-                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.ALG: -999,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                 },
-                "Unsupported or unknown alg(3) for OKP: -999.",
+                "Unsupported or unknown alg used with Ed25519/Ed448: -999.",
             ),
             (
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
                     COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
-                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.ALG: 35,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                 },
-                "Invalid key_ops for HPKE.",
+                "Unsupported or unknown alg used with Ed25519/Ed448: 35.",
             ),
             (
                 {
@@ -381,15 +381,27 @@ class TestOKPKey:
                 "x(-2) should be bytes(bstr).",
             ),
             (
-                {COSEKeyParams.KTY: COSEKeyTypes.OKP, COSEKeyParams.CRV: COSEKeyCrvs.ED25519, COSEKeyParams.X: {}},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.X: {},
+                },
                 "x(-2) should be bytes(bstr).",
             ),
             (
-                {COSEKeyParams.KTY: COSEKeyTypes.OKP, COSEKeyParams.CRV: COSEKeyCrvs.ED25519, COSEKeyParams.X: []},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.X: [],
+                },
                 "x(-2) should be bytes(bstr).",
             ),
             (
-                {COSEKeyParams.KTY: COSEKeyTypes.OKP, COSEKeyParams.X: b"invalid-x", COSEKeyParams.CRV: COSEKeyCrvs.ED25519},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.X: b"invalid-x",
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                },
                 "Invalid key parameter.",
             ),
             (
@@ -440,8 +452,8 @@ class TestOKPKey:
             (
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                    COSEKeyParams.ALG: -8,
                     COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.ALG: COSEAlgs.EDDSA,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [
@@ -454,8 +466,8 @@ class TestOKPKey:
             (
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                    COSEKeyParams.ALG: -8,
                     COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.ALG: COSEAlgs.EDDSA,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [
@@ -470,8 +482,8 @@ class TestOKPKey:
             (
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                    COSEKeyParams.ALG: -8,
                     COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.ALG: COSEAlgs.EDDSA,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     # COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [
@@ -484,8 +496,8 @@ class TestOKPKey:
             (
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                    COSEKeyParams.ALG: -25,
-                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.CRV: COSEKeyCrvs.X25519,
+                    COSEKeyParams.ALG: COSEAlgs.ECDH_ES_HKDF_256,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [
@@ -498,8 +510,8 @@ class TestOKPKey:
             (
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                    COSEKeyParams.ALG: -25,
-                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.CRV: COSEKeyCrvs.X25519,
+                    COSEKeyParams.ALG: COSEAlgs.ECDH_ES_HKDF_256,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [
@@ -512,8 +524,8 @@ class TestOKPKey:
             (
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                    COSEKeyParams.ALG: -25,
-                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.CRV: COSEKeyCrvs.X25519,
+                    COSEKeyParams.ALG: COSEAlgs.ECDH_ES_HKDF_256,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [
@@ -528,8 +540,8 @@ class TestOKPKey:
             (
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                    COSEKeyParams.ALG: -25,
                     COSEKeyParams.CRV: COSEKeyCrvs.X25519,
+                    COSEKeyParams.ALG: COSEAlgs.ECDH_ES_HKDF_256,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.KEY_OPS: [
                         COSEKeyOps.DERIVE_KEY,
@@ -541,8 +553,8 @@ class TestOKPKey:
             (
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                    COSEKeyParams.ALG: -25,
                     COSEKeyParams.CRV: COSEKeyCrvs.X25519,
+                    COSEKeyParams.ALG: COSEAlgs.ECDH_ES_HKDF_256,
                     COSEKeyParams.X: "invalid-type-x",
                     # COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [],
@@ -552,8 +564,8 @@ class TestOKPKey:
             (
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                    # COSEKeyParams.ALG: -25,
                     COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    # COSEKeyParams.ALG: COSEAlgs.ECDH_ES_HKDF_256,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [
@@ -563,13 +575,13 @@ class TestOKPKey:
                         COSEKeyOps.DERIVE_BITS,
                     ],
                 },
-                "OKP private key should not be used for both signing and key derivation.",
+                "Invalid key_ops for Ed25519/448 private key.",
             ),
             (
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                    # COSEKeyParams.ALG: -25,
                     COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    # COSEKeyParams.ALG: COSEAlgs.ECDH_ES_HKDF_256,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     # COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [
@@ -579,13 +591,13 @@ class TestOKPKey:
                         COSEKeyOps.DERIVE_BITS,
                     ],
                 },
-                "Invalid key_ops for public key.",
+                "Invalid key_ops for Ed25519/448 public key.",
             ),
             (
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                    # COSEKeyParams.ALG: -25,
                     COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    # COSEKeyParams.ALG: COSEAlgs.ECDH_ES_HKDF_256,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     # COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [
@@ -593,13 +605,13 @@ class TestOKPKey:
                         COSEKeyOps.DERIVE_BITS,
                     ],
                 },
-                "Invalid key_ops for public key.",
+                "Invalid key_ops for Ed25519/448 public key.",
             ),
             (
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                    COSEKeyParams.ALG: -25,
                     COSEKeyParams.CRV: COSEKeyCrvs.X25519,
+                    COSEKeyParams.ALG: COSEAlgs.ECDH_ES_HKDF_256,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     33: 123,
@@ -625,8 +637,8 @@ class TestOKPKey:
             (
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                    # COSEKeyParams.ALG: -25,
                     COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    # COSEKeyParams.ALG: COSEAlgs.ECDH_ES_HKDF_256,
                     # COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [
@@ -638,8 +650,8 @@ class TestOKPKey:
             (
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                    COSEKeyParams.ALG: -8,
                     COSEKeyParams.CRV: COSEKeyCrvs.X25519,
+                    COSEKeyParams.ALG: COSEAlgs.EDDSA,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                     # COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [
@@ -662,8 +674,8 @@ class TestOKPKey:
             (
                 {
                     COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                    # COSEKeyParams.ALG: -8,
-                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    COSEKeyParams.CRV: COSEKeyCrvs.X25519,
+                    # COSEKeyParams.ALG: COSEAlgs.EDDSA,
                     COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
                     COSEKeyParams.KEY_OPS: [
                         COSEKeyOps.DERIVE_KEY,
@@ -671,6 +683,50 @@ class TestOKPKey:
                     ],
                 },
                 "x(-2) not found.",
+            ),
+            (
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.CRV: COSEKeyCrvs.X25519,
+                    # COSEKeyParams.ALG: COSEAlgs.ECDH_ES_HKDF_256,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.SIGN],
+                },
+                "Invalid key_ops for X25519/448 private key.",
+            ),
+            (
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.CRV: COSEKeyCrvs.X25519,
+                    # COSEKeyParams.ALG: COSEAlgs.ECDH_ES_HKDF_256,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.DERIVE_KEY, COSEKeyOps.SIGN],
+                },
+                "Invalid key_ops for X25519/448 private key.",
+            ),
+            (
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                    # COSEKeyParams.ALG: COSEAlgs.EDDSA,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.DERIVE_KEY],
+                },
+                "Invalid key_ops for Ed25519/448 private key.",
+            ),
+            (
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.CRV: COSEKeyCrvs.X25519,
+                    # COSEKeyParams.ALG: COSEAlgs.ECDH_ES_HKDF_256,
+                    COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
+                    # COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.DERIVE_KEY],
+                },
+                "Invalid key_ops for X25519/448 public key.",
             ),
         ],
     )
@@ -684,8 +740,8 @@ class TestOKPKey:
         public_key = OKPKey(
             {
                 COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                COSEKeyParams.ALG: -8,
                 COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                COSEKeyParams.ALG: COSEAlgs.EDDSA,
                 COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
             }
         )
@@ -698,8 +754,8 @@ class TestOKPKey:
         private_key = OKPKey(
             {
                 COSEKeyParams.KTY: COSEKeyTypes.OKP,
-                COSEKeyParams.ALG: -8,
                 COSEKeyParams.CRV: COSEKeyCrvs.ED25519,
+                COSEKeyParams.ALG: COSEAlgs.EDDSA,
                 COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                 COSEKeyParams.D: b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9",
             }
@@ -757,3 +813,141 @@ class TestOKPKey:
         with pytest.raises(ValueError) as err:
             OKPKey.to_cose_key(private_key.key)
         assert "Unsupported or unknown key for OKP." in str(err.value)
+
+    @pytest.mark.parametrize(
+        "alg, key_ops",
+        [
+            (
+                "HPKE-Base-X25519-SHA256-AES128GCM",
+                ["deriveBits"],
+            ),
+            (
+                "HPKE-Base-X25519-SHA256-ChaCha20Poly1305",
+                ["deriveBits"],
+            ),
+        ],
+    )
+    def test_okp_key_private_with_alg_hpke(self, alg, key_ops):
+        try:
+            _ = COSEKey.from_jwk(
+                {
+                    "kty": "OKP",
+                    "alg": alg,
+                    "kid": "01",
+                    "crv": "X25519",
+                    "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
+                    "d": "vsJ1oX5NNi0IGdwGldiac75r-Utmq3Jq4LGv48Q_Qc4",
+                    "key_ops": key_ops,
+                }
+            )
+        except Exception:
+            pytest.fail("from_jwk should not fail.")
+
+    @pytest.mark.parametrize(
+        "alg, key_ops",
+        [
+            (
+                "HPKE-Base-X25519-SHA256-AES128GCM",
+                [],
+            ),
+            (
+                "HPKE-Base-X25519-SHA256-ChaCha20Poly1305",
+                [],
+            ),
+        ],
+    )
+    def test_okp_key_public_with_alg_hpke(self, alg, key_ops):
+        try:
+            _ = COSEKey.from_jwk(
+                {
+                    "kty": "OKP",
+                    "alg": alg,
+                    "kid": "01",
+                    "crv": "X25519",
+                    "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
+                    # "d": "vsJ1oX5NNi0IGdwGldiac75r-Utmq3Jq4LGv48Q_Qc4",
+                    "key_ops": key_ops,
+                }
+            )
+        except Exception:
+            pytest.fail("from_jwk should not fail.")
+
+    @pytest.mark.parametrize(
+        "invalid, msg",
+        [
+            (
+                0,
+                "key_ops should be list.",
+            ),
+            (
+                [],
+                "Invalid key_ops for HPKE private key.",
+            ),
+            (
+                ["sign"],
+                "Invalid key_ops for HPKE private key.",
+            ),
+            (
+                ["deriveKey"],
+                "Invalid key_ops for HPKE private key.",
+            ),
+            (
+                ["deriveKey", "deriveBits"],
+                "Invalid key_ops for HPKE private key.",
+            ),
+        ],
+    )
+    def test_okp_key_private_with_alg_hpke_and_invalid_key_ops(self, invalid, msg):
+        with pytest.raises(ValueError) as err:
+            COSEKey.from_jwk(
+                {
+                    "kty": "OKP",
+                    "alg": "HPKE-Base-X25519-SHA256-ChaCha20Poly1305",
+                    "kid": "01",
+                    "crv": "X25519",
+                    "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
+                    "d": "vsJ1oX5NNi0IGdwGldiac75r-Utmq3Jq4LGv48Q_Qc4",
+                    "key_ops": invalid,
+                }
+            )
+        assert msg in str(err.value)
+
+    @pytest.mark.parametrize(
+        "invalid, msg",
+        [
+            (
+                0,
+                "key_ops should be list.",
+            ),
+            (
+                ["sign"],
+                "Invalid key_ops for HPKE public key.",
+            ),
+            (
+                ["deriveKey"],
+                "Invalid key_ops for HPKE public key.",
+            ),
+            (
+                ["deriveBits"],
+                "Invalid key_ops for HPKE public key.",
+            ),
+            (
+                ["deriveKey", "deriveBits"],
+                "Invalid key_ops for HPKE public key.",
+            ),
+        ],
+    )
+    def test_okp_key_public_with_alg_hpke_and_invalid_key_ops(self, invalid, msg):
+        with pytest.raises(ValueError) as err:
+            COSEKey.from_jwk(
+                {
+                    "kty": "OKP",
+                    "alg": "HPKE-Base-X25519-SHA256-ChaCha20Poly1305",
+                    "kid": "01",
+                    "crv": "X25519",
+                    "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
+                    "key_ops": invalid,
+                }
+            )
+            pytest.fail("COSEKey.from_jwk should fail.")
+        assert msg in str(err.value)
