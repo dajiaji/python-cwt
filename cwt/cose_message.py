@@ -211,14 +211,25 @@ class COSEMessage(CBORProcessor):
             payload = detached_payload
 
         if abbreviated:
-            to_be_signed = ["CounterSignature0V2", self._protected, aad, payload]
+            to_be_signed = [
+                "CounterSignature0V2" if len(self._other_fields) > 0 else "CounterSignature0",
+                self._protected,
+                aad,
+                payload,
+            ]
             for other_field in self._other_fields:
                 to_be_signed.append(other_field)
             signer.sign(self._dumps(to_be_signed))
             self._unprotected[12] = signer.signature
             return self
 
-        to_be_signed = ["CounterSignatureV2", self._protected, signer.protected, aad, payload]
+        to_be_signed = [
+            "CounterSignatureV2" if len(self._other_fields) > 0 else "CounterSignature",
+            self._protected,
+            signer.protected,
+            aad,
+            payload,
+        ]
         for other_field in self._other_fields:
             to_be_signed.append(other_field)
         signer.sign(self._dumps(to_be_signed))
@@ -261,7 +272,12 @@ class COSEMessage(CBORProcessor):
         err: Exception = ValueError("Countersignature not found.")
         acs = self._unprotected.get(12, None)
         if acs:
-            to_be_signed = ["CounterSignature0V2", self._protected, aad, payload]
+            to_be_signed = [
+                "CounterSignature0V2" if len(self._other_fields) > 0 else "CounterSignature0",
+                self._protected,
+                aad,
+                payload,
+            ]
             for other_field in self._other_fields:
                 to_be_signed.append(other_field)
             try:
@@ -273,7 +289,13 @@ class COSEMessage(CBORProcessor):
         cs = self._unprotected.get(11, None)
         if not cs:
             raise err
-        to_be_signed = ["CounterSignatureV2", self._protected, b"", aad, payload]
+        to_be_signed = [
+            "CounterSignatureV2" if len(self._other_fields) > 0 else "CounterSignature",
+            self._protected,
+            b"",
+            aad,
+            payload,
+        ]
         for other_field in self._other_fields:
             to_be_signed.append(other_field)
         if isinstance(cs[0], bytes):
