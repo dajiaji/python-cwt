@@ -4,6 +4,16 @@ Changes
 Unreleased
 ----------
 
+Version 2.7.2
+-------------
+
+Released 2023-11-12
+
+- Fix context string for countersignature. `#471 <https://github.com/dajiaji/python-cwt/pull/471>`__
+- Fix key_ops validation. `#470 <https://github.com/dajiaji/python-cwt/pull/471>`__
+- Update dev dependencies.
+    - Bump sphinx-autodoc-typehints to 1.25.0. `#469 <https://github.com/dajiaji/python-cwt/pull/469>`__
+
 Version 2.7.1
 -------------
 
