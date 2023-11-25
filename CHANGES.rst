@@ -4,6 +4,20 @@ Changes
 Unreleased
 ----------
 
+Version 2.7.3
+-------------
+
+Released 2023-11-25
+
+- Fix readthedocs error. `#480 <https://github.com/dajiaji/python-cwt/pull/480>`__
+- Tighten the range of pyca/cryptography version. `#476 <https://github.com/dajiaji/python-cwt/pull/476>`__
+- Add support for Python 3.12 on tox. `#475 <https://github.com/dajiaji/python-cwt/pull/475>`__
+- Update dev dependencies.
+    - Bump actions/{checkout, setup-python} to v4. `#477 <https://github.com/dajiaji/python-cwt/pull/477>`__
+    - Bump pre-commit/mirrors-mypy to 1.7.0. `#474 <https://github.com/dajiaji/python-cwt/pull/474>`__
+    - Bump pre-commit/black to 23.11.0. `#474 <https://github.com/dajiaji/python-cwt/pull/474>`__
+    - Bump sphinx-autodoc-typehints to 1.25.2. `#473 <https://github.com/dajiaji/python-cwt/pull/473>`__
+
 Version 2.7.2
 -------------
 
