@@ -1291,4 +1291,4 @@ docs = ["Sphinx", "sphinx-autodoc-typehints", "sphinx-rtd-theme"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "09c5496c9e92bddedb8928d1d686e8e62d45bbe15ca3473c2356ed5bc8a83a9e"
+content-hash = "3d601e4d7649bff4998d047b3d894b5b925b6a6022a085172eea507ad94aa706"
