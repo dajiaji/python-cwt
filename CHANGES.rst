@@ -4,6 +4,27 @@ Changes
 Unreleased
 ----------
 
+Version 2.7.4
+-------------
+
+Released 2024-01-27
+
+- Update dependencies.
+    - Bump cryptography to 42.0.1. `#498 <https://github.com/dajiaji/python-cwt/pull/498>`__
+    - Bump pyhpke to 0.5.3. `#498 <https://github.com/dajiaji/python-cwt/pull/498>`__
+    - Bump cbor2 to 5.6.0. `#497 <https://github.com/dajiaji/python-cwt/pull/497>`__
+    - Bump jinja2 to 3.1.3. `#494 <https://github.com/dajiaji/python-cwt/pull/494>`__
+- Update dev dependencies.
+    - Bump tox to 4.12.1. `#496 <https://github.com/dajiaji/python-cwt/pull/496>`__
+    - Bump pre-commit/flake8 to 7.0.0. `#493 <https://github.com/dajiaji/python-cwt/pull/493>`__
+    - Bump pytest to 7.4.4. `#492 <https://github.com/dajiaji/python-cwt/pull/492>`__
+    - Bump pre-commit/black to 23.12.1. `#491 <https://github.com/dajiaji/python-cwt/pull/491>`__
+    - Bump pre-commit/mirrors-mypy to 1.8.0. `#491 <https://github.com/dajiaji/python-cwt/pull/491>`__
+    - Bump pre-commit/isort to 5.13.2. `#390 <https://github.com/dajiaji/python-cwt/pull/390>`__
+    - Update Sphinx version to upper than 7.1. `#388 <https://github.com/dajiaji/python-cwt/pull/388>`__
+    - Update sphinx-autodoc-typehints version to upper than 1.25.2. `#388 <https://github.com/dajiaji/python-cwt/pull/388>`__
+    - Bump sphinx-rtd-theme to 2.0.0. `#386 <https://github.com/dajiaji/python-cwt/pull/386>`__
+
 Version 2.7.3
 -------------
 

@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "cwt"
-version = "2.7.3"
+version = "2.7.4"
 description = "A Python implementation of CWT/COSE."
 authors = ["Ajitomi Daisuke <dajiaji@gmail.com>"]
 license = "MIT"
@@ -29,11 +29,11 @@ python = "^3.8"
 asn1crypto = "^1.4.0"
 cbor2 = "^5.4.2"
 certvalidator = "^0.11.1"
-cryptography = ">=41.0.7,<42"
+cryptography = ">=42.0.1,<43"
 Sphinx = {version = ">=7.1,<8", optional = true, extras = ["docs"]}
 sphinx-autodoc-typehints = {version = "^1.25.2", optional = true, extras = ["docs"]}
 sphinx-rtd-theme = {version = ">=1,<3", optional = true, extras = ["docs"]}
-pyhpke = ">=0.5.2,<1.0.0"
+pyhpke = ">=0.5.3,<1.0.0"
 
 [tool.poetry.extras]
 docs = [
