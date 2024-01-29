@@ -1,6 +1,7 @@
 """
 Tests for RSAKey.
 """
+
 import pytest
 
 from cwt.algs.rsa import RSAKey

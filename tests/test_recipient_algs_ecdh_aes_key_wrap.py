@@ -1,6 +1,7 @@
 """
 Tests for Direct.
 """
+
 import pytest
 
 from cwt.cose import COSE

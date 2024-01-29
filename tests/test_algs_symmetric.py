@@ -1,6 +1,7 @@
 """
 Tests for SymmetricKey.
 """
+
 from secrets import token_bytes
 
 import pytest

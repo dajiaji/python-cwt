@@ -1,6 +1,7 @@
 """
 Tests for Direct.
 """
+
 from secrets import token_bytes
 
 import cbor2

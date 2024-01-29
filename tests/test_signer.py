@@ -1,6 +1,7 @@
 """
 Tests for Signer.
 """
+
 import cbor2
 import pytest
 

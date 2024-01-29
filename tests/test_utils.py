@@ -1,6 +1,7 @@
 """
 Tests for utils
 """
+
 import pytest
 
 from cwt.utils import base64url_decode, i2osp, to_cis, uint_to_bytes
