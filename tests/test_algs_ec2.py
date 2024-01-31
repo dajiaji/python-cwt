@@ -1,6 +1,7 @@
 """
 Tests for EC2Key.
 """
+
 import cbor2
 import pytest
 

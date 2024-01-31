@@ -1,6 +1,7 @@
 """
 Tests for RawKey.
 """
+
 import pytest
 
 from cwt.algs.raw import RawKey
