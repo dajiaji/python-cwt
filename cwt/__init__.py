@@ -27,7 +27,7 @@ from .helpers.hcert import load_pem_hcert_dsc
 from .recipient import Recipient
 from .signer import Signer
 
-__version__ = "2.7.4"
+__version__ = "2.7.5"
 __title__ = "cwt"
 __description__ = "A Python implementation of CWT/COSE"
 __url__ = "https://python-cwt.readthedocs.io"

@@ -4,6 +4,34 @@ Changes
 Unreleased
 ----------
 
+Version 2.7.5
+-------------
+
+Released 2024-08-03
+
+- Add Python 3.12 to CI. `#499 <https://github.com/dajiaji/python-cwt/pull/499>`__
+- Update dependencies.
+    - Bump cbor2 to 5.6.4. `#533 <https://github.com/dajiaji/python-cwt/pull/533>`__
+    - Bump cryptography to 42.0.5. `#512 <https://github.com/dajiaji/python-cwt/pull/512>`__
+- Update dev dependencies.
+    - Bump codecov/codecov-action to v4. `#541 <https://github.com/dajiaji/python-cwt/pull/541>`__
+    - Bump setuptools to 70.0.0. `#538 <https://github.com/dajiaji/python-cwt/pull/538>`__
+    - Bump zipp to 3.19.1. `#537 <https://github.com/dajiaji/python-cwt/pull/537>`__
+    - Bump certifi to 2024.7.4. `#536 <https://github.com/dajiaji/python-cwt/pull/536>`__
+    - Bump tox to 4.16.0. `#535 <https://github.com/dajiaji/python-cwt/pull/535>`__
+    - Bump urllib3 to 2.2.2. `#534 <https://github.com/dajiaji/python-cwt/pull/534>`__
+    - Bump requests to 2.32.0. `#530 <https://github.com/dajiaji/python-cwt/pull/530>`__
+    - Bump jinja2 to 3.1.4. `#528 <https://github.com/dajiaji/python-cwt/pull/528>`__
+    - Bump idna to 3.7. `#525 <https://github.com/dajiaji/python-cwt/pull/525>`__
+    - Bump sphinx-autodoc-typehints to 2.0.1. `#524 <https://github.com/dajiaji/python-cwt/pull/524>`__
+    - Bump blacken-docs to 1.18.0. `#522 <https://github.com/dajiaji/python-cwt/pull/522>`__
+    - Bump pre-commit/black to 24.4.2. `#522 <https://github.com/dajiaji/python-cwt/pull/522>`__
+    - Bump pre-commit/flake8 to 7.1.0. `#522 <https://github.com/dajiaji/python-cwt/pull/522>`__
+    - Bump pre-commit/mirrors-mypy to 1.10.0. `#522 <https://github.com/dajiaji/python-cwt/pull/522>`__
+    - Bump pre-commit/pre-commit-hooks to 4.6.0. `#522 <https://github.com/dajiaji/python-cwt/pull/522>`__
+    - Bump pytest-cov to 5.0.0. `#519 <https://github.com/dajiaji/python-cwt/pull/519>`__
+    - Bump pytest to 8.1.1. `#516 <https://github.com/dajiaji/python-cwt/pull/516>`__
+
 Version 2.7.4
 -------------
 
