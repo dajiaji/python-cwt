@@ -126,7 +126,7 @@ test = ["coverage (>=7)", "hypothesis", "pytest"]
 name = "certifi"
 version = "2024.7.4"
 description = "Python package for providing Mozilla's CA Bundle."
-optional = false
+optional = true
 python-versions = ">=3.6"
 files = [
     {file = "certifi-2024.7.4-py3-none-any.whl", hash = "sha256:c198e21b1289c2ab85ee4e67bb4b4ef3ead0892059901a8d5b622f24a1101e90"},
@@ -238,7 +238,7 @@ files = [
 name = "charset-normalizer"
 version = "3.3.2"
 description = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
-optional = false
+optional = true
 python-versions = ">=3.7.0"
 files = [
     {file = "charset-normalizer-3.3.2.tar.gz", hash = "sha256:f30c3cb33b24454a82faecaf01b19c18562b1e89558fb6c56de4d9118a032fd5"},
@@ -552,7 +552,7 @@ license = ["ukkonen"]
 name = "idna"
 version = "3.7"
 description = "Internationalized Domain Names in Applications (IDNA)"
-optional = false
+optional = true
 python-versions = ">=3.5"
 files = [
     {file = "idna-3.7-py3-none-any.whl", hash = "sha256:82fee1fc78add43492d3a1898bfa6d8a904cc97d8427f683ed8e798d07761aa0"},
@@ -604,7 +604,7 @@ files = [
 name = "jinja2"
 version = "3.1.4"
 description = "A very fast and expressive template engine."
-optional = false
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "jinja2-3.1.4-py3-none-any.whl", hash = "sha256:bc5dd2abb727a5319567b7a813e6a2e7318c39f4f487cfe6c89c6f9c7d25197d"},
@@ -621,7 +621,7 @@ i18n = ["Babel (>=2.7)"]
 name = "markupsafe"
 version = "2.1.4"
 description = "Safely add untrusted strings to HTML/XML markup."
-optional = false
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "MarkupSafe-2.1.4-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:de8153a7aae3835484ac168a9a9bdaa0c5eee4e0bc595503c95d53b942879c84"},
@@ -802,17 +802,17 @@ windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "pyhpke"
-version = "0.5.3"
+version = "0.5.4"
 description = "A Python implementation of HPKE."
 optional = false
-python-versions = ">=3.8,<4.0"
+python-versions = "<4.0,>=3.8"
 files = [
-    {file = "pyhpke-0.5.3-py3-none-any.whl", hash = "sha256:31e636febbe633a9dd99d1ad3c869a4df88d1ddf8ebd50b790d8512a08a2a2f8"},
-    {file = "pyhpke-0.5.3.tar.gz", hash = "sha256:da90f014c96ddfd5d4b77baa392f41dbe6950bbedcdcb5c26548831616192134"},
+    {file = "pyhpke-0.5.4-py3-none-any.whl", hash = "sha256:429ed8339df7a1a51de6493a638a7dd2831c1a21065ffa8344d8851df3918826"},
+    {file = "pyhpke-0.5.4.tar.gz", hash = "sha256:738ce16d5be68766f9d8726ae62328abc8c7f09b9935990dfa1b7f5e20d7e7cc"},
 ]
 
 [package.dependencies]
-cryptography = ">=42.0.1,<43"
+cryptography = ">=42.0.1,<44"
 
 [package.extras]
 docs = ["Sphinx[docs] (>=7.1,<8)", "sphinx-autodoc-typehints[docs] (>=1.25.2)", "sphinx-rtd-theme[docs] (>=1.2.1)"]
@@ -951,7 +951,7 @@ files = [
 name = "requests"
 version = "2.32.0"
 description = "Python HTTP for Humans."
-optional = false
+optional = true
 python-versions = ">=3.8"
 files = [
     {file = "requests-2.32.0-py3-none-any.whl", hash = "sha256:f2c3881dddb70d056c5bd7600a4fae312b2a300e39be6a118d30b90bd27262b5"},
@@ -1297,7 +1297,7 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess
 name = "zipp"
 version = "3.19.1"
 description = "Backport of pathlib-compatible object wrapper for zip files"
-optional = false
+optional = true
 python-versions = ">=3.8"
 files = [
     {file = "zipp-3.19.1-py3-none-any.whl", hash = "sha256:2828e64edb5386ea6a52e7ba7cdb17bb30a73a858f5eb6eb93d8d36f5ea26091"},
