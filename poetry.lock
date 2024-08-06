@@ -802,17 +802,17 @@ windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "pyhpke"
-version = "0.5.3"
+version = "0.5.4"
 description = "A Python implementation of HPKE."
 optional = false
-python-versions = ">=3.8,<4.0"
+python-versions = "<4.0,>=3.8"
 files = [
-    {file = "pyhpke-0.5.3-py3-none-any.whl", hash = "sha256:31e636febbe633a9dd99d1ad3c869a4df88d1ddf8ebd50b790d8512a08a2a2f8"},
-    {file = "pyhpke-0.5.3.tar.gz", hash = "sha256:da90f014c96ddfd5d4b77baa392f41dbe6950bbedcdcb5c26548831616192134"},
+    {file = "pyhpke-0.5.4-py3-none-any.whl", hash = "sha256:429ed8339df7a1a51de6493a638a7dd2831c1a21065ffa8344d8851df3918826"},
+    {file = "pyhpke-0.5.4.tar.gz", hash = "sha256:738ce16d5be68766f9d8726ae62328abc8c7f09b9935990dfa1b7f5e20d7e7cc"},
 ]
 
 [package.dependencies]
-cryptography = ">=42.0.1,<43"
+cryptography = ">=42.0.1,<44"
 
 [package.extras]
 docs = ["Sphinx[docs] (>=7.1,<8)", "sphinx-autodoc-typehints[docs] (>=1.25.2)", "sphinx-rtd-theme[docs] (>=1.2.1)"]
