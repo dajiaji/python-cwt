@@ -133,6 +133,7 @@ class COSE(CBORProcessor):
         signers: List[Signer] = [],
         external_aad: bytes = b"",
         out: str = "",
+        enable_non_aead: bool = False,
     ) -> bytes:
         """
         Encodes COSE message with MAC, signing and encryption.
@@ -152,6 +153,13 @@ class COSE(CBORProcessor):
                 data as `cbor2 <https://cbor2.readthedocs.io/en/stable/>`_'s
                 ``CBORTag`` object. If any other value is specified, it will return
                 encoded data as bytes.
+            enable_non_aead (bool): Enable non-AEAD content ecnryption algorithms
+                (False = disabled by default). Before enable non-AEAD ciphers,
+                read and understand Security considerations of RFC 9459 carefully.
+                Since non-AEAD ciphers DO NOT provide neither authentication nor integrity
+                of decrypted message, make sure to deliver the encoded COSE message
+                in conjunction with an authentication and integrity mechanisms,
+                such as a digital signature.
         Returns:
             Union[bytes, CBORTag]: A byte string of the encoded COSE or a
                 cbor2.CBORTag object.
@@ -159,7 +167,7 @@ class COSE(CBORProcessor):
             ValueError: Invalid arguments.
             EncodeError: Failed to encode data.
         """
-        p, u = self._encode_headers(key, protected, unprotected)
+        p, u = self._encode_headers(key, protected, unprotected, enable_non_aead)
         typ = self._validate_cose_message(key, p, u, recipients, signers)
         if typ == 0:
             return self._encode_and_encrypt(payload, key, p, u, recipients, external_aad, out)
@@ -177,6 +185,7 @@ class COSE(CBORProcessor):
         recipients: List[RecipientInterface] = [],
         external_aad: bytes = b"",
         out: str = "",
+        enable_non_aead: bool = False,
     ) -> bytes:
         """
         Encodes data with encryption.
@@ -194,6 +203,13 @@ class COSE(CBORProcessor):
                 data as `cbor2 <https://cbor2.readthedocs.io/en/stable/>`_'s
                 ``CBORTag`` object. If any other value is specified, it will return
                 encoded data as bytes.
+            enable_non_aead (bool): Enable non-AEAD content ecnryption algorithms
+                (False = disabled by default). Before enable non-AEAD ciphers,
+                read and understand Security considerations of RFC 9459 carefully.
+                Since non-AEAD ciphers DO NOT provide neither authentication nor integrity
+                of decrypted message, make sure to deliver the encoded COSE message
+                in conjunction with an authentication and integrity mechanisms,
+                such as a digital signature.
         Returns:
             Union[bytes, CBORTag]: A byte string of the encoded COSE or a
                 cbor2.CBORTag object.
@@ -201,7 +217,7 @@ class COSE(CBORProcessor):
             ValueError: Invalid arguments.
             EncodeError: Failed to encode data.
         """
-        p, u = self._encode_headers(key, protected, unprotected)
+        p, u = self._encode_headers(key, protected, unprotected, enable_non_aead)
         typ = self._validate_cose_message(key, p, u, recipients, [])
         if typ != 0:
             raise ValueError("The COSE message is not suitable for COSE Encrypt0/Encrypt.")
@@ -237,7 +253,7 @@ class COSE(CBORProcessor):
             ValueError: Invalid arguments.
             EncodeError: Failed to encode data.
         """
-        p, u = self._encode_headers(key, protected, unprotected)
+        p, u = self._encode_headers(key, protected, unprotected, False)
         typ = self._validate_cose_message(key, p, u, recipients, [])
         if typ != 1:
             raise ValueError("The COSE message is not suitable for COSE MAC0/MAC.")
@@ -279,7 +295,7 @@ class COSE(CBORProcessor):
             ValueError: Invalid arguments.
             EncodeError: Failed to encode data.
         """
-        p, u = self._encode_headers(key, protected, unprotected)
+        p, u = self._encode_headers(key, protected, unprotected, False)
         typ = self._validate_cose_message(key, p, u, [], signers)
         if typ != 2:
             raise ValueError("The COSE message is not suitable for COSE Sign0/Sign.")
@@ -292,6 +308,7 @@ class COSE(CBORProcessor):
         context: Optional[Union[Dict[str, Any], List[Any]]] = None,
         external_aad: bytes = b"",
         detached_payload: Optional[bytes] = None,
+        enable_non_aead: bool = False,
     ) -> bytes:
         """
         Verifies and decodes COSE data, and returns only payload.
@@ -306,6 +323,11 @@ class COSE(CBORProcessor):
             external_aad(bytes): External additional authenticated data supplied by
                 application.
             detached_payload (Optional[bytes]): The detached payload that should be verified with data.
+            enable_non_aead (bool): Enable non-AEAD content ecnryption algorithms
+                (False = disabled by default). Before enable non-AEAD ciphers,
+                read and understand Security considerations of RFC 9459 carefully.
+                Since non-AEAD ciphers DO NOT provide neither authentication nor integrity
+                of decrypted message, make sure to validate them outside of this library.
         Returns:
             bytes: A byte string of decoded payload.
         Raises:
@@ -313,7 +335,7 @@ class COSE(CBORProcessor):
             DecodeError: Failed to decode data.
             VerifyError: Failed to verify data.
         """
-        _, _, res = self.decode_with_headers(data, keys, context, external_aad, detached_payload)
+        _, _, res = self.decode_with_headers(data, keys, context, external_aad, detached_payload, enable_non_aead)
         return res
 
     def decode_with_headers(
@@ -323,6 +345,7 @@ class COSE(CBORProcessor):
         context: Optional[Union[Dict[str, Any], List[Any]]] = None,
         external_aad: bytes = b"",
         detached_payload: Optional[bytes] = None,
+        enable_non_aead: bool = False,
     ) -> Tuple[Dict[int, Any], Dict[int, Any], bytes]:
         """
         Verifies and decodes COSE data, and returns protected headers, unprotected headers and payload.
@@ -337,6 +360,11 @@ class COSE(CBORProcessor):
             external_aad(bytes): External additional authenticated data supplied by
                 application.
             detached_payload (Optional[bytes]): The detached payload that should be verified with data.
+            enable_non_aead (bool): Enable non-AEAD content ecnryption algorithms
+                (False = disabled by default). Before enable non-AEAD ciphers,
+                read and understand Security considerations of RFC 9459 carefully.
+                Since non-AEAD ciphers DO NOT provide neither authentication nor integrity
+                of decrypted message, make sure to validate them outside of this library.
         Returns:
             Tuple[Dict[int, Any], Dict[int, Any], bytes]: A dictionary data of decoded protected headers, and a dictionary data of unprotected headers, and a byte string of decoded payload.
         Raises:
@@ -395,6 +423,8 @@ class COSE(CBORProcessor):
         #     raise ValueError("unprotected header should be dict.")
         p, u = self._decode_headers(data.value[0], data.value[1])
         alg = p[1] if 1 in p else u.get(1, 0)
+        if enable_non_aead is False and alg in COSE_ALGORITHMS_CEK_NON_AEAD.values():
+            raise ValueError(f"Deprecated non-AEAD algorithm: {alg}.")
 
         # Local variable `protected` is byte encoded protected header
         # Sender is allowed to encode empty protected header into a bstr-wrapped zero-length map << {} >> (0x40A0)
@@ -549,6 +579,7 @@ class COSE(CBORProcessor):
         key: Optional[COSEKeyInterface],
         protected: Optional[dict],
         unprotected: Optional[dict],
+        enable_non_aead: bool,
     ) -> Tuple[Dict[int, Any], Dict[int, Any]]:
         p = to_cose_header(protected)
         u = to_cose_header(unprotected)
@@ -564,8 +595,11 @@ class COSE(CBORProcessor):
         # Check the protected header is empty if the algorithm is non AEAD (AES-CBC or AES-CTR)
         # because section 4 of RFC9459 says "The 'protected' header MUST be a zero-length byte string."
         alg = p[1] if 1 in p else u.get(1, 0)
-        if alg in COSE_ALGORITHMS_CEK_NON_AEAD.values() and len(p) > 0:
-            raise ValueError("protected header MUST be zero-length")
+        if alg in COSE_ALGORITHMS_CEK_NON_AEAD.values():
+            if enable_non_aead is False:
+                raise ValueError(f"Deprecated non-AEAD algorithm: {alg}.")
+            if len(p) > 0:
+                raise ValueError("protected header MUST be zero-length")
         return p, u
 
     def _decode_headers(self, protected: Any, unprotected: Any) -> Tuple[Dict[int, Any], Dict[int, Any]]:
