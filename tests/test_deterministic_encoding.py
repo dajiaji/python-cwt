@@ -1,13 +1,14 @@
 """
 Tests for Core Deterministic Encoding.
 """
-import cbor2
 
+import cbor2
 import pytest
 
 from cwt import COSE, COSEKey
-from cwt.const import COSE_ALGORITHMS_SIGNATURE, COSE_ALGORITHMS_MAC
+from cwt.const import COSE_ALGORITHMS_MAC, COSE_ALGORITHMS_SIGNATURE
 from cwt.utils import sort_keys_for_deterministic_encoding
+
 
 class TestDeterministicEncoding:
     """
@@ -16,18 +17,18 @@ class TestDeterministicEncoding:
 
     def test_deterministically_sorted_dict(self):
         expected = {}
-        expected[0] = 0 # Reserved
-        expected[1] = 0 # alg
-        expected[4] = 0 # kid
-        expected[5] = 0 # IV
-        expected[7] = 0 # counter signature
-        expected[11] = 0 # Countersignature version 2
-        expected[12] = 0 # Countersignature0 version 2
-        expected[15] = 0 # CWT Claims
-        expected[33] = 0 # x5chain
-        expected[-1] = 0 # (max of COSE Header Algorithm Parameters resistry)
-        expected[-65536] = 0 # (min of COSE Header Algorithm Parameters resistry)
-        expected[-65537] = 0 # (max of Reserved for Private Use)
+        expected[0] = 0  # Reserved
+        expected[1] = 0  # alg
+        expected[4] = 0  # kid
+        expected[5] = 0  # IV
+        expected[7] = 0  # counter signature
+        expected[11] = 0  # Countersignature version 2
+        expected[12] = 0  # Countersignature0 version 2
+        expected[15] = 0  # CWT Claims
+        expected[33] = 0  # x5chain
+        expected[-1] = 0  # (max of COSE Header Algorithm Parameters resistry)
+        expected[-65536] = 0  # (min of COSE Header Algorithm Parameters resistry)
+        expected[-65537] = 0  # (max of Reserved for Private Use)
 
         d = {}
         d[4] = 0
@@ -59,24 +60,23 @@ class TestDeterministicEncoding:
 
         # create unsorted protected header
         p = {}
-        p["kid"] = sign_jwk["kid"] # 4
-        p["alg"] = sign_jwk["alg"] # 1
+        p["kid"] = sign_jwk["kid"]  # 4
+        p["alg"] = sign_jwk["alg"]  # 1
 
         ctx = COSE.new(deterministic_header=True)
         encoded = ctx.encode_and_sign(
-            payload=b'a',
+            payload=b"a",
             key=sign_key,
             protected=p,
         )
         encoded_p = cbor2.loads(encoded).value[0]
 
         sorted_p = {}
-        sorted_p[1] = COSE_ALGORITHMS_SIGNATURE[sign_jwk["alg"]] # -7 for ES256
-        sorted_p[4] = str.encode(sign_jwk["kid"]) # b'11'
+        sorted_p[1] = COSE_ALGORITHMS_SIGNATURE[sign_jwk["alg"]]  # -7 for ES256
+        sorted_p[4] = str.encode(sign_jwk["kid"])  # b'11'
         expected_p = cbor2.dumps(sorted_p)
 
         assert expected_p == encoded_p
-
 
     @pytest.mark.parametrize(
         "alg",
@@ -92,12 +92,12 @@ class TestDeterministicEncoding:
 
         # create unsorted protected header
         p = {}
-        p["kid"] = "01" # 4
-        p["alg"] = alg # 1
+        p["kid"] = "01"  # 4
+        p["alg"] = alg  # 1
 
         ctx = COSE.new(deterministic_header=True)
         encoded = ctx.encode_and_mac(
-            payload=b'a',
+            payload=b"a",
             key=mac_key,
             protected=p,
         )
