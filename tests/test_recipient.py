@@ -840,6 +840,13 @@ class TestRecipients:
             enable_non_aead=True,
         )
 
+        # The recipient side (must fail):
+        recipient = COSE.new()
+        with pytest.raises(ValueError) as err:
+            _ = recipient.decode(encoded, keys=[kw_key])  # the option enable_non_aead=False by default
+            pytest.fail("decode() should fail for non-AEAD without enable_non_aead=True.")
+        assert f"Deprecated non-AEAD algorithm: {enc_key._alg}." == str(err.value)
+
         # The recipient side:
         recipient = COSE.new()
         assert b"Hello world!" == recipient.decode(encoded, keys=[kw_key], enable_non_aead=True)
