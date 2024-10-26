@@ -4,6 +4,31 @@ Changes
 Unreleased
 ----------
 
+Version 2.8.0
+-------------
+
+Released 2024-10-26
+
+- Add support for Python 3.13. `#577 <https://github.com/dajiaji/python-cwt/pull/577>`__
+- Drop support for Python 3.8. `#576 <https://github.com/dajiaji/python-cwt/pull/576>`__
+- Add enable_non_aead=False option for encode & decode. `#575 <https://github.com/dajiaji/python-cwt/pull/575>`__
+- Add option for Deterministic encoded protected and unprotected headers. `#574 <https://github.com/dajiaji/python-cwt/pull/574>`__
+- Fix link on README. `#552 <https://github.com/dajiaji/python-cwt/pull/552>`__
+- Rename github actions files. `#548 <https://github.com/dajiaji/python-cwt/pull/548>`__
+- Fix error on populating codecov token. `#547 <https://github.com/dajiaji/python-cwt/pull/547>`__
+- Update dependencies.
+    - Bump cryptography to 43.0.3. `#569 <https://github.com/dajiaji/python-cwt/pull/569>`__
+    - Bump cbor2 to 5.6.5. `#566 <https://github.com/dajiaji/python-cwt/pull/566>`__
+    - Bump pyhpke to 0.5.4. `#543 <https://github.com/dajiaji/python-cwt/pull/543>`__
+- Update dev dependencies.
+    - Bump tox to 4.23.2. `#535 <https://github.com/dajiaji/python-cwt/pull/572>`__
+    - Bump pre-commit/black to 24.10.0. `#563 <https://github.com/dajiaji/python-cwt/pull/563>`__
+    - Bump pre-commit/blacken-docs to 1.19.0. `#563 <https://github.com/dajiaji/python-cwt/pull/563>`__
+    - Bump pre-commit/pre-commit-hooks to 5.0.0. `#563 <https://github.com/dajiaji/python-cwt/pull/563>`__
+    - Bump pytest to 8.3.3. `#557 <https://github.com/dajiaji/python-cwt/pull/557>`__
+    - Bump pre-commit/mirrors-mypy to 1.11.2. `#554 <https://github.com/dajiaji/python-cwt/pull/554>`__
+    - Bump pre-commit/flake8 to 7.1.1. `#545 <https://github.com/dajiaji/python-cwt/pull/545>`__
+
 Version 2.7.5
 -------------
 
