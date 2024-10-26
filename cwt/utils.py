@@ -344,3 +344,7 @@ def to_recipient_context(alg: int, u: Dict[int, Any], context: Union[List[Any], 
             else:
                 ctx[i].append(v)
     return ctx
+
+
+def sort_keys_for_deterministic_encoding(d: Dict[int, Any]) -> Dict[int, Any]:
+    return {k: v for k, v in sorted(d.items(), key=lambda kv: cbor2.dumps(kv[0]))}

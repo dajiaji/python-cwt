@@ -21,7 +21,7 @@ from .recipient_algs.hpke import HPKE
 from .recipient_interface import RecipientInterface
 from .recipients import Recipients
 from .signer import Signer
-from .utils import to_cose_header
+from .utils import sort_keys_for_deterministic_encoding, to_cose_header
 
 
 class COSE(CBORProcessor):
@@ -36,6 +36,7 @@ class COSE(CBORProcessor):
         kid_auto_inclusion: bool = False,
         verify_kid: bool = False,
         ca_certs: str = "",
+        deterministic_header: bool = False,
     ):
         if not isinstance(alg_auto_inclusion, bool):
             raise ValueError("alg_auto_inclusion should be bool.")
@@ -58,6 +59,10 @@ class COSE(CBORProcessor):
                 for _, _, der_bytes in pem.unarmor(f.read(), multiple=True):
                     self._ca_certs.append(der_bytes)
 
+        if not isinstance(deterministic_header, bool):
+            raise ValueError("deterministic_header should be bool.")
+        self._deterministic_header = deterministic_header
+
     @classmethod
     def new(
         cls,
@@ -65,6 +70,7 @@ class COSE(CBORProcessor):
         kid_auto_inclusion: bool = False,
         verify_kid: bool = False,
         ca_certs: str = "",
+        deterministic_header: bool = False,
     ):
         """
         Constructor.
@@ -80,8 +86,10 @@ class COSE(CBORProcessor):
                 of trusted root certificates. You should specify private CA
                 certificates in your target system. There should be no need to
                 use the public CA certificates for the Web PKI.
+            deterministic_header(bool): The indicator whether the protected and unprotected
+                headers will be deterministically encoded defined in section 4.2.1 of RFC 8949.
         """
-        return cls(alg_auto_inclusion, kid_auto_inclusion, verify_kid, ca_certs)
+        return cls(alg_auto_inclusion, kid_auto_inclusion, verify_kid, ca_certs, deterministic_header)
 
     @property
     def alg_auto_inclusion(self) -> bool:
@@ -560,6 +568,11 @@ class COSE(CBORProcessor):
                     p[1] = key.alg
             if self._kid_auto_inclusion and key.kid:
                 u[4] = key.kid
+
+        # sort the key for deterministic encoding
+        if self._deterministic_header:
+            p = sort_keys_for_deterministic_encoding(p)
+            u = sort_keys_for_deterministic_encoding(u)
 
         # Check the protected header is empty if the algorithm is non AEAD (AES-CBC or AES-CTR)
         # because section 4 of RFC9459 says "The 'protected' header MUST be a zero-length byte string."
