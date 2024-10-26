@@ -798,6 +798,19 @@ class TestRecipients:
         enc_key = COSEKey.from_symmetric_key(alg=enc_alg)
 
         # The sender side (must fail):
+        r = Recipient.new(unprotected={"alg": kw_alg}, sender_key=kw_key)
+        sender = COSE.new(alg_auto_inclusion=True)
+        with pytest.raises(ValueError) as err:
+            encoded = sender.encode_and_encrypt(
+                b"Hello world!",
+                enc_key,
+                recipients=[r],
+                enable_non_aead=False,
+            )
+            pytest.fail("encode_and_encrypt() should fail.")
+        assert "Deprecated non-AEAD algorithm" in str(err.value)
+
+        # The sender side (must fail):
         with pytest.raises(ValueError) as err:
             r = Recipient.new(protected={"alg": kw_alg}, sender_key=kw_key)
             pytest.fail("encode_and_encrypt() should fail.")
@@ -812,6 +825,7 @@ class TestRecipients:
                 enc_key,
                 protected={"kid": "actually-not-protected"},
                 recipients=[r],
+                enable_non_aead=True,
             )
             pytest.fail("encode_and_encrypt() should fail.")
         assert "protected header MUST be zero-length" in str(err.value)
@@ -823,11 +837,19 @@ class TestRecipients:
             b"Hello world!",
             enc_key,
             recipients=[r],
+            enable_non_aead=True,
         )
+
+        # The recipient side (must fail):
+        recipient = COSE.new()
+        with pytest.raises(ValueError) as err:
+            _ = recipient.decode(encoded, keys=[kw_key])  # the option enable_non_aead=False by default
+            pytest.fail("decode() should fail for non-AEAD without enable_non_aead=True.")
+        assert f"Deprecated non-AEAD algorithm: {enc_key._alg}." == str(err.value)
 
         # The recipient side:
         recipient = COSE.new()
-        assert b"Hello world!" == recipient.decode(encoded, keys=[kw_key])
+        assert b"Hello world!" == recipient.decode(encoded, keys=[kw_key], enable_non_aead=True)
 
     @pytest.mark.parametrize(
         "enc_alg",
@@ -859,9 +881,10 @@ class TestRecipients:
             enc_key,
             unprotected={"alg": enc_alg},
             recipients=[r],
+            enable_non_aead=True,
         )
         recipient = COSE.new()
-        assert b"This is the content." == recipient.decode(encoded, [rsk1, rsk2])
+        assert b"This is the content." == recipient.decode(encoded, [rsk1, rsk2], enable_non_aead=True)
 
     @pytest.mark.parametrize(
         "key_agreement_alg, key_agreement_alg_id, kw_alg, enc_alg",
@@ -915,6 +938,7 @@ class TestRecipients:
             protected={},
             unprotected={"alg": enc_alg, "iv": nonce},
             recipients=[r],
+            enable_non_aead=True,
         )
 
         # The recipient side:
@@ -930,4 +954,4 @@ class TestRecipients:
             }
         )
         recipient = COSE.new()
-        assert b"Hello world!" == recipient.decode(encoded, rsk2, context)
+        assert b"Hello world!" == recipient.decode(encoded, rsk2, context, enable_non_aead=True)
