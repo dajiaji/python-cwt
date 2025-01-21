@@ -46,7 +46,7 @@ docs = [
 pytest = "^8.3"
 pytest-cov = "^6.0.0"
 tox = "^4.23.2"
-pre-commit = "^4.0.1"
+pre-commit = "^4.1.0"
 
 [tool.poetry.group.dev.dependencies]
 docutils = "^0.21.2"
