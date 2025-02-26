@@ -650,7 +650,7 @@ files = [
 name = "jinja2"
 version = "3.1.5"
 description = "A very fast and expressive template engine."
-optional = false
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "jinja2-3.1.5-py3-none-any.whl", hash = "sha256:aba0f4dc9ed8013c424088f68a5c226f7d6097ed89b246d7749c2ec4175c6adb"},
@@ -667,7 +667,7 @@ i18n = ["Babel (>=2.7)"]
 name = "markupsafe"
 version = "3.0.2"
 description = "Safely add untrusted strings to HTML/XML markup."
-optional = false
+optional = true
 python-versions = ">=3.9"
 files = [
     {file = "MarkupSafe-3.0.2-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:7e94c425039cde14257288fd61dcfb01963e658efbc0ff54f5306b06054700f8"},
@@ -845,17 +845,17 @@ windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "pyhpke"
-version = "0.6.1"
+version = "0.6.2"
 description = "A Python implementation of HPKE."
 optional = false
 python-versions = "<4.0,>=3.9"
 files = [
-    {file = "pyhpke-0.6.1-py3-none-any.whl", hash = "sha256:1dde442e2a72caf0df021ffeb5a3d3a71bafd97baf18a6485599acda17c4a237"},
-    {file = "pyhpke-0.6.1.tar.gz", hash = "sha256:d3a1b4b50f81020af1f2835307e24d8c77b47bb733e8ef01dfc1b957d7e01b85"},
+    {file = "pyhpke-0.6.2-py3-none-any.whl", hash = "sha256:abb51bfd444f00a0b7402d9e6cfd5e488ddbdc73ecc84868f1cc33556199d7d0"},
+    {file = "pyhpke-0.6.2.tar.gz", hash = "sha256:2653f78d80a39a643918e07185dcd7bd05d306d8c86b107770931fe3f619bd59"},
 ]
 
 [package.dependencies]
-cryptography = ">=42.0.1,<44"
+cryptography = ">=42.0.1,<45"
 
 [package.extras]
 docs = ["Sphinx[docs] (>=7.1,<8)", "sphinx-autodoc-typehints[docs] (>=1.25.2)", "sphinx-rtd-theme[docs] (>=1.2.1)"]
