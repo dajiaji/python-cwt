@@ -175,7 +175,7 @@ class TestSample:
         decoded = cwt.decode(token, public_key)
         assert 1 in decoded and decoded[1] == "coaps://as.example"
 
-    def test_sample_readme_signed_cwt_es256_with_cert(self):
+    def test_sample_readme_signed_cwt_es256_with_cert_missing_required_extension(self):
         # with open(key_path("cacert.pem")) as f:
         #     k1 = x509.load_pem_x509_certificate(f.read().encode("utf-8"))
 
@@ -196,10 +196,14 @@ class TestSample:
         token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key)
 
         decoder = CWT.new(ca_certs=key_path("cacert.pem"))
-        decoded = decoder.decode(token, public_key)
-        assert 1 in decoded and decoded[1] == "coaps://as.example"
+        with pytest.raises(VerifyError) as err:
+            decoder.decode(token, public_key)
+            pytest.fail("decode() should fail.")
+        assert "Failed to validate the certificate bound to the key." in str(err.value)
+        # decoded = decoder.decode(token, public_key)
+        # assert 1 in decoded and decoded[1] == "coaps://as.example"
 
-    def test_sample_readme_signed_cwt_es256_with_cert_without_intermediates(self):
+    def test_sample_readme_signed_cwt_es256_with_cert_missing_required_extension_without_intermediates(self):
         with open(key_path("private_key_cert_es256.pem")) as f:
             private_key = COSEKey.from_pem(f.read(), kid="P-256-01")
 
@@ -209,8 +213,12 @@ class TestSample:
         token = cwt.encode({"iss": "coaps://as.example", "sub": "dajiaji", "cti": "123"}, private_key)
 
         decoder = CWT.new(ca_certs=key_path("cacert.pem"))
-        decoded = decoder.decode(token, public_key)
-        assert 1 in decoded and decoded[1] == "coaps://as.example"
+        with pytest.raises(VerifyError) as err:
+            decoder.decode(token, public_key)
+            pytest.fail("decode() should fail.")
+        assert "Failed to validate the certificate bound to the key." in str(err.value)
+        # decoded = decoder.decode(token, public_key)
+        # assert 1 in decoded and decoded[1] == "coaps://as.example"
 
     def test_sample_readme_signed_cwt_es256_with_another_ca_cert(self):
         with open(key_path("private_key_cert_es256.pem")) as f:

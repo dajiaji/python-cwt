@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-from asn1crypto import pem
 from cbor2 import CBORTag
+from cryptography.x509 import load_pem_x509_certificates
 
 from .cbor_processor import CBORProcessor
 from .const import (
@@ -54,11 +54,8 @@ class COSE(CBORProcessor):
         if ca_certs:
             if not isinstance(ca_certs, str):
                 raise ValueError("ca_certs should be str.")
-            self._trust_roots: List[bytes] = []
             with open(ca_certs, "rb") as f:
-                for _, _, der_bytes in pem.unarmor(f.read(), multiple=True):
-                    self._ca_certs.append(der_bytes)
-
+                self._ca_certs = load_pem_x509_certificates(f.read())
         if not isinstance(deterministic_header, bool):
             raise ValueError("deterministic_header should be bool.")
         self._deterministic_header = deterministic_header
