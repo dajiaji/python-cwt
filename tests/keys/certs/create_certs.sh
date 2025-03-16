@@ -17,7 +17,7 @@ openssl x509 -inform DER -in ca.der -out ca.pem -outform PEM
 openssl ecparam -name prime256v1 -genkey -noout -out server.key
 openssl ec -in server.key -out server_key.der -outform DER
 openssl ec -inform DER -in server_key.der -out server_key.pem -outform PEM
-openssl req -new -key server.key -out server.csr -config openssl_server.cnf 
+openssl req -new -key server.key -out server.csr -config openssl_server.cnf
 openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 365 -sha256 -extfile openssl_server.cnf -extensions v3_req
 openssl x509 -in server.crt -text -noout
 openssl x509 -in server.crt -out server.der -outform DER
