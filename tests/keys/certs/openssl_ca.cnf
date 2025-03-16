@@ -1,0 +1,19 @@
+[ req ]
+default_bits       = 2048
+prompt            = no
+default_md        = sha256
+distinguished_name = req_distinguished_name
+x509_extensions   = v3_ca
+
+[ req_distinguished_name ]
+C  = JP
+ST = Tokyo
+L  = Setagaya
+O  = MyRootCA
+CN = My Root CA
+
+[ v3_ca ]
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = critical, CA:TRUE, pathlen:0
+keyUsage = critical, keyCertSign, cRLSign
