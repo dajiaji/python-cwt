@@ -4,6 +4,30 @@ Changes
 Unreleased
 ----------
 
+Version 3.0.0
+-------------
+
+Released 2025-03-16
+
+- Update tests to follow the updated verification method. `#592 <https://github.com/dajiaji/python-cwt/pull/592>`__
+- Use cryptography.x509.verification for verifying certificates. `#592 <https://github.com/dajiaji/python-cwt/pull/592>`__
+- Use poetry.group.dev.dependencie instead of poetry.dev-dependencies. `#592 <https://github.com/dajiaji/python-cwt/pull/592>`__
+- Update dependencies.
+    - Bump cryptography to 44.0.2. `#592 <https://github.com/dajiaji/python-cwt/pull/592>`__
+    - Bump pyhpke to 0.6.2. `#592 <https://github.com/dajiaji/python-cwt/pull/592>`__
+- Update dev dependencies.
+    - Bump tox to 4.24.2. `#592 <https://github.com/dajiaji/python-cwt/pull/592>`__
+    - Bump coverage to 7.6.12. `#592 <https://github.com/dajiaji/python-cwt/pull/592>`__
+    - Bump pytest to 8.3.5. `#592 <https://github.com/dajiaji/python-cwt/pull/592>`__
+    - Bump certifi to 2025.1.31. `#592 <https://github.com/dajiaji/python-cwt/pull/592>`__
+    - Bump jinja2 to 3.1.6. `#592 <https://github.com/dajiaji/python-cwt/pull/592>`__
+    - Bump urllib3 to 2.3.0. `#592 <https://github.com/dajiaji/python-cwt/pull/592>`__
+    - Bump zipp to 3.21.0. `#592 <https://github.com/dajiaji/python-cwt/pull/592>`__
+    - Bump sphinx-rtd-theme to 3.0.2. `#582 <https://github.com/dajiaji/python-cwt/pull/582>`__
+    - Bump pytest-cov to 6.0.0. `#581 <https://github.com/dajiaji/python-cwt/pull/581>`__
+    - Bump pre-commit to 4.0.1. `#579 <https://github.com/dajiaji/python-cwt/pull/579>`__
+
+
 Version 2.8.0
 -------------
 
