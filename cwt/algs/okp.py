@@ -221,7 +221,7 @@ class OKPKey(AsymmetricKey):
             X448PublicKey,
             X25519PrivateKey,
             X25519PublicKey,
-        ]
+        ],
     ) -> Dict[int, Any]:
         cose_key: Dict[int, Any] = {}
 
