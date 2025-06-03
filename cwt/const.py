@@ -257,10 +257,13 @@ COSE_ALGORITHMS_SIG_OKP = {
 
 # COSE Algorithms for Signature with EC2.
 COSE_ALGORITHMS_SIG_EC2 = {
-    "ES256K": -47,
-    "ES512": -36,
-    "ES384": -35,
-    "ES256": -7,
+    "ESP512": -52,  # ECDSA using P-521 curve and SHA-512
+    "ESP384": -51,  # ECDSA using P-384 curve and SHA-384
+    "ES256K": -47,  # ECDSA using secp256k1 curve and SHA-256
+    "ES512": -36,  # ECDSA w/ SHA-512 (any curve is not specified but python-cwt uses P-521 curve)
+    "ES384": -35,  # ECDSA w/ SHA-384 (any curve is not specified but python-cwt uses P-384 curve)
+    "ESP256": -9,  # ECDSA using P-256 curve and SHA-256
+    "ES256": -7,  # ECDSA w/ SHA-256 (any curve is not specified but python-cwt uses P-256 curve)
 }
 
 # COSE Algorithms for Signature with RSA.
