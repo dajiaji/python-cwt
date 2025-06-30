@@ -69,6 +69,9 @@ class COSEAlgs(enum.IntEnum):
     RS512 = -259
     RS384 = -258
     RS256 = -257
+    ED448 = -53
+    ESP512 = -52
+    ESP384 = -51
     ES256K = -47
     PS512 = -39
     PS384 = -38
@@ -85,8 +88,10 @@ class COSEAlgs(enum.IntEnum):
     ECDH_SS_HKDF_256 = -27
     ECDH_ES_HKDF_512 = -26
     ECDH_ES_HKDF_256 = -25
+    ED25519 = -19
     DIRECT_HKDF_SHA512 = -11
     DIRECT_HKDF_SHA256 = -10
+    ESP256 = -9
     EDDSA = -8
     ES256 = -7
     DIRECT = -6
