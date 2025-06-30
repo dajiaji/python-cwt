@@ -221,3 +221,29 @@ class TestSigner:
             signer.verify(b"Hello world!")
         except Exception:
             pytest.fail("signer.sign and verify should not fail.")
+
+    def test_signer_esp256(self):
+        signer = Signer.new(
+            cose_key=COSEKey.from_jwk(
+                {
+                    "kty": "EC",
+                    "kid": "01",
+                    "crv": "P-256",
+                    "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                    "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                    "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+                    "alg": "ESP256"
+                }
+            ),
+            protected={"alg": "ESP256"},
+            unprotected={"kid": "01"},
+        )
+        assert signer.unprotected[4] == b"01"
+        assert cbor2.loads(signer.protected)[1] == -9
+        assert signer.cose_key.alg == -9
+        assert signer.cose_key.kid == b"01"
+        try:
+            signer.sign(b"Hello world!")
+            signer.verify(b"Hello world!")
+        except Exception:
+            pytest.fail("signer.sign and verify should not fail.")
