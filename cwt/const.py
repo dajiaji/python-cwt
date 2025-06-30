@@ -252,7 +252,9 @@ COSE_ALGORITHMS_MAC = {
 
 # COSE Algorithms for Signature with OKP.
 COSE_ALGORITHMS_SIG_OKP = {
-    "EdDSA": -8,
+    "EdDSA": -8,    # EdDSA 
+    "Ed25519": -19, # EdDSA using Ed25519 curve
+    "Ed448": -53,   # EdDSA using Ed448 curve
 }
 
 # COSE Algorithms for Signature with EC2.
