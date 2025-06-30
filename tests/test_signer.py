@@ -232,7 +232,7 @@ class TestSigner:
                     "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
                     "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
                     "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
-                    "alg": "ESP256"
+                    "alg": "ESP256",
                 }
             ),
             protected={"alg": "ESP256"},
