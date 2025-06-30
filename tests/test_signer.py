@@ -247,3 +247,29 @@ class TestSigner:
             signer.verify(b"Hello world!")
         except Exception:
             pytest.fail("signer.sign and verify should not fail.")
+
+    def test_signer_ed25519(self):
+        signer = Signer.new(
+            cose_key=COSEKey.from_jwk(
+                {
+                    "kty": "OKP",
+                    "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
+                    "use": "sig",
+                    "crv": "Ed25519",
+                    "kid": "Ed25519-01",
+                    "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+                    "alg": "Ed25519",
+                }
+            ),
+            protected={"alg": "Ed25519"},
+            unprotected={"kid": "Ed25519-01"},
+        )
+        assert signer.unprotected[4] == b"Ed25519-01"
+        assert cbor2.loads(signer.protected)[1] == -19
+        assert signer.cose_key.alg == -19
+        assert signer.cose_key.kid == b"Ed25519-01"
+        try:
+            signer.sign(b"Hello world!")
+            signer.verify(b"Hello world!")
+        except Exception:
+            pytest.fail("signer.sign and verify should not fail.")
