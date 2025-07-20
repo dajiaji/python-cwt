@@ -15,6 +15,7 @@ implementation compliant with:
 - [RFC8392: CWT (CBOR Web Token)](https://tools.ietf.org/html/rfc8392)
 - [draft-07: Use of HPKE with COSE](https://www.ietf.org/archive/id/draft-ietf-cose-hpke-07.html) - experimental
 - [draft-06: CWT Claims in COSE Headers](https://www.ietf.org/archive/id/draft-ietf-cose-cwt-claims-in-headers-06.html) - experimental
+- [draft-13: Fully-Specified Algorithms for JOSE and COSE](https://www.ietf.org/archive/id/draft-ietf-jose-fully-specified-algorithms-13.html)
 - and related various specifications. See [Referenced Specifications](#referenced-specifications).
 
 It is designed to make users who already know about [JWS](https://tools.ietf.org/html/rfc7515)/[JWE](https://tools.ietf.org/html/rfc7516)/[JWT](https://tools.ietf.org/html/rfc7519)
@@ -1748,6 +1749,7 @@ Python CWT is (partially) compliant with following specifications:
 - [RFC8152: CBOR Object Signing and Encryption (COSE)](https://tools.ietf.org/html/rfc8152)
 - [draft-07: Use of HPKE with COSE](https://www.ietf.org/archive/id/draft-ietf-cose-hpke-07.html) - experimental
 - [draft-06: CWT Claims in COSE Headers](https://www.ietf.org/archive/id/draft-ietf-cose-cwt-claims-in-headers-06.html) - experimental
+- [draft-13: Fully-Specified Algorithms for JOSE and COSE](https://www.ietf.org/archive/id/draft-ietf-jose-fully-specified-algorithms-13.html)
 - [Electronic Health Certificate Specification](https://github.com/ehn-dcc-development/hcert-spec/blob/main/hcert_spec.md)
 - [Technical Specifications for Digital Green Certificates Volume 1](https://ec.europa.eu/health/sites/default/files/ehealth/docs/digital-green-certificates_v1_en.pdf)
 
