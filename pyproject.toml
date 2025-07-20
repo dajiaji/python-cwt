@@ -29,6 +29,10 @@ python = "^3.9.2,<4.0"
 cbor2 = "^5.4.2"
 cryptography = ">=42.0.1,<45"
 pyhpke = ">=0.5.3,<1.0.0"
+Sphinx = {version = ">=7.1,<8.0.0", extras = ["docs"]}
+sphinx-rtd-theme = {version = ">=3.0.2,<4.0.0", extras = ["docs"]}
+sphinx-autodoc-typehints = {version = ">=2.3.0,<3.0.0", extras = ["docs"]}
+docutils = {version = ">=0.21.2,<1.0.0", extras = ["docs"]}
 
 [tool.poetry.group.dev]
 optional = true
@@ -43,10 +47,10 @@ pre-commit = "^4.0.1"
 optional = true
 
 [tool.poetry.group.docs.dependencies]
-sphinx = ">=7.1,<8"
-sphinx-rtd-theme = "^3.0.2"
+Sphinx = ">=7.1,<8.0.0"
+sphinx-rtd-theme = ">=3.0.2,<4.0.0"
 sphinx-autodoc-typehints = ">=2.3.0,<3.0.0"
-docutils = "^0.21.2"
+docutils = ">=0.21.2,<1.0.0"
 
 [tool.mypy]
 ignore_missing_imports = true
