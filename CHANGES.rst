@@ -31,7 +31,6 @@ Released 2025-07-21
     - Bump pre-commit/mirrors-mypy to 1.15.0. `#599 <https://github.com/dajiaji/python-cwt/pull/599>`__
     - Bump pre-commit to 4.2.0. `#597 <https://github.com/dajiaji/python-cwt/pull/597>`__
 
-
 Version 3.0.0
 -------------
 
@@ -54,7 +53,6 @@ Released 2025-03-16
     - Bump sphinx-rtd-theme to 3.0.2. `#582 <https://github.com/dajiaji/python-cwt/pull/582>`__
     - Bump pytest-cov to 6.0.0. `#581 <https://github.com/dajiaji/python-cwt/pull/581>`__
     - Bump pre-commit to 4.0.1. `#579 <https://github.com/dajiaji/python-cwt/pull/579>`__
-
 
 Version 2.8.0
 -------------
