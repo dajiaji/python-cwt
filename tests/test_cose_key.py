@@ -139,9 +139,9 @@ class TestCOSEKey:
             "ECDH-SS+HKDF-256",
             "ECDH-ES+HKDF-512",
             "ECDH-ES+HKDF-256",
-            "ES256K",
-            "ES512",
-            "ES384",
+            # "ES256K",
+            # "ES512",
+            # "ES384",
             "ES256",
         ],
     )
@@ -630,3 +630,89 @@ class TestCOSEKey:
             ki.crv
             pytest.fail("crv should fail.")
         assert "" == str(err.value)
+
+    @pytest.mark.parametrize(
+        "invalid, msg",
+        [
+            ("Ed25519", "Unsupported or unknown alg used with P-256:"),
+            ("Ed448", "Unsupported or unknown alg used with P-256:"),
+            # ("ES256", "Unsupported or unknown alg used with P-256:"),
+            ("ES384", "Unsupported or unknown alg used with P-256:"),
+            ("ES512", "Unsupported or unknown alg used with P-256:"),
+            # ("ESP256", "Unsupported or unknown alg used with P-256:"),
+            ("ESP384", "Unsupported or unknown alg used with P-256:"),
+            ("ESP512", "Unsupported or unknown alg used with P-256:"),
+        ],
+    )
+    def test_key_builder_from_jwk_with_invalid_fully_specified_ec2_p256_alg(self, invalid, msg):
+        with pytest.raises(ValueError) as err:
+            COSEKey.from_jwk(
+                {
+                    "kty": "EC",
+                    "use": "sig",
+                    "crv": "P-256",
+                    "kid": "P-256-01",
+                    "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                    "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                    "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+                    "alg": invalid,
+                }
+            )
+            pytest.fail("from_jwk should fail.")
+        assert msg in str(err.value)
+
+    @pytest.mark.parametrize(
+        "invalid, msg",
+        [
+            ("Ed448", "Unsupported or unknown alg used with Ed25519:"),
+            ("ES256", "Unsupported or unknown alg used with Ed25519:"),
+            ("ESP256", "Unsupported or unknown alg used with Ed25519:"),
+            ("ES384", "Unsupported or unknown alg used with Ed25519:"),
+            ("ES512", "Unsupported or unknown alg used with Ed25519:"),
+            ("ESP384", "Unsupported or unknown alg used with Ed25519:"),
+            ("ESP512", "Unsupported or unknown alg used with Ed25519:"),
+        ],
+    )
+    def test_key_builder_from_jwk_with_invalid_fully_specified_okp_ed25519_alg(self, invalid, msg):
+        with pytest.raises(ValueError) as err:
+            COSEKey.from_jwk(
+                {
+                    "kty": "OKP",
+                    "use": "sig",
+                    "crv": "Ed25519",
+                    "kid": "Ed25519-01",
+                    "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
+                    "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
+                    "alg": invalid,
+                }
+            )
+            pytest.fail("from_jwk should fail.")
+        assert msg in str(err.value)
+
+    @pytest.mark.parametrize(
+        "invalid, msg",
+        [
+            ("Ed25519", "Unsupported or unknown alg used with Ed448:"),
+            ("ES256", "Unsupported or unknown alg used with Ed448:"),
+            ("ESP256", "Unsupported or unknown alg used with Ed448:"),
+            ("ES384", "Unsupported or unknown alg used with Ed448:"),
+            ("ES512", "Unsupported or unknown alg used with Ed448:"),
+            ("ESP384", "Unsupported or unknown alg used with Ed448:"),
+            ("ESP512", "Unsupported or unknown alg used with Ed448:"),
+        ],
+    )
+    def test_key_builder_from_jwk_with_invalid_fully_specified_okp_ed448_alg(self, invalid, msg):
+        with pytest.raises(ValueError) as err:
+            COSEKey.from_jwk(
+                {
+                    "kty": "OKP",
+                    "use": "sig",
+                    "crv": "Ed448",
+                    "kid": "Ed448-01",
+                    "x": "25isUWIosUkM2ynOPFP5t7BbwM1_iFQmKBpHvA0hgXpRX6yyu-nq6BBmpS3J0DYTlZIoA4qwgSqA",
+                    "d": "vOHg3x9AXEBRDnzM5b68bLFswieywpJzTOkxafU5fiDxyKowuetnBgjQsgTRWoc067X9xvZWE0Sd",
+                    "alg": invalid,
+                }
+            )
+            pytest.fail("from_jwk should fail.")
+        assert msg in str(err.value)

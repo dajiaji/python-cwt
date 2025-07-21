@@ -248,6 +248,58 @@ class TestSigner:
         except Exception:
             pytest.fail("signer.sign and verify should not fail.")
 
+    def test_signer_esp384(self):
+        signer = Signer.new(
+            cose_key=COSEKey.from_jwk(
+                {
+                    "kty": "EC",
+                    "kid": "P-384-01",
+                    "crv": "P-384",
+                    "x": "_XyN9woHaS0mPimSW-etwJMEDSzxIMjp4PjezavU8SHJoClz1bQrcmPb1ZJxHxhI",
+                    "y": "GCNfc32p9sRotx7u2oDGJ3Eqz6q5zPHLdizNn83oRsUTN31eCWfGLHWRury3xF50",
+                    "d": "1pImEKbrr771-RKi8Tb7tou_WjiR7kwui_nMu16449rk3lzAqf9buUhTkJ-pogkb",
+                    "alg": "ESP384",
+                }
+            ),
+            protected={"alg": "ESP384"},
+            unprotected={"kid": "P-384-01"},
+        )
+        assert signer.unprotected[4] == b"P-384-01"
+        assert cbor2.loads(signer.protected)[1] == -51
+        assert signer.cose_key.alg == -51
+        assert signer.cose_key.kid == b"P-384-01"
+        try:
+            signer.sign(b"Hello world!")
+            signer.verify(b"Hello world!")
+        except Exception:
+            pytest.fail("signer.sign and verify should not fail.")
+
+    def test_signer_esp512(self):
+        signer = Signer.new(
+            cose_key=COSEKey.from_jwk(
+                {
+                    "kty": "EC",
+                    "kid": "P-521-01",
+                    "crv": "P-521",
+                    "x": "APkZitSJMJUMB-iPCt47sWu_CrnUHg6IAR4qjmHON-2u41Rjg6DNOS0LZYJJt-AVH5NgGVi8ElIfjo71b9HXCTOc",
+                    "y": "ASx-Cb--149HJ-e1KlSaY-1BOhwOdcTkxSt8BGbW7_hnGfzHsoXM3ywwNcp1Yad-FHUKwmCyMelMQEn2Rh4V2l3I",
+                    "d": "ADYyo73ZKicOjwGDYQ_ybZKnVzdAcxGm9OVAxQjzgVM4jaS-Iwtkz90oLdDz3shgKlDgtRK2Aa9lMhqR94hBo4IE",
+                    "alg": "ESP512",
+                }
+            ),
+            protected={"alg": "ESP512"},
+            unprotected={"kid": "P-521-01"},
+        )
+        assert signer.unprotected[4] == b"P-521-01"
+        assert cbor2.loads(signer.protected)[1] == -52
+        assert signer.cose_key.alg == -52
+        assert signer.cose_key.kid == b"P-521-01"
+        try:
+            signer.sign(b"Hello world!")
+            signer.verify(b"Hello world!")
+        except Exception:
+            pytest.fail("signer.sign and verify should not fail.")
+
     def test_signer_ed25519(self):
         signer = Signer.new(
             cose_key=COSEKey.from_jwk(
@@ -268,6 +320,32 @@ class TestSigner:
         assert cbor2.loads(signer.protected)[1] == -19
         assert signer.cose_key.alg == -19
         assert signer.cose_key.kid == b"Ed25519-01"
+        try:
+            signer.sign(b"Hello world!")
+            signer.verify(b"Hello world!")
+        except Exception:
+            pytest.fail("signer.sign and verify should not fail.")
+
+    def test_signer_ed448(self):
+        signer = Signer.new(
+            cose_key=COSEKey.from_jwk(
+                {
+                    "kty": "OKP",
+                    "d": "vOHg3x9AXEBRDnzM5b68bLFswieywpJzTOkxafU5fiDxyKowuetnBgjQsgTRWoc067X9xvZWE0Sd",
+                    "use": "sig",
+                    "crv": "Ed448",
+                    "kid": "Ed448-01",
+                    "x": "25isUWIosUkM2ynOPFP5t7BbwM1_iFQmKBpHvA0hgXpRX6yyu-nq6BBmpS3J0DYTlZIoA4qwgSqA",
+                    "alg": "Ed448",
+                }
+            ),
+            protected={"alg": "Ed448"},
+            unprotected={"kid": "Ed448-01"},
+        )
+        assert signer.unprotected[4] == b"Ed448-01"
+        assert cbor2.loads(signer.protected)[1] == -53
+        assert signer.cose_key.alg == -53
+        assert signer.cose_key.kid == b"Ed448-01"
         try:
             signer.sign(b"Hello world!")
             signer.verify(b"Hello world!")

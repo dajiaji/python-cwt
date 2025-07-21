@@ -306,7 +306,7 @@ class TestEC2Key:
                     -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
                     3: -8,
                 },
-                "Unsupported or unknown alg(3) for EC2: -8.",
+                "Unsupported or unknown alg used with P-256: -8",
             ),
             (
                 {
@@ -325,7 +325,7 @@ class TestEC2Key:
                     -1: 2,
                     3: -8,
                 },
-                "Unsupported or unknown alg(3) for EC2: -8.",
+                "Unsupported or unknown alg used with P-384: -8",
             ),
             (
                 {
@@ -344,7 +344,7 @@ class TestEC2Key:
                     -1: 3,
                     3: -8,
                 },
-                "Unsupported or unknown alg(3) for EC2: -8.",
+                "Unsupported or unknown alg used with P-521: -8",
             ),
             (
                 {
@@ -363,7 +363,7 @@ class TestEC2Key:
                     -1: 8,
                     3: -8,
                 },
-                "Unsupported or unknown alg(3) for EC2: -8.",
+                "Unsupported or unknown alg used with secp256k1: -8",
             ),
             (
                 {
