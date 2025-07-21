@@ -6,6 +6,7 @@ import pytest
 
 from cwt.cose import COSE
 from cwt.cose_key import COSEKey
+from cwt.enums import COSEAlgs, COSEHeaders
 from cwt.exceptions import DecodeError
 from cwt.recipient import Recipient
 from cwt.recipient_algs.ecdh_aes_key_wrap import ECDH_AESKeyWrap
@@ -56,46 +57,50 @@ class TestECDH_AESKeyWrap:
     """
 
     def test_ecdh_aes_key_wrap_constructor_with_ecdh_es_a128kw(self):
-        ctx = ECDH_AESKeyWrap({1: -29}, {4: b"01"})
+        ctx = ECDH_AESKeyWrap({COSEHeaders.ALG: COSEAlgs.ECDH_ES_A128KW}, {COSEHeaders.KID: b"01"})
         assert isinstance(ctx, ECDH_AESKeyWrap)
-        assert ctx.alg == -29
+        assert ctx.alg == COSEAlgs.ECDH_ES_A128KW
         assert ctx.kid == b"01"
 
     def test_ecdh_aes_key_wrap_constructor_with_ecdh_es_a192kw(self):
-        ctx = ECDH_AESKeyWrap({1: -30}, {4: b"01"})
-        assert ctx.alg == -30
+        ctx = ECDH_AESKeyWrap({COSEHeaders.ALG: COSEAlgs.ECDH_ES_A192KW}, {COSEHeaders.KID: b"01"})
+        assert ctx.alg == COSEAlgs.ECDH_ES_A192KW
         assert ctx.kid == b"01"
 
     def test_ecdh_aes_key_wrap_constructor_with_ecdh_es_a256kw(self):
-        ctx = ECDH_AESKeyWrap({1: -31}, {4: b"01"})
-        assert ctx.alg == -31
+        ctx = ECDH_AESKeyWrap({COSEHeaders.ALG: COSEAlgs.ECDH_ES_A256KW}, {COSEHeaders.KID: b"01"})
+        assert ctx.alg == COSEAlgs.ECDH_ES_A256KW
         assert ctx.kid == b"01"
 
     def test_ecdh_aes_key_wrap_constructor_with_ecdh_ss_a128kw(self):
-        ctx = ECDH_AESKeyWrap({1: -32}, {4: b"01"})
-        assert ctx.alg == -32
+        ctx = ECDH_AESKeyWrap({COSEHeaders.ALG: COSEAlgs.ECDH_SS_A128KW}, {COSEHeaders.KID: b"01"})
+        assert ctx.alg == COSEAlgs.ECDH_SS_A128KW
         assert ctx.kid == b"01"
 
     def test_ecdh_aes_key_wrap_constructor_with_ecdh_ss_a192kw(self):
-        ctx = ECDH_AESKeyWrap({1: -33}, {4: b"01"})
-        assert ctx.alg == -33
+        ctx = ECDH_AESKeyWrap({COSEHeaders.ALG: COSEAlgs.ECDH_SS_A192KW}, {COSEHeaders.KID: b"01"})
+        assert ctx.alg == COSEAlgs.ECDH_SS_A192KW
         assert ctx.kid == b"01"
 
     def test_ecdh_aes_key_wrap_constructor_with_ecdh_ss_a256kw(self):
-        ctx = ECDH_AESKeyWrap({1: -34}, {4: b"01"})
-        assert ctx.alg == -34
+        ctx = ECDH_AESKeyWrap({COSEHeaders.ALG: COSEAlgs.ECDH_SS_A256KW}, {COSEHeaders.KID: b"01"})
+        assert ctx.alg == COSEAlgs.ECDH_SS_A256KW
         assert ctx.kid == b"01"
 
     def test_ecdh_aes_key_wrap_constructor_with_invalid_alg(self):
         with pytest.raises(ValueError) as err:
-            ECDH_AESKeyWrap({1: -1}, {4: b"01"})
+            ECDH_AESKeyWrap({COSEHeaders.ALG: -1}, {COSEHeaders.KID: b"01"})
             pytest.fail("ECDH_AESKeyWrap() should fail.")
-        assert "Unknown alg(1) for ECDH with key wrap: -1." in str(err.value)
+        assert f"Unknown alg({COSEHeaders.ALG}) for ECDH with key wrap: -1." in str(err.value)
 
     def test_ecdh_aes_key_wrap_encode_and_decode_with_ecdh_es(self, sender_key_es, recipient_public_key, recipient_private_key):
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
         sender = Recipient.new(
-            {1: -29}, {4: b"01"}, sender_key=sender_key_es, recipient_key=recipient_public_key, context={"alg": "A128GCM"}
+            {COSEHeaders.ALG: COSEAlgs.ECDH_ES_A128KW},
+            {COSEHeaders.KID: b"01"},
+            sender_key=sender_key_es,
+            recipient_key=recipient_public_key,
+            context={"alg": "A128GCM"},
         )
         encoded, _ = sender.encode(enc_key.to_bytes())
         assert sender.ciphertext is not None
@@ -147,7 +152,7 @@ class TestECDH_AESKeyWrap:
         assert b"Hello world!" == ctx.decode(encoded, priv_key, context={"alg": "A128GCM"})
 
     # def test_ecdh_aes_key_wrap_encode_without_key(self, sender_key_es):
-    #     sender = ECDH_AESKeyWrap({1: -29}, {4: b"01"}, sender_key=sender_key_es)
+    #     sender = ECDH_AESKeyWrap({COSEHeaders.ALG: COSEAlgs.ECDH_ES_A128KW}, {COSEHeaders.KID: b"01"}, sender_key=sender_key_es)
     #     with pytest.raises(ValueError) as err:
     #         sender.encode(recipient_key=recipient_public_key, context={"alg": "A128GCM"})
     #         pytest.fail("encode() should fail.")
@@ -155,7 +160,7 @@ class TestECDH_AESKeyWrap:
 
     # def test_ecdh_aes_key_wrap_encode_without_sender_key(self, recipient_public_key):
     #     enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
-    #     sender = ECDH_AESKeyWrap({1: -29}, {4: b"01"})
+    #     sender = ECDH_AESKeyWrap({COSEHeaders.ALG: COSEAlgs.ECDH_ES_A128KW}, {COSEHeaders.KID: b"01"})
     #     with pytest.raises(ValueError) as err:
     #         sender.encode(enc_key, recipient_key=recipient_public_key, context={"alg": "A128GCM"})
     #         pytest.fail("encode() should fail.")
@@ -163,7 +168,7 @@ class TestECDH_AESKeyWrap:
 
     # def test_ecdh_aes_key_wrap_encode_without_recipient_key(self, sender_key_es):
     #     enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
-    #     sender = ECDH_AESKeyWrap({1: -29}, {4: b"01"}, sender_key=sender_key_es)
+    #     sender = ECDH_AESKeyWrap({COSEHeaders.ALG: COSEAlgs.ECDH_ES_A128KW}, {COSEHeaders.KID: b"01"}, sender_key=sender_key_es)
     #     with pytest.raises(ValueError) as err:
     #         sender.encode(enc_key, context={"alg": "A128GCM"})
     #         pytest.fail("encode() should fail.")
@@ -171,7 +176,7 @@ class TestECDH_AESKeyWrap:
 
     # def test_ecdh_aes_key_wrap_encode_without_context(self, sender_key_es):
     #     enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
-    #     sender = ECDH_AESKeyWrap({1: -29}, {4: b"01"}, sender_key=sender_key_es)
+    #     sender = ECDH_AESKeyWrap({COSEHeaders.ALG: COSEAlgs.ECDH_ES_A128KW}, {COSEHeaders.KID: b"01"}, sender_key=sender_key_es)
     #     with pytest.raises(ValueError) as err:
     #         sender.encode(enc_key, recipient_key=recipient_public_key)
     #         pytest.fail("encode() should fail.")
@@ -196,7 +201,11 @@ class TestECDH_AESKeyWrap:
     def test_ecdh_aes_key_wrap_decode_without_alg(self, sender_key_es, recipient_public_key, recipient_private_key):
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
         sender = Recipient.new(
-            {1: -29}, {4: b"01"}, sender_key=sender_key_es, recipient_key=recipient_public_key, context={"alg": "A128GCM"}
+            {COSEHeaders.ALG: COSEAlgs.ECDH_ES_A128KW},
+            {COSEHeaders.KID: b"01"},
+            sender_key=sender_key_es,
+            recipient_key=recipient_public_key,
+            context={"alg": "A128GCM"},
         )
         encoded, _ = sender.encode(enc_key.to_bytes())
         ctx = Recipient.from_list(encoded, context={"alg": "A128GCM"})
@@ -207,7 +216,7 @@ class TestECDH_AESKeyWrap:
 
     def test_ecdh_aes_key_wrap_decode_without_context(self):
         enc_key = COSEKey.from_symmetric_key(alg="ChaCha20/Poly1305")
-        ctx = ECDH_AESKeyWrap({1: -29}, {4: b"01"})
+        ctx = ECDH_AESKeyWrap({COSEHeaders.ALG: COSEAlgs.ECDH_ES_A128KW}, {COSEHeaders.KID: b"01"})
         with pytest.raises(ValueError) as err:
             ctx.decode(enc_key, alg="ChaCha20/Poly1305")
             pytest.fail("decode() should fail.")

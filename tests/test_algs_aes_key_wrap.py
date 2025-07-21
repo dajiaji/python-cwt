@@ -5,6 +5,7 @@ Tests for KeyWrap.
 import pytest
 
 from cwt.algs.symmetric import AESKeyWrap
+from cwt.enums import COSEAlgs, COSEKeyOps, COSEKeyParams, COSEKeyTypes
 from cwt.exceptions import DecodeError
 
 
@@ -14,33 +15,41 @@ class TestAESKeyWrap:
     """
 
     def test_aes_key_wrap_constructor_a128kw(self):
-        key = AESKeyWrap({1: 4, 3: -3})
-        assert key.alg == -3
+        key = AESKeyWrap({COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.A128KW})
+        assert key.alg == COSEAlgs.A128KW
 
     def test_aes_key_wrap_constructor_a192kw(self):
-        key = AESKeyWrap({1: 4, 3: -4})
+        key = AESKeyWrap({COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.A192KW})
         assert isinstance(key, AESKeyWrap)
-        assert key.alg == -4
+        assert key.alg == COSEAlgs.A192KW
 
     def test_aes_key_wrap_constructor_a256kw(self):
-        key = AESKeyWrap({1: 4, 3: -5})
+        key = AESKeyWrap({COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.A256KW})
         assert isinstance(key, AESKeyWrap)
-        assert key.alg == -5
+        assert key.alg == COSEAlgs.A256KW
 
     def test_aes_key_wrap_constructor_with_invalid_alg(self):
         with pytest.raises(ValueError) as err:
-            AESKeyWrap({1: 4, 3: 1})
+            AESKeyWrap({COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.A128GCM})
             pytest.fail("AESKeyWrap() should fail.")
-        assert "Unknown alg(3) for AES key wrap: 1." in str(err.value)
+        assert f"Unknown alg({COSEKeyParams.ALG}) for AES key wrap: {COSEAlgs.A128GCM}." in str(err.value)
 
     def test_aes_key_wrap_constructor_with_invalid_key_ops(self):
         with pytest.raises(ValueError) as err:
-            AESKeyWrap({1: 4, 3: -3, 4: [1, 2]})
+            AESKeyWrap(
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.ALG: COSEAlgs.A128KW,
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.SIGN, COSEKeyOps.VERIFY],
+                }
+            )
             pytest.fail("AESKeyWrap() should fail.")
-        assert "Unknown or not permissible key_ops(4) for AES key wrap: 1." in str(err.value)
+        assert f"Unknown or not permissible key_ops({COSEKeyParams.KEY_OPS}) for AES key wrap: {COSEKeyOps.SIGN}." in str(
+            err.value
+        )
 
     def test_aes_key_wrap_unwrap_key_with_invalid_alg(self):
-        key = AESKeyWrap({1: 4, 3: -3})
+        key = AESKeyWrap({COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.A128KW})
         with pytest.raises(DecodeError) as err:
             key.unwrap_key(b"")
             pytest.fail("unwrap_key() should fail.")

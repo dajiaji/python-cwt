@@ -9,6 +9,7 @@ Tests for COSEKeyInterface.
 import pytest
 
 from cwt.cose_key_interface import COSEKeyInterface
+from cwt.enums import COSEAlgs, COSEKeyParams, COSEKeyTypes
 
 # from secrets import token_bytes
 
@@ -22,14 +23,14 @@ class TestCOSEKeyInterface:
     """
 
     def test_cose_key_constructor(self):
-        key = COSEKeyInterface({1: 1, 2: b"123"})
-        assert key.kty == 1
+        key = COSEKeyInterface({COSEKeyParams.KTY: COSEKeyTypes.OKP, COSEKeyParams.KID: b"123"})
+        assert key.kty == COSEKeyTypes.OKP
         assert key.kid == b"123"
         assert key.key_ops == []
         assert key.base_iv is None
         raw = key.to_dict()
-        assert raw[1] == 1
-        assert raw[2] == b"123"
+        assert raw[COSEKeyParams.KTY] == COSEKeyTypes.OKP
+        assert raw[COSEKeyParams.KID] == b"123"
         with pytest.raises(NotImplementedError):
             key.key
             pytest.fail("COSEKeyInterface.key should fail.")
@@ -62,10 +63,17 @@ class TestCOSEKeyInterface:
             pytest.fail("COSEKeyInterface.validate_certificate() should fail.")
 
     def test_cose_key_constructor_with_alg_and_iv(self):
-        key = COSEKeyInterface({1: 1, 2: b"123", 3: 1, 5: b"aabbccddee"})
+        key = COSEKeyInterface(
+            {
+                COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                COSEKeyParams.KID: b"123",
+                COSEKeyParams.ALG: COSEAlgs.EDDSA,
+                COSEKeyParams.BASE_IV: b"aabbccddee",
+            }
+        )
         assert key.base_iv == b"aabbccddee"
         raw = key.to_dict()
-        assert raw[5] == b"aabbccddee"
+        assert raw[COSEKeyParams.BASE_IV] == b"aabbccddee"
 
     def test_cose_key_constructor_without_cose_key(self):
         with pytest.raises(TypeError):
@@ -80,63 +88,84 @@ class TestCOSEKeyInterface:
                 "kty(1) not found.",
             ),
             (
-                {1: b"invalid"},
+                {COSEKeyParams.KTY: b"invalid"},
                 "kty(1) should be int or str(tstr).",
             ),
             (
-                {1: {}},
+                {COSEKeyParams.KTY: {}},
                 "kty(1) should be int or str(tstr).",
             ),
             (
-                {1: []},
+                {COSEKeyParams.KTY: []},
                 "kty(1) should be int or str(tstr).",
             ),
             (
-                {1: "xxx"},
+                {COSEKeyParams.KTY: "xxx"},
                 "Unknown kty: xxx",
             ),
             (
-                {1: 0},
+                {COSEKeyParams.KTY: 0},
                 "Unknown kty: 0",
             ),
             (
-                {1: 1, 2: "123"},
+                {COSEKeyParams.KTY: COSEKeyTypes.OKP, COSEKeyParams.KID: "123"},
                 "kid(2) should be bytes(bstr).",
             ),
             (
-                {1: 1, 2: {}},
+                {COSEKeyParams.KTY: COSEKeyTypes.OKP, COSEKeyParams.KID: {}},
                 "kid(2) should be bytes(bstr).",
             ),
             (
-                {1: 1, 2: []},
+                {COSEKeyParams.KTY: COSEKeyTypes.OKP, COSEKeyParams.KID: []},
                 "kid(2) should be bytes(bstr).",
             ),
             (
-                {1: 1, 2: b"123", 3: b"HMAC 256/256"},
+                {COSEKeyParams.KTY: COSEKeyTypes.OKP, COSEKeyParams.KID: b"123", COSEKeyParams.ALG: b"HMAC 256/256"},
                 "alg(3) should be int or str(tstr).",
             ),
             (
-                {1: 1, 2: b"123", 3: {}},
+                {COSEKeyParams.KTY: COSEKeyTypes.OKP, COSEKeyParams.KID: b"123", COSEKeyParams.ALG: {}},
                 "alg(3) should be int or str(tstr).",
             ),
             (
-                {1: 1, 2: b"123", 3: []},
+                {COSEKeyParams.KTY: COSEKeyTypes.OKP, COSEKeyParams.KID: b"123", COSEKeyParams.ALG: []},
                 "alg(3) should be int or str(tstr).",
             ),
             (
-                {1: 1, 2: b"123", 3: 1, 4: "sign"},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.KID: b"123",
+                    COSEKeyParams.ALG: COSEAlgs.EDDSA,
+                    COSEKeyParams.KEY_OPS: "sign",
+                },
                 "key_ops(4) should be list.",
             ),
             (
-                {1: 1, 2: b"123", 3: 1, 4: b"sign"},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.KID: b"123",
+                    COSEKeyParams.ALG: COSEAlgs.EDDSA,
+                    COSEKeyParams.KEY_OPS: b"sign",
+                },
                 "key_ops(4) should be list.",
             ),
             (
-                {1: 1, 2: b"123", 3: 1, 4: {}},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.KID: b"123",
+                    COSEKeyParams.ALG: COSEAlgs.EDDSA,
+                    COSEKeyParams.KEY_OPS: {},
+                },
                 "key_ops(4) should be list.",
             ),
             (
-                {1: 1, 2: b"123", 3: 1, 4: [], 5: "xxx"},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.OKP,
+                    COSEKeyParams.KID: b"123",
+                    COSEKeyParams.ALG: COSEAlgs.EDDSA,
+                    COSEKeyParams.KEY_OPS: [],
+                    COSEKeyParams.BASE_IV: "xxx",
+                },
                 "Base IV(5) should be bytes(bstr).",
             ),
         ],

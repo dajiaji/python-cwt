@@ -11,6 +11,7 @@ import cbor2
 import pytest
 
 from cwt import COSE, COSEKey, COSEMessage, COSETypes, Recipient, Signer, VerifyError
+from cwt.enums import COSEAlgs, COSEHeaders
 
 
 class TestCOSEMessage:
@@ -66,8 +67,8 @@ class TestCOSEMessage:
         except Exception as err:
             pytest.fail(f"failed to verify: {err}")
         countersignature = COSEMessage.from_cose_signature(sig)
-        assert countersignature.protected[1] == -8  # alg: "EdDSA"
-        assert countersignature.unprotected[4] == b"01"  # kid: b"01"
+        assert countersignature.protected[COSEHeaders.ALG] == COSEAlgs.EDDSA  # alg: "EdDSA"
+        assert countersignature.unprotected[COSEHeaders.KID] == b"01"  # kid: b"01"
 
     def test_cose_message_mac0_countersignature_with_abbreviated(self):
         mac_key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
@@ -167,16 +168,16 @@ class TestCOSEMessage:
         except Exception as err:
             pytest.fail(f"failed to verify: {err}")
         countersignature = COSEMessage.from_cose_signature(sig)
-        assert countersignature.protected[1] == -8  # alg: "EdDSA"
-        assert countersignature.unprotected[4] == b"01"  # kid: b"01"
+        assert countersignature.protected[COSEHeaders.ALG] == COSEAlgs.EDDSA  # alg: "EdDSA"
+        assert countersignature.unprotected[COSEHeaders.KID] == b"01"  # kid: b"01"
 
         try:
             sig = COSEMessage.loads(countersigned2).counterverify(pub_key2)
         except Exception as err:
             pytest.fail(f"failed to verify: {err}")
         countersignature = COSEMessage.from_cose_signature(sig)
-        assert countersignature.protected[1] == -7  # alg: "ES256"
-        assert countersignature.unprotected[4] == b"02"  # kid: b"02"
+        assert countersignature.protected[COSEHeaders.ALG] == COSEAlgs.ES256  # alg: "ES256"
+        assert countersignature.unprotected[COSEHeaders.KID] == b"02"  # kid: b"02"
 
     def test_cose_message_mac0_countersignature_without_kid(self):
         mac_key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
@@ -215,7 +216,7 @@ class TestCOSEMessage:
         except Exception as err:
             pytest.fail(f"failed to verify: {err}")
         countersignature = COSEMessage.from_cose_signature(sig)
-        assert countersignature.protected[1] == -8  # alg: "EdDSA"
+        assert countersignature.protected[COSEHeaders.ALG] == COSEAlgs.EDDSA  # alg: "EdDSA"
 
     def test_cose_message_mac0_countersignature_without_different_kid(self):
         mac_key = COSEKey.generate_symmetric_key(alg="HS256", kid="01")
@@ -297,8 +298,8 @@ class TestCOSEMessage:
         except Exception as err:
             pytest.fail(f"failed to verify: {err}")
         countersignature = COSEMessage.from_cose_signature(sig)
-        assert countersignature.protected[1] == -8  # alg: "EdDSA"
-        assert countersignature.unprotected[4] == b"01"  # kid: b"01"
+        assert countersignature.protected[COSEHeaders.ALG] == COSEAlgs.EDDSA  # alg: "EdDSA"
+        assert countersignature.unprotected[COSEHeaders.KID] == b"01"  # kid: b"01"
 
     @pytest.mark.parametrize(
         "type, msg, err_msg",
@@ -306,10 +307,10 @@ class TestCOSEMessage:
             (COSETypes.MAC0, [], "Invalid COSE message."),
             (COSETypes.MAC0, [{}, {}, b""], "The protected headers should be bytes."),
             (COSETypes.MAC0, [b"", b"", b""], "The unprotected headers should be Dict[int, Any]."),
-            (COSETypes.MAC0, [b"", {11: {}}, b""], "The countersignature should be array."),
-            (COSETypes.MAC0, [b"", {11: []}, b""], "Invalid countersignature."),
-            (COSETypes.MAC0, [b"", {11: [b""]}, b""], "Invalid COSE message."),
-            (COSETypes.MAC0, [b"", {11: [""]}, b""], "Invalid countersignature."),
+            (COSETypes.MAC0, [b"", {COSEHeaders.COUNTER_SIGNATURE_V2: {}}, b""], "The countersignature should be array."),
+            (COSETypes.MAC0, [b"", {COSEHeaders.COUNTER_SIGNATURE_V2: []}, b""], "Invalid countersignature."),
+            (COSETypes.MAC0, [b"", {COSEHeaders.COUNTER_SIGNATURE_V2: [b""]}, b""], "Invalid COSE message."),
+            (COSETypes.MAC0, [b"", {COSEHeaders.COUNTER_SIGNATURE_V2: [""]}, b""], "Invalid countersignature."),
             (COSETypes.MAC0, [b"", {}, b""], "Invalid COSE_Mac0 message."),
             (COSETypes.MAC0, [b"", {}, b"", {}], "tag should be bytes."),
             (COSETypes.ENCRYPT0, [b"", {}, b"", {}], "Invalid COSE_Encrypt0 message."),
@@ -595,5 +596,5 @@ class TestCOSEMessage:
             pytest.fail(f"failed to verify: {err}")
 
         countersignature = COSEMessage.from_cose_signature(sig)
-        assert countersignature.protected[1] == -8  # alg: "EdDSA"
-        assert countersignature.unprotected[4] == b"01"  # kid: b"01"
+        assert countersignature.protected[COSEHeaders.ALG] == COSEAlgs.EDDSA  # alg: "EdDSA"
+        assert countersignature.unprotected[COSEHeaders.KID] == b"01"  # kid: b"01"

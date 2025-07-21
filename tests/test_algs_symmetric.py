@@ -15,6 +15,7 @@ from cwt.algs.symmetric import (
     HMACKey,
     SymmetricKey,
 )
+from cwt.enums import COSEAlgs, COSEKeyOps, COSEKeyParams, COSEKeyTypes
 from cwt.exceptions import DecodeError, EncodeError, VerifyError
 
 
@@ -26,15 +27,15 @@ class TestSymmetricKey:
     def test_symmetric_key_constructor_with_hmac_256_256(self):
         key = SymmetricKey(
             {
-                1: 4,
-                -1: b"mysecret",
-                3: 5,  # HMAC 256/256
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: b"mysecret",
+                COSEKeyParams.ALG: COSEAlgs.HS256,  # HMAC 256/256
             }
         )
         assert key.key == b"mysecret"
-        assert key.kty == 4
+        assert key.kty == COSEKeyTypes.ASYMMETRIC
         assert key.kid is None
-        assert key.alg == 5
+        assert key.alg == COSEAlgs.HS256
         assert key.key_ops == []
         assert key.base_iv is None
 
@@ -42,35 +43,35 @@ class TestSymmetricKey:
         "invalid, msg",
         [
             (
-                {1: 2},
+                {COSEKeyParams.KTY: COSEKeyTypes.EC2},
                 "kty(1) should be Symmetric(4).",
             ),
             (
-                {1: b"invalid"},
+                {COSEKeyParams.KTY: b"invalid"},
                 "kty(1) should be int or str(tstr).",
             ),
             (
-                {1: {}},
+                {COSEKeyParams.KTY: {}},
                 "kty(1) should be int or str(tstr).",
             ),
             (
-                {1: []},
+                {COSEKeyParams.KTY: []},
                 "kty(1) should be int or str(tstr).",
             ),
             (
-                {1: 4, -1: 123},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: 123},
                 "k(-1) should be bytes(bstr).",
             ),
             (
-                {1: 4, -1: {}},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: {}},
                 "k(-1) should be bytes(bstr).",
             ),
             (
-                {1: 4, -1: []},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: []},
                 "k(-1) should be bytes(bstr).",
             ),
             (
-                {1: 4, -1: b"mysecret"},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: b"mysecret"},
                 "alg(3) not found.",
             ),
         ],
@@ -90,17 +91,17 @@ class TestHMACKey:
     def test_hmac_key_constructor_with_hmac_256_256(self):
         key = HMACKey(
             {
-                1: 4,
-                -1: b"mysecret",
-                3: 5,  # HMAC 256/256
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: b"mysecret",
+                COSEKeyParams.ALG: COSEAlgs.HS256,  # HMAC 256/256
             }
         )
-        assert key.kty == 4
+        assert key.kty == COSEKeyTypes.ASYMMETRIC
         assert key.kid is None
-        assert key.alg == 5
+        assert key.alg == COSEAlgs.HS256
         assert len(key.key_ops) == 2
-        assert 9 in key.key_ops
-        assert 10 in key.key_ops
+        assert COSEKeyOps.MAC_CREATE in key.key_ops
+        assert COSEKeyOps.MAC_VERIFY in key.key_ops
         assert key.base_iv is None
         try:
             sig = key.sign(b"Hello world!")
@@ -112,31 +113,31 @@ class TestHMACKey:
         "params, key_size",
         [
             (
-                {1: 4, 3: 4},  # HMAC 256/64
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.HS256_64},  # HMAC 256/64
                 32,
             ),
             (
-                {1: 4, 3: 5},  # HMAC 256/256
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.HS256},  # HMAC 256/256
                 32,
             ),
             (
-                {1: 4, 3: 6},  # HMAC 384/384
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.HS384},  # HMAC 384/384
                 48,
             ),
             (
-                {1: 4, 3: 7},  # HMAC 512/512
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.HS512},  # HMAC 512/512
                 64,
             ),
         ],
     )
     def test_hmac_key_constructor_without_key(self, params, key_size):
         key = HMACKey(params)
-        assert key.kty == 4
+        assert key.kty == COSEKeyTypes.ASYMMETRIC
         assert key.kid is None
-        assert key.alg == params[3]
+        assert key.alg == params[COSEKeyParams.ALG]
         assert len(key.key_ops) == 2
-        assert 9 in key.key_ops
-        assert 10 in key.key_ops
+        assert COSEKeyOps.MAC_CREATE in key.key_ops
+        assert COSEKeyOps.MAC_VERIFY in key.key_ops
         assert key.base_iv is None
         assert len(key.key) == key_size
         try:
@@ -149,51 +150,65 @@ class TestHMACKey:
         "invalid, msg",
         [
             (
-                {1: 2},
+                {COSEKeyParams.KTY: COSEKeyTypes.EC2},
                 "kty(1) should be Symmetric(4).",
             ),
             (
-                {1: b"invalid"},
+                {COSEKeyParams.KTY: b"invalid"},
                 "kty(1) should be int or str(tstr).",
             ),
             (
-                {1: {}},
+                {COSEKeyParams.KTY: {}},
                 "kty(1) should be int or str(tstr).",
             ),
             (
-                {1: []},
+                {COSEKeyParams.KTY: []},
                 "kty(1) should be int or str(tstr).",
             ),
             (
-                {1: 4, -1: 123},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: 123},
                 "k(-1) should be bytes(bstr).",
             ),
             (
-                {1: 4, -1: {}},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: {}},
                 "k(-1) should be bytes(bstr).",
             ),
             (
-                {1: 4, -1: []},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: []},
                 "k(-1) should be bytes(bstr).",
             ),
             (
-                {1: 4, -1: b"mysecret"},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: b"mysecret"},
                 "alg(3) not found.",
             ),
             (
-                {1: 4, -1: b"mysecret", 3: 3},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: b"mysecret", COSEKeyParams.ALG: COSEAlgs.A256GCM},
                 "Unsupported or unknown alg(3) for HMAC.",
             ),
             (
-                {1: 4, -1: b"mysecret", 3: 8},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.K: b"mysecret",
+                    COSEKeyParams.ALG: COSEKeyOps.DERIVE_BITS,
+                },
                 "Unsupported or unknown alg(8) for HMAC.",
             ),
             (
-                {1: 4, -1: b"mysecret", 3: 4, 4: [1, 2, 3]},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.K: b"mysecret",
+                    COSEKeyParams.ALG: COSEAlgs.HS256_64,
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.SIGN, COSEKeyOps.VERIFY, COSEKeyOps.ENCRYPT],
+                },
                 "Unknown or not permissible key_ops(4) for MACAuthenticationKey: 1.",
             ),
             (
-                {1: 4, -1: b"mysecret", 3: 4, 4: [9, 10, 11]},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.K: b"mysecret",
+                    COSEKeyParams.ALG: COSEAlgs.HS256_64,
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.MAC_CREATE, COSEKeyOps.MAC_VERIFY, 11],
+                },
                 "key_ops(4) includes invalid value: 11.",
             ),
         ],
@@ -207,9 +222,9 @@ class TestHMACKey:
     def test_hmac_key_sign_with_invalid_args(self):
         key = HMACKey(
             {
-                1: 4,
-                -1: b"mysecret",
-                3: 5,  # HMAC 256/256
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: b"mysecret",
+                COSEKeyParams.ALG: COSEAlgs.HS256,  # HMAC 256/256
             }
         )
         with pytest.raises(EncodeError) as err:
@@ -220,17 +235,17 @@ class TestHMACKey:
     def test_hmac_key_verify_with_invalid_signature(self):
         key = HMACKey(
             {
-                1: 4,
-                -1: b"mysecret",
-                3: 5,  # HMAC 256/256
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: b"mysecret",
+                COSEKeyParams.ALG: COSEAlgs.HS256,  # HMAC 256/256
             }
         )
-        assert key.kty == 4
+        assert key.kty == COSEKeyTypes.ASYMMETRIC
         assert key.kid is None
-        assert key.alg == 5
+        assert key.alg == COSEAlgs.HS256
         assert len(key.key_ops) == 2
-        assert 9 in key.key_ops
-        assert 10 in key.key_ops
+        assert COSEKeyOps.MAC_CREATE in key.key_ops
+        assert COSEKeyOps.MAC_VERIFY in key.key_ops
         assert key.base_iv is None
         sig = key.sign(b"Hello world!")
         with pytest.raises(VerifyError) as err:
@@ -247,19 +262,19 @@ class TestAESCCMKey:
     def test_aesccm_key_constructor_with_aes_ccm_16_64_128(self):
         key = AESCCMKey(
             {
-                1: 4,
-                -1: token_bytes(16),
-                3: 10,  # AES-CCM-16-64-128
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: token_bytes(16),
+                COSEKeyParams.ALG: COSEAlgs.AES_CCM_16_64_128,  # AES-CCM-16-64-128
             }
         )
-        assert key.kty == 4
+        assert key.kty == COSEKeyTypes.ASYMMETRIC
         assert key.kid is None
-        assert key.alg == 10
+        assert key.alg == COSEAlgs.AES_CCM_16_64_128
         assert len(key.key_ops) == 4
-        assert 3 in key.key_ops
-        assert 4 in key.key_ops
-        assert 5 in key.key_ops
-        assert 6 in key.key_ops
+        assert COSEKeyOps.ENCRYPT in key.key_ops
+        assert COSEKeyOps.DECRYPT in key.key_ops
+        assert COSEKeyOps.WRAP_KEY in key.key_ops
+        assert COSEKeyOps.UNWRAP_KEY in key.key_ops
         assert key.base_iv is None
         nonce = token_bytes(13)
         try:
@@ -272,48 +287,48 @@ class TestAESCCMKey:
         "key_args, nonce",
         [
             (
-                {1: 4, 3: 10},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.AES_CCM_16_64_128},
                 token_bytes(13),
             ),
             (
-                {1: 4, 3: 11},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.AES_CCM_16_64_256},
                 token_bytes(13),
             ),
             (
-                {1: 4, 3: 12},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.AES_CCM_64_64_128},
                 token_bytes(7),
             ),
             (
-                {1: 4, 3: 13},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.AES_CCM_64_64_256},
                 token_bytes(7),
             ),
             (
-                {1: 4, 3: 30},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.AES_CCM_16_128_128},
                 token_bytes(13),
             ),
             (
-                {1: 4, 3: 31},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.AES_CCM_16_128_256},
                 token_bytes(13),
             ),
             (
-                {1: 4, 3: 32},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.AES_CCM_64_128_128},
                 token_bytes(7),
             ),
             (
-                {1: 4, 3: 33},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.AES_CCM_64_128_256},
                 token_bytes(7),
             ),
         ],
     )
     def test_aesccm_key_constructor_with_aes_ccm_without_key(self, key_args, nonce):
         key = AESCCMKey(key_args)
-        assert key.kty == 4
+        assert key.kty == COSEKeyTypes.ASYMMETRIC
         assert key.kid is None
         assert len(key.key_ops) == 4
-        assert 3 in key.key_ops
-        assert 4 in key.key_ops
-        assert 5 in key.key_ops
-        assert 6 in key.key_ops
+        assert COSEKeyOps.ENCRYPT in key.key_ops
+        assert COSEKeyOps.DECRYPT in key.key_ops
+        assert COSEKeyOps.WRAP_KEY in key.key_ops
+        assert COSEKeyOps.UNWRAP_KEY in key.key_ops
         assert key.base_iv is None
         try:
             encrypted = key.encrypt(b"Hello world!", nonce=nonce)
@@ -325,87 +340,131 @@ class TestAESCCMKey:
         "invalid, msg",
         [
             (
-                {1: 2},
+                {COSEKeyParams.KTY: COSEKeyTypes.EC2},
                 "kty(1) should be Symmetric(4).",
             ),
             (
-                {1: b"invalid"},
+                {COSEKeyParams.KTY: b"invalid"},
                 "kty(1) should be int or str(tstr).",
             ),
             (
-                {1: {}},
+                {COSEKeyParams.KTY: {}},
                 "kty(1) should be int or str(tstr).",
             ),
             (
-                {1: []},
+                {COSEKeyParams.KTY: []},
                 "kty(1) should be int or str(tstr).",
             ),
             (
-                {1: 4, -1: 123},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: 123},
                 "k(-1) should be bytes(bstr).",
             ),
             (
-                {1: 4, -1: {}},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: {}},
                 "k(-1) should be bytes(bstr).",
             ),
             (
-                {1: 4, -1: []},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: []},
                 "k(-1) should be bytes(bstr).",
             ),
             (
-                {1: 4, -1: b"mysecret"},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: b"mysecret"},
                 "alg(3) not found.",
             ),
             (
-                {1: 4, -1: b"mysecret", 3: 9},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: b"mysecret", COSEKeyParams.ALG: 9},
                 "Unsupported or unknown alg(9) for AES CCM.",
             ),
             (
-                {1: 4, -1: b"mysecret", 3: 34},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: b"mysecret", COSEKeyParams.ALG: 34},
                 "Unsupported or unknown alg(34) for AES CCM.",
             ),
             (
-                {1: 4, -1: b"mysecret", 3: 10},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.K: b"mysecret",
+                    COSEKeyParams.ALG: COSEAlgs.AES_CCM_16_64_128,
+                },
                 "The length of AES-CCM-16-64-128 key should be 16 bytes.",
             ),
             (
-                {1: 4, -1: b"mysecret", 3: 11},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.K: b"mysecret",
+                    COSEKeyParams.ALG: COSEAlgs.AES_CCM_16_64_256,
+                },
                 "The length of AES-CCM-16-64-256 key should be 32 bytes.",
             ),
             (
-                {1: 4, -1: b"mysecret", 3: 12},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.K: b"mysecret",
+                    COSEKeyParams.ALG: COSEAlgs.AES_CCM_64_64_128,
+                },
                 "The length of AES-CCM-64-64-128 key should be 16 bytes.",
             ),
             (
-                {1: 4, -1: b"mysecret", 3: 13},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.K: b"mysecret",
+                    COSEKeyParams.ALG: COSEAlgs.AES_CCM_64_64_256,
+                },
                 "The length of AES-CCM-64-64-256 key should be 32 bytes.",
             ),
             (
-                {1: 4, -1: b"mysecret", 3: 30},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.K: b"mysecret",
+                    COSEKeyParams.ALG: COSEAlgs.AES_CCM_16_128_128,
+                },
                 "The length of AES-CCM-16-128-128 key should be 16 bytes.",
             ),
             (
-                {1: 4, -1: b"mysecret", 3: 31},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.K: b"mysecret",
+                    COSEKeyParams.ALG: COSEAlgs.AES_CCM_16_128_256,
+                },
                 "The length of AES-CCM-16-128-256 key should be 32 bytes.",
             ),
             (
-                {1: 4, -1: b"mysecret", 3: 32},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.K: b"mysecret",
+                    COSEKeyParams.ALG: COSEAlgs.AES_CCM_64_128_128,
+                },
                 "The length of AES-CCM-64-128-128 key should be 16 bytes.",
             ),
             (
-                {1: 4, -1: b"mysecret", 3: 33},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.K: b"mysecret",
+                    COSEKeyParams.ALG: COSEAlgs.AES_CCM_64_128_256,
+                },
                 "The length of AES-CCM-64-128-256 key should be 32 bytes.",
             ),
             (
-                {1: 4, 3: 10, 4: [1, 2]},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.ALG: COSEAlgs.AES_CCM_16_64_128,
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.SIGN, COSEKeyOps.VERIFY],
+                },
                 "Unknown or not permissible key_ops(4) for ContentEncryptionKey: 1.",
             ),
             (
-                {1: 4, 3: 10, 4: [3, 4, 11]},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.ALG: COSEAlgs.AES_CCM_16_64_128,
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.ENCRYPT, COSEKeyOps.DECRYPT, 11],
+                },
                 "key_ops(4) includes invalid value: 11.",
             ),
             (
-                {1: 4, 3: 10, 4: [5, 6, 11]},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.ALG: COSEAlgs.AES_CCM_16_64_128,
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.WRAP_KEY, COSEKeyOps.UNWRAP_KEY, 11],
+                },
                 "key_ops(4) includes invalid value: 11.",
             ),
         ],
@@ -419,9 +478,9 @@ class TestAESCCMKey:
     def test_aesgcm_key_encrypt_without_msg(self):
         key = AESCCMKey(
             {
-                1: 4,
-                -1: token_bytes(16),
-                3: 10,  # AES-CCM-16-64-128
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: token_bytes(16),
+                COSEKeyParams.ALG: COSEAlgs.AES_CCM_16_64_128,  # AES-CCM-16-64-128
             }
         )
         nonce = token_bytes(13)
@@ -432,19 +491,19 @@ class TestAESCCMKey:
     def test_aesccm_key_decrypt_with_invalid_nonce(self):
         key = AESCCMKey(
             {
-                1: 4,
-                -1: token_bytes(16),
-                3: 10,  # AES-CCM-16-64-128
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: token_bytes(16),
+                COSEKeyParams.ALG: COSEAlgs.AES_CCM_16_64_128,  # AES-CCM-16-64-128
             }
         )
-        assert key.kty == 4
+        assert key.kty == COSEKeyTypes.ASYMMETRIC
         assert key.kid is None
-        assert key.alg == 10
+        assert key.alg == COSEAlgs.AES_CCM_16_64_128
         assert len(key.key_ops) == 4
-        assert 3 in key.key_ops
-        assert 4 in key.key_ops
-        assert 5 in key.key_ops
-        assert 6 in key.key_ops
+        assert COSEKeyOps.ENCRYPT in key.key_ops
+        assert COSEKeyOps.DECRYPT in key.key_ops
+        assert COSEKeyOps.WRAP_KEY in key.key_ops
+        assert COSEKeyOps.UNWRAP_KEY in key.key_ops
         assert key.base_iv is None
         nonce = token_bytes(13)
         encrypted = key.encrypt(b"Hello world!", nonce=nonce)
@@ -455,19 +514,19 @@ class TestAESCCMKey:
     def test_aesccm_key_decrypt_with_invalid_length_nonce(self):
         key = AESCCMKey(
             {
-                1: 4,
-                -1: token_bytes(16),
-                3: 10,  # AES-CCM-16-64-128
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: token_bytes(16),
+                COSEKeyParams.ALG: COSEAlgs.AES_CCM_16_64_128,  # AES-CCM-16-64-128
             }
         )
-        assert key.kty == 4
+        assert key.kty == COSEKeyTypes.ASYMMETRIC
         assert key.kid is None
-        assert key.alg == 10
+        assert key.alg == COSEAlgs.AES_CCM_16_64_128
         assert len(key.key_ops) == 4
-        assert 3 in key.key_ops
-        assert 4 in key.key_ops
-        assert 5 in key.key_ops
-        assert 6 in key.key_ops
+        assert COSEKeyOps.ENCRYPT in key.key_ops
+        assert COSEKeyOps.DECRYPT in key.key_ops
+        assert COSEKeyOps.WRAP_KEY in key.key_ops
+        assert COSEKeyOps.UNWRAP_KEY in key.key_ops
         assert key.base_iv is None
         nonce = token_bytes(13)
         encrypted = key.encrypt(b"Hello world!", nonce=nonce)
@@ -484,19 +543,19 @@ class TestAESGCMKey:
     def test_aesgcm_key_constructor_with_aes_gcm_a128gcm(self):
         key = AESGCMKey(
             {
-                1: 4,
-                -1: token_bytes(16),
-                3: 1,  # A128GCM
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: token_bytes(16),
+                COSEKeyParams.ALG: COSEAlgs.A128GCM,  # A128GCM
             }
         )
-        assert key.kty == 4
+        assert key.kty == COSEKeyTypes.ASYMMETRIC
         assert key.kid is None
-        assert key.alg == 1
+        assert key.alg == COSEAlgs.A128GCM
         assert len(key.key_ops) == 4
-        assert 3 in key.key_ops
-        assert 4 in key.key_ops
-        assert 5 in key.key_ops
-        assert 6 in key.key_ops
+        assert COSEKeyOps.ENCRYPT in key.key_ops
+        assert COSEKeyOps.DECRYPT in key.key_ops
+        assert COSEKeyOps.WRAP_KEY in key.key_ops
+        assert COSEKeyOps.UNWRAP_KEY in key.key_ops
         assert key.base_iv is None
         nonce = token_bytes(12)
         try:
@@ -508,20 +567,20 @@ class TestAESGCMKey:
     @pytest.mark.parametrize(
         "key_args",
         [
-            {1: 4, 3: 1},
-            {1: 4, 3: 2},
-            {1: 4, 3: 3},
+            {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.A128GCM},
+            {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.A192GCM},
+            {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.A256GCM},
         ],
     )
     def test_aesgcm_key_constructor_with_aes_ccm_without_key(self, key_args):
         key = AESGCMKey(key_args)
-        assert key.kty == 4
+        assert key.kty == COSEKeyTypes.ASYMMETRIC
         assert key.kid is None
         assert len(key.key_ops) == 4
-        assert 3 in key.key_ops
-        assert 4 in key.key_ops
-        assert 5 in key.key_ops
-        assert 6 in key.key_ops
+        assert COSEKeyOps.ENCRYPT in key.key_ops
+        assert COSEKeyOps.DECRYPT in key.key_ops
+        assert COSEKeyOps.WRAP_KEY in key.key_ops
+        assert COSEKeyOps.UNWRAP_KEY in key.key_ops
         assert key.base_iv is None
         nonce = token_bytes(12)
         try:
@@ -534,31 +593,47 @@ class TestAESGCMKey:
         "invalid, msg",
         [
             (
-                {1: 4, -1: b"mysecret", 3: 4},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.K: b"mysecret",
+                    COSEKeyParams.ALG: COSEAlgs.HS256_64,
+                },
                 "Unsupported or unknown alg(3) for AES GCM: 4",
             ),
             (
-                {1: 4, -1: b"mysecret", 3: 1},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: b"mysecret", COSEKeyParams.ALG: COSEAlgs.A128GCM},
                 "The length of A128GCM key should be 16 bytes.",
             ),
             (
-                {1: 4, -1: b"mysecret", 3: 2},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: b"mysecret", COSEKeyParams.ALG: COSEAlgs.A192GCM},
                 "The length of A192GCM key should be 24 bytes.",
             ),
             (
-                {1: 4, -1: b"mysecret", 3: 3},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: b"mysecret", COSEKeyParams.ALG: COSEAlgs.A256GCM},
                 "The length of A256GCM key should be 32 bytes.",
             ),
             (
-                {1: 4, 3: 1, 4: [1, 2]},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.ALG: COSEAlgs.A128GCM,
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.SIGN, COSEKeyOps.VERIFY],
+                },
                 "Unknown or not permissible key_ops(4) for ContentEncryptionKey: 1.",
             ),
             (
-                {1: 4, 3: 1, 4: [3, 4, 11]},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.ALG: COSEAlgs.A128GCM,
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.ENCRYPT, COSEKeyOps.DECRYPT, 11],
+                },
                 "key_ops(4) includes invalid value: 11.",
             ),
             (
-                {1: 4, 3: 1, 4: [5, 6, 11]},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.ALG: COSEAlgs.A128GCM,
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.WRAP_KEY, COSEKeyOps.UNWRAP_KEY, 11],
+                },
                 "key_ops(4) includes invalid value: 11.",
             ),
         ],
@@ -572,9 +647,9 @@ class TestAESGCMKey:
     def test_aesgcm_key_encrypt_with_empty_nonce(self):
         key = AESGCMKey(
             {
-                1: 4,
-                -1: token_bytes(16),
-                3: 1,  # A128GCM
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: token_bytes(16),
+                COSEKeyParams.ALG: COSEAlgs.A128GCM,  # A128GCM
             }
         )
         with pytest.raises(EncodeError) as err:
@@ -584,19 +659,19 @@ class TestAESGCMKey:
     def test_aesgcm_key_decrypt_with_invalid_nonce(self):
         key = AESGCMKey(
             {
-                1: 4,
-                -1: token_bytes(16),
-                3: 1,  # A128GCM
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: token_bytes(16),
+                COSEKeyParams.ALG: COSEAlgs.A128GCM,  # A128GCM
             }
         )
-        assert key.kty == 4
+        assert key.kty == COSEKeyTypes.ASYMMETRIC
         assert key.kid is None
-        assert key.alg == 1
+        assert key.alg == COSEAlgs.A128GCM
         assert len(key.key_ops) == 4
-        assert 3 in key.key_ops
-        assert 4 in key.key_ops
-        assert 5 in key.key_ops
-        assert 6 in key.key_ops
+        assert COSEKeyOps.ENCRYPT in key.key_ops
+        assert COSEKeyOps.DECRYPT in key.key_ops
+        assert COSEKeyOps.WRAP_KEY in key.key_ops
+        assert COSEKeyOps.UNWRAP_KEY in key.key_ops
         assert key.base_iv is None
         nonce = token_bytes(12)
         encrypted = key.encrypt(b"Hello world!", nonce=nonce)
@@ -613,19 +688,19 @@ class TestChaCha20Key:
     def test_chacha20_key_constructor(self):
         key = ChaCha20Key(
             {
-                1: 4,
-                -1: token_bytes(32),
-                3: 24,  # ChaCha20/Poly1305
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: token_bytes(32),
+                COSEKeyParams.ALG: COSEAlgs.CHACHA20_POLY1305,  # ChaCha20/Poly1305
             }
         )
-        assert key.kty == 4
+        assert key.kty == COSEKeyTypes.ASYMMETRIC
         assert key.kid is None
-        assert key.alg == 24
+        assert key.alg == COSEAlgs.CHACHA20_POLY1305
         assert len(key.key_ops) == 4
-        assert 3 in key.key_ops
-        assert 4 in key.key_ops
-        assert 5 in key.key_ops
-        assert 6 in key.key_ops
+        assert COSEKeyOps.ENCRYPT in key.key_ops
+        assert COSEKeyOps.DECRYPT in key.key_ops
+        assert COSEKeyOps.WRAP_KEY in key.key_ops
+        assert COSEKeyOps.UNWRAP_KEY in key.key_ops
         assert key.base_iv is None
         nonce = token_bytes(12)
         try:
@@ -637,18 +712,18 @@ class TestChaCha20Key:
     @pytest.mark.parametrize(
         "key_args",
         [
-            {1: 4, 3: 24},
+            {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.CHACHA20_POLY1305},
         ],
     )
     def test_chacha20_key_constructor_without_key(self, key_args):
         key = ChaCha20Key(key_args)
-        assert key.kty == 4
+        assert key.kty == COSEKeyTypes.ASYMMETRIC
         assert key.kid is None
         assert len(key.key_ops) == 4
-        assert 3 in key.key_ops
-        assert 4 in key.key_ops
-        assert 5 in key.key_ops
-        assert 6 in key.key_ops
+        assert COSEKeyOps.ENCRYPT in key.key_ops
+        assert COSEKeyOps.DECRYPT in key.key_ops
+        assert COSEKeyOps.WRAP_KEY in key.key_ops
+        assert COSEKeyOps.UNWRAP_KEY in key.key_ops
         assert key.base_iv is None
         nonce = token_bytes(12)
         try:
@@ -661,23 +736,39 @@ class TestChaCha20Key:
         "invalid, msg",
         [
             (
-                {1: 4, -1: b"mysecret", 3: 0},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: b"mysecret", COSEKeyParams.ALG: 0},
                 "Unsupported or unknown alg(3) for ChaCha20: 0",
             ),
             (
-                {1: 4, -1: b"mysecret", 3: 24},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.K: b"mysecret",
+                    COSEKeyParams.ALG: COSEAlgs.CHACHA20_POLY1305,
+                },
                 "The length of ChaCha20/Poly1305 key should be 32 bytes.",
             ),
             (
-                {1: 4, 3: 24, 4: [1, 2]},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.ALG: COSEAlgs.CHACHA20_POLY1305,
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.SIGN, COSEKeyOps.VERIFY],
+                },
                 "Unknown or not permissible key_ops(4) for ContentEncryptionKey: 1.",
             ),
             (
-                {1: 4, 3: 24, 4: [3, 4, 11]},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.ALG: COSEAlgs.CHACHA20_POLY1305,
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.ENCRYPT, COSEKeyOps.DECRYPT, 11],
+                },
                 "key_ops(4) includes invalid value: 11.",
             ),
             (
-                {1: 4, 3: 24, 4: [5, 6, 11]},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.ALG: COSEAlgs.CHACHA20_POLY1305,
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.WRAP_KEY, COSEKeyOps.UNWRAP_KEY, 11],
+                },
                 "key_ops(4) includes invalid value: 11.",
             ),
         ],
@@ -691,9 +782,9 @@ class TestChaCha20Key:
     def test_chacha20_key_encrypt_with_empty_nonce(self):
         key = ChaCha20Key(
             {
-                1: 4,
-                -1: token_bytes(32),
-                3: 24,  # ChaCha20/Poly1305
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: token_bytes(32),
+                COSEKeyParams.ALG: COSEAlgs.CHACHA20_POLY1305,  # ChaCha20/Poly1305
             }
         )
         with pytest.raises(EncodeError) as err:
@@ -703,9 +794,9 @@ class TestChaCha20Key:
     def test_chacha20_key_decrypt_with_different_nonce(self):
         key = ChaCha20Key(
             {
-                1: 4,
-                -1: token_bytes(32),
-                3: 24,  # ChaCha20/Poly1305
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: token_bytes(32),
+                COSEKeyParams.ALG: COSEAlgs.CHACHA20_POLY1305,  # ChaCha20/Poly1305
             }
         )
         nonce = token_bytes(12)
@@ -718,16 +809,16 @@ class TestChaCha20Key:
     def test_chacha20_key_decrypt_with_different_key(self):
         key = ChaCha20Key(
             {
-                1: 4,
-                -1: token_bytes(32),
-                3: 24,  # ChaCha20/Poly1305
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: token_bytes(32),
+                COSEKeyParams.ALG: COSEAlgs.CHACHA20_POLY1305,  # ChaCha20/Poly1305
             }
         )
         key2 = ChaCha20Key(
             {
-                1: 4,
-                -1: token_bytes(32),
-                3: 24,  # ChaCha20/Poly1305
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: token_bytes(32),
+                COSEKeyParams.ALG: COSEAlgs.CHACHA20_POLY1305,  # ChaCha20/Poly1305
             }
         )
         nonce = token_bytes(12)
@@ -740,9 +831,9 @@ class TestChaCha20Key:
     def test_chacha20_key_decrypt_with_invalid_nonce(self):
         key = ChaCha20Key(
             {
-                1: 4,
-                -1: token_bytes(32),
-                3: 24,  # ChaCha20/Poly1305
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: token_bytes(32),
+                COSEKeyParams.ALG: COSEAlgs.CHACHA20_POLY1305,  # ChaCha20/Poly1305
             }
         )
         nonce = token_bytes(12)
@@ -761,19 +852,19 @@ class TestAESCTRKey:
     def test_aesctr_key_constructor_with_aes_ctr_a128ctr(self):
         key = AESCTRKey(
             {
-                1: 4,
-                -1: token_bytes(16),
-                3: -65534,  # A128CTR
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: token_bytes(16),
+                COSEKeyParams.ALG: COSEAlgs.A128CTR,  # A128CTR
             }
         )
-        assert key.kty == 4
+        assert key.kty == COSEKeyTypes.ASYMMETRIC
         assert key.kid is None
-        assert key.alg == -65534
+        assert key.alg == COSEAlgs.A128CTR
         assert len(key.key_ops) == 4
-        assert 3 in key.key_ops
-        assert 4 in key.key_ops
-        assert 5 in key.key_ops
-        assert 6 in key.key_ops
+        assert COSEKeyOps.ENCRYPT in key.key_ops
+        assert COSEKeyOps.DECRYPT in key.key_ops
+        assert COSEKeyOps.WRAP_KEY in key.key_ops
+        assert COSEKeyOps.UNWRAP_KEY in key.key_ops
         assert key.base_iv is None
         nonce = token_bytes(16)
         try:
@@ -785,20 +876,20 @@ class TestAESCTRKey:
     @pytest.mark.parametrize(
         "key_args",
         [
-            {1: 4, 3: -65534},
-            {1: 4, 3: -65533},
-            {1: 4, 3: -65532},
+            {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.A128CTR},
+            {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.A192CTR},
+            {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.A256CTR},
         ],
     )
     def test_aesctr_key_constructor_with_aes_ctr_without_key(self, key_args):
         key = AESCTRKey(key_args)
-        assert key.kty == 4
+        assert key.kty == COSEKeyTypes.ASYMMETRIC
         assert key.kid is None
         assert len(key.key_ops) == 4
-        assert 3 in key.key_ops
-        assert 4 in key.key_ops
-        assert 5 in key.key_ops
-        assert 6 in key.key_ops
+        assert COSEKeyOps.ENCRYPT in key.key_ops
+        assert COSEKeyOps.DECRYPT in key.key_ops
+        assert COSEKeyOps.WRAP_KEY in key.key_ops
+        assert COSEKeyOps.UNWRAP_KEY in key.key_ops
         assert key.base_iv is None
         nonce = token_bytes(16)
         try:
@@ -811,31 +902,47 @@ class TestAESCTRKey:
         "invalid, msg",
         [
             (
-                {1: 4, -1: b"mysecret", 3: 4},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.K: b"mysecret",
+                    COSEKeyParams.ALG: COSEAlgs.HS256_64,
+                },
                 "Unsupported or unknown alg(3) for AES CTR: 4",
             ),
             (
-                {1: 4, -1: b"mysecret", 3: -65534},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: b"mysecret", COSEKeyParams.ALG: COSEAlgs.A128CTR},
                 "The length of A128CTR key should be 16 bytes.",
             ),
             (
-                {1: 4, -1: b"mysecret", 3: -65533},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: b"mysecret", COSEKeyParams.ALG: COSEAlgs.A192CTR},
                 "The length of A192CTR key should be 24 bytes.",
             ),
             (
-                {1: 4, -1: b"mysecret", 3: -65532},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: b"mysecret", COSEKeyParams.ALG: COSEAlgs.A256CTR},
                 "The length of A256CTR key should be 32 bytes.",
             ),
             (
-                {1: 4, 3: -65534, 4: [1, 2]},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.ALG: COSEAlgs.A128CTR,
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.SIGN, COSEKeyOps.VERIFY],
+                },
                 "Unknown or not permissible key_ops(4) for ContentEncryptionKey: 1.",
             ),
             (
-                {1: 4, 3: -65534, 4: [3, 4, 11]},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.ALG: COSEAlgs.A128CTR,
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.ENCRYPT, COSEKeyOps.DECRYPT, 11],
+                },
                 "key_ops(4) includes invalid value: 11.",
             ),
             (
-                {1: 4, 3: -65534, 4: [5, 6, 11]},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.ALG: COSEAlgs.A128CTR,
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.WRAP_KEY, COSEKeyOps.UNWRAP_KEY, 11],
+                },
                 "key_ops(4) includes invalid value: 11.",
             ),
         ],
@@ -849,9 +956,9 @@ class TestAESCTRKey:
     def test_aesgcm_key_encrypt_with_empty_nonce(self):
         key = AESCTRKey(
             {
-                1: 4,
-                -1: token_bytes(16),
-                3: -65534,  # A128CTR
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: token_bytes(16),
+                COSEKeyParams.ALG: COSEAlgs.A128CTR,  # A128CTR
             }
         )
         with pytest.raises(EncodeError) as err:
@@ -861,19 +968,19 @@ class TestAESCTRKey:
     def test_aesctr_key_decrypt_with_invalid_nonce(self):
         key = AESCTRKey(
             {
-                1: 4,
-                -1: token_bytes(16),
-                3: -65534,  # A128CTR
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: token_bytes(16),
+                COSEKeyParams.ALG: COSEAlgs.A128CTR,  # A128CTR
             }
         )
-        assert key.kty == 4
+        assert key.kty == COSEKeyTypes.ASYMMETRIC
         assert key.kid is None
-        assert key.alg == -65534
+        assert key.alg == COSEAlgs.A128CTR
         assert len(key.key_ops) == 4
-        assert 3 in key.key_ops
-        assert 4 in key.key_ops
-        assert 5 in key.key_ops
-        assert 6 in key.key_ops
+        assert COSEKeyOps.ENCRYPT in key.key_ops
+        assert COSEKeyOps.DECRYPT in key.key_ops
+        assert COSEKeyOps.WRAP_KEY in key.key_ops
+        assert COSEKeyOps.UNWRAP_KEY in key.key_ops
         assert key.base_iv is None
         nonce = token_bytes(16)
         encrypted = key.encrypt(b"Hello world!", nonce=nonce)
@@ -893,19 +1000,19 @@ class TestAESCBCKey:
     def test_aescbc_key_constructor_with_aes_cbc_a128cbc(self):
         key = AESCBCKey(
             {
-                1: 4,
-                -1: token_bytes(16),
-                3: -65531,  # A128CBC
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: token_bytes(16),
+                COSEKeyParams.ALG: COSEAlgs.A128CBC,  # A128CBC
             }
         )
-        assert key.kty == 4
+        assert key.kty == COSEKeyTypes.ASYMMETRIC
         assert key.kid is None
-        assert key.alg == -65531
+        assert key.alg == COSEAlgs.A128CBC
         assert len(key.key_ops) == 4
-        assert 3 in key.key_ops
-        assert 4 in key.key_ops
-        assert 5 in key.key_ops
-        assert 6 in key.key_ops
+        assert COSEKeyOps.ENCRYPT in key.key_ops
+        assert COSEKeyOps.DECRYPT in key.key_ops
+        assert COSEKeyOps.WRAP_KEY in key.key_ops
+        assert COSEKeyOps.UNWRAP_KEY in key.key_ops
         assert key.base_iv is None
         nonce = token_bytes(16)
         try:
@@ -917,9 +1024,9 @@ class TestAESCBCKey:
     def test_aescbc_padding_with_aes_cbc_a128cbc(self):
         key = AESCBCKey(
             {
-                1: 4,
-                -1: token_bytes(16),
-                3: -65531,  # A128CBC
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: token_bytes(16),
+                COSEKeyParams.ALG: COSEAlgs.A128CBC,  # A128CBC
             }
         )
         nonce = token_bytes(16)
@@ -943,20 +1050,20 @@ class TestAESCBCKey:
     @pytest.mark.parametrize(
         "key_args",
         [
-            {1: 4, 3: -65531},
-            {1: 4, 3: -65530},
-            {1: 4, 3: -65529},
+            {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.A128CBC},
+            {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.A192CBC},
+            {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.ALG: COSEAlgs.A256CBC},
         ],
     )
     def test_aescbc_key_constructor_with_aes_cbc_without_key(self, key_args):
         key = AESCBCKey(key_args)
-        assert key.kty == 4
+        assert key.kty == COSEKeyTypes.ASYMMETRIC
         assert key.kid is None
         assert len(key.key_ops) == 4
-        assert 3 in key.key_ops
-        assert 4 in key.key_ops
-        assert 5 in key.key_ops
-        assert 6 in key.key_ops
+        assert COSEKeyOps.ENCRYPT in key.key_ops
+        assert COSEKeyOps.DECRYPT in key.key_ops
+        assert COSEKeyOps.WRAP_KEY in key.key_ops
+        assert COSEKeyOps.UNWRAP_KEY in key.key_ops
         assert key.base_iv is None
         nonce = token_bytes(16)
         try:
@@ -969,31 +1076,47 @@ class TestAESCBCKey:
         "invalid, msg",
         [
             (
-                {1: 4, -1: b"mysecret", 3: 4},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.K: b"mysecret",
+                    COSEKeyParams.ALG: COSEAlgs.HS256_64,
+                },
                 "Unsupported or unknown alg(3) for AES CBC: 4",
             ),
             (
-                {1: 4, -1: b"mysecret", 3: -65531},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: b"mysecret", COSEKeyParams.ALG: COSEAlgs.A128CBC},
                 "The length of A128CBC key should be 16 bytes.",
             ),
             (
-                {1: 4, -1: b"mysecret", 3: -65530},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: b"mysecret", COSEKeyParams.ALG: COSEAlgs.A192CBC},
                 "The length of A192CBC key should be 24 bytes.",
             ),
             (
-                {1: 4, -1: b"mysecret", 3: -65529},
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: b"mysecret", COSEKeyParams.ALG: COSEAlgs.A256CBC},
                 "The length of A256CBC key should be 32 bytes.",
             ),
             (
-                {1: 4, 3: -65531, 4: [1, 2]},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.ALG: COSEAlgs.A128CBC,
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.SIGN, COSEKeyOps.VERIFY],
+                },
                 "Unknown or not permissible key_ops(4) for ContentEncryptionKey: 1.",
             ),
             (
-                {1: 4, 3: -65531, 4: [3, 4, 11]},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.ALG: COSEAlgs.A128CBC,
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.ENCRYPT, COSEKeyOps.DECRYPT, 11],
+                },
                 "key_ops(4) includes invalid value: 11.",
             ),
             (
-                {1: 4, 3: -65531, 4: [5, 6, 11]},
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.ALG: COSEAlgs.A128CBC,
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.WRAP_KEY, COSEKeyOps.UNWRAP_KEY, 11],
+                },
                 "key_ops(4) includes invalid value: 11.",
             ),
         ],
@@ -1007,9 +1130,9 @@ class TestAESCBCKey:
     def test_aesgcm_key_encrypt_with_empty_nonce(self):
         key = AESCBCKey(
             {
-                1: 4,
-                -1: token_bytes(16),
-                3: -65531,  # A128CBC
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: token_bytes(16),
+                COSEKeyParams.ALG: COSEAlgs.A128CBC,  # A128CBC
             }
         )
         with pytest.raises(EncodeError) as err:
@@ -1019,19 +1142,19 @@ class TestAESCBCKey:
     def test_aescbc_key_decrypt_with_invalid_nonce(self):
         key = AESCBCKey(
             {
-                1: 4,
-                -1: token_bytes(16),
-                3: -65531,  # A128CBC
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: token_bytes(16),
+                COSEKeyParams.ALG: COSEAlgs.A128CBC,  # A128CBC
             }
         )
-        assert key.kty == 4
+        assert key.kty == COSEKeyTypes.ASYMMETRIC
         assert key.kid is None
-        assert key.alg == -65531
+        assert key.alg == COSEAlgs.A128CBC
         assert len(key.key_ops) == 4
-        assert 3 in key.key_ops
-        assert 4 in key.key_ops
-        assert 5 in key.key_ops
-        assert 6 in key.key_ops
+        assert COSEKeyOps.ENCRYPT in key.key_ops
+        assert COSEKeyOps.DECRYPT in key.key_ops
+        assert COSEKeyOps.WRAP_KEY in key.key_ops
+        assert COSEKeyOps.UNWRAP_KEY in key.key_ops
         assert key.base_iv is None
         nonce = token_bytes(16)
         encrypted = key.encrypt(b"Hello world!", nonce=nonce)

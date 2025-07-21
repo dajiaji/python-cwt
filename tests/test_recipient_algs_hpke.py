@@ -4,7 +4,7 @@ Tests for HPKE.
 
 import pytest
 
-from cwt.enums import COSEHeaders
+from cwt.enums import COSEAlgs, COSEHeaders
 from cwt.recipient_algs.hpke import HPKE
 
 
@@ -16,16 +16,16 @@ class TestHPKE:
     @pytest.mark.parametrize(
         "alg",
         [
-            35,
-            36,
-            37,
-            38,
-            39,
-            40,
-            41,
-            42,
-            43,
-            44,
+            COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
+            COSEAlgs.HPKE_BASE_P256_SHA256_CHACHA20POLY1305,
+            COSEAlgs.HPKE_BASE_P384_SHA384_AES256GCM,
+            COSEAlgs.HPKE_BASE_P384_SHA384_CHACHA20POLY1305,
+            COSEAlgs.HPKE_BASE_P521_SHA512_AES256GCM,
+            COSEAlgs.HPKE_BASE_P521_SHA512_CHACHA20POLY1305,
+            COSEAlgs.HPKE_BASE_X25519_SHA256_AES128GCM,
+            COSEAlgs.HPKE_BASE_X25519_SHA256_CHACHA20POLY1305,
+            COSEAlgs.HPKE_BASE_X448_SHA512_AES256GCM,
+            COSEAlgs.HPKE_BASE_X448_SHA512_CHACHA20POLY1305,
         ],
     )
     def test_recipient_algs_hpke(self, alg):

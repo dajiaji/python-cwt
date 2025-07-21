@@ -10,6 +10,7 @@ import cbor2
 import pytest
 
 from cwt import COSE, COSEKey, Recipient
+from cwt.enums import COSEAlgs, COSEHeaders
 from cwt.exceptions import DecodeError
 from cwt.recipient_interface import RecipientInterface
 from cwt.recipients import Recipients
@@ -130,10 +131,10 @@ class TestRecipientInterface:
         assert res[2] == b""
 
     def test_recipient_constructor_with_args(self):
-        child = RecipientInterface(unprotected={1: -6, 4: b"our-secret"})
+        child = RecipientInterface(unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: b"our-secret"})
         r = RecipientInterface(
             protected={"foo": "bar"},
-            unprotected={1: -1, 4: b"our-secret"},
+            unprotected={COSEHeaders.ALG: -1, COSEHeaders.KID: b"our-secret"},
             recipients=[child],
         )
         assert isinstance(r.protected, dict)
@@ -151,7 +152,7 @@ class TestRecipientInterface:
         assert len(res[3][0]) == 3
 
     def test_recipient_constructor_with_empty_recipients(self):
-        r = RecipientInterface(unprotected={1: -6, 4: b"our-secret"}, recipients=[])
+        r = RecipientInterface(unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: b"our-secret"}, recipients=[])
         assert isinstance(r, RecipientInterface)
         assert r.protected == {}
         assert isinstance(r.unprotected, dict)
@@ -161,9 +162,9 @@ class TestRecipientInterface:
         assert len(res) == 3
 
     def test_recipient_constructor_with_alg_a128kw(self):
-        r = RecipientInterface(protected={1: -3}, unprotected={4: b"our-secret"})
+        r = RecipientInterface(protected={COSEHeaders.ALG: COSEAlgs.A128KW}, unprotected={COSEHeaders.KID: b"our-secret"})
         assert isinstance(r, RecipientInterface)
-        assert r.alg == -3
+        assert r.alg == COSEAlgs.A128KW
         assert isinstance(r.protected, dict)
         assert isinstance(r.unprotected, dict)
         assert r.ciphertext == b""
@@ -172,9 +173,12 @@ class TestRecipientInterface:
         assert len(res) == 3
 
     def test_recipient_constructor_with_alg_a128kw_with_iv(self):
-        r = RecipientInterface(protected={1: -3}, unprotected={4: b"our-secret", 5: b"aabbccddee"})
+        r = RecipientInterface(
+            protected={COSEHeaders.ALG: COSEAlgs.A128KW},
+            unprotected={COSEHeaders.KID: b"our-secret", COSEHeaders.IV: b"aabbccddee"},
+        )
         assert isinstance(r, RecipientInterface)
-        assert r.alg == -3
+        assert r.alg == COSEAlgs.A128KW
         assert isinstance(r.protected, dict)
         assert isinstance(r.unprotected, dict)
         assert r.ciphertext == b""
@@ -187,56 +191,56 @@ class TestRecipientInterface:
         [
             (
                 {"foo": "bar"},
-                {1: -6, 4: b"our-secret"},
+                {COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: b"our-secret"},
                 b"",
                 [],
                 "protected header should be empty.",
             ),
             (
                 {},
-                {1: -6, 4: b"our-secret"},
+                {COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: b"our-secret"},
                 b"xxx",
                 [],
                 "ciphertext should be zero-length bytes.",
             ),
             (
                 {},
-                {1: -6, 4: b"our-secret"},
+                {COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: b"our-secret"},
                 b"",
                 [RecipientInterface()],
                 "recipients should be absent.",
             ),
             (
                 {},
-                {4: "our-secret"},
+                {COSEHeaders.KID: "our-secret"},
                 b"",
                 [RecipientInterface()],
                 "unprotected[4](kid) should be bytes.",
             ),
             (
-                {4: "our-secret"},
+                {COSEHeaders.KID: "our-secret"},
                 {},
                 b"",
                 [RecipientInterface()],
                 "protected[4](kid) should be bytes.",
             ),
             (
-                {1: "alg-a"},
-                {4: b"our-secret"},
+                {COSEHeaders.ALG: "alg-a"},
+                {COSEHeaders.KID: b"our-secret"},
                 b"",
                 [RecipientInterface()],
                 "protected[1](alg) should be int.",
             ),
             (
                 {},
-                {1: "alg-a", 4: b"our-secret"},
+                {COSEHeaders.ALG: "alg-a", COSEHeaders.KID: b"our-secret"},
                 b"",
                 [RecipientInterface()],
                 "unprotected[1](alg) should be int.",
             ),
             (
                 {},
-                {4: b"our-secret", 5: "xxx"},
+                {COSEHeaders.KID: b"our-secret", COSEHeaders.IV: "xxx"},
                 b"",
                 [RecipientInterface()],
                 "unprotected[5](iv) should be bytes.",
@@ -252,7 +256,7 @@ class TestRecipientInterface:
     def test_recipient_constructor_with_invalid_recipients(self):
         child = {}
         with pytest.raises(ValueError) as err:
-            RecipientInterface(unprotected={1: 0, 4: b"our-secret"}, recipients=[child])
+            RecipientInterface(unprotected={COSEHeaders.ALG: 0, COSEHeaders.KID: b"our-secret"}, recipients=[child])
             pytest.fail("RecipientInterface() should fail.")
         assert "Invalid child recipient." in str(err.value)
 
@@ -271,12 +275,12 @@ class TestRecipient:
                 "alg should be specified.",
             ),
             (
-                {1: -6},
-                {1: -6},
+                {COSEHeaders.ALG: COSEAlgs.DIRECT},
+                {COSEHeaders.ALG: COSEAlgs.DIRECT},
                 "alg appear both in protected and unprotected.",
             ),
             (
-                {1: -65535},
+                {COSEHeaders.ALG: -65535},
                 {},
                 # "Unsupported or unknown alg(1): -65535.",
                 "context should be set.",
@@ -292,19 +296,19 @@ class TestRecipient:
     def test_recipient_from_jwk_with_str(self):
         recipient = Recipient.new(unprotected={"alg": "direct"})
         assert isinstance(recipient, RecipientInterface)
-        assert recipient.alg == -6
+        assert recipient.alg == COSEAlgs.DIRECT
 
     def test_recipient_from_jwk_with_dict(self):
         k = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "key_ops": ["wrapKey"]})
         recipient = Recipient.new(unprotected={"alg": "A128KW"}, sender_key=k)
         assert isinstance(recipient, RecipientInterface)
-        assert recipient.alg == -3
+        assert recipient.alg == COSEAlgs.A128KW
 
     def test_recipient_from_jwk_with_dict_and_with_byte_formatted_kid(self):
         k = COSEKey.from_jwk({"kty": "oct", "kid": b"01", "alg": "A128KW", "key_ops": ["wrapKey"]})
         recipient = Recipient.new(unprotected={"kid": b"01", "alg": "A128KW"}, sender_key=k)
         assert isinstance(recipient, RecipientInterface)
-        assert recipient.alg == -3
+        assert recipient.alg == COSEAlgs.A128KW
         assert recipient.kid == b"01"
 
     # def test_recipient_from_jwk_with_context(self):
@@ -327,7 +331,7 @@ class TestRecipient:
     #         }
     #     )
     #     assert isinstance(recipient, RecipientInterface)
-    #     assert recipient.alg == -10
+    #     assert recipient.alg == COSEAlgs.DIRECT_HKDF_SHA256
     #     assert recipient._unprotected[-21] == b"sender-01"
     #     assert recipient._unprotected[-22] == b"xxx"
     #     assert recipient._unprotected[-23] == b"yyy"
@@ -351,7 +355,7 @@ class TestRecipient:
     #         }
     #     )
     #     assert isinstance(recipient, RecipientInterface)
-    #     assert recipient.alg == -10
+    #     assert recipient.alg == COSEAlgs.DIRECT_HKDF_SHA256
     #     assert recipient._unprotected[-21] == b"sender-01"
     #     assert -22 not in recipient._unprotected
     #     assert -23 not in recipient._unprotected
@@ -375,7 +379,7 @@ class TestRecipient:
     #         }
     #     )
     #     assert isinstance(recipient, RecipientInterface)
-    #     assert recipient.alg == -10
+    #     assert recipient.alg == COSEAlgs.DIRECT_HKDF_SHA256
     #     assert -21 not in recipient._unprotected
     #     assert recipient._unprotected[-22] == b"xxx"
     #     assert -23 not in recipient._unprotected
@@ -399,7 +403,7 @@ class TestRecipient:
     #         }
     #     )
     #     assert isinstance(recipient, RecipientInterface)
-    #     assert recipient.alg == -10
+    #     assert recipient.alg == COSEAlgs.DIRECT_HKDF_SHA256
     #     assert -21 not in recipient._unprotected
     #     assert -22 not in recipient._unprotected
     #     assert recipient._unprotected[-23] == b"yyy"
@@ -463,7 +467,7 @@ class TestRecipient:
             (
                 {"alg": "direct+HKDF-SHA-256", "context": []},
                 {"kty": "oct", "alg": "direct+HKDF-SHA-256"},
-                "Unsupported or unknown alg(3): -10.",
+                f"Unsupported or unknown alg(3): {COSEAlgs.DIRECT_HKDF_SHA256}.",
             ),
         ],
     )
@@ -485,14 +489,14 @@ class TestRecipients:
 
     def test_recipients_constructor_with_recipient_alg_direct(self):
         key = COSEKey.from_symmetric_key("mysecret", alg="HMAC 256/64", kid="our-secret")
-        r = Recipients([Recipient.new(unprotected={1: -6, 4: b"our-secret"})])
+        r = Recipients([Recipient.new(unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: b"our-secret"})])
         key = r.derive_key([key], key.alg, b"", b"")
         assert key.kty == 4
-        assert key.alg == 4
+        assert key.alg == COSEAlgs.HS256_64
         assert key.kid == b"our-secret"
 
     def test_recipients_derive_key_without_key(self):
-        r = Recipients([RecipientInterface(unprotected={1: -6, 4: b"our-secret"})])
+        r = Recipients([RecipientInterface(unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: b"our-secret"})])
         with pytest.raises(ValueError) as err:
             r.derive_key([], 0, b"", b"")
             pytest.fail("derive_key() should fail.")
@@ -535,7 +539,7 @@ class TestRecipients:
     #     )
     #     rs = Recipients([r1, r2])
     #     key = rs.derive_key(context=context, keys=[material])
-    #     assert key.alg == 10
+    #     assert key.alg == COSEAlgs.AES_CCM_16_64_128
     #     assert key.kid == b"02"
 
     # def test_recipients_derive_key_with_multiple_keys(self, material):
@@ -576,13 +580,13 @@ class TestRecipients:
     #         },
     #     )
     #     rs = Recipients([r1, r2, r3])
-    #     key = rs.derive_key(keys=[k3], alg=7)
-    #     assert key.alg == 7
+    #     key = rs.derive_key(keys=[k3], alg=COSEAlgs.HS512)
+    #     assert key.alg == COSEAlgs.HS512
     #     assert key.kid == b"03"
 
     def test_recipients_derive_key_with_different_kid(self):
         key = COSEKey.from_symmetric_key("mysecret", alg="HMAC 256/64", kid="our-secret")
-        r = Recipients([RecipientInterface(unprotected={1: -6, 4: b"your-secret"})])
+        r = Recipients([RecipientInterface(unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: b"your-secret"})])
         with pytest.raises(ValueError) as err:
             r.derive_key([key], key.alg, b"", b"")
             pytest.fail("derive_key() should fail.")
@@ -590,13 +594,19 @@ class TestRecipients:
 
     def test_recipients_from_list(self):
         try:
-            Recipients.from_list([[cbor2.dumps({1: -10}), {-20: b"aabbccddeefff"}, b""]], context={"alg": "A128GCM"})
+            Recipients.from_list(
+                [[cbor2.dumps({COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256}), {-20: b"aabbccddeefff"}, b""]],
+                context={"alg": "A128GCM"},
+            )
         except Exception:
             pytest.fail("from_list() should not fail.")
 
     def test_recipients_from_list_with_empty_recipients(self):
         try:
-            Recipients.from_list([[cbor2.dumps({1: -10}), {-20: b"aabbccddeefff"}, b"", []]], context={"alg": "A128GCM"})
+            Recipients.from_list(
+                [[cbor2.dumps({COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256}), {-20: b"aabbccddeefff"}, b"", []]],
+                context={"alg": "A128GCM"},
+            )
         except Exception:
             pytest.fail("from_list() should not fail.")
 
@@ -605,10 +615,10 @@ class TestRecipients:
             Recipients.from_list(
                 [
                     [
-                        cbor2.dumps({1: -10}),
+                        cbor2.dumps({COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256}),
                         {-20: b"aabbccddeefff"},
                         b"",
-                        [[b"", {1: -6, 4: b"our-secret"}, b""]],
+                        [[b"", {COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: b"our-secret"}, b""]],
                     ]
                 ],
                 context={"alg": "A128GCM"},
@@ -649,7 +659,9 @@ class TestRecipients:
         assert msg in str(err.value)
 
     def test_recipients_open_without_key(self):
-        r = RecipientInterface(protected={1: -1}, unprotected={4: b"01", -4: [0x0010, 0x0001, 0x0001]})
+        r = RecipientInterface(
+            protected={COSEHeaders.ALG: -1}, unprotected={COSEHeaders.KID: b"01", -4: [0x0010, 0x0001, 0x0001]}
+        )
         rs = Recipients([r])
         with pytest.raises(ValueError) as err:
             rs.derive_key([], 0, b"", b"")
@@ -674,14 +686,14 @@ class TestRecipients:
                 "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
             }
         )
-        r = Recipient.new(protected={1: 35}, recipient_key=rpk)
+        r = Recipient.new(protected={COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM}, recipient_key=rpk)
         r.encode(enc_key.key)
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
             enc_key,
             protected={
-                1: 1,  # alg: "A128GCM"
+                COSEHeaders.ALG: COSEAlgs.A128GCM,  # alg: "A128GCM"
             },
             recipients=[r],
         )
@@ -699,7 +711,7 @@ class TestRecipients:
                 "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
             }
         )
-        r = Recipient.new(protected={1: 35}, recipient_key=rpk)
+        r = Recipient.new(protected={COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM}, recipient_key=rpk)
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
@@ -724,7 +736,7 @@ class TestRecipients:
                 "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
             }
         )
-        r = Recipient.new(protected={1: 35}, recipient_key=rpk)
+        r = Recipient.new(protected={COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM}, recipient_key=rpk)
         r.encode(enc_key.key)
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
@@ -741,14 +753,18 @@ class TestRecipients:
 
     def test_recipients_open_with_multiple_rsks(self, rpk2, rsk1, rsk2):
         enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
-        r = Recipient.new(protected={1: 35}, unprotected={4: b"02"}, recipient_key=rpk2)
+        r = Recipient.new(
+            protected={COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM},
+            unprotected={COSEHeaders.KID: b"02"},
+            recipient_key=rpk2,
+        )
         r.encode(enc_key.key)
         sender = COSE.new(alg_auto_inclusion=True)
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
             key=enc_key,
             # protected={
-            #     1: -1,  # alg: "HPKE"
+            #     COSEHeaders.ALG: -1,  # alg: "HPKE"
             # },
             recipients=[r],
         )
@@ -757,7 +773,11 @@ class TestRecipients:
 
     def test_recipients_open_with_invalid_rsk(self, rpk1):
         enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
-        r = Recipient.new(protected={1: 35}, unprotected={4: b"02"}, recipient_key=rpk1)
+        r = Recipient.new(
+            protected={COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM},
+            unprotected={COSEHeaders.KID: b"02"},
+            recipient_key=rpk1,
+        )
         # r.encode(enc_key.to_bytes())
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
@@ -873,7 +893,7 @@ class TestRecipients:
                 "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
             }
         )
-        r = Recipient.new(unprotected={1: 35}, recipient_key=rpk)
+        r = Recipient.new(unprotected={COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM}, recipient_key=rpk)
         r.encode(enc_key.key)
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
@@ -889,12 +909,12 @@ class TestRecipients:
     @pytest.mark.parametrize(
         "key_agreement_alg, key_agreement_alg_id, kw_alg, enc_alg",
         [
-            ("ECDH-ES+A128KW", -29, "A128KW", "A128CTR"),
-            ("ECDH-ES+A192KW", -30, "A192KW", "A192CTR"),
-            ("ECDH-ES+A256KW", -31, "A256KW", "A256CTR"),
-            ("ECDH-ES+A128KW", -29, "A128KW", "A128CBC"),
-            ("ECDH-ES+A192KW", -30, "A192KW", "A192CBC"),
-            ("ECDH-ES+A256KW", -31, "A256KW", "A256CBC"),
+            ("ECDH-ES+A128KW", COSEAlgs.ECDH_ES_A128KW, "A128KW", "A128CTR"),
+            ("ECDH-ES+A192KW", COSEAlgs.ECDH_ES_A192KW, "A192KW", "A192CTR"),
+            ("ECDH-ES+A256KW", COSEAlgs.ECDH_ES_A256KW, "A256KW", "A256CTR"),
+            ("ECDH-ES+A128KW", COSEAlgs.ECDH_ES_A128KW, "A128KW", "A128CBC"),
+            ("ECDH-ES+A192KW", COSEAlgs.ECDH_ES_A192KW, "A192KW", "A192CBC"),
+            ("ECDH-ES+A256KW", COSEAlgs.ECDH_ES_A256KW, "A256KW", "A256CBC"),
         ],
     )
     def test_recipients_ecdh_es(self, key_agreement_alg, key_agreement_alg_id, kw_alg, enc_alg):

@@ -5,6 +5,7 @@ Tests for RawKey.
 import pytest
 
 from cwt.algs.raw import RawKey
+from cwt.enums import COSEKeyParams, COSEKeyTypes
 
 
 class TestRawKey:
@@ -15,8 +16,8 @@ class TestRawKey:
     def test_raw_key_constructor(self):
         key = RawKey(
             {
-                1: 4,
-                -1: b"mysecret",
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: b"mysecret",
             }
         )
         assert key.key == b"mysecret"
@@ -28,16 +29,16 @@ class TestRawKey:
         "invalid, msg",
         [
             (
-                {1: 2},
-                "kty(1) should be Symmetric(4).",
+                {COSEKeyParams.KTY: COSEKeyTypes.EC2},
+                f"kty({COSEKeyParams.KTY}) should be Symmetric({COSEKeyTypes.ASYMMETRIC}).",
             ),
             (
-                {1: 4},
-                "k(-1) should be set.",
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC},
+                f"k({COSEKeyParams.K}) should be set.",
             ),
             (
-                {1: 4, -1: 123},
-                "k(-1) should be bytes(bstr).",
+                {COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC, COSEKeyParams.K: 123},
+                f"k({COSEKeyParams.K}) should be bytes(bstr).",
             ),
         ],
     )
@@ -50,10 +51,10 @@ class TestRawKey:
     def test_raw_key_to_dict(self):
         key = RawKey(
             {
-                1: 4,
-                -1: b"mysecret",
+                COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                COSEKeyParams.K: b"mysecret",
             }
         )
         k = key.to_dict()
-        assert k[1] == 4
-        assert k[-1] == b"mysecret"
+        assert k[COSEKeyParams.KTY] == COSEKeyTypes.ASYMMETRIC
+        assert k[COSEKeyParams.K] == b"mysecret"

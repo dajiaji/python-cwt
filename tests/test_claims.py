@@ -9,6 +9,7 @@ Tests for Claims.
 import pytest
 
 from cwt import Claims
+from cwt.enums import CWTClaims
 
 
 class TestClaims:
@@ -24,23 +25,23 @@ class TestClaims:
         "invalid, msg",
         [
             (
-                {8: "xxx"},
+                {CWTClaims.CNF: "xxx"},
                 "cnf(8) should be dict.",
             ),
             (
-                {8: {0: {}}},
+                {CWTClaims.CNF: {0: {}}},
                 "cnf(8) should include COSE_Key, Encrypted_COSE_Key, or kid.",
             ),
             (
-                {8: {1: "xxx"}},
+                {CWTClaims.CNF: {1: "xxx"}},
                 "COSE_Key in cnf(8) should be dict.",
             ),
             (
-                {8: {2: "xxx"}},
+                {CWTClaims.CNF: {2: "xxx"}},
                 "Encrypted_COSE_Key in cnf(8) should be list.",
             ),
             (
-                {8: {3: "xxx"}},
+                {CWTClaims.CNF: {3: "xxx"}},
                 "kid in cnf(8) should be bytes.",
             ),
         ],
@@ -54,13 +55,13 @@ class TestClaims:
     @pytest.mark.parametrize(
         "json, expected",
         [
-            ({"iss": "coap://as.example.com"}, {1: "coap://as.example.com"}),
-            ({"sub": "erikw"}, {2: "erikw"}),
-            ({"aud": "coap://light.example.com"}, {3: "coap://light.example.com"}),
-            ({"exp": 1444064944}, {4: 1444064944}),
-            ({"nbf": 1443944944}, {5: 1443944944}),
-            ({"iat": 1443944944}, {6: 1443944944}),
-            ({"cti": "123"}, {7: b"123"}),
+            ({"iss": "coap://as.example.com"}, {CWTClaims.ISS: "coap://as.example.com"}),
+            ({"sub": "erikw"}, {CWTClaims.SUB: "erikw"}),
+            ({"aud": "coap://light.example.com"}, {CWTClaims.AUD: "coap://light.example.com"}),
+            ({"exp": 1444064944}, {CWTClaims.EXP: 1444064944}),
+            ({"nbf": 1443944944}, {CWTClaims.NBF: 1443944944}),
+            ({"iat": 1443944944}, {CWTClaims.IAT: 1443944944}),
+            ({"cti": "123"}, {CWTClaims.CTI: b"123"}),
             ({}, {}),
         ],
     )
@@ -121,7 +122,7 @@ class TestClaims:
         "invalid, msg",
         [
             (
-                {1: "coap://as.example.com"},
+                {CWTClaims.ISS: "coap://as.example.com"},
                 "It is already CBOR-like format.",
             ),
             (
@@ -158,7 +159,7 @@ class TestClaims:
             }
         ).to_dict()
         assert len(claims) == 1
-        assert claims[1] == "coap://as.example.com"
+        assert claims[CWTClaims.ISS] == "coap://as.example.com"
 
     def test_claims_from_json_with_private_claim_names(self):
         claims = Claims.from_json(
@@ -169,7 +170,7 @@ class TestClaims:
             private_claim_names={"ext": -70001},
         ).to_dict()
         assert len(claims) == 2
-        assert claims[1] == "coap://as.example.com"
+        assert claims[CWTClaims.ISS] == "coap://as.example.com"
         assert claims[-70001] == "foo"
 
     def test_claims_from_json_with_well_known_value(self):
@@ -179,7 +180,7 @@ class TestClaims:
                     "iss": "coap://as.example.com",
                     "ext1": "foo",
                 },
-                private_claim_names={"ext": 1},
+                private_claim_names={"ext": CWTClaims.ISS},
             )
             pytest.fail("from_json should fail.")
         assert (

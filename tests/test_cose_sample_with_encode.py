@@ -405,7 +405,7 @@ class TestCOSESampleWithEncode:
         # The sender side:
         nonce = enc_key.generate_nonce()
         sender = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
-        encoded = sender.encode(b"Hello world!", enc_key, unprotected={5: nonce})
+        encoded = sender.encode(b"Hello world!", enc_key, unprotected={COSEHeaders.IV: nonce})
 
         # The recipient side:
         recipient = COSE.new()
@@ -437,7 +437,7 @@ class TestCOSESampleWithEncode:
         # The sender side:
         nonce = enc_key.generate_nonce()
         sender = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
-        encoded = sender.encode(b"Hello world!", enc_key, unprotected={5: nonce})
+        encoded = sender.encode(b"Hello world!", enc_key, unprotected={COSEHeaders.IV: nonce})
 
         # The notary side:
         notary = Signer.from_jwk(

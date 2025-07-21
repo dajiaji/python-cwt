@@ -6,6 +6,7 @@ import cbor2
 import pytest
 
 from cwt import COSEKey, Signer
+from cwt.enums import COSEAlgs, COSEHeaders
 
 from .utils import key_path
 
@@ -27,12 +28,12 @@ class TestSigner:
                     "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
                 }
             ),
-            protected={1: -7},
-            unprotected={4: b"01"},
+            protected={COSEHeaders.ALG: COSEAlgs.ES256},
+            unprotected={COSEHeaders.KID: b"01"},
         )
-        assert signer.unprotected[4] == b"01"
-        assert cbor2.loads(signer.protected)[1] == -7
-        assert signer.cose_key.alg == -7
+        assert signer.unprotected[COSEHeaders.KID] == b"01"
+        assert cbor2.loads(signer.protected)[COSEHeaders.ALG] == COSEAlgs.ES256
+        assert signer.cose_key.alg == COSEAlgs.ES256
         assert signer.cose_key.kid == b"01"
         try:
             signer.sign(b"Hello world!")
@@ -52,12 +53,12 @@ class TestSigner:
                     "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
                 }
             ),
-            protected=cbor2.dumps({1: -7}),
-            unprotected={4: b"01"},
+            protected=cbor2.dumps({COSEHeaders.ALG: COSEAlgs.ES256}),
+            unprotected={COSEHeaders.KID: b"01"},
         )
-        assert signer.unprotected[4] == b"01"
-        assert cbor2.loads(signer.protected)[1] == -7
-        assert signer.cose_key.alg == -7
+        assert signer.unprotected[COSEHeaders.KID] == b"01"
+        assert cbor2.loads(signer.protected)[COSEHeaders.ALG] == COSEAlgs.ES256
+        assert signer.cose_key.alg == COSEAlgs.ES256
         assert signer.cose_key.kid == b"01"
         try:
             signer.sign(b"Hello world!")
@@ -80,9 +81,9 @@ class TestSigner:
             protected={"alg": "ES256"},
             unprotected={"kid": "01"},
         )
-        assert signer.unprotected[4] == b"01"
-        assert cbor2.loads(signer.protected)[1] == -7
-        assert signer.cose_key.alg == -7
+        assert signer.unprotected[COSEHeaders.KID] == b"01"
+        assert cbor2.loads(signer.protected)[COSEHeaders.ALG] == COSEAlgs.ES256
+        assert signer.cose_key.alg == COSEAlgs.ES256
         assert signer.cose_key.kid == b"01"
         try:
             signer.sign(b"Hello world!")
@@ -102,12 +103,12 @@ class TestSigner:
                     "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
                 }
             ),
-            protected=cbor2.dumps({1: -7}),
+            protected=cbor2.dumps({COSEHeaders.ALG: COSEAlgs.ES256}),
             unprotected={"kid": "01"},
         )
-        assert signer.unprotected[4] == b"01"
-        assert cbor2.loads(signer.protected)[1] == -7
-        assert signer.cose_key.alg == -7
+        assert signer.unprotected[COSEHeaders.KID] == b"01"
+        assert cbor2.loads(signer.protected)[COSEHeaders.ALG] == COSEAlgs.ES256
+        assert signer.cose_key.alg == COSEAlgs.ES256
         assert signer.cose_key.kid == b"01"
         try:
             signer.sign(b"Hello world!")
@@ -126,9 +127,9 @@ class TestSigner:
                 "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
             },
         )
-        assert signer.unprotected[4] == b"01"
-        assert cbor2.loads(signer.protected)[1] == -7
-        assert signer.cose_key.alg == -7
+        assert signer.unprotected[COSEHeaders.KID] == b"01"
+        assert cbor2.loads(signer.protected)[COSEHeaders.ALG] == COSEAlgs.ES256
+        assert signer.cose_key.alg == COSEAlgs.ES256
         assert signer.cose_key.kid == b"01"
         try:
             signer.sign(b"Hello world!")
@@ -146,8 +147,8 @@ class TestSigner:
                 "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
             },
         )
-        assert cbor2.loads(signer.protected)[1] == -7
-        assert signer.cose_key.alg == -7
+        assert cbor2.loads(signer.protected)[COSEHeaders.ALG] == COSEAlgs.ES256
+        assert signer.cose_key.alg == COSEAlgs.ES256
         assert signer.cose_key.kid is None
         try:
             signer.sign(b"Hello world!")
@@ -200,9 +201,9 @@ class TestSigner:
     def test_signer_from_pem(self):
         with open(key_path("private_key_ed25519.pem")) as key_file:
             signer = Signer.from_pem(key_file.read(), kid="01")
-        assert signer.unprotected[4] == b"01"
-        assert cbor2.loads(signer.protected)[1] == -8
-        assert signer.cose_key.alg == -8
+        assert signer.unprotected[COSEHeaders.KID] == b"01"
+        assert cbor2.loads(signer.protected)[COSEHeaders.ALG] == COSEAlgs.EDDSA
+        assert signer.cose_key.alg == COSEAlgs.EDDSA
         assert signer.cose_key.kid == b"01"
         try:
             signer.sign(b"Hello world!")
@@ -213,8 +214,8 @@ class TestSigner:
     def test_signer_from_pem_without_kid(self):
         with open(key_path("private_key_ed25519.pem")) as key_file:
             signer = Signer.from_pem(key_file.read())
-        assert cbor2.loads(signer.protected)[1] == -8
-        assert signer.cose_key.alg == -8
+        assert cbor2.loads(signer.protected)[COSEHeaders.ALG] == COSEAlgs.EDDSA
+        assert signer.cose_key.alg == COSEAlgs.EDDSA
         assert signer.cose_key.kid is None
         try:
             signer.sign(b"Hello world!")
@@ -238,9 +239,9 @@ class TestSigner:
             protected={"alg": "ESP256"},
             unprotected={"kid": "01"},
         )
-        assert signer.unprotected[4] == b"01"
-        assert cbor2.loads(signer.protected)[1] == -9
-        assert signer.cose_key.alg == -9
+        assert signer.unprotected[COSEHeaders.KID] == b"01"
+        assert cbor2.loads(signer.protected)[COSEHeaders.ALG] == COSEAlgs.ESP256
+        assert signer.cose_key.alg == COSEAlgs.ESP256
         assert signer.cose_key.kid == b"01"
         try:
             signer.sign(b"Hello world!")
@@ -264,9 +265,9 @@ class TestSigner:
             protected={"alg": "ESP384"},
             unprotected={"kid": "P-384-01"},
         )
-        assert signer.unprotected[4] == b"P-384-01"
-        assert cbor2.loads(signer.protected)[1] == -51
-        assert signer.cose_key.alg == -51
+        assert signer.unprotected[COSEHeaders.KID] == b"P-384-01"
+        assert cbor2.loads(signer.protected)[COSEHeaders.ALG] == COSEAlgs.ESP384
+        assert signer.cose_key.alg == COSEAlgs.ESP384
         assert signer.cose_key.kid == b"P-384-01"
         try:
             signer.sign(b"Hello world!")
@@ -290,9 +291,9 @@ class TestSigner:
             protected={"alg": "ESP512"},
             unprotected={"kid": "P-521-01"},
         )
-        assert signer.unprotected[4] == b"P-521-01"
-        assert cbor2.loads(signer.protected)[1] == -52
-        assert signer.cose_key.alg == -52
+        assert signer.unprotected[COSEHeaders.KID] == b"P-521-01"
+        assert cbor2.loads(signer.protected)[COSEHeaders.ALG] == COSEAlgs.ESP512
+        assert signer.cose_key.alg == COSEAlgs.ESP512
         assert signer.cose_key.kid == b"P-521-01"
         try:
             signer.sign(b"Hello world!")
@@ -316,9 +317,9 @@ class TestSigner:
             protected={"alg": "Ed25519"},
             unprotected={"kid": "Ed25519-01"},
         )
-        assert signer.unprotected[4] == b"Ed25519-01"
-        assert cbor2.loads(signer.protected)[1] == -19
-        assert signer.cose_key.alg == -19
+        assert signer.unprotected[COSEHeaders.KID] == b"Ed25519-01"
+        assert cbor2.loads(signer.protected)[COSEHeaders.ALG] == COSEAlgs.ED25519
+        assert signer.cose_key.alg == COSEAlgs.ED25519
         assert signer.cose_key.kid == b"Ed25519-01"
         try:
             signer.sign(b"Hello world!")
@@ -342,9 +343,9 @@ class TestSigner:
             protected={"alg": "Ed448"},
             unprotected={"kid": "Ed448-01"},
         )
-        assert signer.unprotected[4] == b"Ed448-01"
-        assert cbor2.loads(signer.protected)[1] == -53
-        assert signer.cose_key.alg == -53
+        assert signer.unprotected[COSEHeaders.KID] == b"Ed448-01"
+        assert cbor2.loads(signer.protected)[COSEHeaders.ALG] == COSEAlgs.ED448
+        assert signer.cose_key.alg == COSEAlgs.ED448
         assert signer.cose_key.kid == b"Ed448-01"
         try:
             signer.sign(b"Hello world!")

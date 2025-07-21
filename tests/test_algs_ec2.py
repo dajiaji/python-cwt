@@ -7,6 +7,7 @@ import pytest
 
 from cwt.algs.ec2 import EC2Key
 from cwt.cose_key import COSEKey
+from cwt.enums import COSEAlgs, COSEKeyCrvs, COSEKeyOps, COSEKeyParams, COSEKeyTypes
 from cwt.exceptions import VerifyError
 
 from .utils import key_path
@@ -20,45 +21,48 @@ class TestEC2Key:
     def test_ec2_key_constructor_with_es256_key(self):
         private_key = EC2Key(
             {
-                1: 2,
-                3: -7,
-                -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
-                -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
-                -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
-                -1: 1,
+                COSEKeyParams.KTY: COSEKeyTypes.EC2,
+                COSEKeyParams.ALG: COSEAlgs.ES256,
+                COSEKeyParams.X: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                COSEKeyParams.Y: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                COSEKeyParams.D: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
+                COSEKeyParams.CRV: COSEKeyCrvs.P256,
             }
         )
         public_key = EC2Key(
             {
-                1: 2,
-                3: -7,
-                -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
-                -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
-                -1: 1,
+                COSEKeyParams.KTY: COSEKeyTypes.EC2,
+                COSEKeyParams.ALG: COSEAlgs.ES256,
+                COSEKeyParams.X: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                COSEKeyParams.Y: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                COSEKeyParams.CRV: COSEKeyCrvs.P256,
             }
         )
-        assert private_key.kty == 2
+        assert private_key.kty == COSEKeyTypes.EC2
         assert private_key.kid is None
-        assert private_key.alg == -7
-        assert private_key.crv == 1
+        assert private_key.alg == COSEAlgs.ES256
+        assert private_key.crv == COSEKeyCrvs.P256
         assert len(private_key.key_ops) == 2
-        assert 1 in private_key.key_ops
-        assert 2 in private_key.key_ops
+        assert COSEKeyOps.SIGN in private_key.key_ops
+        assert COSEKeyOps.VERIFY in private_key.key_ops
         assert private_key.base_iv is None
-        assert public_key.kty == 2
+        assert public_key.kty == COSEKeyTypes.EC2
         assert public_key.kid is None
-        assert public_key.alg == -7
-        assert public_key.crv == 1
+        assert public_key.alg == COSEAlgs.ES256
+        assert public_key.crv == COSEKeyCrvs.P256
         assert len(public_key.key_ops) == 1
-        assert 2 in public_key.key_ops
+        assert COSEKeyOps.VERIFY in public_key.key_ops
         assert public_key.base_iv is None
         private_key_obj = private_key.to_dict()
         assert (
-            private_key_obj[-4]
+            private_key_obj[COSEKeyParams.D]
             == b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh'
         )
         public_key_obj = public_key.to_dict()
-        assert public_key_obj[-2] == b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9"
+        assert (
+            public_key_obj[COSEKeyParams.X]
+            == b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9"
+        )
         try:
             sig = private_key.sign(b"Hello world!")
             public_key.verify(b"Hello world!", sig)
@@ -68,37 +72,37 @@ class TestEC2Key:
     def test_ec2_key_constructor_with_es384_key(self):
         private_key = EC2Key(
             {
-                1: 2,
-                3: -35,
-                -2: b"\xec\xe6\xd0\xc1-\xd4>%\xb6\x0f\x9d\xbf\xe2\x89qB\xd7\x8f\xba\xa4\xe0\x97\xd0\x91\xcd\xbb\x90\x92,\xaa\xd4\x10D\xc35\xfe\x89\xbfs\xae,&\x8d\xef\xfa\xb0\xc0Q",
-                -3: b'\xc9F\xd4\xc8\x97\xd9G\xb80Z\x96E:\x89U/\x89|c\xb2\x9d\x1e\x0ep\xf1\xc4\xedl\x99K9.\x882\x06"\xb2\xa5\xdd\x17HW\x1f-r>Fg',
-                -4: b"Q/x\xf6;9\xb7\xfb\x8d\xc3l\xc1\x1dx6Z4\xfa\x99=8Nj\x05g\xde\xb45\x00'VY\xab,\x92\x82{\x08\xd6\xe5\xff\xe3\xc4\xee\xacu>\x96",
-                -1: 2,
+                COSEKeyParams.KTY: COSEKeyTypes.EC2,
+                COSEKeyParams.ALG: COSEAlgs.ES384,
+                COSEKeyParams.X: b"\xec\xe6\xd0\xc1-\xd4>%\xb6\x0f\x9d\xbf\xe2\x89qB\xd7\x8f\xba\xa4\xe0\x97\xd0\x91\xcd\xbb\x90\x92,\xaa\xd4\x10D\xc35\xfe\x89\xbfs\xae,&\x8d\xef\xfa\xb0\xc0Q",
+                COSEKeyParams.Y: b'\xc9F\xd4\xc8\x97\xd9G\xb80Z\x96E:\x89U/\x89|c\xb2\x9d\x1e\x0ep\xf1\xc4\xedl\x99K9.\x882\x06"\xb2\xa5\xdd\x17HW\x1f-r>Fg',
+                COSEKeyParams.D: b"Q/x\xf6;9\xb7\xfb\x8d\xc3l\xc1\x1dx6Z4\xfa\x99=8Nj\x05g\xde\xb45\x00'VY\xab,\x92\x82{\x08\xd6\xe5\xff\xe3\xc4\xee\xacu>\x96",
+                COSEKeyParams.CRV: COSEKeyCrvs.P384,
             }
         )
         public_key = EC2Key(
             {
-                1: 2,
-                3: -35,
-                -2: b"\xec\xe6\xd0\xc1-\xd4>%\xb6\x0f\x9d\xbf\xe2\x89qB\xd7\x8f\xba\xa4\xe0\x97\xd0\x91\xcd\xbb\x90\x92,\xaa\xd4\x10D\xc35\xfe\x89\xbfs\xae,&\x8d\xef\xfa\xb0\xc0Q",
-                -3: b'\xc9F\xd4\xc8\x97\xd9G\xb80Z\x96E:\x89U/\x89|c\xb2\x9d\x1e\x0ep\xf1\xc4\xedl\x99K9.\x882\x06"\xb2\xa5\xdd\x17HW\x1f-r>Fg',
-                -1: 2,
+                COSEKeyParams.KTY: COSEKeyTypes.EC2,
+                COSEKeyParams.ALG: COSEAlgs.ES384,
+                COSEKeyParams.X: b"\xec\xe6\xd0\xc1-\xd4>%\xb6\x0f\x9d\xbf\xe2\x89qB\xd7\x8f\xba\xa4\xe0\x97\xd0\x91\xcd\xbb\x90\x92,\xaa\xd4\x10D\xc35\xfe\x89\xbfs\xae,&\x8d\xef\xfa\xb0\xc0Q",
+                COSEKeyParams.Y: b'\xc9F\xd4\xc8\x97\xd9G\xb80Z\x96E:\x89U/\x89|c\xb2\x9d\x1e\x0ep\xf1\xc4\xedl\x99K9.\x882\x06"\xb2\xa5\xdd\x17HW\x1f-r>Fg',
+                COSEKeyParams.CRV: COSEKeyCrvs.P384,
             }
         )
-        assert private_key.kty == 2
+        assert private_key.kty == COSEKeyTypes.EC2
         assert private_key.kid is None
-        assert private_key.alg == -35
-        assert private_key.crv == 2
+        assert private_key.alg == COSEAlgs.ES384
+        assert private_key.crv == COSEKeyCrvs.P384
         assert len(private_key.key_ops) == 2
-        assert 1 in private_key.key_ops
-        assert 2 in private_key.key_ops
+        assert COSEKeyOps.SIGN in private_key.key_ops
+        assert COSEKeyOps.VERIFY in private_key.key_ops
         assert private_key.base_iv is None
-        assert public_key.kty == 2
+        assert public_key.kty == COSEKeyTypes.EC2
         assert public_key.kid is None
-        assert public_key.alg == -35
-        assert public_key.crv == 2
+        assert public_key.alg == COSEAlgs.ES384
+        assert public_key.crv == COSEKeyCrvs.P384
         assert len(public_key.key_ops) == 1
-        assert 2 in public_key.key_ops
+        assert COSEKeyOps.VERIFY in public_key.key_ops
         assert public_key.base_iv is None
         try:
             sig = private_key.sign(b"Hello world!")
@@ -109,37 +113,37 @@ class TestEC2Key:
     def test_ec2_key_constructor_with_es512_key(self):
         private_key = EC2Key(
             {
-                1: 2,
-                3: -36,
-                -2: b"\x01iP\xcb*\xb4\x04\xa2\xf9d\x0f0{\n\x07>}|KZ\x81\xbd8\xb3N\x90\xb0\x10\xebk\xd2TBxR\xf6lNE\x92S\x80\xd0k|\xd9l\x044\xd8f\xee\xa6KQ\xcf\xa0\x01?g\x87\xcc\xb4\xd1\xce\x95",
-                -3: b"\x00\r\xa0;\xcb\xae\x1f\x8e\xad\xc2\x82\xc8\x8e%\x94,\xd9\xe2t\xebG]\xc0\xb3I\xeec\xdf\xc5\x02\xd6c\xd9\xb4\xcd\xb8h\xc7l7\x07u`\xc3\x91\rl)\xb2\x07\x00\x10\xa07\xcd\x02N#\xac=L\x91~\xa2\xb26",
-                -4: b'\x00V\xe5\x80\x13u\xc1\xb0\x8e\xf0\x98K\x0f\xc5\x14\xc55T\xb9\xbf\xd5o\xdc\xfa\x01\xf6\x91\xee\x85\x7fa,\x821\xdf\xdc\x17^\xd9G\x973V\xe9\xdd"s\xf4\x12\xd9:$\xbe\xc3\xad\xf7\x80"\x187\xc1\xa1\x9a\x1e@\xd2',
-                -1: 3,
+                COSEKeyParams.KTY: COSEKeyTypes.EC2,
+                COSEKeyParams.ALG: COSEAlgs.ES512,
+                COSEKeyParams.X: b"\x01iP\xcb*\xb4\x04\xa2\xf9d\x0f0{\n\x07>}|KZ\x81\xbd8\xb3N\x90\xb0\x10\xebk\xd2TBxR\xf6lNE\x92S\x80\xd0k|\xd9l\x044\xd8f\xee\xa6KQ\xcf\xa0\x01?g\x87\xcc\xb4\xd1\xce\x95",
+                COSEKeyParams.Y: b"\x00\r\xa0;\xcb\xae\x1f\x8e\xad\xc2\x82\xc8\x8e%\x94,\xd9\xe2t\xebG]\xc0\xb3I\xeec\xdf\xc5\x02\xd6c\xd9\xb4\xcd\xb8h\xc7l7\x07u`\xc3\x91\rl)\xb2\x07\x00\x10\xa07\xcd\x02N#\xac=L\x91~\xa2\xb26",
+                COSEKeyParams.D: b'\x00V\xe5\x80\x13u\xc1\xb0\x8e\xf0\x98K\x0f\xc5\x14\xc55T\xb9\xbf\xd5o\xdc\xfa\x01\xf6\x91\xee\x85\x7fa,\x821\xdf\xdc\x17^\xd9G\x973V\xe9\xdd"s\xf4\x12\xd9:$\xbe\xc3\xad\xf7\x80"\x187\xc1\xa1\x9a\x1e@\xd2',
+                COSEKeyParams.CRV: COSEKeyCrvs.P521,
             }
         )
         public_key = EC2Key(
             {
-                1: 2,
-                3: -36,
-                -2: b"\x01iP\xcb*\xb4\x04\xa2\xf9d\x0f0{\n\x07>}|KZ\x81\xbd8\xb3N\x90\xb0\x10\xebk\xd2TBxR\xf6lNE\x92S\x80\xd0k|\xd9l\x044\xd8f\xee\xa6KQ\xcf\xa0\x01?g\x87\xcc\xb4\xd1\xce\x95",
-                -3: b"\x00\r\xa0;\xcb\xae\x1f\x8e\xad\xc2\x82\xc8\x8e%\x94,\xd9\xe2t\xebG]\xc0\xb3I\xeec\xdf\xc5\x02\xd6c\xd9\xb4\xcd\xb8h\xc7l7\x07u`\xc3\x91\rl)\xb2\x07\x00\x10\xa07\xcd\x02N#\xac=L\x91~\xa2\xb26",
-                -1: 3,
+                COSEKeyParams.KTY: COSEKeyTypes.EC2,
+                COSEKeyParams.ALG: COSEAlgs.ES512,
+                COSEKeyParams.X: b"\x01iP\xcb*\xb4\x04\xa2\xf9d\x0f0{\n\x07>}|KZ\x81\xbd8\xb3N\x90\xb0\x10\xebk\xd2TBxR\xf6lNE\x92S\x80\xd0k|\xd9l\x044\xd8f\xee\xa6KQ\xcf\xa0\x01?g\x87\xcc\xb4\xd1\xce\x95",
+                COSEKeyParams.Y: b"\x00\r\xa0;\xcb\xae\x1f\x8e\xad\xc2\x82\xc8\x8e%\x94,\xd9\xe2t\xebG]\xc0\xb3I\xeec\xdf\xc5\x02\xd6c\xd9\xb4\xcd\xb8h\xc7l7\x07u`\xc3\x91\rl)\xb2\x07\x00\x10\xa07\xcd\x02N#\xac=L\x91~\xa2\xb26",
+                COSEKeyParams.CRV: COSEKeyCrvs.P521,
             }
         )
-        assert private_key.kty == 2
+        assert private_key.kty == COSEKeyTypes.EC2
         assert private_key.kid is None
-        assert private_key.alg == -36
-        assert private_key.crv == 3
+        assert private_key.alg == COSEAlgs.ES512
+        assert private_key.crv == COSEKeyCrvs.P521
         assert len(private_key.key_ops) == 2
-        assert 1 in private_key.key_ops
-        assert 2 in private_key.key_ops
+        assert COSEKeyOps.SIGN in private_key.key_ops
+        assert COSEKeyOps.VERIFY in private_key.key_ops
         assert private_key.base_iv is None
-        assert public_key.kty == 2
+        assert public_key.kty == COSEKeyTypes.EC2
         assert public_key.kid is None
-        assert public_key.alg == -36
-        assert public_key.crv == 3
+        assert public_key.alg == COSEAlgs.ES512
+        assert public_key.crv == COSEKeyCrvs.P521
         assert len(public_key.key_ops) == 1
-        assert 2 in public_key.key_ops
+        assert COSEKeyOps.VERIFY in public_key.key_ops
         assert public_key.base_iv is None
         with pytest.raises(ValueError) as err:
             public_key.derive_bytes(16, b"xxxxxxxx")
@@ -154,21 +158,21 @@ class TestEC2Key:
     def test_ec2_key_constructor_with_ecdhe_es_hdkf_256(self):
         private_key = EC2Key(
             {
-                1: 2,
-                3: -25,
+                COSEKeyParams.KTY: COSEKeyTypes.EC2,
+                COSEKeyParams.ALG: COSEAlgs.ECDH_ES_HKDF_256,
                 # -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
                 # -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
                 # -4: b'\xe9\x16\x0c\xa96\x8d\xfa\xbc\xd5\xda"ua\xec\xf7\x96\r\x15\xf7_\xf3rb{\xb1\xde;\x99\x88\xafNh',
-                -1: 1,
+                COSEKeyParams.CRV: COSEKeyCrvs.P256,
             }
         )
-        assert private_key.kty == 2
+        assert private_key.kty == COSEKeyTypes.EC2
         assert private_key.kid is None
-        assert private_key.alg == -25
-        assert private_key.crv == 1
+        assert private_key.alg == COSEAlgs.ECDH_ES_HKDF_256
+        assert private_key.crv == COSEKeyCrvs.P256
         assert len(private_key.key_ops) == 2
-        assert 7 in private_key.key_ops
-        assert 8 in private_key.key_ops
+        assert COSEKeyOps.DERIVE_KEY in private_key.key_ops
+        assert COSEKeyOps.DERIVE_BITS in private_key.key_ops
         pub_key = COSEKey.from_jwk(
             {
                 "kty": "EC",
@@ -216,161 +220,161 @@ class TestEC2Key:
                 "kty(1) not found.",
             ),
             (
-                {1: 1},
+                {COSEKeyParams.KTY: COSEKeyTypes.OKP},
                 "kty(1) should be EC2(2).",
             ),
             (
-                {1: b"invalid"},
+                {COSEKeyParams.KTY: b"invalid"},
                 "kty(1) should be int or str(tstr).",
             ),
             (
-                {1: {}},
+                {COSEKeyParams.KTY: {}},
                 "kty(1) should be int or str(tstr).",
             ),
             (
-                {1: []},
+                {COSEKeyParams.KTY: []},
                 "kty(1) should be int or str(tstr).",
             ),
             (
-                {1: 2},
+                {COSEKeyParams.KTY: COSEKeyTypes.EC2},
                 "crv(-1) not found.",
             ),
             (
-                {1: 2, -1: {}},
+                {COSEKeyParams.KTY: COSEKeyTypes.EC2, COSEKeyParams.CRV: {}},
                 "crv(-1) should be int.",
             ),
             (
-                {1: 2, -1: []},
+                {COSEKeyParams.KTY: COSEKeyTypes.EC2, COSEKeyParams.CRV: []},
                 "crv(-1) should be int.",
             ),
             (
-                {1: 2, -1: "P-256"},
+                {COSEKeyParams.KTY: COSEKeyTypes.EC2, COSEKeyParams.CRV: "P-256"},
                 "crv(-1) should be int.",
             ),
             (
-                {1: 2, -1: 0},
+                {COSEKeyParams.KTY: COSEKeyTypes.EC2, COSEKeyParams.CRV: 0},
                 "Unsupported or unknown crv(-1) for EC2: 0.",
             ),
             (
-                {1: 2, -1: 1, -2: "xxxxxxxxxxxxxxxx"},
+                {COSEKeyParams.KTY: COSEKeyTypes.EC2, COSEKeyParams.CRV: COSEKeyCrvs.P256, COSEKeyParams.X: "xxxxxxxxxxxxxxxx"},
                 "x(-2) should be bytes(bstr).",
             ),
             (
-                {1: 2, -1: 1, -2: {}},
+                {COSEKeyParams.KTY: COSEKeyTypes.EC2, COSEKeyParams.CRV: COSEKeyCrvs.P256, COSEKeyParams.X: {}},
                 "x(-2) should be bytes(bstr).",
             ),
             (
-                {1: 2, -1: 1, -2: []},
+                {COSEKeyParams.KTY: COSEKeyTypes.EC2, COSEKeyParams.CRV: COSEKeyCrvs.P256, COSEKeyParams.X: []},
                 "x(-2) should be bytes(bstr).",
             ),
             (
                 {
-                    1: 2,
-                    -1: 1,
-                    -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                    COSEKeyParams.KTY: COSEKeyTypes.EC2,
+                    COSEKeyParams.CRV: COSEKeyCrvs.P256,
+                    COSEKeyParams.X: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
                 },
                 "y(-3) not found.",
             ),
             (
                 {
-                    1: 2,
-                    -1: 1,
-                    -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
-                    -3: "yyyyyyyyyyyyyyyy",
+                    COSEKeyParams.KTY: COSEKeyTypes.EC2,
+                    COSEKeyParams.CRV: COSEKeyCrvs.P256,
+                    COSEKeyParams.X: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                    COSEKeyParams.Y: "yyyyyyyyyyyyyyyy",
                 },
                 "y(-3) should be bytes(bstr).",
             ),
             (
                 {
-                    1: 2,
-                    -1: 1,
-                    -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
-                    -3: {},
+                    COSEKeyParams.KTY: COSEKeyTypes.EC2,
+                    COSEKeyParams.CRV: COSEKeyCrvs.P256,
+                    COSEKeyParams.X: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                    COSEKeyParams.Y: {},
                 },
                 "y(-3) should be bytes(bstr).",
             ),
             (
                 {
-                    1: 2,
-                    -1: 1,
-                    -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
-                    -3: [],
+                    COSEKeyParams.KTY: COSEKeyTypes.EC2,
+                    COSEKeyParams.CRV: COSEKeyCrvs.P256,
+                    COSEKeyParams.X: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                    COSEKeyParams.Y: [],
                 },
                 "y(-3) should be bytes(bstr).",
             ),
             (
                 {
-                    1: 2,
-                    -1: 1,
-                    -2: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
-                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
-                    3: -8,
+                    COSEKeyParams.KTY: COSEKeyTypes.EC2,
+                    COSEKeyParams.CRV: COSEKeyCrvs.P256,
+                    COSEKeyParams.X: b"\xa7\xddc*\xff\xc2?\x8b\xf8\x9c:\xad\xccDF\x9cZ \x04P\xef\x99\x0c=\xe6 w1\x08&\xba\xd9",
+                    COSEKeyParams.Y: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                    COSEKeyParams.ALG: -8,
                 },
                 "Unsupported or unknown alg used with P-256: -8",
             ),
             (
                 {
-                    1: 2,
-                    -2: b"invalid-length-x",
-                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
-                    -1: 1,
+                    COSEKeyParams.KTY: COSEKeyTypes.EC2,
+                    COSEKeyParams.X: b"invalid-length-x",
+                    COSEKeyParams.Y: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                    COSEKeyParams.CRV: COSEKeyCrvs.P256,
                 },
                 "Coords should be 32 bytes for crv P-256.",
             ),
             (
                 {
-                    1: 2,
-                    -2: b"invalid-length-x",
-                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
-                    -1: 2,
-                    3: -8,
+                    COSEKeyParams.KTY: COSEKeyTypes.EC2,
+                    COSEKeyParams.X: b"invalid-length-x",
+                    COSEKeyParams.Y: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                    COSEKeyParams.CRV: COSEKeyCrvs.P384,
+                    COSEKeyParams.ALG: -8,
                 },
                 "Unsupported or unknown alg used with P-384: -8",
             ),
             (
                 {
-                    1: 2,
-                    -2: b"invalid-length-x",
-                    -3: b'\xc9F\xd4\xc8\x97\xd9G\xb80Z\x96E:\x89U/\x89|c\xb2\x9d\x1e\x0ep\xf1\xc4\xedl\x99K9.\x882\x06"\xb2\xa5\xdd\x17HW\x1f-r>Fg',
-                    -1: 2,
+                    COSEKeyParams.KTY: COSEKeyTypes.EC2,
+                    COSEKeyParams.X: b"invalid-length-x",
+                    COSEKeyParams.Y: b'\xc9F\xd4\xc8\x97\xd9G\xb80Z\x96E:\x89U/\x89|c\xb2\x9d\x1e\x0ep\xf1\xc4\xedl\x99K9.\x882\x06"\xb2\xa5\xdd\x17HW\x1f-r>Fg',
+                    COSEKeyParams.CRV: COSEKeyCrvs.P384,
                 },
                 "Coords should be 48 bytes for crv P-384.",
             ),
             (
                 {
-                    1: 2,
-                    -2: b"invalid-length-x",
-                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
-                    -1: 3,
-                    3: -8,
+                    COSEKeyParams.KTY: COSEKeyTypes.EC2,
+                    COSEKeyParams.X: b"invalid-length-x",
+                    COSEKeyParams.Y: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                    COSEKeyParams.CRV: COSEKeyCrvs.P521,
+                    COSEKeyParams.ALG: -8,
                 },
                 "Unsupported or unknown alg used with P-521: -8",
             ),
             (
                 {
-                    1: 2,
-                    -2: b"invalid-length-x",
-                    -3: b"\x00\r\xa0;\xcb\xae\x1f\x8e\xad\xc2\x82\xc8\x8e%\x94,\xd9\xe2t\xebG]\xc0\xb3I\xeec\xdf\xc5\x02\xd6c\xd9\xb4\xcd\xb8h\xc7l7\x07u`\xc3\x91\rl)\xb2\x07\x00\x10\xa07\xcd\x02N#\xac=L\x91~\xa2\xb26",
-                    -1: 3,
+                    COSEKeyParams.KTY: COSEKeyTypes.EC2,
+                    COSEKeyParams.X: b"invalid-length-x",
+                    COSEKeyParams.Y: b"\x00\r\xa0;\xcb\xae\x1f\x8e\xad\xc2\x82\xc8\x8e%\x94,\xd9\xe2t\xebG]\xc0\xb3I\xeec\xdf\xc5\x02\xd6c\xd9\xb4\xcd\xb8h\xc7l7\x07u`\xc3\x91\rl)\xb2\x07\x00\x10\xa07\xcd\x02N#\xac=L\x91~\xa2\xb26",
+                    COSEKeyParams.CRV: COSEKeyCrvs.P521,
                 },
                 "Coords should be 66 bytes for crv P-521.",
             ),
             (
                 {
-                    1: 2,
-                    -2: b"invalid-length-x",
-                    -3: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
-                    -1: 8,
-                    3: -8,
+                    COSEKeyParams.KTY: COSEKeyTypes.EC2,
+                    COSEKeyParams.X: b"invalid-length-x",
+                    COSEKeyParams.Y: b"\xe2\xdb\xef\xfe\xb8\x8a\x12\xf27\xcb\x15:\x8a\xb9\x1a90B\x1a\x19^\xbc\xdc\xde\r\xb9s\xc1P\xf3\xaa\xdd",
+                    COSEKeyParams.CRV: COSEKeyCrvs.SECP256K1,
+                    COSEKeyParams.ALG: -8,
                 },
                 "Unsupported or unknown alg used with secp256k1: -8",
             ),
             (
                 {
-                    1: 2,
-                    -2: b"invalid-length-x",
-                    -3: b'6\x00\x14\xfd\x13\t\x07\xdc,\t\xda\x1c}G\x0f\xd5\x11\xb2H\xe8\xc9\x05\xa8\x1f\xf3Q?\xa3"\xec7A',
-                    -1: 8,
+                    COSEKeyParams.KTY: COSEKeyTypes.EC2,
+                    COSEKeyParams.X: b"invalid-length-x",
+                    COSEKeyParams.Y: b'6\x00\x14\xfd\x13\t\x07\xdc,\t\xda\x1c}G\x0f\xd5\x11\xb2H\xe8\xc9\x05\xa8\x1f\xf3Q?\xa3"\xec7A',
+                    COSEKeyParams.CRV: COSEKeyCrvs.SECP256K1,
                 },
                 "Coords should be 32 bytes for crv secp256k1.",
             ),

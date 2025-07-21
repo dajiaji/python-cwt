@@ -267,7 +267,7 @@ class TestCOSESample:
         # The sender side:
         nonce = enc_key.generate_nonce()
         sender = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
-        encoded = sender.encode_and_encrypt(b"Hello world!", enc_key, unprotected={5: nonce})
+        encoded = sender.encode_and_encrypt(b"Hello world!", enc_key, unprotected={COSEHeaders.IV: nonce})
 
         # The recipient side:
         recipient = COSE.new()
@@ -600,7 +600,7 @@ class TestCOSESample:
         encoded = sender.encode_and_encrypt(
             b"Hello world!",
             key=enc_key,
-            unprotected={5: nonce},
+            unprotected={COSEHeaders.IV: nonce},
             recipients=[r],
         )
 

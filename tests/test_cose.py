@@ -17,6 +17,7 @@ from cbor2 import CBORTag
 
 import cwt
 from cwt import COSE, COSEKey, DecodeError, EncodeError, Recipient, VerifyError
+from cwt.enums import COSEAlgs, COSEHeaders
 from cwt.recipient_interface import RecipientInterface
 from cwt.signer import Signer
 
@@ -68,7 +69,7 @@ class TestCOSE:
         encoded = ctx.encode_and_mac(
             b"Hello world!",
             mac_key,
-            recipients=[Recipient.new(unprotected={1: -6, 4: b"01"})],
+            recipients=[Recipient.new(unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: b"01"})],
         )
         assert b"Hello world!" == ctx.decode(encoded, mac_key)
 
@@ -149,7 +150,7 @@ class TestCOSE:
     #         b"Hello world!",
     #         mac_key,
     #         protected=b"a0",
-    #         recipients=[RecipientInterface(unprotected={1: -6, 4: b"01"})],
+    #         recipients=[RecipientInterface(unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: b"01"})],
     #     )
     #     assert b"Hello world!" == ctx.decode(encoded, mac_key)
 
@@ -170,7 +171,7 @@ class TestCOSE:
     #         b"Hello world!",
     #         enc_key,
     #         protected=b"a0",
-    #         recipients=[RecipientInterface(unprotected={1: -6, 4: b"02"})],
+    #         recipients=[RecipientInterface(unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: b"02"})],
     #     )
     #     assert b"Hello world!" == ctx.decode(encoded, enc_key)
 
@@ -273,7 +274,7 @@ class TestCOSE:
             ctx.encode_and_mac(
                 b"This is the content.",
                 key,
-                recipients=[RecipientInterface(unprotected={1: 0, 4: b"our-secret"})],
+                recipients=[RecipientInterface(unprotected={COSEHeaders.ALG: 0, COSEHeaders.KID: b"our-secret"})],
             )
             pytest.fail(".")
         assert "Unsupported or unknown alg: 5." in str(err.value)
@@ -292,8 +293,8 @@ class TestCOSE:
             ctx.encode_and_encrypt(
                 b"This is the content.",
                 key,
-                unprotected={5: bytes.fromhex("89F52F65A1C580933B5261A72F")},
-                recipients=[RecipientInterface(unprotected={1: 0, 4: b"our-secret"})],
+                unprotected={COSEHeaders.IV: bytes.fromhex("89F52F65A1C580933B5261A72F")},
+                recipients=[RecipientInterface(unprotected={COSEHeaders.ALG: 0, COSEHeaders.KID: b"our-secret"})],
             )
             pytest.fail("encode_and_encrypt should fail.")
         assert "Unsupported or unknown alg: 10." in str(err.value)
@@ -569,8 +570,8 @@ class TestCOSE:
         shared_key2 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material2})
         shared_key3 = COSEKey.from_jwk({"kty": "oct", "alg": "A128KW", "k": material3})
 
-        r1 = Recipient.new(unprotected={1: -3, 4: b"01"}, sender_key=shared_key1)
-        r2 = Recipient.new(unprotected={1: -3, 4: b"02"}, sender_key=shared_key2)
+        r1 = Recipient.new(unprotected={COSEHeaders.ALG: COSEAlgs.A128KW, COSEHeaders.KID: b"01"}, sender_key=shared_key1)
+        r2 = Recipient.new(unprotected={COSEHeaders.ALG: COSEAlgs.A128KW, COSEHeaders.KID: b"02"}, sender_key=shared_key2)
 
         encoded = ctx.encode_and_mac(b"Hello world!", key, recipients=[r2, r1])
 
@@ -964,11 +965,11 @@ class TestCOSE:
         "p, u",
         [
             (
-                {1: 5, -129: b"This is a critical param.", 2: [-129]},
+                {COSEHeaders.ALG: COSEAlgs.HS256, -129: b"This is a critical param.", COSEHeaders.CRIT: [-129]},
                 {},
             ),
             (
-                {1: 5, -129: b"This is a critical param.", 2: [-129, -130]},
+                {COSEHeaders.ALG: COSEAlgs.HS256, -129: b"This is a critical param.", COSEHeaders.CRIT: [-129, -130]},
                 {-130: "This is also a critical param"},
             ),
         ],
@@ -985,82 +986,86 @@ class TestCOSE:
         "p, u, msg",
         [
             (
-                {1: 4},
-                {1: 4},
+                {COSEHeaders.ALG: COSEAlgs.HS256_64},
+                {COSEHeaders.ALG: COSEAlgs.HS256_64},
                 "The same keys are both in protected and unprotected headers.",
             ),
             (
-                {1: 4},
-                {1: 5},
+                {COSEHeaders.ALG: COSEAlgs.HS256_64},
+                {COSEHeaders.ALG: COSEAlgs.HS256},
                 "The same keys are both in protected and unprotected headers.",
             ),
             (
                 {"alg": "HMAC 256/64"},
-                {1: 5},
+                {COSEHeaders.ALG: COSEAlgs.HS256},
                 "The same keys are both in protected and unprotected headers.",
             ),
             (
-                {4: b"01"},
+                {COSEHeaders.KID: b"01"},
                 {"kid": b"01"},
                 "The same keys are both in protected and unprotected headers.",
             ),
             (
-                {1: 5, -129: b"This is a critical param."},
-                {2: [-129]},
+                {COSEHeaders.ALG: COSEAlgs.HS256, -129: b"This is a critical param."},
+                {COSEHeaders.CRIT: [-129]},
                 "crit(2) must be placed only in protected header.",
             ),
             (
-                {1: 5, -129: b"This is a critical param.", 2: "critical"},
+                {COSEHeaders.ALG: COSEAlgs.HS256, -129: b"This is a critical param.", COSEHeaders.CRIT: "critical"},
                 {},
                 "crit parameter must have list.",
             ),
             (
-                {1: 5, -129: b"This is a critical param.", 2: [-130]},
+                {COSEHeaders.ALG: COSEAlgs.HS256, -129: b"This is a critical param.", COSEHeaders.CRIT: [-130]},
                 {},
                 "Integer label(-130) for crit not found in the headers.",
             ),
             (
-                {1: 5, -129: b"This is a critical param.", 2: [1, -129]},
+                {
+                    COSEHeaders.ALG: COSEAlgs.HS256,
+                    -129: b"This is a critical param.",
+                    COSEHeaders.CRIT: [COSEHeaders.ALG, -129],
+                },
                 {},
                 "Integer labels for crit in the range of 0 to 7 should be omitted.",
             ),
             (
-                {1: 5, -129: b"This is a critical param.", 2: ["reserved"]},
+                {COSEHeaders.ALG: COSEAlgs.HS256, -129: b"This is a critical param.", COSEHeaders.CRIT: ["reserved"]},
                 {-130: "This is also a critical param"},
                 "Integer labels for crit are only supported.",
             ),
             (
-                {1: 5, 5: b"xxxxxxxx"},
-                {6: b"yyyyyyyy"},
+                {COSEHeaders.ALG: COSEAlgs.HS256, COSEHeaders.IV: b"xxxxxxxx"},
+                {COSEHeaders.PARTIAL_IV: b"yyyyyyyy"},
                 "IV and Partial IV must not both be present in the same security layer.",
             ),
             (
-                {1: 5, 5: "xxxxxxxx"},
+                {COSEHeaders.ALG: COSEAlgs.HS256, COSEHeaders.IV: "xxxxxxxx"},
                 {},
                 "IV and Partial IV must be bstr",
             ),
             (
-                {1: 5},
-                {5: "xxxxxxxx"},
+                {COSEHeaders.ALG: COSEAlgs.HS256},
+                {COSEHeaders.IV: "xxxxxxxx"},
                 "IV and Partial IV must be bstr",
             ),
             (
-                {1: 4},
+                {COSEHeaders.ALG: COSEAlgs.HS256_64},
                 {},
                 "The alg(4) in the headers does not match the alg(5) in the populated key.",
             ),
             # (
-            #     {1: 4, 1: 5},
+            #     {COSEHeaders.ALG: COSEAlgs.HS256_64, COSEHeaders.ALG: COSEAlgs.HS256},
             #     {},
             #     "The protected header has duplicated keys.",
             # ),
             # (
             #     {},
-            #     {1: 4, 1: 5},
+            #     {COSEHeaders.ALG: COSEAlgs.HS256_64, COSEHeaders.ALG: COSEAlgs.HS256},
             #     "Unsupported or unknown alg: xxx.",
             # ),
             # (
-            #     {"alg": 4, 1: 5},
+            #     {"alg": COSEAlgs.HS256_64, COSEHeaders.ALG: COSEAlgs.HS256},
             #     {},
             #     "Unsupported or unknown COSE header parameter: xxx.",
             # ),
@@ -1085,9 +1090,12 @@ class TestCOSE:
             ctx.encode(
                 b"Hello world!",
                 mac_key,
-                protected={1: 5},
+                protected={COSEHeaders.ALG: COSEAlgs.HS256},
                 recipients=[
-                    Recipient.new(unprotected={1: -6, 4: b"01"}, recipients=[Recipient.new(unprotected={1: -6, 4: b"01"})])
+                    Recipient.new(
+                        unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: b"01"},
+                        recipients=[Recipient.new(unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: b"01"})],
+                    )
                 ],
             )
             pytest.fail("encode should fail.")
@@ -1100,8 +1108,10 @@ class TestCOSE:
             ctx.encode(
                 b"Hello world!",
                 mac_key,
-                protected={1: 5},
-                recipients=[Recipient.new(unprotected={1: -6, 4: b"01"}, ciphertext=b"xxxxxx")],
+                protected={COSEHeaders.ALG: COSEAlgs.HS256},
+                recipients=[
+                    Recipient.new(unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: b"01"}, ciphertext=b"xxxxxx")
+                ],
             )
             pytest.fail("encode should fail.")
         assert "The ciphertext in the recipients for direct encryption mode must be a zero-length byte string." in str(
