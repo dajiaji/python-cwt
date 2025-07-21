@@ -181,3 +181,15 @@ class COSEKeyOps(enum.IntEnum):
     DERIVE_BITS = 8
     MAC_CREATE = 9
     MAC_VERIFY = 10
+
+
+class COSEKeyConfirmationMethods(enum.IntEnum):
+    COSE_KEY = 1
+    ENCRYPTED_COSE_KEY = 2
+    KID = 3
+
+
+class HCertClaims(enum.IntEnum):
+    VACCINATION = 1
+    TEST = 2
+    RECOVERY = 3

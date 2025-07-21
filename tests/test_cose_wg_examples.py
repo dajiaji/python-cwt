@@ -13,6 +13,7 @@ import cbor2
 import pytest
 
 from cwt import COSE, COSEKey, Recipient
+from cwt.enums import COSEAlgs, COSEHeaders
 from cwt.signer import Signer
 from cwt.utils import base64url_decode
 
@@ -59,7 +60,7 @@ class TestCOSE:
         encoded = ctx.encode_and_mac(
             b"This is the content.",
             key=key,
-            recipients=[Recipient.new(unprotected={1: -6, 4: b"our-secret"})],
+            recipients=[Recipient.new(unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: b"our-secret"})],
         )
         assert encoded == bytes.fromhex(cwt_str)
         assert ctx.decode(encoded, key) == b"This is the content."
@@ -81,7 +82,7 @@ class TestCOSE:
             b"This is the content.",
             key,
             # protected=bytes.fromhex("a0"),
-            unprotected={1: -7, 4: b"11"},
+            unprotected={COSEHeaders.ALG: COSEAlgs.ES256, COSEHeaders.KID: b"11"},
         )
         assert ctx.decode(encoded, key) == b"This is the content."
         # assert ctx.decode(bytes.fromhex(cwt_str), key) == b"This is the content."
@@ -102,8 +103,8 @@ class TestCOSE:
         encoded = ctx.encode_and_sign(
             b"This is the content.",
             key,
-            protected={1: -7},
-            unprotected={4: b"11"},
+            protected={COSEHeaders.ALG: COSEAlgs.ES256},
+            unprotected={COSEHeaders.KID: b"11"},
             external_aad=bytes.fromhex("11aa22bb33cc44dd55006699"),
         )
         assert ctx.decode(encoded, key, external_aad=bytes.fromhex("11aa22bb33cc44dd55006699")) == b"This is the content."
@@ -188,7 +189,7 @@ class TestCOSE:
         encoded = ctx.encode_and_sign(
             b"This is the content.",
             signers=[signer],
-            protected={3: 0},
+            protected={COSEHeaders.CTY: 0},
         )
         assert ctx.decode(encoded, signer.cose_key) == b"This is the content."
         assert ctx.decode(bytes.fromhex(cwt_str), signer.cose_key) == b"This is the content."
@@ -212,7 +213,7 @@ class TestCOSE:
         encoded = ctx.encode_and_sign(
             b"This is the content.",
             signers=[signer],
-            protected={3: 0},
+            protected={COSEHeaders.CTY: 0},
         )
         assert encoded == bytes.fromhex(cwt_str)
         assert ctx.decode(encoded, signer.cose_key) == b"This is the content."
@@ -267,7 +268,7 @@ class TestCOSE:
         encoded = ctx.encode_and_sign(
             b"This is the content.",
             key,
-            protected={1: -8, 3: 0},
+            protected={COSEHeaders.ALG: COSEAlgs.EDDSA, COSEHeaders.CTY: 0},
         )
         assert encoded == bytes.fromhex(cwt_str)
         assert ctx.decode(encoded, key) == b"This is the content."
@@ -317,8 +318,8 @@ class TestCOSE:
         encoded = ctx.encode_and_encrypt(
             b"This is the content.",
             key,
-            unprotected={5: bytes.fromhex("89F52F65A1C580933B5261A72F")},
-            recipients=[Recipient.new(unprotected={1: -6, 4: b"our-secret"})],
+            unprotected={COSEHeaders.IV: bytes.fromhex("89F52F65A1C580933B5261A72F")},
+            recipients=[Recipient.new(unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: b"our-secret"})],
         )
         assert encoded == bytes.fromhex(cwt_str)
         assert ctx.decode(encoded, key) == b"This is the content."
@@ -337,8 +338,8 @@ class TestCOSE:
         encoded = ctx.encode_and_encrypt(
             b"This is the content.",
             key,
-            unprotected={5: bytes.fromhex("02D1F7E6F26C43D4870D87CE")},
-            recipients=[Recipient.new(unprotected={1: -6, 4: b"our-secret"})],
+            unprotected={COSEHeaders.IV: bytes.fromhex("02D1F7E6F26C43D4870D87CE")},
+            recipients=[Recipient.new(unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: b"our-secret"})],
         )
         # assert encoded == bytes.fromhex(cwt_str)
         assert ctx.decode(encoded, key) == b"This is the content."
@@ -358,8 +359,8 @@ class TestCOSE:
         encoded = ctx.encode_and_encrypt(
             b"This is the content.",
             key,
-            unprotected={5: bytes.fromhex("26682306D4FB28CA01B43B80")},
-            recipients=[Recipient.new(unprotected={1: -6, 4: b"sec-256"})],
+            unprotected={COSEHeaders.IV: bytes.fromhex("26682306D4FB28CA01B43B80")},
+            recipients=[Recipient.new(unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: b"sec-256"})],
         )
         assert encoded == bytes.fromhex(cwt_str)
         assert ctx.decode(encoded, key) == b"This is the content."
@@ -379,7 +380,7 @@ class TestCOSE:
         encoded = ctx.encode_and_encrypt(
             b"This is the content.",
             key,
-            unprotected={5: bytes.fromhex("5C3A9950BD2852F66E6C8D4F")},
+            unprotected={COSEHeaders.IV: bytes.fromhex("5C3A9950BD2852F66E6C8D4F")},
         )
         assert encoded == bytes.fromhex(cwt_str)
         assert ctx.decode(encoded, key) == b"This is the content."
@@ -392,18 +393,22 @@ class TestCOSE:
             kid="our-secret",
         )
         context = [
-            10,
+            COSEAlgs.AES_CCM_16_64_128,
             [b"lighting-client", None, None],
             [b"lighting-server", None, None],
-            [128, cbor2.dumps({1: -10}), b"Encryption Example 02"],
+            [128, cbor2.dumps({COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256}), b"Encryption Example 02"],
         ]
-        recipient = Recipient.new({1: -10}, {-20: b"aabbccddeeffgghh", 4: b"our-secret"}, context=context)
+        recipient = Recipient.new(
+            {COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256},
+            {-20: b"aabbccddeeffgghh", COSEHeaders.KID: b"our-secret"},
+            context=context,
+        )
         ctx = COSE.new()
         encoded = ctx.encode_and_encrypt(
             b"This is the content.",
             key=material,
-            protected={1: 10},
-            unprotected={5: bytes.fromhex("89F52F65A1C580933B5261A76C")},
+            protected={COSEHeaders.ALG: COSEAlgs.AES_CCM_16_64_128},
+            unprotected={COSEHeaders.IV: bytes.fromhex("89F52F65A1C580933B5261A76C")},
             recipients=[recipient],
         )
         assert encoded == bytes.fromhex(cwt_str)
@@ -436,7 +441,11 @@ class TestCOSE:
                 "other": "Encryption Example 02",
             },
         }
-        recipient = Recipient.new({1: -10}, {-20: b"aabbccddeeffgghh", 4: b"our-secret"}, context=context)
+        recipient = Recipient.new(
+            {COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256},
+            {-20: b"aabbccddeeffgghh", COSEHeaders.KID: b"our-secret"},
+            context=context,
+        )
         material = COSEKey.from_symmetric_key(
             base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
             alg="A256GCM",
@@ -445,8 +454,8 @@ class TestCOSE:
         encoded = ctx.encode_and_encrypt(
             b"This is the content.",
             key=material,
-            protected={1: 10},
-            unprotected={5: bytes.fromhex("89F52F65A1C580933B5261A76C")},
+            protected={COSEHeaders.ALG: COSEAlgs.AES_CCM_16_64_128},
+            unprotected={COSEHeaders.IV: bytes.fromhex("89F52F65A1C580933B5261A76C")},
             recipients=[recipient],
         )
         assert encoded == bytes.fromhex(cwt_str)
@@ -497,7 +506,7 @@ class TestCOSE:
         encoded = ctx.encode_and_mac(
             b"This is the content.",
             key=mac_key,
-            protected={1: 7},
+            protected={COSEHeaders.ALG: COSEAlgs.HS512},
             recipients=[recipient],
         )
         assert encoded == bytes.fromhex(cwt_str)
@@ -577,7 +586,7 @@ class TestCOSE:
         encoded = ctx.encode_and_encrypt(
             b"This is the content.",
             key=enc_key,
-            unprotected={5: b"\x02\xd1\xf7\xe6\xf2lC\xd4\x86\x8d\x87\xce"},
+            unprotected={COSEHeaders.IV: b"\x02\xd1\xf7\xe6\xf2lC\xd4\x86\x8d\x87\xce"},
             recipients=[rec],
         )
 

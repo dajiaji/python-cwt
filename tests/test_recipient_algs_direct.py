@@ -8,6 +8,7 @@ import cbor2
 import pytest
 
 from cwt.cose_key import COSEKey
+from cwt.enums import COSEAlgs, COSEHeaders
 from cwt.exceptions import EncodeError, VerifyError
 from cwt.recipient import Recipient
 from cwt.recipient_algs.direct import Direct
@@ -23,9 +24,9 @@ class TestDirect:
 
     def test_direct_constructor(self):
         k = COSEKey.from_symmetric_key(alg="HS256")
-        ctx = Direct({}, {1: -6})
+        ctx = Direct({}, {COSEHeaders.ALG: COSEAlgs.DIRECT})
         assert isinstance(ctx, Direct)
-        assert ctx.alg == -6
+        assert ctx.alg == COSEAlgs.DIRECT
         with pytest.raises(NotImplementedError):
             ctx.encode(k)
             pytest.fail("encode() should fail.")
@@ -56,16 +57,16 @@ class TestDirectKey:
     """
 
     def test_direct_key_constructor(self):
-        ctx = DirectKey(unprotected={1: -6})
+        ctx = DirectKey(unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT})
         assert isinstance(ctx, DirectKey)
-        assert ctx.alg == -6
+        assert ctx.alg == COSEAlgs.DIRECT
 
     @pytest.mark.parametrize(
         "invalid, msg",
         [
             (
-                {1: -10},
-                "alg(1) should be direct(-6).",
+                {COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256},
+                f"alg({COSEHeaders.ALG}) should be direct({COSEAlgs.DIRECT}).",
             ),
         ],
     )
@@ -77,21 +78,21 @@ class TestDirectKey:
 
     def test_direct_key_encode(self):
         k = COSEKey.from_symmetric_key(alg="HS256")
-        ctx = DirectKey(unprotected={1: -6})
+        ctx = DirectKey(unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT})
         _, derived_key = ctx.encode(k)
         assert derived_key is None
 
     def test_direct_key_encode_without_alg(self):
-        ctx = DirectKey(unprotected={1: -6})
+        ctx = DirectKey(unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT})
         encoded, derived_key = ctx.encode()
         assert isinstance(encoded, list)
         assert derived_key is None
 
     def test_direct_key_decode(self):
         k = COSEKey.from_symmetric_key(alg="HS256")
-        ctx = DirectKey(unprotected={1: -6})
+        ctx = DirectKey(unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT})
         decoded = ctx.decode(k, as_cose_key=True)
-        assert decoded.alg == 5
+        assert decoded.alg == COSEAlgs.HS256
         assert k.key == decoded.key
 
 
@@ -101,32 +102,32 @@ class TestDirectHKDF:
     """
 
     def test_direct_hkdf_constructor_with_hkdf_sha_256(self):
-        ctx = Recipient.new({1: -10}, {-20: b"aabbccddeeff"}, context={"alg": "A128GCM"})
+        ctx = Recipient.new({COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256}, {-20: b"aabbccddeeff"}, context={"alg": "A128GCM"})
         assert isinstance(ctx, DirectHKDF)
-        assert ctx.alg == -10
+        assert ctx.alg == COSEAlgs.DIRECT_HKDF_SHA256
 
     def test_direct_hkdf_constructor_with_party_u_nonce(self):
-        ctx = Recipient.new({1: -10}, {-22: b"aabbccddeeff"}, context={"alg": "A128GCM"})
+        ctx = Recipient.new({COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256}, {-22: b"aabbccddeeff"}, context={"alg": "A128GCM"})
         assert isinstance(ctx, DirectHKDF)
-        assert ctx.alg == -10
+        assert ctx.alg == COSEAlgs.DIRECT_HKDF_SHA256
 
     def test_direct_hkdf_constructor_with_hkdf_sha_512(self):
-        ctx = Recipient.new({1: -11}, {-20: b"aabbccddeeff"}, context={"alg": "A128GCM"})
+        ctx = Recipient.new({COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA512}, {-20: b"aabbccddeeff"}, context={"alg": "A128GCM"})
         assert isinstance(ctx, DirectHKDF)
-        assert ctx.alg == -11
+        assert ctx.alg == COSEAlgs.DIRECT_HKDF_SHA512
 
     @pytest.mark.parametrize(
         "protected, unprotected, msg",
         [
             # (
-            #     {1: -10},
+            #     {COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256},
             #     {},
             #     "salt(-20) or PartyU nonce(-22) should be set.",
             # ),
             (
-                {1: -6},
+                {COSEHeaders.ALG: COSEAlgs.DIRECT},
                 {-20: "aabbccddeeff"},
-                "Unknown alg(3) for direct key with KDF: -6.",
+                f"Unknown alg(3) for direct key with KDF: {COSEAlgs.DIRECT}.",
             ),
         ],
     )
@@ -138,65 +139,67 @@ class TestDirectHKDF:
 
     def test_direct_hkdf_encode(self):
         context = [
-            10,
+            COSEAlgs.AES_CCM_16_64_128,
             [b"lighting-client", None, None],
             [b"lighting-server", None, None],
-            [128, cbor2.dumps({1: -10}), b"Encryption Example 02"],
+            [128, cbor2.dumps({COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256}), b"Encryption Example 02"],
         ]
         material = COSEKey.from_symmetric_key(token_bytes(16))
-        ctx = DirectHKDF({1: -10}, {4: b"01", -20: b"aabbccddeeff"}, context=context)
+        ctx = DirectHKDF(
+            {COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256}, {COSEHeaders.KID: b"01", -20: b"aabbccddeeff"}, context=context
+        )
         _, key = ctx.encode(material.to_bytes())
-        assert key.alg == 10
+        assert key.alg == COSEAlgs.AES_CCM_16_64_128
         assert len(key.key) == 16
 
     def test_direct_hkdf_encode_without_salt(self):
         context = [
-            10,
+            COSEAlgs.AES_CCM_16_64_128,
             [b"lighting-client", None, None],
             [b"lighting-server", None, None],
-            [128, cbor2.dumps({1: -10}), b"Encryption Example 02"],
+            [128, cbor2.dumps({COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256}), b"Encryption Example 02"],
         ]
         material = COSEKey.from_symmetric_key(token_bytes(16))
-        ctx = DirectHKDF({1: -10}, {4: b"01"}, context=context)
+        ctx = DirectHKDF({COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256}, {COSEHeaders.KID: b"01"}, context=context)
         _, key = ctx.encode(material.to_bytes())
-        assert key.alg == 10
+        assert key.alg == COSEAlgs.AES_CCM_16_64_128
         assert len(key.key) == 16
 
     def test_direct_hkdf_encode_with_party_u_nonce(self):
         nonce = token_bytes(16)
         context = [
-            10,
+            COSEAlgs.AES_CCM_16_64_128,
             [b"lighting-client", nonce, None],
             [b"lighting-server", None, None],
-            [128, cbor2.dumps({1: -10}), b"Encryption Example 02"],
+            [128, cbor2.dumps({COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256}), b"Encryption Example 02"],
         ]
         material = COSEKey.from_symmetric_key(token_bytes(16))
-        ctx = DirectHKDF({1: -10}, {4: b"01"}, context=context)
+        ctx = DirectHKDF({COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256}, {COSEHeaders.KID: b"01"}, context=context)
         _, key = ctx.encode(material.to_bytes())
-        assert key.alg == 10
+        assert key.alg == COSEAlgs.AES_CCM_16_64_128
         assert len(key.key) == 16
         assert nonce == ctx._unprotected[-22]
 
     def test_direct_hkdf_encode_with_party_v_nonce(self):
         nonce = token_bytes(16)
         context = [
-            10,
+            COSEAlgs.AES_CCM_16_64_128,
             [b"lighting-client", None, None],
             [b"lighting-server", nonce, None],
-            [128, cbor2.dumps({1: -10}), b"Encryption Example 02"],
+            [128, cbor2.dumps({COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256}), b"Encryption Example 02"],
         ]
         material = COSEKey.from_symmetric_key(token_bytes(16))
-        ctx = DirectHKDF({1: -10}, {4: b"01"}, context=context)
+        ctx = DirectHKDF({COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256}, {COSEHeaders.KID: b"01"}, context=context)
         _, key = ctx.encode(material.to_bytes())
-        assert key.alg == 10
+        assert key.alg == COSEAlgs.AES_CCM_16_64_128
         assert len(key.key) == 16
         assert nonce == ctx._unprotected[-25]
 
     # def test_direct_hkdf_encode_without_alg(self):
     #     material = COSEKey.from_symmetric_key(token_bytes(16))
     #     ctx = DirectHKDF(
-    #         {1: -10},
-    #         {4: b"01"},
+    #         {COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256},
+    #         {COSEHeaders.KID: b"01"},
     #         context={"alg": "A128GCM"},
     #     )
     #     with pytest.raises(ValueError) as err:
@@ -210,7 +213,7 @@ class TestDirectHKDF:
             alg="A256GCM",
         )
         ctx = Recipient.new(
-            {1: -10},
+            {COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256},
             {-20: b"aabbccddeeff"},
             context={
                 "alg": "AES-CCM-16-64-128",
@@ -226,11 +229,11 @@ class TestDirectHKDF:
             },
         )
         _, key = ctx.encode(material.to_bytes())
-        assert key.alg == 10
+        assert key.alg == COSEAlgs.AES_CCM_16_64_128
 
     # def test_direct_hkdf_encode_with_invalid_key(self):
     #     ctx = DirectHKDF(
-    #         {1: -10},
+    #         {COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256},
     #         {-20: b"aabbccddeeff"},
     #         context={
     #             "alg": "AES-CCM-16-64-128",
@@ -254,7 +257,7 @@ class TestDirectHKDF:
 
     def test_direct_hkdf_encode_with_invalid_material(self):
         ctx = Recipient.new(
-            {1: -10},
+            {COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256},
             {-20: b"aabbccddeeff"},
             context={
                 "alg": "AES-CCM-16-64-128",
@@ -286,19 +289,19 @@ class TestDirectHKDF:
                 "AlgorithmID should be int.",
             ),
             (
-                [-6, [], [], []],
-                "Unsupported or unknown algorithm: -6.",
+                [COSEAlgs.DIRECT, [], [], []],
+                f"Unsupported or unknown algorithm: {COSEAlgs.DIRECT}.",
             ),
             (
-                [10, {}, [], []],
+                [COSEAlgs.AES_CCM_16_64_128, {}, [], []],
                 "PartyUInfo should be list(size=3).",
             ),
             (
-                [10, [None, None, None], {}, []],
+                [COSEAlgs.AES_CCM_16_64_128, [None, None, None], {}, []],
                 "PartyVInfo should be list(size=3).",
             ),
             (
-                [10, [None, None, None], [None, None, None], {}],
+                [COSEAlgs.AES_CCM_16_64_128, [None, None, None], [None, None, None], {}],
                 "SuppPubInfo should be list(size=2 or 3).",
             ),
         ],
@@ -309,35 +312,35 @@ class TestDirectHKDF:
         #     alg="A256GCM",
         # )
         with pytest.raises(ValueError) as err:
-            Recipient.new({1: -10}, {-20: b"aabbccddeeff"}, context=invalid)
+            Recipient.new({COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256}, {-20: b"aabbccddeeff"}, context=invalid)
             pytest.fail("DirectHKDF() should fail.")
         assert msg in str(err.value)
 
     def test_direct_hkdf_decode_with_raw_context(self):
         context = [
-            10,
+            COSEAlgs.AES_CCM_16_64_128,
             [b"lighting-client", None, None],
             [b"lighting-server", None, None],
-            [128, cbor2.dumps({1: -10}), b"Encryption Example 02"],
+            [128, cbor2.dumps({COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256}), b"Encryption Example 02"],
         ]
         key = COSEKey.from_symmetric_key(alg="A128GCM")
-        ctx = Recipient.new({1: -10}, {-20: b"aabbccddeeff"}, context=context)
+        ctx = Recipient.new({COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256}, {-20: b"aabbccddeeff"}, context=context)
         decoded = ctx.decode(key, as_cose_key=True)
-        assert decoded.alg == 10
+        assert decoded.alg == COSEAlgs.AES_CCM_16_64_128
         assert len(decoded.key) == 16
 
     @pytest.mark.parametrize(
         "alg, alg_id, key_len",
         [
-            ("AES-CCM-16-64-128", 10, 16),
-            ("AES-CCM-16-64-256", 11, 32),
-            ("AES-CCM-64-64-128", 12, 16),
-            ("AES-CCM-64-64-256", 13, 32),
+            ("AES-CCM-16-64-128", COSEAlgs.AES_CCM_16_64_128, 16),
+            ("AES-CCM-16-64-256", COSEAlgs.AES_CCM_16_64_256, 32),
+            ("AES-CCM-64-64-128", COSEAlgs.AES_CCM_64_64_128, 16),
+            ("AES-CCM-64-64-256", COSEAlgs.AES_CCM_64_64_256, 32),
         ],
     )
     def test_direct_hkdf_decode_with_json_context(self, alg, alg_id, key_len):
         key = COSEKey.from_symmetric_key(alg="A128GCM")
-        ctx = Recipient.new({1: -10}, {-20: b"aabbccddeeff"}, context={"alg": alg})
+        ctx = Recipient.new({COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256}, {-20: b"aabbccddeeff"}, context={"alg": alg})
         decoded = ctx.decode(key, as_cose_key=True)
         assert decoded.alg == alg_id
         assert len(decoded.key) == key_len
@@ -345,21 +348,21 @@ class TestDirectHKDF:
     def test_direct_hkdf_decode_with_invalid_context(self):
         # key = COSEKey.from_symmetric_key(alg="A128GCM")
         with pytest.raises(ValueError) as err:
-            Recipient.new({1: -10}, {-20: b"aabbccddeeff"}, context=[None, None, None])
+            Recipient.new({COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256}, {-20: b"aabbccddeeff"}, context=[None, None, None])
             pytest.fail("DirectHKDF() should fail.")
         assert "Invalid context information." in str(err.value)
 
     def test_direct_hkdf_decode_without_context(self):
         # key = COSEKey.from_symmetric_key(alg="A128GCM")
         with pytest.raises(ValueError) as err:
-            Recipient.new({1: -10}, {-20: b"aabbccddeeff"})
+            Recipient.new({COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256}, {-20: b"aabbccddeeff"})
             pytest.fail("DirectHKDF() should fail.")
         assert "context should be set." in str(err.value)
 
     def test_direct_hkdf_decode_with_invalid_key(self):
         # key = COSEKey.from_symmetric_key(key="a", alg="HS256")
         with pytest.raises(ValueError) as err:
-            Recipient.new({1: -10}, {-20: b"aabbccddeeff"})
+            Recipient.new({COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256}, {-20: b"aabbccddeeff"})
             pytest.fail("DirectHKDF() should fail.")
         assert "context should be set." in str(err.value)
 
@@ -380,7 +383,11 @@ class TestDirectHKDF:
                 "other": "Encryption Example 02",
             },
         }
-        ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"}, context=to_recipient_context(-10, {-20: b"aabbccddeeff"}, context))
+        ctx = DirectHKDF(
+            {COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256},
+            {-20: b"aabbccddeeff"},
+            context=to_recipient_context(COSEAlgs.DIRECT_HKDF_SHA256, {-20: b"aabbccddeeff"}, context),
+        )
         _, key = ctx.encode(material.to_bytes())
         ctx.verify_key(
             base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
@@ -393,12 +400,12 @@ class TestDirectHKDF:
             alg="A256GCM",
         )
         context = [
-            10,
+            COSEAlgs.AES_CCM_16_64_128,
             [b"lighting-client", None, None],
             [b"lighting-server", None, None],
-            [128, cbor2.dumps({1: -10}), b"Encryption Example 02"],
+            [128, cbor2.dumps({COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256}), b"Encryption Example 02"],
         ]
-        ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"}, context=context)
+        ctx = DirectHKDF({COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256}, {-20: b"aabbccddeeff"}, context=context)
         _, key = ctx.encode(material.to_bytes())
         ctx.verify_key(
             base64url_decode("hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"),
@@ -422,7 +429,11 @@ class TestDirectHKDF:
                 "other": "Encryption Example 02",
             },
         }
-        ctx = DirectHKDF({1: -10}, {-20: b"aabbccddeeff"}, context=to_recipient_context(-10, {-20: b"aabbccddeeff"}, context))
+        ctx = DirectHKDF(
+            {COSEHeaders.ALG: COSEAlgs.DIRECT_HKDF_SHA256},
+            {-20: b"aabbccddeeff"},
+            context=to_recipient_context(COSEAlgs.DIRECT_HKDF_SHA256, {-20: b"aabbccddeeff"}, context),
+        )
         _, key = ctx.encode(material.to_bytes())
         with pytest.raises(VerifyError) as err:
             ctx.verify_key(

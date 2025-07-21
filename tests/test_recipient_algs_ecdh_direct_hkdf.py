@@ -9,6 +9,7 @@ import pytest
 
 from cwt.cose import COSE
 from cwt.cose_key import COSEKey
+from cwt.enums import COSEAlgs, COSEHeaders, COSEKeyCrvs
 from cwt.exceptions import DecodeError
 from cwt.recipient import Recipient
 from cwt.recipient_algs.ecdh_direct_hkdf import ECDH_DirectHKDF
@@ -61,31 +62,31 @@ class TestECDH_DirectHKDF:
     """
 
     def test_ecdh_direct_hkdf_constructor_with_ecdh_es_256(self):
-        ctx = Recipient.new({1: -25}, {4: b"01"}, context={"alg": "A128GCM"})
+        ctx = Recipient.new({COSEHeaders.ALG: COSEAlgs.ECDH_ES_HKDF_256}, {COSEHeaders.KID: b"01"}, context={"alg": "A128GCM"})
         assert isinstance(ctx, ECDH_DirectHKDF)
-        assert ctx.alg == -25
+        assert ctx.alg == COSEAlgs.ECDH_ES_HKDF_256
         assert ctx.kid == b"01"
 
     def test_ecdh_direct_hkdf_constructor_with_ecdh_es_512(self):
-        ctx = Recipient.new({1: -26}, {4: b"01"}, context={"alg": "A128GCM"})
-        assert ctx.alg == -26
+        ctx = Recipient.new({COSEHeaders.ALG: COSEAlgs.ECDH_ES_HKDF_512}, {COSEHeaders.KID: b"01"}, context={"alg": "A128GCM"})
+        assert ctx.alg == COSEAlgs.ECDH_ES_HKDF_512
         assert ctx.kid == b"01"
 
     def test_ecdh_direct_hkdf_constructor_with_ecdh_ss_256(self):
-        ctx = Recipient.new({1: -27}, {4: b"01"}, context={"alg": "A128GCM"})
-        assert ctx.alg == -27
+        ctx = Recipient.new({COSEHeaders.ALG: COSEAlgs.ECDH_SS_HKDF_256}, {COSEHeaders.KID: b"01"}, context={"alg": "A128GCM"})
+        assert ctx.alg == COSEAlgs.ECDH_SS_HKDF_256
         assert ctx.kid == b"01"
 
     def test_ecdh_direct_hkdf_constructor_with_ecdh_ss_512(self):
-        ctx = Recipient.new({1: -28}, {4: b"01"}, context={"alg": "A128GCM"})
-        assert ctx.alg == -28
+        ctx = Recipient.new({COSEHeaders.ALG: COSEAlgs.ECDH_SS_HKDF_512}, {COSEHeaders.KID: b"01"}, context={"alg": "A128GCM"})
+        assert ctx.alg == COSEAlgs.ECDH_SS_HKDF_512
         assert ctx.kid == b"01"
 
     def test_ecdh_direct_hkdf_constructor_with_invalid_alg(self):
         with pytest.raises(ValueError) as err:
-            Recipient.new({1: -99}, {4: b"01"}, context={"alg": "A128GCM"})
+            Recipient.new({COSEHeaders.ALG: -99}, {COSEHeaders.KID: b"01"}, context={"alg": "A128GCM"})
             pytest.fail("ECDH_DirectHKDF() should fail.")
-        assert "Unsupported or unknown alg(1): -99." in str(err.value)
+        assert f"Unsupported or unknown alg({COSEHeaders.ALG}): -99." in str(err.value)
 
     def test_ecdh_direct_hkdf_encode_with_ecdh_ss_p256(self):
         sender_priv_key = COSEKey.from_jwk(
@@ -133,7 +134,7 @@ class TestECDH_DirectHKDF:
             pub_key = COSEKey.from_pem(key_file.read(), kid="01")
         rec = Recipient.new(
             unprotected={
-                1: -28,  # "alg": "ECDH-SS+HKDF-512",
+                COSEHeaders.ALG: COSEAlgs.ECDH_SS_HKDF_512,  # "alg": "ECDH-SS+HKDF-512",
                 -20: token_bytes(64),
             },
             sender_key=sender_priv_key,
@@ -154,10 +155,10 @@ class TestECDH_DirectHKDF:
             unprotected={"alg": "ECDH-ES+HKDF-256"},
             recipient_key=pub_key,
             context=[
-                1,
+                COSEAlgs.A128GCM,
                 [None, None, None],
                 [None, None, None],
-                [128, cbor2.dumps({1: -25})],
+                [128, cbor2.dumps({COSEHeaders.ALG: COSEAlgs.ECDH_ES_HKDF_256})],
             ],
         )
         ctx = COSE.new(alg_auto_inclusion=True)
@@ -233,10 +234,10 @@ class TestECDH_DirectHKDF:
             unprotected={"alg": "ECDH-ES+HKDF-256"},
             recipient_key=pub_key,
             context=[
-                1,
+                COSEAlgs.A128GCM,
                 [None, None, None],
                 [None, None, None],
-                [128, cbor2.dumps({1: -25})],
+                [128, cbor2.dumps({COSEHeaders.ALG: COSEAlgs.ECDH_ES_HKDF_256})],
             ],
         )
         ctx = COSE.new(alg_auto_inclusion=True)
@@ -251,10 +252,10 @@ class TestECDH_DirectHKDF:
         with open(key_path("public_key_es256.pem")) as key_file:
             pub_key = COSEKey.from_pem(key_file.read(), kid="01")
         context = [
-            1,
+            COSEAlgs.A128GCM,
             [None, nonce, None],
             [None, None, None],
-            [128, cbor2.dumps({1: -25})],
+            [128, cbor2.dumps({COSEHeaders.ALG: COSEAlgs.ECDH_ES_HKDF_256})],
         ]
         rec = Recipient.new(
             unprotected={"alg": "ECDH-ES+HKDF-256"},
@@ -276,14 +277,14 @@ class TestECDH_DirectHKDF:
             unprotected={"alg": "ECDH-ES+HKDF-256"},
             recipient_key=pub_key,
             context=[
-                1,
+                COSEAlgs.A128GCM,
                 [None, None, None],
                 [None, nonce, None],
-                [128, cbor2.dumps({1: -25})],
+                [128, cbor2.dumps({COSEHeaders.ALG: COSEAlgs.ECDH_ES_HKDF_256})],
             ],
         )
         _, enc_key = rec.encode()
-        assert enc_key.alg == 1
+        assert enc_key.alg == COSEAlgs.A128GCM
         assert nonce == rec._unprotected[-25]
 
     def test_ecdh_direct_hkdf_encode_with_supp_pub_other(self):
@@ -294,25 +295,27 @@ class TestECDH_DirectHKDF:
             unprotected={"alg": "ECDH-ES+HKDF-256"},
             recipient_key=pub_key,
             context=[
-                1,
+                COSEAlgs.A128GCM,
                 [None, None, None],
                 [None, nonce, None],
-                [128, cbor2.dumps({1: -25}), b"other"],
+                [128, cbor2.dumps({COSEHeaders.ALG: COSEAlgs.ECDH_ES_HKDF_256}), b"other"],
             ],
         )
         _, enc_key = rec.encode()
-        assert enc_key.alg == 1
+        assert enc_key.alg == COSEAlgs.A128GCM
         assert nonce == rec._unprotected[-25]
 
     # def test_ecdh_direct_hkdf_encode_without_sender_key(self, recipient_public_key):
-    #     sender = ECDH_DirectHKDF({1: -25}, {4: b"01"}, recipient_key=recipient_public_key, context={"alg": "A128GCM"})
+    #     sender = ECDH_DirectHKDF({COSEHeaders.ALG: COSEAlgs.ECDH_ES_HKDF_256}, {COSEHeaders.KID: b"01"}, recipient_key=recipient_public_key, context={"alg": "A128GCM"})
     #     with pytest.raises(ValueError) as err:
     #         sender.encode()
     #         pytest.fail("encode() should fail.")
     #     assert "sender_key should be set in advance." in str(err.value)
 
     def test_ecdh_direct_hkdf_encode_without_recipient_key(self):
-        sender = Recipient.new({1: -25}, {4: b"01"}, context={"alg": "A128GCM"})
+        sender = Recipient.new(
+            {COSEHeaders.ALG: COSEAlgs.ECDH_ES_HKDF_256}, {COSEHeaders.KID: b"01"}, context={"alg": "A128GCM"}
+        )
         with pytest.raises(ValueError) as err:
             sender.encode()
             pytest.fail("encode() should fail.")
@@ -320,7 +323,7 @@ class TestECDH_DirectHKDF:
 
     def test_ecdh_direct_hkdf_encode_without_context(self, sender_key_es):
         with pytest.raises(ValueError) as err:
-            Recipient.new({1: -25}, {4: b"01"}, sender_key=sender_key_es)
+            Recipient.new({COSEHeaders.ALG: COSEAlgs.ECDH_ES_HKDF_256}, {COSEHeaders.KID: b"01"}, sender_key=sender_key_es)
             pytest.fail("Recipient.new() should fail.")
         assert "context should be set." in str(err.value)
 
@@ -338,7 +341,11 @@ class TestECDH_DirectHKDF:
 
     def test_ecdh_direct_hkdf_encode_and_extract_with_ecdh_es(self, sender_key_es, recipient_public_key, recipient_private_key):
         sender = Recipient.new(
-            {1: -25}, {4: b"01"}, sender_key=sender_key_es, recipient_key=recipient_public_key, context={"alg": "A128GCM"}
+            {COSEHeaders.ALG: COSEAlgs.ECDH_ES_HKDF_256},
+            {COSEHeaders.KID: b"01"},
+            sender_key=sender_key_es,
+            recipient_key=recipient_public_key,
+            context={"alg": "A128GCM"},
         )
         encoded, enc_key = sender.encode()
         recipient = Recipient.from_list(encoded, context={"alg": "A128GCM"})
@@ -348,15 +355,15 @@ class TestECDH_DirectHKDF:
     @pytest.mark.parametrize(
         "alg, crv, private_key_path, public_key_path",
         [
-            (-26, 3, "private_key_es512.pem", "public_key_es512.pem"),
-            (-25, 1, "private_key_es256.pem", "public_key_es256.pem"),
+            (COSEAlgs.ECDH_ES_HKDF_512, COSEKeyCrvs.P521, "private_key_es512.pem", "public_key_es512.pem"),
+            (COSEAlgs.ECDH_ES_HKDF_256, COSEKeyCrvs.P256, "private_key_es256.pem", "public_key_es256.pem"),
         ],
     )
     def test_ecdh_direct_hkdf_through_cose_api_with_ecdh_es(self, alg, crv, private_key_path, public_key_path):
-        # sender_key = COSEKey.new({1: 2, -1: crv, 3: alg})
+        # sender_key = COSEKey.new({COSEKeyParams.KTY: COSEKeyTypes.EC2, COSEKeyParams.CRV: crv, COSEKeyParams.ALG: alg})
         with open(key_path(public_key_path)) as key_file:
             pub_key = COSEKey.from_pem(key_file.read(), kid="01")
-        rec = Recipient.new(unprotected={1: alg}, recipient_key=pub_key, context={"alg": "A128GCM"})
+        rec = Recipient.new(unprotected={COSEHeaders.ALG: alg}, recipient_key=pub_key, context={"alg": "A128GCM"})
         ctx = COSE.new(alg_auto_inclusion=True)
         encoded = ctx.encode_and_encrypt(b"Hello world!", recipients=[rec])
 

@@ -14,6 +14,14 @@ from cbor2 import CBORTag, dumps
 
 from cwt import COSE, CWT, Claims, COSEKey, DecodeError, Recipient, VerifyError
 from cwt.cose_key_interface import COSEKeyInterface
+from cwt.enums import (
+    COSEAlgs,
+    COSEHeaders,
+    COSEKeyOps,
+    COSEKeyParams,
+    COSEKeyTypes,
+    CWTClaims,
+)
 from cwt.signer import Signer
 
 from .utils import key_path, now
@@ -111,37 +119,65 @@ class TestCWT:
             key,
         )
         decoded = ctx.decode(token, key)
-        assert 1 in decoded and decoded[1] == "https://as.example"
-        assert 2 in decoded and decoded[2] == "someone"
-        assert 7 in decoded and decoded[7] == b"123"
+        assert CWTClaims.ISS in decoded and decoded[CWTClaims.ISS] == "https://as.example"
+        assert CWTClaims.SUB in decoded and decoded[CWTClaims.SUB] == "someone"
+        assert CWTClaims.CTI in decoded and decoded[CWTClaims.CTI] == b"123"
 
     @pytest.mark.parametrize(
         "invalid_key",
         [
-            COSEKeyInterface({1: 4, 2: b"123", 3: 1, 4: []}),
-            COSEKeyInterface({1: 4, 2: b"123", 3: 1, 4: [1, 3]}),
-            COSEKeyInterface({1: 4, 2: b"123", 3: 1, 4: [3, 9]}),
-            COSEKeyInterface({1: 4, 2: b"123", 3: 1, 4: [9, 4]}),
+            COSEKeyInterface(
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.KID: b"123",
+                    COSEKeyParams.ALG: COSEAlgs.A128GCM,
+                    COSEKeyParams.KEY_OPS: [],
+                }
+            ),
+            COSEKeyInterface(
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.KID: b"123",
+                    COSEKeyParams.ALG: COSEAlgs.A128GCM,
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.SIGN, COSEKeyOps.ENCRYPT],
+                }
+            ),
+            COSEKeyInterface(
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.KID: b"123",
+                    COSEKeyParams.ALG: COSEAlgs.A128GCM,
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.ENCRYPT, COSEKeyOps.MAC_CREATE],
+                }
+            ),
+            COSEKeyInterface(
+                {
+                    COSEKeyParams.KTY: COSEKeyTypes.ASYMMETRIC,
+                    COSEKeyParams.KID: b"123",
+                    COSEKeyParams.ALG: COSEAlgs.A128GCM,
+                    COSEKeyParams.KEY_OPS: [COSEKeyOps.MAC_CREATE, COSEKeyOps.DECRYPT],
+                }
+            ),
         ],
     )
     def test_cwt_encode_with_invalid_key(self, ctx, invalid_key):
         with pytest.raises(ValueError) as err:
-            ctx.encode({1: "https://as.example", 2: "someone", 7: b"123"}, invalid_key)
+            ctx.encode({CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123"}, invalid_key)
             pytest.fail("CWT.new() should fail.")
         assert "The key operation could not be specified." in str(err.value)
 
     def test_cwt_encode_and_mac_with_default_alg(self, ctx):
         key = COSEKey.from_symmetric_key("mysecret", alg="HS256", kid="01")
-        token = ctx.encode_and_mac({1: "https://as.example", 2: "someone", 7: b"123"}, key)
+        token = ctx.encode_and_mac({CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123"}, key)
         decoded = ctx.decode(token, key)
-        assert 1 in decoded and decoded[1] == "https://as.example"
-        assert 2 in decoded and decoded[2] == "someone"
-        assert 4 in decoded and isinstance(decoded[4], int)
-        assert 5 in decoded and isinstance(decoded[5], int)
-        assert 6 in decoded and isinstance(decoded[6], int)
-        assert decoded[5] == decoded[6]
-        assert decoded[4] == decoded[5] + ctx.expires_in
-        assert 7 in decoded and decoded[7] == b"123"
+        assert CWTClaims.ISS in decoded and decoded[CWTClaims.ISS] == "https://as.example"
+        assert CWTClaims.SUB in decoded and decoded[CWTClaims.SUB] == "someone"
+        assert CWTClaims.EXP in decoded and isinstance(decoded[CWTClaims.EXP], int)
+        assert CWTClaims.NBF in decoded and isinstance(decoded[CWTClaims.NBF], int)
+        assert CWTClaims.IAT in decoded and isinstance(decoded[CWTClaims.IAT], int)
+        assert decoded[CWTClaims.NBF] == decoded[CWTClaims.IAT]
+        assert decoded[CWTClaims.EXP] == decoded[CWTClaims.NBF] + ctx.expires_in
+        assert CWTClaims.CTI in decoded and decoded[CWTClaims.CTI] == b"123"
 
     @pytest.mark.parametrize(
         "alg",
@@ -154,68 +190,68 @@ class TestCWT:
     )
     def test_cwt_encode_and_mac_with_valid_alg_hmac(self, ctx, alg):
         key = COSEKey.from_symmetric_key("mysecret", alg=alg, kid="01")
-        token = ctx.encode_and_mac({1: "https://as.example", 2: "someone", 7: b"123"}, key)
+        token = ctx.encode_and_mac({CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123"}, key)
         decoded = ctx.decode(token, key)
-        assert 1 in decoded and decoded[1] == "https://as.example"
-        assert 2 in decoded and decoded[2] == "someone"
-        assert 7 in decoded and decoded[7] == b"123"
+        assert CWTClaims.ISS in decoded and decoded[CWTClaims.ISS] == "https://as.example"
+        assert CWTClaims.SUB in decoded and decoded[CWTClaims.SUB] == "someone"
+        assert CWTClaims.CTI in decoded and decoded[CWTClaims.CTI] == b"123"
 
     def test_cwt_encode_and_mac_with_tagged(self, ctx):
         key = COSEKey.from_symmetric_key("mysecret", alg="HMAC 256/64", kid="01")
         token = ctx.encode_and_mac(
-            {1: "https://as.example", 2: "someone", 7: b"123"},
+            {CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123"},
             key,
             tagged=True,
         )
         decoded = ctx.decode(token, key)
-        assert 1 in decoded and decoded[1] == "https://as.example"
-        assert 2 in decoded and decoded[2] == "someone"
-        assert 7 in decoded and decoded[7] == b"123"
+        assert CWTClaims.ISS in decoded and decoded[CWTClaims.ISS] == "https://as.example"
+        assert CWTClaims.SUB in decoded and decoded[CWTClaims.SUB] == "someone"
+        assert CWTClaims.CTI in decoded and decoded[CWTClaims.CTI] == b"123"
 
     def test_cwt_encode_and_mac_with_recipient(self, ctx):
-        recipient = Recipient.new(unprotected={1: -6, 4: b"our-secret"})
+        recipient = Recipient.new(unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: b"our-secret"})
         key = COSEKey.from_symmetric_key("mysecret", alg="HMAC 256/64", kid="our-secret")
         token = ctx.encode_and_mac(
-            {1: "https://as.example", 2: "someone", 7: b"123"},
+            {CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123"},
             key,
             tagged=True,
             recipients=[recipient],
         )
         decoded = ctx.decode(token, key)
-        assert 1 in decoded and decoded[1] == "https://as.example"
-        assert 2 in decoded and decoded[2] == "someone"
-        assert 7 in decoded and decoded[7] == b"123"
+        assert CWTClaims.ISS in decoded and decoded[CWTClaims.ISS] == "https://as.example"
+        assert CWTClaims.SUB in decoded and decoded[CWTClaims.SUB] == "someone"
+        assert CWTClaims.CTI in decoded and decoded[CWTClaims.CTI] == b"123"
 
     def test_cwt_encode_and_mac_with_empty_recipient(self, ctx):
         key = COSEKey.from_symmetric_key("mysecret", alg="HMAC 256/64", kid="01")
         token = ctx.encode_and_mac(
-            {1: "https://as.example", 2: "someone", 7: b"123"},
+            {CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123"},
             key,
             tagged=True,
             recipients=[],
         )
         decoded = ctx.decode(token, key)
-        assert 1 in decoded and decoded[1] == "https://as.example"
-        assert 2 in decoded and decoded[2] == "someone"
-        assert 7 in decoded and decoded[7] == b"123"
+        assert CWTClaims.ISS in decoded and decoded[CWTClaims.ISS] == "https://as.example"
+        assert CWTClaims.SUB in decoded and decoded[CWTClaims.SUB] == "someone"
+        assert CWTClaims.CTI in decoded and decoded[CWTClaims.CTI] == b"123"
 
     @pytest.mark.parametrize(
         "invalid",
         [
-            {-260: "wrong_type"},
-            {-259: 123},
-            {-258: 123},
-            {-257: "wrong_type"},
-            {1: 123},
-            {2: 123},
-            {3: 123},
-            {3: [123, 456]},
-            {3: ["coaps://rs1.example", 456]},
-            {4: "wrong_type"},
-            {5: "wrong_type"},
-            {6: "wrong_type"},
-            {7: 123},
-            {8: 123},
+            {CWTClaims.HCERT: "wrong_type"},
+            {CWTClaims.EUPH_NONCE: 123},
+            {CWTClaims.EAT_MAROE_PREFIX: 123},
+            {CWTClaims.EAT_FDO: "wrong_type"},
+            {CWTClaims.ISS: 123},
+            {CWTClaims.SUB: 123},
+            {CWTClaims.AUD: 123},
+            {CWTClaims.AUD: [123, 456]},
+            {CWTClaims.AUD: ["coaps://rs1.example", 456]},
+            {CWTClaims.EXP: "wrong_type"},
+            {CWTClaims.NBF: "wrong_type"},
+            {CWTClaims.IAT: "wrong_type"},
+            {CWTClaims.CTI: 123},
+            {CWTClaims.CNF: 123},
         ],
     )
     def test_cwt_encode_and_mac_with_invalid_args(self, ctx, invalid):
@@ -229,12 +265,12 @@ class TestCWT:
         "invalid, msg",
         [
             (
-                {1: "https://as.example", 2: "someone", 7: b"123", 4: "exp"},
-                "exp(4) should be int or float.",
+                {CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123", CWTClaims.EXP: "exp"},
+                f"exp({CWTClaims.EXP}) should be int or float.",
             ),
             (
-                {1: "https://as.example", 2: "someone", 7: b"123", 5: "nbf"},
-                "nbf(5) should be int or float.",
+                {CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123", CWTClaims.NBF: "nbf"},
+                f"nbf({CWTClaims.NBF}) should be int or float.",
             ),
         ],
     )
@@ -259,7 +295,7 @@ class TestCWT:
         key = COSEKey.from_symmetric_key("mysecret", alg="HMAC 256/64")
         with pytest.raises(ValueError) as err:
             ctx.encode_and_mac(
-                cbor2.dumps({1: "https://as.example", 2: "someone", 7: "123"}),
+                cbor2.dumps({CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: "123"}),
                 key,
             )
             pytest.fail("encode_and_mac should fail.")
@@ -268,7 +304,7 @@ class TestCWT:
     def test_cwt_encode_and_mac_with_invalid_tagged_cwt(self, ctx):
         key = COSEKey.from_symmetric_key("mysecret", alg="HMAC 256/64")
         token = ctx.encode_and_mac(
-            {1: "https://as.example", 2: "someone", 7: b"123"},
+            {CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123"},
             key,
         )
         tagged_token = cbor2.dumps(CBORTag(62, token))
@@ -293,21 +329,21 @@ class TestCWT:
     def test_cwt_encode_and_encrypt_with_valid_alg_aes_ccm(self, ctx, alg, nonce, key):
         enc_key = COSEKey.from_symmetric_key(key, alg=alg, kid="01")
         token = ctx.encode_and_encrypt(
-            {1: "https://as.example", 2: "someone", 7: b"123"},
+            {CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123"},
             enc_key,
             nonce=nonce,
         )
         decoded = ctx.decode(token, enc_key)
-        assert 1 in decoded and decoded[1] == "https://as.example"
-        assert 2 in decoded and decoded[2] == "someone"
-        assert 7 in decoded and decoded[7] == b"123"
+        assert CWTClaims.ISS in decoded and decoded[CWTClaims.ISS] == "https://as.example"
+        assert CWTClaims.SUB in decoded and decoded[CWTClaims.SUB] == "someone"
+        assert CWTClaims.CTI in decoded and decoded[CWTClaims.CTI] == b"123"
 
     def test_cwt_encode_and_encrypt_with_invalid_key_and_without_nonce(self, ctx):
         enc_key = COSEKey.from_symmetric_key(alg="HMAC 256/64", kid="01")
         # enc_key = COSEKey.generate_symmetric_key(alg="A128GCM", kid="01")
         with pytest.raises(ValueError) as err:
             ctx.encode_and_encrypt(
-                {1: "https://as.example", 2: "someone", 7: b"123"},
+                {CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123"},
                 enc_key,
             )
             pytest.fail("encode_and_encrypt should fail.")
@@ -333,13 +369,13 @@ class TestCWT:
     def test_cwt_encode_and_encrypt_without_key_and_nonce(self, ctx, alg):
         enc_key = COSEKey.from_symmetric_key(alg=alg, kid="01")
         token = ctx.encode_and_encrypt(
-            {1: "https://as.example", 2: "someone", 7: b"123"},
+            {CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123"},
             enc_key,
         )
         decoded = ctx.decode(token, enc_key)
-        assert 1 in decoded and decoded[1] == "https://as.example"
-        assert 2 in decoded and decoded[2] == "someone"
-        assert 7 in decoded and decoded[7] == b"123"
+        assert CWTClaims.ISS in decoded and decoded[CWTClaims.ISS] == "https://as.example"
+        assert CWTClaims.SUB in decoded and decoded[CWTClaims.SUB] == "someone"
+        assert CWTClaims.CTI in decoded and decoded[CWTClaims.CTI] == b"123"
 
     @pytest.mark.parametrize(
         "alg, key",
@@ -352,29 +388,29 @@ class TestCWT:
     def test_cwt_encode_and_encrypt_with_valid_alg_aes_gcm(self, ctx, alg, key):
         enc_key = COSEKey.from_symmetric_key(key, alg=alg, kid="01")
         token = ctx.encode_and_encrypt(
-            {1: "https://as.example", 2: "someone", 7: b"123"},
+            {CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123"},
             enc_key,
             nonce=token_bytes(12),
         )
         decoded = ctx.decode(token, enc_key)
-        assert 1 in decoded and decoded[1] == "https://as.example"
-        assert 2 in decoded and decoded[2] == "someone"
-        assert 7 in decoded and decoded[7] == b"123"
+        assert CWTClaims.ISS in decoded and decoded[CWTClaims.ISS] == "https://as.example"
+        assert CWTClaims.SUB in decoded and decoded[CWTClaims.SUB] == "someone"
+        assert CWTClaims.CTI in decoded and decoded[CWTClaims.CTI] == b"123"
 
     def test_cwt_encode_and_encrypt_with_tagged(self, ctx):
         key = token_bytes(16)
         nonce = token_bytes(13)
         enc_key = COSEKey.from_symmetric_key(key, alg="AES-CCM-16-64-128", kid="01")
         token = ctx.encode_and_encrypt(
-            {1: "https://as.example", 2: "someone", 7: b"123"},
+            {CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123"},
             enc_key,
             nonce=nonce,
             tagged=True,
         )
         decoded = ctx.decode(token, enc_key)
-        assert 1 in decoded and decoded[1] == "https://as.example"
-        assert 2 in decoded and decoded[2] == "someone"
-        assert 7 in decoded and decoded[7] == b"123"
+        assert CWTClaims.ISS in decoded and decoded[CWTClaims.ISS] == "https://as.example"
+        assert CWTClaims.SUB in decoded and decoded[CWTClaims.SUB] == "someone"
+        assert CWTClaims.CTI in decoded and decoded[CWTClaims.CTI] == b"123"
 
     @pytest.mark.parametrize(
         "private_key_path, public_key_path",
@@ -395,13 +431,13 @@ class TestCWT:
         with open(key_path(public_key_path)) as key_file:
             public_key = COSEKey.from_pem(key_file.read(), kid="01")
         token = ctx.encode_and_sign(
-            {1: "https://as.example", 2: "someone", 7: b"123"},
+            {CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123"},
             private_key,
         )
         decoded = ctx.decode(token, public_key)
-        assert 1 in decoded and decoded[1] == "https://as.example"
-        assert 2 in decoded and decoded[2] == "someone"
-        assert 7 in decoded and decoded[7] == b"123"
+        assert CWTClaims.ISS in decoded and decoded[CWTClaims.ISS] == "https://as.example"
+        assert CWTClaims.SUB in decoded and decoded[CWTClaims.SUB] == "someone"
+        assert CWTClaims.CTI in decoded and decoded[CWTClaims.CTI] == b"123"
 
     @pytest.mark.parametrize(
         "alg",
@@ -412,12 +448,12 @@ class TestCWT:
             "RS256",
             "RS384",
             "RS512",
-            -37,
-            -38,
-            -39,
-            -257,
-            -258,
-            -259,
+            COSEAlgs.PS256,
+            COSEAlgs.PS384,
+            COSEAlgs.PS512,
+            COSEAlgs.RS256,
+            COSEAlgs.RS384,
+            COSEAlgs.RS512,
         ],
     )
     def test_cwt_encode_and_sign_with_valid_alg_rsa(self, ctx, alg):
@@ -426,13 +462,13 @@ class TestCWT:
         with open(key_path("private_key_rsa.pem")) as key_file:
             private_key = COSEKey.from_pem(key_file.read(), alg=alg, kid="01")
         token = ctx.encode_and_sign(
-            {1: "https://as.example", 2: "someone", 7: b"123"},
+            {CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123"},
             private_key,
         )
         decoded = ctx.decode(token, public_key)
-        assert 1 in decoded and decoded[1] == "https://as.example"
-        assert 2 in decoded and decoded[2] == "someone"
-        assert 7 in decoded and decoded[7] == b"123"
+        assert CWTClaims.ISS in decoded and decoded[CWTClaims.ISS] == "https://as.example"
+        assert CWTClaims.SUB in decoded and decoded[CWTClaims.SUB] == "someone"
+        assert CWTClaims.CTI in decoded and decoded[CWTClaims.CTI] == b"123"
 
     def test_cwt_encode_and_sign_with_tagged(self, ctx):
         with open(key_path("private_key_es256.pem")) as key_file:
@@ -440,14 +476,14 @@ class TestCWT:
         with open(key_path("public_key_es256.pem")) as key_file:
             public_key = COSEKey.from_pem(key_file.read(), kid="01")
         token = ctx.encode_and_sign(
-            {1: "https://as.example", 2: "someone", 7: b"123"},
+            {CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123"},
             private_key,
             tagged=True,
         )
         decoded = ctx.decode(token, public_key)
-        assert 1 in decoded and decoded[1] == "https://as.example"
-        assert 2 in decoded and decoded[2] == "someone"
-        assert 7 in decoded and decoded[7] == b"123"
+        assert CWTClaims.ISS in decoded and decoded[CWTClaims.ISS] == "https://as.example"
+        assert CWTClaims.SUB in decoded and decoded[CWTClaims.SUB] == "someone"
+        assert CWTClaims.CTI in decoded and decoded[CWTClaims.CTI] == b"123"
 
     def test_cwt_encode_and_sign_with_multiple_signatures(self, ctx):
         with open(key_path("private_key_es256.pem")) as key_file:
@@ -459,21 +495,21 @@ class TestCWT:
         with open(key_path("public_key_ed25519.pem")) as key_file:
             public_key_2 = COSEKey.from_pem(key_file.read(), kid="2")
         token = ctx.encode_and_sign(
-            {1: "https://as.example", 2: "someone", 7: b"123"},
+            {CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123"},
             signers=[signer_1, signer_2],
         )
         decoded = ctx.decode(token, public_key_1)
         assert isinstance(decoded, dict)
-        assert 1 in decoded and decoded[1] == "https://as.example"
+        assert CWTClaims.ISS in decoded and decoded[CWTClaims.ISS] == "https://as.example"
         decoded = ctx.decode(token, public_key_2)
         assert isinstance(decoded, dict)
-        assert 1 in decoded and decoded[1] == "https://as.example"
+        assert CWTClaims.ISS in decoded and decoded[CWTClaims.ISS] == "https://as.example"
 
     def test_cwt_encode_and_encrypt_with_invalid_nonce(self, ctx):
         enc_key = COSEKey.from_symmetric_key(token_bytes(16), alg="AES-CCM-16-64-128")
         with pytest.raises(ValueError) as err:
             ctx.encode_and_encrypt(
-                {1: "https://as.example", 2: "someone", 7: b"123"},
+                {CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123"},
                 enc_key,
                 nonce=token_bytes(7),  # should be 13
             )
@@ -490,7 +526,7 @@ class TestCWT:
         with open(key_path("public_key_ed25519.pem")) as key_file:
             COSEKey.from_pem(key_file.read(), kid="2")
         token = ctx.encode_and_sign(
-            {1: "https://as.example", 2: "someone", 7: b"123"},
+            {CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123"},
             signers=[signer_1, signer_2],
         )
         with pytest.raises(ValueError) as err:
@@ -500,7 +536,7 @@ class TestCWT:
 
     def test_cwt_decode_with_invalid_mac_key(self, ctx):
         key = COSEKey.from_symmetric_key("mysecret", alg="HS256", kid="01")
-        token = ctx.encode_and_mac({1: "https://as.example", 2: "someone", 7: b"123"}, key)
+        token = ctx.encode_and_mac({CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123"}, key)
         wrong_key = COSEKey.from_symmetric_key("xxxxxxxxxx", alg="HS256", kid="01")
         with pytest.raises(VerifyError) as err:
             res = ctx.decode(token, wrong_key)
@@ -526,7 +562,7 @@ class TestCWT:
         enc_key = COSEKey.from_symmetric_key(token_bytes(16), alg="AES-CCM-16-64-128", kid="01")
         wrong_key = COSEKey.from_symmetric_key(token_bytes(16), alg="AES-CCM-16-64-128", kid="01")
         token = ctx.encode_and_encrypt(
-            {1: "https://as.example", 2: "someone", 7: b"123"},
+            {CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123"},
             enc_key,
             nonce=token_bytes(13),
         )
@@ -539,16 +575,22 @@ class TestCWT:
         "invalid, msg",
         [
             (
-                {1: "https://as.example", 2: "a", 4: now() - 100, 5: now(), 6: now()},
+                {
+                    CWTClaims.ISS: "https://as.example",
+                    CWTClaims.SUB: "a",
+                    CWTClaims.EXP: now() - 100,
+                    CWTClaims.NBF: now(),
+                    CWTClaims.IAT: now(),
+                },
                 "The token has expired.",
             ),
             (
                 {
-                    1: "https://as.example",
-                    2: "a",
-                    4: now() + 100,
-                    5: now() + 100,
-                    6: now(),
+                    CWTClaims.ISS: "https://as.example",
+                    CWTClaims.SUB: "a",
+                    CWTClaims.EXP: now() + 100,
+                    CWTClaims.NBF: now() + 100,
+                    CWTClaims.IAT: now(),
                 },
                 "The token is not yet valid.",
             ),
@@ -565,7 +607,7 @@ class TestCWT:
     def test_cwt_decode_with_invalid_tagged_cwt(self, ctx):
         key = COSEKey.from_symmetric_key("mysecret", alg="HMAC 256/64", kid="01")
         token = ctx.encode_and_mac(
-            {1: "https://as.example", 2: "someone", 7: b"123"},
+            {CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123"},
             key,
         )
         tagged_token = cbor2.dumps(CBORTag(62, token))
@@ -577,8 +619,8 @@ class TestCWT:
     @pytest.mark.parametrize(
         "claims",
         [
-            {1: "https://as.example", 2: "someone", 7: b"123", 4: now() + 100},
-            {1: "https://as.example", 2: "someone", 7: b"123", 5: now() - 100},
+            {CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123", CWTClaims.EXP: now() + 100},
+            {CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123", CWTClaims.NBF: now() - 100},
         ],
     )
     def test_cwt__verify_with_valid_args(self, ctx, claims):
@@ -591,11 +633,11 @@ class TestCWT:
         "invalid, msg",
         [
             (
-                {1: "https://as.example", 2: "someone", 7: b"123", 4: "exp"},
+                {CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123", CWTClaims.EXP: "exp"},
                 "exp should be int or float.",
             ),
             (
-                {1: "https://as.example", 2: "someone", 7: b"123", 5: "nbf"},
+                {CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone", CWTClaims.CTI: b"123", CWTClaims.NBF: "nbf"},
                 "nbf should be int or float.",
             ),
         ],
@@ -608,31 +650,31 @@ class TestCWT:
 
     def test_cwt_decode_with_cwt_claims_in_headers(self, ctx):
         cose = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
-        payload = dumps({1: "https://as.example", 2: "someone"})
-        protected = {13: {1: "https://as.example"}}
+        payload = dumps({CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone"})
+        protected = {COSEHeaders.CWT_CLAIMS: {CWTClaims.ISS: "https://as.example"}}
         mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
         cwt = cose.encode_and_mac(payload, mac_key, protected)
         decoded = ctx.decode(cwt, mac_key)
-        assert 1 in decoded and decoded[1] == "https://as.example"
-        assert 2 in decoded and decoded[2] == "someone"
+        assert CWTClaims.ISS in decoded and decoded[CWTClaims.ISS] == "https://as.example"
+        assert CWTClaims.SUB in decoded and decoded[CWTClaims.SUB] == "someone"
 
     @pytest.mark.parametrize(
         "invalid, msg",
         [
             (
-                {1: "https://asx.example", 2: "someone"},
-                "The CWT claim(1) value in protected header does not match the values in the payload.",
+                {CWTClaims.ISS: "https://asx.example", CWTClaims.SUB: "someone"},
+                f"The CWT claim({CWTClaims.ISS}) value in protected header does not match the values in the payload.",
             ),
             (
-                {1: "https://as.example", 2: "someonex"},
-                "The CWT claim(2) value in protected header does not match the values in the payload.",
+                {CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someonex"},
+                f"The CWT claim({CWTClaims.SUB}) value in protected header does not match the values in the payload.",
             ),
         ],
     )
     def test_cwt_decode_with_invalid_cwt_claims_in_headers(self, ctx, invalid, msg):
         cose = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
-        payload = dumps({1: "https://as.example", 2: "someone"})
-        protected = {13: invalid}
+        payload = dumps({CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone"})
+        protected = {COSEHeaders.CWT_CLAIMS: invalid}
         mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
         cwt = cose.encode_and_mac(payload, mac_key, protected)
         with pytest.raises(VerifyError) as err:

@@ -37,29 +37,30 @@ class TestOKPKey:
                 COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
             }
         )
-        assert private_key.kty == 1
+        assert private_key.kty == COSEKeyTypes.OKP
         assert private_key.kid is None
         assert isinstance(private_key.key, Ed25519PrivateKey)
-        assert private_key.alg == -8
-        assert private_key.crv == 6
+        assert private_key.alg == COSEAlgs.EDDSA
+        assert private_key.crv == COSEKeyCrvs.ED25519
         assert len(private_key.key_ops) == 2
-        assert 1 in private_key.key_ops
-        assert 2 in private_key.key_ops
+        assert COSEKeyOps.SIGN in private_key.key_ops
+        assert COSEKeyOps.VERIFY in private_key.key_ops
         assert private_key.base_iv is None
-        assert public_key.kty == 1
+        assert public_key.kty == COSEKeyTypes.OKP
         assert public_key.kid is None
-        assert public_key.alg == -8
-        assert public_key.crv == 6
+        assert public_key.alg == COSEAlgs.EDDSA
+        assert public_key.crv == COSEKeyCrvs.ED25519
         assert len(public_key.key_ops) == 1
-        assert 2 in public_key.key_ops
+        assert COSEKeyOps.VERIFY in public_key.key_ops
         assert public_key.base_iv is None
         private_key_obj = private_key.to_dict()
         assert (
-            private_key_obj[-4] == b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9"
+            private_key_obj[COSEKeyParams.D]
+            == b"B\xc6u\xd0|-\x07\xe7)\x8d\x1c\x13\x14\xa2\x8dFC1\xdf3sQ\x049|\x14\xc1\xed\x01\xe5\xdb\xa9"
         )
         public_key_obj = public_key.to_dict()
         assert (
-            public_key_obj[-2]
+            public_key_obj[COSEKeyParams.X]
             == b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9"
         )
         try:
@@ -86,29 +87,29 @@ class TestOKPKey:
                 COSEKeyParams.X: b"\xdb\x98\xacQb(\xb1I\x0c\xdb)\xce<S\xf9\xb7\xb0[\xc0\xcd\x7f\x88T&(\x1aG\xbc\r!\x81zQ_\xac\xb2\xbb\xe9\xea\xe8\x10f\xa5-\xc9\xd06\x13\x95\x92(\x03\x8a\xb0\x81*\x80",
             }
         )
-        assert private_key.kty == 1
+        assert private_key.kty == COSEKeyTypes.OKP
         assert private_key.kid is None
-        assert private_key.alg == -8
-        assert private_key.crv == 7
+        assert private_key.alg == COSEAlgs.EDDSA
+        assert private_key.crv == COSEKeyCrvs.ED448
         assert len(private_key.key_ops) == 2
-        assert 1 in private_key.key_ops
-        assert 2 in private_key.key_ops
+        assert COSEKeyOps.SIGN in private_key.key_ops
+        assert COSEKeyOps.VERIFY in private_key.key_ops
         assert private_key.base_iv is None
-        assert public_key.kty == 1
+        assert public_key.kty == COSEKeyTypes.OKP
         assert public_key.kid is None
-        assert public_key.alg == -8
-        assert public_key.crv == 7
+        assert public_key.alg == COSEAlgs.EDDSA
+        assert public_key.crv == COSEKeyCrvs.ED448
         assert len(public_key.key_ops) == 1
-        assert 2 in public_key.key_ops
+        assert COSEKeyOps.VERIFY in public_key.key_ops
         assert public_key.base_iv is None
         private_key_obj = private_key.to_dict()
         assert (
-            private_key_obj[-4]
+            private_key_obj[COSEKeyParams.D]
             == b"\xbc\xe1\xe0\xdf\x1f@\\@Q\x0e|\xcc\xe5\xbe\xbcl\xb1l\xc2'\xb2\xc2\x92sL\xe91i\xf59~ \xf1\xc8\xaa0\xb9\xebg\x06\x08\xd0\xb2\x04\xd1Z\x874\xeb\xb5\xfd\xc6\xf6V\x13D\x9d"
         )
         public_key_obj = public_key.to_dict()
         assert (
-            public_key_obj[-2]
+            public_key_obj[COSEKeyParams.X]
             == b"\xdb\x98\xacQb(\xb1I\x0c\xdb)\xce<S\xf9\xb7\xb0[\xc0\xcd\x7f\x88T&(\x1aG\xbc\r!\x81zQ_\xac\xb2\xbb\xe9\xea\xe8\x10f\xa5-\xc9\xd06\x13\x95\x92(\x03\x8a\xb0\x81*\x80"
         )
         try:
@@ -135,28 +136,29 @@ class TestOKPKey:
                 COSEKeyParams.ALG: COSEAlgs.ECDH_ES_HKDF_256,
             }
         )
-        assert private_key.kty == 1
+        assert private_key.kty == COSEKeyTypes.OKP
         assert private_key.kid is None
         assert private_key.alg == COSEAlgs.ECDH_ES_HKDF_256
-        assert private_key.crv == 4
+        assert private_key.crv == COSEKeyCrvs.X25519
         assert len(private_key.key_ops) == 2
-        assert 7 in private_key.key_ops
-        assert 8 in private_key.key_ops
+        assert COSEKeyOps.DERIVE_KEY in private_key.key_ops
+        assert COSEKeyOps.DERIVE_BITS in private_key.key_ops
         assert private_key.base_iv is None
 
-        assert public_key.kty == 1
+        assert public_key.kty == COSEKeyTypes.OKP
         assert public_key.kid is None
         assert public_key.alg == COSEAlgs.ECDH_ES_HKDF_256
-        assert public_key.crv == 4
+        assert public_key.crv == COSEKeyCrvs.X25519
         assert len(public_key.key_ops) == 0
         assert public_key.base_iv is None
         private_key_obj = private_key.to_dict()
         assert (
-            private_key_obj[-4] == b"\xbe\xc2u\xa1~M6-\x08\x19\xdc\x06\x95\xd8\x9as\xbek\xf9Kf\xabrj\xe0\xb1\xaf\xe3\xc4?A\xce"
+            private_key_obj[COSEKeyParams.D]
+            == b"\xbe\xc2u\xa1~M6-\x08\x19\xdc\x06\x95\xd8\x9as\xbek\xf9Kf\xabrj\xe0\xb1\xaf\xe3\xc4?A\xce"
         )
         public_key_obj = public_key.to_dict()
         assert (
-            public_key_obj[-2]
+            public_key_obj[COSEKeyParams.X]
             == b'\xcb|\t\xab{\x97<w\xa8\x08\xee\x05\xb9\xbb\xd3s\xb5\\\x06\xea\xa9\xbdJ\xd2\xbdN\x991\xb1\xc3L"'
         )
 
@@ -191,30 +193,30 @@ class TestOKPKey:
                 COSEKeyParams.X: b'"B\xe6sI%\xbcC\x17bw\x870\xa0\x01\xe9\xe3\xe8\x86\xbc\x80\xc0\x03\xd5{jQI\xf7\xc8\r\x8e\x8d\xae7\x985eW\xe4\x9f\x9f\x1b\x83U\xd8\xea\x14\xef\xb0\xbc\xf0\r&\xbf\x12',
             }
         )
-        assert private_key.kty == 1
+        assert private_key.kty == COSEKeyTypes.OKP
         assert private_key.kid is None
         assert private_key.alg == COSEAlgs.ECDH_ES_HKDF_256
-        assert private_key.crv == 5
+        assert private_key.crv == COSEKeyCrvs.X448
         assert len(private_key.key_ops) == 2
-        assert 7 in private_key.key_ops
-        assert 8 in private_key.key_ops
+        assert COSEKeyOps.DERIVE_KEY in private_key.key_ops
+        assert COSEKeyOps.DERIVE_BITS in private_key.key_ops
         assert private_key.base_iv is None
 
-        assert public_key.kty == 1
+        assert public_key.kty == COSEKeyTypes.OKP
         assert public_key.kid is None
         assert public_key.alg == COSEAlgs.ECDH_ES_HKDF_256
-        assert public_key.crv == 5
+        assert public_key.crv == COSEKeyCrvs.X448
         assert len(public_key.key_ops) == 0
         assert public_key.base_iv is None
         private_key_obj = private_key.to_dict()
 
         assert (
-            private_key_obj[-4]
+            private_key_obj[COSEKeyParams.D]
             == b"\xac\x92Q\x1by\xec\x87 \xadw\xd0\xa0^W|h\xd6\x81\xf5\x85\xcaGE\x0e\x8b\xbc\xe3\xee\x10)\x83\xd6\x07\xe1wA;A\xbc5\xc0\x057?\xee<}\x86\x9c&Uq \xe0W\x97"
         )
         public_key_obj = public_key.to_dict()
         assert (
-            public_key_obj[-2]
+            public_key_obj[COSEKeyParams.X]
             == b'"B\xe6sI%\xbcC\x17bw\x870\xa0\x01\xe9\xe3\xe8\x86\xbc\x80\xc0\x03\xd5{jQI\xf7\xc8\r\x8e\x8d\xae7\x985eW\xe4\x9f\x9f\x1b\x83U\xd8\xea\x14\xef\xb0\xbc\xf0\r&\xbf\x12'
         )
 
