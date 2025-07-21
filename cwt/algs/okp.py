@@ -75,9 +75,12 @@ class OKPKey(AsymmetricKey):
                 self._hash_alg = hashes.SHA256 if self._crv == 4 else hashes.SHA512
             elif self._alg is not None:
                 raise ValueError(f"Unsupported or unknown alg used with X25519/X448: {self._alg}.")
-        elif self._crv in [6, 7]:
-            if self._alg is not None and self._alg not in COSE_ALGORITHMS_SIG_OKP.values():
-                raise ValueError(f"Unsupported or unknown alg used with Ed25519/Ed448: {self._alg}.")
+        elif self._crv == 6:
+            if self._alg is not None and self._alg not in [-8, -19]:
+                raise ValueError(f"Unsupported or unknown alg used with Ed25519: {self._alg}.")
+        elif self._crv == 7:
+            if self._alg is not None and self._alg not in [-8, -53]:
+                raise ValueError(f"Unsupported or unknown alg used with Ed448: {self._alg}.")
         else:
             raise ValueError(f"Unsupported or unknown crv(-1) for OKP: {self._crv}.")
 

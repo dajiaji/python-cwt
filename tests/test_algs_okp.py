@@ -362,7 +362,7 @@ class TestOKPKey:
                     COSEKeyParams.ALG: -999,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                 },
-                "Unsupported or unknown alg used with Ed25519/Ed448: -999.",
+                "Unsupported or unknown alg used with Ed25519: -999.",
             ),
             (
                 {
@@ -371,7 +371,7 @@ class TestOKPKey:
                     COSEKeyParams.ALG: 35,
                     COSEKeyParams.X: b"\x18Es\xe0\x9a\x83\xfd\x0e\xe9K\xa8n\xf39i\x17\xfe\n2+|\xd1q\xcc\x87\xd2\xe9\xa9\xe8 \x9b\xd9",
                 },
-                "Unsupported or unknown alg used with Ed25519/Ed448: 35.",
+                "Unsupported or unknown alg used with Ed25519: 35.",
             ),
             (
                 {
