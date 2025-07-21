@@ -4,6 +4,34 @@ Changes
 Unreleased
 ----------
 
+Version 3.1.0
+-------------
+
+Released 2025-07-21
+
+- Add alg validation for fully-specified algs. `#621 <https://github.com/dajiaji/python-cwt/pull/621>`__
+- Update supported algorithms and specs. `#620 <https://github.com/dajiaji/python-cwt/pull/620>`__
+- Fix post_install in readthedocs config. `#616 <https://github.com/dajiaji/python-cwt/pull/616>`__
+- Add fully specified algorithms. `#612 <https://github.com/dajiaji/python-cwt/pull/612>`__
+- Refine pyproject.toml to use poetry groups. `#595 <https://github.com/dajiaji/python-cwt/pull/595>`__
+- Update dependencies.
+    - Bump cryptography to 44.0.3. `#602 <https://github.com/dajiaji/python-cwt/pull/602>`__
+- Update dev dependencies.
+    - Bump certifi to 2025.7.14. `#622 <https://github.com/dajiaji/python-cwt/pull/622>`__
+    - Bump coverage to 7.9.2. `#622 <https://github.com/dajiaji/python-cwt/pull/622>`__
+    - Bump tox to 4.28.0. `#622 <https://github.com/dajiaji/python-cwt/pull/622>`__
+    - Bump urllib3 to 2.5.0. `#611 <https://github.com/dajiaji/python-cwt/pull/611>`__
+    - Bump pytest to 8.4.1. `#610 <https://github.com/dajiaji/python-cwt/pull/610>`__
+    - Bump pytest-cov to 6.2.1. `#608 <https://github.com/dajiaji/python-cwt/pull/608>`__
+    - Bump requests to 2.32.4. `#606 <https://github.com/dajiaji/python-cwt/pull/606>`__
+    - Bump pre-commit/black to 25.1.0. `#599 <https://github.com/dajiaji/python-cwt/pull/599>`__
+    - Bump pre-commit/blacken-docs to 1.19.1. `#599 <https://github.com/dajiaji/python-cwt/pull/599>`__
+    - Bump pre-commit/flake8 to 7.2.0. `#599 <https://github.com/dajiaji/python-cwt/pull/599>`__
+    - Bump pre-commit/isort to 6.0.1. `#599 <https://github.com/dajiaji/python-cwt/pull/599>`__
+    - Bump pre-commit/mirrors-mypy to 1.15.0. `#599 <https://github.com/dajiaji/python-cwt/pull/599>`__
+    - Bump pre-commit to 4.2.0. `#597 <https://github.com/dajiaji/python-cwt/pull/597>`__
+
+
 Version 3.0.0
 -------------
 
