@@ -293,6 +293,22 @@ class TestRecipient:
             pytest.fail("Recipient() should fail.")
         assert msg in str(err.value)
 
+    def test_recipient_new_does_not_modify_protected(self, rpk1, rsk1):
+        protected = {}
+        unprotected = {"alg": "ECDH-ES+A128KW"}
+        kdf_context = {
+            "alg": "A128KW",
+            "supp_pub": {
+                "key_data_length": 128,
+                "protected": protected,
+                "other": "test",
+            },
+        }
+        _ = Recipient.new(
+            protected=protected, unprotected=unprotected, sender_key=rsk1, recipient_key=rpk1, context=kdf_context
+        )
+        assert protected == {}
+
     def test_recipient_from_jwk_with_str(self):
         recipient = Recipient.new(unprotected={"alg": "direct"})
         assert isinstance(recipient, RecipientInterface)
