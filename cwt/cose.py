@@ -26,7 +26,7 @@ from .utils import sort_keys_for_deterministic_encoding, to_cose_header
 
 class COSE(CBORProcessor):
     """
-    A COSE (CBOR Object Signing and Encryption) Implementaion built on top of
+    A COSE (CBOR Object Signing and Encryption) Implementation built on top of
     `cbor2 <https://cbor2.readthedocs.io/en/stable/>`_.
     """
 
