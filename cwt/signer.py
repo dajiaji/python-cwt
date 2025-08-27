@@ -4,7 +4,7 @@ from .cbor_processor import CBORProcessor
 from .const import COSE_ALGORITHMS_SIGNATURE
 from .cose_key import COSEKey
 from .cose_key_interface import COSEKeyInterface
-from .utils import to_cose_header
+from .utils import to_cose_header, ResolvedHeader
 
 
 class Signer(CBORProcessor):
@@ -60,8 +60,8 @@ class Signer(CBORProcessor):
     def new(
         cls,
         cose_key: COSEKeyInterface,
-        protected: Union[dict, bytes] = {},
-        unprotected: dict = {},
+        protected: Union[dict, bytes, ResolvedHeader] = {},
+        unprotected: Union[dict, bytes, ResolvedHeader] = {},
         signature: bytes = b"",
     ):
         """
@@ -69,19 +69,19 @@ class Signer(CBORProcessor):
 
         Args:
             cose_key (COSEKey): A signature key for the signer.
-            protected (Union[dict, bytes]): Parameters that are to be cryptographically
+            protected (Union[dict, bytes, ResolvedHeader]): Parameters that are to be cryptographically
                 protected.
-            unprotected (dict): Parameters that are not cryptographically protected.
+            unprotected (Union[dict, bytes, ResolvedHeader]): Parameters that are not cryptographically protected.
             signature (bytes): A signature as bytes.
         Returns:
             Signer: A signer information object.
         Raises:
             ValueError: Invalid arguments.
         """
-        p: Union[Dict[int, Any], bytes] = (
-            to_cose_header(protected, algs=COSE_ALGORITHMS_SIGNATURE) if isinstance(protected, dict) else protected
+        p: Union[Dict[int, Any], bytes, ResolvedHeader] = (
+            protected if isinstance(protected, bytes) else to_cose_header(protected, algs=COSE_ALGORITHMS_SIGNATURE)
         )
-        u = to_cose_header(unprotected, algs=COSE_ALGORITHMS_SIGNATURE)
+        u: Union[Dict[int, Any], bytes, ResolvedHeader] = to_cose_header(unprotected, algs=COSE_ALGORITHMS_SIGNATURE)
         return cls(cose_key, p, u, signature)
 
     @classmethod

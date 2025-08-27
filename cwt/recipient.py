@@ -19,7 +19,7 @@ from .recipient_algs.ecdh_aes_key_wrap import ECDH_AESKeyWrap
 from .recipient_algs.ecdh_direct_hkdf import ECDH_DirectHKDF
 from .recipient_algs.hpke import HPKE
 from .recipient_interface import RecipientInterface
-from .utils import to_cose_header, to_recipient_context
+from .utils import to_cose_header, to_recipient_context, ResolvedHeader
 
 
 class Recipient:
@@ -30,8 +30,8 @@ class Recipient:
     @classmethod
     def new(
         cls,
-        protected: dict = {},
-        unprotected: dict = {},
+        protected: Union[dict, ResolvedHeader] = {},
+        unprotected: Union[dict, ResolvedHeader] = {},
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
         sender_key: Optional[COSEKeyInterface] = None,
@@ -42,8 +42,8 @@ class Recipient:
         Creates a recipient from a CBOR-like dictionary with numeric keys.
 
         Args:
-            protected (dict): Parameters that are to be cryptographically protected.
-            unprotected (dict): Parameters that are not cryptographically protected.
+            protected (Union[dict, ResolvedHeader]): Parameters that are to be cryptographically protected.
+            unprotected (Union[dict, ResolvedHeader]): Parameters that are not cryptographically protected.
             ciphertext (List[Any]): A cipher text.
             sender_key (Optional[COSEKeyInterface]): A sender private key as COSEKey.
             recipient_key (Optional[COSEKeyInterface]): A recipient public key as COSEKey.

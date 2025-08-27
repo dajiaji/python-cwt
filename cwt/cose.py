@@ -21,7 +21,7 @@ from .recipient_algs.hpke import HPKE
 from .recipient_interface import RecipientInterface
 from .recipients import Recipients
 from .signer import Signer
-from .utils import sort_keys_for_deterministic_encoding, to_cose_header
+from .utils import sort_keys_for_deterministic_encoding, to_cose_header, ResolvedHeader
 
 
 class COSE(CBORProcessor):
@@ -132,8 +132,8 @@ class COSE(CBORProcessor):
         self,
         payload: bytes,
         key: Optional[COSEKeyInterface] = None,
-        protected: Optional[dict] = None,
-        unprotected: Optional[dict] = None,
+        protected: Optional[Union[dict, ResolvedHeader]] = None,
+        unprotected: Optional[Union[dict, ResolvedHeader]] = None,
         recipients: List[RecipientInterface] = [],
         signers: List[Signer] = [],
         external_aad: bytes = b"",
@@ -146,8 +146,8 @@ class COSE(CBORProcessor):
         Args:
             payload (bytes): A content to be MACed, signed or encrypted.
             key (Optional[COSEKeyInterface]): A content encryption key as COSEKey.
-            protected (Optional[dict]): Parameters that are to be cryptographically protected.
-            unprotected (Optional[dict]): Parameters that are not cryptographically protected.
+            protected (Optional[Union[dict, ResolvedHeader]]): Parameters that are to be cryptographically protected.
+            unprotected (Optional[Union[dict, ResolvedHeader]]): Parameters that are not cryptographically protected.
             recipients (List[RecipientInterface]): A list of recipient information structures.
             signers (List[Signer]): A list of signer information objects for
                 multiple signer cases.
@@ -582,8 +582,8 @@ class COSE(CBORProcessor):
     def _encode_headers(
         self,
         key: Optional[COSEKeyInterface],
-        protected: Optional[dict],
-        unprotected: Optional[dict],
+        protected: Optional[Union[dict, ResolvedHeader]],
+        unprotected: Optional[Union[dict, ResolvedHeader]],
         enable_non_aead: bool,
     ) -> Tuple[Dict[int, Any], Dict[int, Any]]:
         p = to_cose_header(protected)
