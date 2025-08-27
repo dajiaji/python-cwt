@@ -19,7 +19,7 @@ from .recipient_algs.ecdh_aes_key_wrap import ECDH_AESKeyWrap
 from .recipient_algs.ecdh_direct_hkdf import ECDH_DirectHKDF
 from .recipient_algs.hpke import HPKE
 from .recipient_interface import RecipientInterface
-from .utils import to_cose_header, to_recipient_context, ResolvedHeader
+from .utils import ResolvedHeader, to_cose_header, to_recipient_context
 
 
 class Recipient:

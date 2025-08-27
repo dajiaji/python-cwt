@@ -21,7 +21,7 @@ from .recipient_algs.hpke import HPKE
 from .recipient_interface import RecipientInterface
 from .recipients import Recipients
 from .signer import Signer
-from .utils import sort_keys_for_deterministic_encoding, to_cose_header, ResolvedHeader
+from .utils import ResolvedHeader, sort_keys_for_deterministic_encoding, to_cose_header
 
 
 class COSE(CBORProcessor):

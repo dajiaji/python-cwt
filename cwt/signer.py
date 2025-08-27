@@ -4,7 +4,7 @@ from .cbor_processor import CBORProcessor
 from .const import COSE_ALGORITHMS_SIGNATURE
 from .cose_key import COSEKey
 from .cose_key_interface import COSEKeyInterface
-from .utils import to_cose_header, ResolvedHeader
+from .utils import ResolvedHeader, to_cose_header
 
 
 class Signer(CBORProcessor):

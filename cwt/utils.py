@@ -173,8 +173,10 @@ class ResolvedHeader:
     to library calls that they do not require resolution against const.COSE_HEADER_PARAMETERS,
     nor value encoding to bstr, and can be passed directly to the CBOR encoding logic.
     """
+
     def __init__(self, params: Dict[Union[str, int], Any]):
         self.params = params
+
 
 def to_cose_header(data: Optional[Union[dict, ResolvedHeader]] = None, algs: Dict[str, int] = {}) -> Dict[Union[str, int], Any]:
     if data is None:
