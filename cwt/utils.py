@@ -184,7 +184,7 @@ def to_cose_header(data: Optional[Union[dict, ResolvedHeader]] = None, algs: Dic
     res: Dict[Union[str, int], Any] = {}
     if isinstance(data, ResolvedHeader):
         return data.params
-    if len(data) == 0:
+    if len(data) == 0 or not isinstance(list(data.keys())[0], str):
         return data
     if not algs:
         algs = COSE_NAMED_ALGORITHMS_SUPPORTED
