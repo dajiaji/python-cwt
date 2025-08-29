@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from cbor2 import CBORTag, loads
 
@@ -132,14 +132,14 @@ class COSEMessage(CBORProcessor):
         return self._type
 
     @property
-    def protected(self) -> Dict[int, Any]:
+    def protected(self) -> Dict[Union[str, int], Any]:
         """
         The protected headers as a CBOR object.
         """
         return self._loads(self._protected)
 
     @property
-    def unprotected(self) -> Dict[int, Any]:
+    def unprotected(self) -> Dict[Union[str, int], Any]:
         """
         The unprotected headers as a CBOR object.
         """

@@ -330,7 +330,7 @@ def _validate_context(context: List[Any]) -> List[Any]:
     return context
 
 
-def to_recipient_context(alg: int, u: Dict[int, Any], context: Union[List[Any], Dict[str, Any]]) -> List[Any]:
+def to_recipient_context(alg: int, u: Dict[Union[str, int], Any], context: Union[List[Any], Dict[str, Any]]) -> List[Any]:
     ctx: List[Any] = [
         None,
         [
@@ -360,5 +360,5 @@ def to_recipient_context(alg: int, u: Dict[int, Any], context: Union[List[Any], 
     return ctx
 
 
-def sort_keys_for_deterministic_encoding(d: Dict[int, Any]) -> Dict[int, Any]:
+def sort_keys_for_deterministic_encoding(d: Dict[Union[str, int], Any]) -> Dict[Union[str, int], Any]:
     return {k: v for k, v in sorted(d.items(), key=lambda kv: cbor2.dumps(kv[0]))}

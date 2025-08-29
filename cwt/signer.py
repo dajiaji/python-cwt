@@ -15,8 +15,8 @@ class Signer(CBORProcessor):
     def __init__(
         self,
         cose_key: COSEKeyInterface,
-        protected: Union[Dict[Union[str | int], Any], bytes],
-        unprotected: Dict[Union[str | int], Any],
+        protected: Union[Dict[Union[str, int], Any], bytes],
+        unprotected: Dict[Union[str, int], Any],
         signature: bytes = b"",
     ):
         self._cose_key = cose_key
@@ -43,7 +43,7 @@ class Signer(CBORProcessor):
         return self._protected
 
     @property
-    def unprotected(self) -> Dict[Union[str | int], Any]:
+    def unprotected(self) -> Dict[Union[str, int], Any]:
         """
         The parameters that are not cryptographically protected.
         """
@@ -78,10 +78,10 @@ class Signer(CBORProcessor):
         Raises:
             ValueError: Invalid arguments.
         """
-        p: Union[Dict[Union[str | int], Any], bytes] = (
+        p: Union[Dict[Union[str, int], Any], bytes] = (
             protected if isinstance(protected, bytes) else to_cose_header(protected, algs=COSE_ALGORITHMS_SIGNATURE)
         )
-        u: Dict[Union[str | int], Any] = to_cose_header(unprotected, algs=COSE_ALGORITHMS_SIGNATURE)
+        u: Dict[Union[str, int], Any] = to_cose_header(unprotected, algs=COSE_ALGORITHMS_SIGNATURE)
         return cls(cose_key, p, u, signature)
 
     @classmethod
@@ -101,8 +101,8 @@ class Signer(CBORProcessor):
             ValueError: Invalid arguments.
             DecodeError: Failed to decode the key data.
         """
-        protected: Dict[Union[str | int], Any] = {}
-        unprotected: Dict[Union[str | int], Any] = {}
+        protected: Dict[Union[str, int], Any] = {}
+        unprotected: Dict[Union[str, int], Any] = {}
 
         cose_key = COSEKey.from_jwk(data)
 
@@ -142,8 +142,8 @@ class Signer(CBORProcessor):
             ValueError: Invalid arguments.
             DecodeError: Failed to decode the key data.
         """
-        protected: Dict[Union[str | int], Any] = {}
-        unprotected: Dict[Union[str | int], Any] = {}
+        protected: Dict[Union[str, int], Any] = {}
+        unprotected: Dict[Union[str, int], Any] = {}
 
         cose_key = COSEKey.from_pem(data, alg=alg, kid=kid)
 
