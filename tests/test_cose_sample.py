@@ -2,7 +2,7 @@ from secrets import token_bytes
 
 import pytest
 
-from cwt import COSE, COSEAlgs, COSEHeaders, COSEKey, Recipient, Signer
+from cwt import COSE, COSEAlgs, COSEHeaders, COSEKey, Recipient, Signer, utils
 
 
 class TestCOSESample:
@@ -768,3 +768,59 @@ class TestCOSESample:
         )
         encoded3 = sender.encode_and_sign(b"Hello world!", signers=[signer])
         assert b"Hello world!" == recipient.decode(encoded3, pub_key)
+
+    def test_cose_usage_with_resolved_header(self):
+        cose_key=COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        )
+
+        recipient = COSE.new()
+        pub_key = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+
+        ctx = COSE.new(alg_auto_inclusion=True)
+
+        payload = b"Hello world!"
+        protected_first_not_str = {COSEHeaders.KID: b"01", COSEHeaders.ALG: COSEAlgs.ES256, "string key": "value"}
+
+        # This works because the first key is not a string, and so the early exit in to_cose_header() happens
+        encoded = ctx.encode_and_sign(payload, cose_key, protected=protected_first_not_str)
+        phdr, _, payload_ = recipient.decode_with_headers(encoded, pub_key)
+        assert payload_ == payload
+        assert phdr[COSEHeaders.ALG] == COSEAlgs.ES256
+        assert phdr["string key"] == "value"
+
+        # This works because ResolvedHeader always skips string key encoding
+        encoded = ctx.encode_and_sign(payload, cose_key, protected=utils.ResolvedHeader(protected_first_not_str))
+        phdr, _, payload_ = recipient.decode_with_headers(encoded, pub_key)
+        assert payload_ == payload
+        assert phdr[COSEHeaders.ALG] == COSEAlgs.ES256
+        assert phdr["string key"] == "value"
+
+        protected_first_str = {"string key": "value", COSEHeaders.KID: b"01", COSEHeaders.ALG: COSEAlgs.ES256}
+
+        with pytest.raises(ValueError) as err:
+            # Raises ValueError: Unsupported or unknown COSE header parameter: 4.
+            # This fails because the first key is a string, and to_cose_header attempts to resolve the params
+            ctx.encode_and_sign(b"Hello world!", cose_key, protected=protected_first_str)
+
+        # This works because ResolvedHeader always skips string key encoding
+        encoded = ctx.encode_and_sign(payload, cose_key, protected=utils.ResolvedHeader(protected_first_str))
+        phdr, _, payload_ = recipient.decode_with_headers(encoded, pub_key)
+        assert payload_ == payload
+        assert phdr[COSEHeaders.ALG] == COSEAlgs.ES256
+        assert phdr["string key"] == "value"
