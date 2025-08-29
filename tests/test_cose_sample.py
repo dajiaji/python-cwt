@@ -770,7 +770,7 @@ class TestCOSESample:
         assert b"Hello world!" == recipient.decode(encoded3, pub_key)
 
     def test_cose_usage_with_resolved_header(self):
-        cose_key=COSEKey.from_jwk(
+        cose_key = COSEKey.from_jwk(
             {
                 "kty": "EC",
                 "kid": "01",
