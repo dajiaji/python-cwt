@@ -74,7 +74,7 @@ class Recipient:
         if alg == -6:
             return DirectKey(p, u)
         if alg in COSE_ALGORITHMS_KEY_WRAP.values():
-            if len(protected) > 0:
+            if len(p) > 0:
                 raise ValueError("The protected header must be a zero-length string in key wrap mode with an AE algorithm.")
             if not sender_key:
                 sender_key = COSEKey.from_symmetric_key(alg=alg)
