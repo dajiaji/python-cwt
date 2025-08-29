@@ -813,7 +813,7 @@ class TestCOSESample:
 
         protected_first_str = {"string key": "value", COSEHeaders.KID: b"01", COSEHeaders.ALG: COSEAlgs.ES256}
 
-        with pytest.raises(ValueError) as err:
+        with pytest.raises(ValueError):
             # Raises ValueError: Unsupported or unknown COSE header parameter: 4.
             # This fails because the first key is a string, and to_cose_header attempts to resolve the params
             ctx.encode_and_sign(b"Hello world!", cose_key, protected=protected_first_str)
