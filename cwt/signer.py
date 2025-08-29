@@ -15,7 +15,7 @@ class Signer(CBORProcessor):
     def __init__(
         self,
         cose_key: COSEKeyInterface,
-        protected: Union[Dict[str| int, Any], bytes],
+        protected: Union[Dict[str | int, Any], bytes],
         unprotected: Dict[str | int, Any],
         signature: bytes = b"",
     ):
