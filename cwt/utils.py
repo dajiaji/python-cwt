@@ -170,24 +170,38 @@ def to_cis(context: Dict[str, Any], recipient_alg: Optional[int] = None) -> List
 def to_cose_header(data: Optional[dict] = None, algs: Dict[str, int] = {}) -> Dict[int, Any]:
     if data is None:
         return {}
+    if len(data) == 0:
+        return {}
     res: Dict[int, Any] = {}
-    if len(data) == 0 or not isinstance(list(data.keys())[0], str):
+    # If there are no string keys, assume already numeric COSE header map
+    has_str_key = any(isinstance(k, str) for k in data.keys())
+    if not has_str_key:
         return data
     if not algs:
         algs = COSE_NAMED_ALGORITHMS_SUPPORTED
     for k, v in data.items():
-        if k not in COSE_HEADER_PARAMETERS.keys():
-            raise ValueError(f"Unsupported or unknown COSE header parameter: {k}.")
-        if k == "alg":
-            if v not in algs.keys():
-                raise ValueError(f"Unsupported or unknown alg: {v}.")
-            v = algs[v]
+        if isinstance(k, str):
+            if k not in COSE_HEADER_PARAMETERS.keys():
+                raise ValueError(f"Unsupported or unknown COSE header parameter: {k}.")
+            if k == "alg":
+                if v not in algs.keys():
+                    raise ValueError(f"Unsupported or unknown alg: {v}.")
+                v = algs[v]
+            else:
+                v = v.encode("utf-8") if isinstance(v, str) else v
+                if k == "salt":
+                    if not isinstance(v, bytes):
+                        raise ValueError("salt should be bytes or str.")
+                if k == "ek":
+                    if not isinstance(v, (bytes, bytearray)):
+                        raise ValueError("ek (-4) must be bstr.")
+                if k == "psk_id":
+                    if not isinstance(v, (bytes, bytearray)):
+                        raise ValueError("psk_id (-5) must be bstr.")
+            res[COSE_HEADER_PARAMETERS[k]] = v
         else:
-            v = v.encode("utf-8") if isinstance(v, str) else v
-            if k == "salt":
-                if not isinstance(v, bytes):
-                    raise ValueError("salt should be bytes or str.")
-        res[COSE_HEADER_PARAMETERS[k]] = v
+            # keep numeric keys as-is
+            res[k] = v
     return res
 
 

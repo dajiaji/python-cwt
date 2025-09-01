@@ -65,6 +65,8 @@ COSE_HEADER_PARAMETERS = {
     "cty": 3,
     "content type": 3,
     "kid": 4,
+    "ek": -4,
+    "psk_id": -5,
     "iv": 5,
     "IV": 5,
     "Partial IV": 6,
@@ -196,6 +198,15 @@ COSE_ALGORITHMS_KEY_WRAP = {
 }
 
 COSE_ALGORITHMS_HPKE = {
+    # New names per draft-ietf-cose-hpke-15
+    "HPKE-0": 35,  # DHKEM(P-256, HKDF-SHA256) + HKDF-SHA256 + AES-128-GCM
+    "HPKE-1": 37,  # DHKEM(P-384, HKDF-SHA384) + HKDF-SHA384 + AES-256-GCM
+    "HPKE-2": 39,  # DHKEM(P-521, HKDF-SHA512) + HKDF-SHA512 + AES-256-GCM
+    "HPKE-3": 41,  # DHKEM(X25519, HKDF-SHA256) + HKDF-SHA256 + AES-128-GCM
+    "HPKE-4": 42,  # DHKEM(X25519, HKDF-SHA256) + HKDF-SHA256 + ChaCha20Poly1305
+    "HPKE-5": 43,  # DHKEM(X448, HKDF-SHA512) + HKDF-SHA512 + AES-256-GCM
+    "HPKE-6": 44,  # DHKEM(X448, HKDF-SHA512) + HKDF-SHA512 + ChaCha20Poly1305
+    # Backward-compatible legacy names
     "HPKE-Base-P256-SHA256-AES128GCM": 35,
     "HPKE-Base-P256-SHA256-ChaCha20Poly1305": 36,
     "HPKE-Base-P384-SHA384-AES256GCM": 37,

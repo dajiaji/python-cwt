@@ -139,6 +139,7 @@ class COSE(CBORProcessor):
         external_aad: bytes = b"",
         out: str = "",
         enable_non_aead: bool = False,
+        hpke_psk: Optional[bytes] = None,
     ) -> bytes:
         """
         Encodes COSE message with MAC, signing and encryption.
@@ -175,7 +176,7 @@ class COSE(CBORProcessor):
         p, u = self._encode_headers(key, protected, unprotected, enable_non_aead)
         typ = self._validate_cose_message(key, p, u, recipients, signers)
         if typ == 0:
-            return self._encode_and_encrypt(payload, key, p, u, recipients, external_aad, out)
+            return self._encode_and_encrypt(payload, key, p, u, recipients, external_aad, out, hpke_psk)
         elif typ == 1:
             return self._encode_and_mac(payload, key, p, u, recipients, external_aad, out)
         # elif typ == 2:
@@ -191,6 +192,7 @@ class COSE(CBORProcessor):
         external_aad: bytes = b"",
         out: str = "",
         enable_non_aead: bool = False,
+        hpke_psk: Optional[bytes] = None,
     ) -> bytes:
         """
         Encodes data with encryption.
@@ -226,7 +228,7 @@ class COSE(CBORProcessor):
         typ = self._validate_cose_message(key, p, u, recipients, [])
         if typ != 0:
             raise ValueError("The COSE message is not suitable for COSE Encrypt0/Encrypt.")
-        return self._encode_and_encrypt(payload, key, p, u, recipients, external_aad, out)
+        return self._encode_and_encrypt(payload, key, p, u, recipients, external_aad, out, hpke_psk)
 
     def encode_and_mac(
         self,
@@ -314,6 +316,7 @@ class COSE(CBORProcessor):
         external_aad: bytes = b"",
         detached_payload: Optional[bytes] = None,
         enable_non_aead: bool = False,
+        hpke_psk: Optional[bytes] = None,
     ) -> bytes:
         """
         Verifies and decodes COSE data, and returns only payload.
@@ -340,7 +343,7 @@ class COSE(CBORProcessor):
             DecodeError: Failed to decode data.
             VerifyError: Failed to verify data.
         """
-        _, _, res = self.decode_with_headers(data, keys, context, external_aad, detached_payload, enable_non_aead)
+        _, _, res = self.decode_with_headers(data, keys, context, external_aad, detached_payload, enable_non_aead, hpke_psk)
         return res
 
     def decode_with_headers(
@@ -351,6 +354,7 @@ class COSE(CBORProcessor):
         external_aad: bytes = b"",
         detached_payload: Optional[bytes] = None,
         enable_non_aead: bool = False,
+        hpke_psk: Optional[bytes] = None,
     ) -> Tuple[Dict[int, Any], Dict[int, Any], bytes]:
         """
         Verifies and decodes COSE data, and returns protected headers, unprotected headers and payload.
@@ -449,7 +453,7 @@ class COSE(CBORProcessor):
                         continue
                     try:
                         if not isinstance(p, bytes) and alg in COSE_ALGORITHMS_HPKE.values():  # HPKE
-                            hpke = HPKE(p, u, payload)
+                            hpke = HPKE(p, u, payload, psk=hpke_psk)
                             res = hpke.decode(k, aad)
                             if not isinstance(res, bytes):
                                 raise TypeError("Internal type error.")
@@ -652,6 +656,12 @@ class COSE(CBORProcessor):
                 if not isinstance(v, bytes):
                     raise ValueError("IV and Partial IV must be bstr.")
                 iv_count += 1
+            if k == -4:  # ek
+                if not isinstance(v, (bytes, bytearray)):
+                    raise ValueError("ek (-4) must be bstr.")
+            if k == -5:  # psk_id
+                if not isinstance(v, (bytes, bytearray)):
+                    raise ValueError("psk_id (-5) must be bstr.")
             h[k] = v
         for k, v in u.items():
             if k == 2:  # crit
@@ -660,6 +670,12 @@ class COSE(CBORProcessor):
                 if not isinstance(v, bytes):
                     raise ValueError("IV and Partial IV must be bstr.")
                 iv_count += 1
+            if k == -4:  # ek
+                if not isinstance(v, (bytes, bytearray)):
+                    raise ValueError("ek (-4) must be bstr.")
+            if k == -5:  # psk_id
+                if not isinstance(v, (bytes, bytearray)):
+                    raise ValueError("psk_id (-5) must be bstr.")
             h[k] = v
         if len(h) != len(p) + len(u):
             raise ValueError("The same keys are both in protected and unprotected headers.")
@@ -750,6 +766,7 @@ class COSE(CBORProcessor):
         recipients: List[RecipientInterface],
         external_aad: bytes,
         out: str,
+        hpke_psk: Optional[bytes],
     ) -> bytes:
         b_protected = self._dumps(p) if p else b""
         ciphertext: bytes = b""
@@ -759,7 +776,10 @@ class COSE(CBORProcessor):
             enc_structure = ["Encrypt0", b_protected, external_aad]
             aad = self._dumps(enc_structure)
             if 1 in p and p[1] in COSE_ALGORITHMS_HPKE.values():  # HPKE
-                hpke = HPKE(p, u, recipient_key=key)
+                # If user provided ek in header, validate its type before proceeding
+                if -4 in u and not isinstance(u[-4], (bytes, bytearray)):
+                    raise ValueError("ek (-4) must be bstr.")
+                hpke = HPKE(p, u, recipient_key=key, psk=hpke_psk)
                 encoded, _ = hpke.encode(payload, aad)
                 res = CBORTag(16, encoded)
                 return res if out == "cbor2/CBORTag" else self._dumps(res)

@@ -7,9 +7,10 @@
 Tests for COSE.
 """
 
+import cbor2
 import pytest
 
-from cwt import COSE, COSEAlgs, COSEHeaders, COSEKey
+from cwt import COSE, COSEAlgs, COSEHeaders, COSEKey, DecodeError, EncodeError
 
 
 class TestCOSE_HPKE:
@@ -20,8 +21,7 @@ class TestCOSE_HPKE:
     @pytest.mark.parametrize(
         "alg",
         [
-            COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
-            COSEAlgs.HPKE_BASE_P256_SHA256_CHACHA20POLY1305,
+            COSEAlgs.HPKE_0,
         ],
     )
     def test_cose_hpke_kem_0x0010(self, alg):
@@ -61,12 +61,163 @@ class TestCOSE_HPKE:
         recipient = COSE.new()
         assert b"This is the content." == recipient.decode(encoded, rsk)
 
+    def test_cose_hpke_encrypt0_missing_ek_raises(self):
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            rpk,
+            protected={COSEHeaders.ALG: COSEAlgs.HPKE_0},
+            unprotected={COSEHeaders.KID: b"01"},
+        )
+
+        # Tamper encoded message: remove ek(-4)
+        tag = cbor2.loads(encoded)
+        assert tag.tag == 16
+        p, u, c = tag.value
+        u2 = {k: v for k, v in u.items() if k != -4}
+        tampered = cbor2.CBORTag(16, [p, u2, c])
+        tampered_bytes = cbor2.dumps(tampered)
+
+        rsk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        )
+        recipient = COSE.new()
+        with pytest.raises(DecodeError) as err:
+            recipient.decode(tampered_bytes, rsk)
+        assert "ek (-4) is required for HPKE." in str(err.value)
+
+    def test_cose_hpke_encrypt0_ek_wrong_type_raises(self):
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            rpk,
+            protected={COSEHeaders.ALG: COSEAlgs.HPKE_0},
+            unprotected={COSEHeaders.KID: b"01"},
+        )
+
+        # Tamper ek type to int
+        tag = cbor2.loads(encoded)
+        assert tag.tag == 16
+        p, u, c = tag.value
+        u[-4] = 123  # wrong type
+        tampered = cbor2.CBORTag(16, [p, u, c])
+        tampered_bytes = cbor2.dumps(tampered)
+
+        rsk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        )
+        recipient = COSE.new()
+        with pytest.raises(DecodeError) as err:
+            recipient.decode(tampered_bytes, rsk)
+        assert "ek (-4) must be bstr." in str(err.value)
+
+    def test_cose_hpke_encode_ek_wrong_type_header_validation(self):
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+        sender = COSE.new()
+        with pytest.raises(ValueError) as err:
+            sender.encode_and_encrypt(
+                b"This is the content.",
+                rpk,
+                protected={COSEHeaders.ALG: COSEAlgs.HPKE_0},
+                unprotected={COSEHeaders.KID: b"01", "ek": 123},
+            )
+        assert "ek (-4) must be bstr." in str(err.value)
+
+    def test_cose_hpke_encrypt0_psk_id_wrong_type_header_validation(self):
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+        sender = COSE.new()
+        with pytest.raises(ValueError) as err:
+            sender.encode_and_encrypt(
+                b"This is the content.",
+                rpk,
+                protected={COSEHeaders.ALG: COSEAlgs.HPKE_0},
+                unprotected={COSEHeaders.KID: b"01", COSEHeaders.PSK_ID: 123},
+            )
+        assert "psk_id (-5) must be bstr." in str(err.value)
+
+    def test_cose_hpke_encrypt0_with_psk_id_roundtrip(self):
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            rpk,
+            protected={COSEHeaders.ALG: COSEAlgs.HPKE_0},
+            unprotected={COSEHeaders.KID: b"01", COSEHeaders.PSK_ID: b"psk-01"},
+            hpke_psk=b"secret-psk",
+        )
+
+        rsk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        )
+        recipient = COSE.new()
+        assert b"This is the content." == recipient.decode(encoded, rsk, hpke_psk=b"secret-psk")
+
     @pytest.mark.parametrize(
         "alg",
-        [
-            COSEAlgs.HPKE_BASE_P384_SHA384_AES256GCM,
-            COSEAlgs.HPKE_BASE_P384_SHA384_CHACHA20POLY1305,
-        ],
+        [COSEAlgs.HPKE_1],
     )
     def test_cose_hpke_kem_0x0011(self, alg):
         rpk = COSEKey.from_jwk(
@@ -105,12 +256,67 @@ class TestCOSE_HPKE:
         recipient = COSE.new()
         assert b"This is the content." == recipient.decode(encoded, rsk)
 
+    def test_cose_hpke_encrypt0_psk_id_without_psk_should_error_on_encode(self):
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+        sender = COSE.new()
+        with pytest.raises(EncodeError) as err:
+            sender.encode_and_encrypt(
+                b"This is the content.",
+                rpk,
+                protected={COSEHeaders.ALG: COSEAlgs.HPKE_0},
+                unprotected={COSEHeaders.KID: b"01", COSEHeaders.PSK_ID: b"psk-01"},
+            )
+        assert "hpke_psk is required when psk_id (-5) is provided." in str(err.value)
+
+    def test_cose_hpke_encrypt0_psk_id_without_psk_should_error_on_decode(self):
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+        sender = COSE.new()
+        # First, produce a base-mode (no psk_id) and then inject psk_id to simulate peer mismatch
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            rpk,
+            protected={COSEHeaders.ALG: COSEAlgs.HPKE_0},
+            unprotected={COSEHeaders.KID: b"01"},
+        )
+        tag = cbor2.loads(encoded)
+        p, u, c = tag.value
+        u[-5] = b"psk-01"
+        tampered = cbor2.dumps(cbor2.CBORTag(16, [p, u, c]))
+
+        rsk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        )
+        recipient = COSE.new()
+        with pytest.raises(DecodeError) as err:
+            recipient.decode(tampered, rsk)
+        assert "hpke_psk is required when psk_id (-5) is provided." in str(err.value)
+
     @pytest.mark.parametrize(
         "alg",
-        [
-            COSEAlgs.HPKE_BASE_P521_SHA512_AES256GCM,
-            COSEAlgs.HPKE_BASE_P521_SHA512_CHACHA20POLY1305,
-        ],
+        [COSEAlgs.HPKE_2],
     )
     def test_cose_hpke_kem_0x0012(self, alg):
         rpk = COSEKey.from_jwk(
@@ -151,10 +357,7 @@ class TestCOSE_HPKE:
 
     @pytest.mark.parametrize(
         "alg",
-        [
-            COSEAlgs.HPKE_BASE_X25519_SHA256_AES128GCM,
-            COSEAlgs.HPKE_BASE_X25519_SHA256_CHACHA20POLY1305,
-        ],
+        [COSEAlgs.HPKE_3, COSEAlgs.HPKE_4],
     )
     def test_cose_hpke_kem_0x0020(self, alg):
         rpk = COSEKey.from_jwk(
@@ -195,10 +398,7 @@ class TestCOSE_HPKE:
 
     @pytest.mark.parametrize(
         "alg",
-        [
-            COSEAlgs.HPKE_BASE_X448_SHA512_AES256GCM,
-            COSEAlgs.HPKE_BASE_X448_SHA512_CHACHA20POLY1305,
-        ],
+        [COSEAlgs.HPKE_5, COSEAlgs.HPKE_6],
     )
     def test_cose_hpke_kem_0x0021(self, alg):
         rpk = COSEKey.from_jwk(

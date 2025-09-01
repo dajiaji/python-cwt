@@ -32,6 +32,8 @@ class COSEHeaders(enum.IntEnum):
     X5U = 35
     CUPH_NONCE = 256
     CUPH_OWNER_PUB_KEY = 257
+    EK = -4
+    PSK_ID = -5
 
 
 class COSEKeyParams(enum.IntEnum):
@@ -114,6 +116,15 @@ class COSEAlgs(enum.IntEnum):
     AES_CCM_16_128_256 = 31
     AES_CCM_64_128_128 = 32
     AES_CCM_64_128_256 = 33
+    # New COSE-HPKE algorithm names per draft-ietf-cose-hpke-15
+    HPKE_0 = 35
+    HPKE_1 = 37
+    HPKE_2 = 39
+    HPKE_3 = 41
+    HPKE_4 = 42
+    HPKE_5 = 43
+    HPKE_6 = 44
+    # Legacy names (kept for backward compatibility)
     HPKE_BASE_P256_SHA256_AES128GCM = 35
     HPKE_BASE_P256_SHA256_CHACHA20POLY1305 = 36
     HPKE_BASE_P384_SHA384_AES256GCM = 37
