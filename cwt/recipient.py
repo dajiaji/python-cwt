@@ -36,6 +36,7 @@ class Recipient:
         recipients: List[Any] = [],
         sender_key: Optional[COSEKeyInterface] = None,
         recipient_key: Optional[COSEKeyInterface] = None,
+        hpke_psk: Optional[bytes] = None,
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
     ) -> RecipientInterface:
         """
@@ -80,7 +81,7 @@ class Recipient:
                 sender_key = COSEKey.from_symmetric_key(alg=alg)
             return AESKeyWrap(u, ciphertext, recipients, sender_key)
         if alg in COSE_ALGORITHMS_HPKE.values():
-            return HPKE(p, u, ciphertext, recipients, recipient_key)  # TODO sender_key
+            return HPKE(p, u, ciphertext, recipients, recipient_key, psk=hpke_psk)  # TODO sender_key
 
         if context is None:
             raise ValueError("context should be set.")

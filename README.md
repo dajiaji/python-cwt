@@ -13,7 +13,7 @@ implementation compliant with:
 - [RFC9053: CBOR Object Signing and Encryption (COSE): Initial Algorithms](https://www.rfc-editor.org/rfc/rfc9053.html)
 - [RFC9338: CBOR Object Signing and Encryption (COSE): Countersignatures](https://www.rfc-editor.org/rfc/rfc9338.html) - experimental
 - [RFC8392: CWT (CBOR Web Token)](https://tools.ietf.org/html/rfc8392)
-- [draft-07: Use of HPKE with COSE](https://www.ietf.org/archive/id/draft-ietf-cose-hpke-07.html) - experimental
+- [draft-15: Use of HPKE with COSE](https://www.ietf.org/archive/id/draft-ietf-cose-hpke-15.html) - experimental
 - [draft-06: CWT Claims in COSE Headers](https://www.ietf.org/archive/id/draft-ietf-cose-cwt-claims-in-headers-06.html) - experimental
 - [draft-13: Fully-Specified Algorithms for JOSE and COSE](https://www.ietf.org/archive/id/draft-ietf-jose-fully-specified-algorithms-13.html)
 - and related various specifications. See [Referenced Specifications](#referenced-specifications).
@@ -533,7 +533,7 @@ rpk = COSEKey.from_jwk(
 )
 r = Recipient.new(
     protected={
-        COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
+        COSEHeaders.ALG: COSEAlgs.HPKE_0,
     },
     unprotected={
         COSEHeaders.KID: b"01",  # kid: "01"
@@ -681,7 +681,7 @@ encoded = sender.encode(
     b"This is the content.",
     rpk,
     protected={
-        COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
+        COSEHeaders.ALG: COSEAlgs.HPKE_0,
     },
     unprotected={
         COSEHeaders.KID: b"01",  # kid: "01"
@@ -702,6 +702,51 @@ rsk = COSEKey.from_jwk(
 recipient = COSE.new()
 assert b"This is the content." == recipient.decode(encoded, rsk)
 ```
+
+COSE-HPKE (Encrypt0) with psk_id
+
+```py
+from cwt import COSE, COSEAlgs, COSEHeaders, COSEKey
+
+# The sender side:
+rpk = COSEKey.from_jwk(
+    {
+        "kty": "EC",
+        "kid": "01",
+        "crv": "P-256",
+        "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+        "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+    }
+)
+
+sender = COSE.new()
+encoded = sender.encode(
+    b"This is the content.",
+    rpk,
+    protected={COSEHeaders.ALG: COSEAlgs.HPKE_0},
+    unprotected={
+        COSEHeaders.KID: b"01",
+        COSEHeaders.PSK_ID: b"psk-01",  # HPKE PSK identifier
+    },
+    hpke_psk=b"secret-psk",
+)
+
+# The recipient side:
+rsk = COSEKey.from_jwk(
+    {
+        "kty": "EC",
+        "kid": "01",
+        "crv": "P-256",
+        "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+        "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+        "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+    }
+)
+recipient = COSE.new()
+assert b"This is the content." == recipient.decode(encoded, rsk, hpke_psk=b"secret-psk")
+```
+
+Note: `psk_id` (label `-5`) is carried in unprotected headers and validated as a `bstr`. The actual PSK provisioning is deployment-specific as described in the HPKE draft. Pass the PSK via `hpke_psk` to `encode/encode_and_encrypt` and `decode/decode_with_headers` when using the PSK-authenticated variant.
 
 ### COSE Encrypt
 
@@ -987,7 +1032,7 @@ rpk = COSEKey.from_jwk(
 )
 r = Recipient.new(
     protected={
-        COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
+        COSEHeaders.ALG: COSEAlgs.HPKE_0,
     },
     unprotected={
         COSEHeaders.KID: b"01",  # kid: "01"
