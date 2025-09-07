@@ -42,6 +42,8 @@ nitpick_ignore = [
     ("py:class", "T"),
     ("py:class", "cwt.COSEKeyInterface"),
     ("py:class", "cwt.RecipientInterface"),
+    ("py:class", "cwt.utils.ResolvedHeader"),
+    ("py:class", "ResolvedHeader"),
     ("py:class", "cwt.claims.T"),
     ("py:class", "cwt.cbor_processor.CBORProcessor"),
     ("py:class", "_cbor2.CBORTag"),

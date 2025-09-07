@@ -167,10 +167,23 @@ def to_cis(context: Dict[str, Any], recipient_alg: Optional[int] = None) -> List
     return res
 
 
-def to_cose_header(data: Optional[dict] = None, algs: Dict[str, int] = {}) -> Dict[int, Any]:
+class ResolvedHeader:
+    """
+    Wrapping COSE header parameters in a ResolvedHeader is a way to signal
+    to library calls that they do not require resolution against const.COSE_HEADER_PARAMETERS,
+    nor value encoding to bstr, and can be passed directly to the CBOR encoding logic.
+    """
+
+    def __init__(self, params: Dict[Union[str, int], Any]):
+        self.params = params
+
+
+def to_cose_header(data: Optional[Union[dict, ResolvedHeader]] = None, algs: Dict[str, int] = {}) -> Dict[Union[str, int], Any]:
     if data is None:
         return {}
-    res: Dict[int, Any] = {}
+    res: Dict[Union[str, int], Any] = {}
+    if isinstance(data, ResolvedHeader):
+        return data.params
     if len(data) == 0 or not isinstance(list(data.keys())[0], str):
         return data
     if not algs:
@@ -317,7 +330,7 @@ def _validate_context(context: List[Any]) -> List[Any]:
     return context
 
 
-def to_recipient_context(alg: int, u: Dict[int, Any], context: Union[List[Any], Dict[str, Any]]) -> List[Any]:
+def to_recipient_context(alg: int, u: Dict[Union[str, int], Any], context: Union[List[Any], Dict[str, Any]]) -> List[Any]:
     ctx: List[Any] = [
         None,
         [
@@ -347,5 +360,5 @@ def to_recipient_context(alg: int, u: Dict[int, Any], context: Union[List[Any], 
     return ctx
 
 
-def sort_keys_for_deterministic_encoding(d: Dict[int, Any]) -> Dict[int, Any]:
+def sort_keys_for_deterministic_encoding(d: Dict[Union[str, int], Any]) -> Dict[Union[str, int], Any]:
     return {k: v for k, v in sorted(d.items(), key=lambda kv: cbor2.dumps(kv[0]))}

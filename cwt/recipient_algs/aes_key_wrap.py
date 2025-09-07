@@ -15,7 +15,7 @@ class AESKeyWrap(RecipientInterface):
 
     def __init__(
         self,
-        unprotected: Dict[int, Any],
+        unprotected: Dict[Union[str, int], Any],
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
         sender_key: Optional[COSEKeyInterface] = None,

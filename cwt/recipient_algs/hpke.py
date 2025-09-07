@@ -36,8 +36,8 @@ def to_hpke_ciphersuites(alg: int) -> Tuple[int, int, int]:
 class HPKE(RecipientInterface):
     def __init__(
         self,
-        protected: Dict[int, Any],
-        unprotected: Dict[int, Any],
+        protected: Dict[Union[str, int], Any],
+        unprotected: Dict[Union[str, int], Any],
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
         recipient_key: Optional[COSEKeyInterface] = None,

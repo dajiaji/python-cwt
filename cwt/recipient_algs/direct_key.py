@@ -5,7 +5,7 @@ from .direct import Direct
 
 
 class DirectKey(Direct):
-    def __init__(self, protected: Dict[int, Any] = {}, unprotected: Dict[int, Any] = {}):
+    def __init__(self, protected: Dict[Union[str, int], Any] = {}, unprotected: Dict[Union[str, int], Any] = {}):
         super().__init__(protected, unprotected, b"", [])
 
         if self._alg != -6:

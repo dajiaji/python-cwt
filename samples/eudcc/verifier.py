@@ -64,7 +64,7 @@ class Verifier:
             json.dump([v for v in self._trustlist if v["x_kid"] in active_kids], f, indent=4)
         return
 
-    def verify_and_decode(self, eudcc: bytes) -> Union[Dict[int, Any], bytes]:
+    def verify_and_decode(self, eudcc: bytes) -> Union[Dict[Union[str, int], Any], bytes]:
         if eudcc.startswith(b"HC1:"):
             # Decode Base45 data.
             eudcc = b45decode(eudcc[4:])

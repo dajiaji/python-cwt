@@ -19,8 +19,8 @@ class DirectHKDF(Direct):
 
     def __init__(
         self,
-        protected: Dict[int, Any] = {},
-        unprotected: Dict[int, Any] = {},
+        protected: Dict[Union[str, int], Any] = {},
+        unprotected: Dict[Union[str, int], Any] = {},
         context: List[Any] = [],
     ):
         super().__init__(protected, unprotected, b"", [])

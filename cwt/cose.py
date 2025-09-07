@@ -21,7 +21,7 @@ from .recipient_algs.hpke import HPKE
 from .recipient_interface import RecipientInterface
 from .recipients import Recipients
 from .signer import Signer
-from .utils import sort_keys_for_deterministic_encoding, to_cose_header
+from .utils import ResolvedHeader, sort_keys_for_deterministic_encoding, to_cose_header
 
 
 class COSE(CBORProcessor):
@@ -132,8 +132,8 @@ class COSE(CBORProcessor):
         self,
         payload: bytes,
         key: Optional[COSEKeyInterface] = None,
-        protected: Optional[dict] = None,
-        unprotected: Optional[dict] = None,
+        protected: Optional[Union[dict, ResolvedHeader]] = None,
+        unprotected: Optional[Union[dict, ResolvedHeader]] = None,
         recipients: List[RecipientInterface] = [],
         signers: List[Signer] = [],
         external_aad: bytes = b"",
@@ -146,8 +146,8 @@ class COSE(CBORProcessor):
         Args:
             payload (bytes): A content to be MACed, signed or encrypted.
             key (Optional[COSEKeyInterface]): A content encryption key as COSEKey.
-            protected (Optional[dict]): Parameters that are to be cryptographically protected.
-            unprotected (Optional[dict]): Parameters that are not cryptographically protected.
+            protected (Optional[Union[dict, ResolvedHeader]]): Parameters that are to be cryptographically protected.
+            unprotected (Optional[Union[dict, ResolvedHeader]]): Parameters that are not cryptographically protected.
             recipients (List[RecipientInterface]): A list of recipient information structures.
             signers (List[Signer]): A list of signer information objects for
                 multiple signer cases.
@@ -351,7 +351,7 @@ class COSE(CBORProcessor):
         external_aad: bytes = b"",
         detached_payload: Optional[bytes] = None,
         enable_non_aead: bool = False,
-    ) -> Tuple[Dict[int, Any], Dict[int, Any], bytes]:
+    ) -> Tuple[Dict[Union[str, int], Any], Dict[Union[str, int], Any], bytes]:
         """
         Verifies and decodes COSE data, and returns protected headers, unprotected headers and payload.
 
@@ -371,7 +371,7 @@ class COSE(CBORProcessor):
                 Since non-AEAD ciphers DO NOT provide neither authentication nor integrity
                 of decrypted message, make sure to validate them outside of this library.
         Returns:
-            Tuple[Dict[int, Any], Dict[int, Any], bytes]: A dictionary data of decoded protected headers, and a dictionary data of unprotected headers, and a byte string of decoded payload.
+            Tuple[Dict[Union[str, int], Any], Dict[Union[str, int], Any], bytes]: A dictionary data of decoded protected headers, and a dictionary data of unprotected headers, and a byte string of decoded payload.
         Raises:
             ValueError: Invalid arguments.
             DecodeError: Failed to decode data.
@@ -582,10 +582,10 @@ class COSE(CBORProcessor):
     def _encode_headers(
         self,
         key: Optional[COSEKeyInterface],
-        protected: Optional[dict],
-        unprotected: Optional[dict],
+        protected: Optional[Union[dict, ResolvedHeader]],
+        unprotected: Optional[Union[dict, ResolvedHeader]],
         enable_non_aead: bool,
-    ) -> Tuple[Dict[int, Any], Dict[int, Any]]:
+    ) -> Tuple[Dict[Union[str, int], Any], Dict[Union[str, int], Any]]:
         p = to_cose_header(protected)
         u = to_cose_header(unprotected)
         if key is not None:
@@ -612,14 +612,16 @@ class COSE(CBORProcessor):
                 raise ValueError("protected header MUST be zero-length")
         return p, u
 
-    def _decode_headers(self, protected: Any, unprotected: Any) -> Tuple[Dict[int, Any], Dict[int, Any]]:
-        p: Union[Dict[int, Any], bytes]
+    def _decode_headers(
+        self, protected: Any, unprotected: Any
+    ) -> Tuple[Dict[Union[str, int], Any], Dict[Union[str, int], Any]]:
+        p: Union[Dict[Union[str, int], Any], bytes]
         p = self._loads(protected) if protected else {}
         if isinstance(p, bytes):
             if len(p) > 0:
                 raise ValueError("Invalid protected header.")
             p = {}
-        u: Dict[int, Any] = unprotected
+        u: Dict[Union[str, int], Any] = unprotected
         if not isinstance(u, dict):
             raise ValueError("unprotected header should be dict.")
         return p, u
@@ -627,15 +629,15 @@ class COSE(CBORProcessor):
     def _validate_cose_message(
         self,
         key: Optional[COSEKeyInterface],
-        p: Dict[int, Any],
-        u: Dict[int, Any],
+        p: Dict[Union[str, int], Any],
+        u: Dict[Union[str, int], Any],
         recipients: List[RecipientInterface],
         signers: List[Signer],
     ) -> int:
         if len(recipients) > 0 and len(signers) > 0:
             raise ValueError("Both recipients and signers are specified.")
 
-        h: Dict[int, Any] = {}
+        h: Dict[Union[str, int], Any] = {}
         iv_count: int = 0
         for k, v in p.items():
             if k == 2:  # crit
@@ -745,8 +747,8 @@ class COSE(CBORProcessor):
         self,
         payload: bytes,
         key: Optional[COSEKeyInterface],
-        p: Dict[int, Any],
-        u: Dict[int, Any],
+        p: Dict[Union[str, int], Any],
+        u: Dict[Union[str, int], Any],
         recipients: List[RecipientInterface],
         external_aad: bytes,
         out: str,
@@ -806,8 +808,8 @@ class COSE(CBORProcessor):
         self,
         payload: bytes,
         key: Optional[COSEKeyInterface],
-        p: Dict[int, Any],
-        u: Dict[int, Any],
+        p: Dict[Union[str, int], Any],
+        u: Dict[Union[str, int], Any],
         recipients: List[RecipientInterface],
         external_aad: bytes,
         out: str,
@@ -849,8 +851,8 @@ class COSE(CBORProcessor):
         self,
         payload: bytes,
         key: Optional[COSEKeyInterface],
-        p: Dict[int, Any],
-        u: Dict[int, Any],
+        p: Dict[Union[str, int], Any],
+        u: Dict[Union[str, int], Any],
         signers: List[Signer],
         external_aad: bytes,
         out: str,
