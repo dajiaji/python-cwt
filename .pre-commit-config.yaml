@@ -6,12 +6,12 @@ repos:
         args: [--line-length, "128"]
 
   - repo: https://github.com/asottile/blacken-docs
-    rev: 1.19.1
+    rev: 1.20.0
     hooks:
       - id: blacken-docs
 
   - repo: https://github.com/PyCQA/flake8
-    rev: 7.2.0
+    rev: 7.3.0
     hooks:
       - id: flake8
         args: [--ignore, "E203,E501,B006,W503"]
@@ -24,14 +24,14 @@ repos:
         args: [--profile, "black"]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.15.0
+    rev: v1.17.1
     hooks:
       - id: mypy
         args: [--ignore-missing-imports]
         additional_dependencies: [types-requests==2.26.3]
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: check-json
       - id: check-toml
