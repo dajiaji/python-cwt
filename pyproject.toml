@@ -35,7 +35,7 @@ optional = true
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3"
-pytest-cov = "^6.0.0"
+pytest-cov = ">=6,<8"
 tox = "^4.23.2"
 pre-commit = "^4.0.1"
 
