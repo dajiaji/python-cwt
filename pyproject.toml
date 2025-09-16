@@ -27,7 +27,7 @@ exclude = [
 [tool.poetry.dependencies]
 python = "^3.9.2,<4.0"
 cbor2 = "^5.4.2"
-cryptography = ">=42.0.1,<45"
+cryptography = ">=42.0.1,<46"
 pyhpke = ">=0.5.3,<1.0.0"
 
 [tool.poetry.group.dev]
