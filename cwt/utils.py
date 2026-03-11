@@ -178,16 +178,18 @@ class ResolvedHeader:
         self.params = params
 
 
+# Parameters whose value type is tstr (text string), not bstr, per RFC 9052 / RFC 9360.
+_COSE_HEADER_TSTR_PARAMS = {"cty", "content type", "x5u"}
+
+
 def to_cose_header(data: Optional[Union[dict, ResolvedHeader]] = None, algs: Dict[str, int] = {}) -> Dict[Union[str, int], Any]:
     if data is None:
         return {}
-    if len(data) == 0:
-        return {}
-    res: Dict[int, Any] = {}
-    # If there are no string keys, assume already numeric COSE header map
-    has_str_key = any(isinstance(k, str) for k in data.keys())
-    if not has_str_key:
+    if isinstance(data, ResolvedHeader):
+        return data.params
+    if len(data) == 0 or not isinstance(list(data.keys())[0], str):
         return data
+    res: Dict[Union[str, int], Any] = {}
     if not algs:
         algs = COSE_NAMED_ALGORITHMS_SUPPORTED
     for k, v in data.items():
@@ -199,7 +201,8 @@ def to_cose_header(data: Optional[Union[dict, ResolvedHeader]] = None, algs: Dic
                     raise ValueError(f"Unsupported or unknown alg: {v}.")
                 v = algs[v]
             else:
-                v = v.encode("utf-8") if isinstance(v, str) else v
+                if isinstance(v, str) and k not in _COSE_HEADER_TSTR_PARAMS:
+                    v = v.encode("utf-8")
                 if k == "salt":
                     if not isinstance(v, bytes):
                         raise ValueError("salt should be bytes or str.")

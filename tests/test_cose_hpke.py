@@ -159,7 +159,7 @@ class TestCOSE_HPKE:
                 b"This is the content.",
                 rpk,
                 protected={COSEHeaders.ALG: COSEAlgs.HPKE_0},
-                unprotected={COSEHeaders.KID: b"01", "ek": 123},
+                unprotected={"kid": "01", "ek": 123},
             )
         assert "ek (-4) must be bstr." in str(err.value)
 
