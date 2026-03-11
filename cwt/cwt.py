@@ -316,7 +316,7 @@ class CWT(CBORProcessor):
         data: bytes,
         keys: Union[COSEKeyInterface, List[COSEKeyInterface]],
         no_verify: bool = False,
-    ) -> Union[Dict[int, Any], bytes]:
+    ) -> Union[Dict[Union[str, int], Any], bytes]:
         """
         Verifies and decodes CWT.
 
@@ -333,11 +333,11 @@ class CWT(CBORProcessor):
             DecodeError: Failed to decode the CWT.
             VerifyError: Failed to verify the CWT.
         """
-        cwt: Union[bytes, CBORTag, Dict[int, Any]] = self._loads(data)
+        cwt: Union[bytes, CBORTag, Dict[Union[str, int], Any]] = self._loads(data)
         if isinstance(cwt, CBORTag) and cwt.tag == CWT.CBOR_TAG:
             cwt = cwt.value
         keys = [keys] if isinstance(keys, COSEKeyInterface) else keys
-        p: Dict[int, Any] = {}
+        p: Dict[Union[str, int], Any] = {}
         while isinstance(cwt, CBORTag):
             p, u, cwt = self._cose.decode_with_headers(cwt, keys)
             cwt = self._loads(cwt)
@@ -399,7 +399,7 @@ class CWT(CBORProcessor):
         Claims.validate(claims)
         return
 
-    def _verify(self, claims: Union[Dict[int, Any], bytes], protected: Dict[int, Any] = {}):
+    def _verify(self, claims: Union[Dict[Union[str, int], Any], bytes], protected: Dict[Union[str, int], Any] = {}):
         if not isinstance(claims, dict):
             raise DecodeError("Failed to decode.")
 
@@ -484,7 +484,7 @@ def decode(
     data: bytes,
     keys: Union[COSEKeyInterface, List[COSEKeyInterface]],
     no_verify: bool = False,
-) -> Union[Dict[int, Any], bytes]:
+) -> Union[Dict[Union[str, int], Any], bytes]:
     return _cwt.decode(data, keys, no_verify)
 
 

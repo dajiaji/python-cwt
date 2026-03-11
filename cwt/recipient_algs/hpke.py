@@ -49,8 +49,8 @@ def is_hpke_ke(alg: int) -> bool:
 class HPKE(RecipientInterface):
     def __init__(
         self,
-        protected: Dict[int, Any],
-        unprotected: Dict[int, Any],
+        protected: Dict[Union[str, int], Any],
+        unprotected: Dict[Union[str, int], Any],
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
         recipient_key: Optional[COSEKeyInterface] = None,

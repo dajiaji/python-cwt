@@ -54,6 +54,15 @@ assert b"Hello world!" == recipient.decode(encoded, mac_key)
 ## You can get decoded protected/unprotected headers with the payload as follows:
 # protected, unprotected, payload = recipient.decode_with_headers(encoded, mac_key)
 # assert b"Hello world!" == payload
+
+## Note that to pass header parameters with tstr labels, or tstr values, and avoid
+# clashes with short-string names such as "alg" or value encoding to bstr, you can
+# resolve the headers yourself, and pass a cwt.utils.ResolvedHeader({...}).
+#
+# For example:
+#   protected=cwt.utils.ResolvedHeader({
+#     "string label": "value"
+#   })
 ```
 
 **CWT API**

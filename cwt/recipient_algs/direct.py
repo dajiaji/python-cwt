@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 
 from ..recipient_interface import RecipientInterface
 
@@ -6,8 +6,8 @@ from ..recipient_interface import RecipientInterface
 class Direct(RecipientInterface):
     def __init__(
         self,
-        protected: Dict[int, Any],
-        unprotected: Dict[int, Any],
+        protected: Dict[Union[str, int], Any],
+        unprotected: Dict[Union[str, int], Any],
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
     ):

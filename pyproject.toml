@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "cwt"
-version = "3.1.0"
+version = "3.2.0"
 description = "A Python implementation of CWT/COSE."
 authors = ["Ajitomi Daisuke <dajiaji@gmail.com>"]
 license = "MIT"
@@ -27,7 +27,7 @@ exclude = [
 [tool.poetry.dependencies]
 python = "^3.9.2,<4.0"
 cbor2 = "^5.4.2"
-cryptography = ">=42.0.1,<45"
+cryptography = ">=42.0.1,<47"
 pyhpke = ">=0.5.3,<1.0.0"
 
 [tool.poetry.group.dev]
@@ -35,7 +35,7 @@ optional = true
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3"
-pytest-cov = "^6.0.0"
+pytest-cov = ">=6,<8"
 tox = "^4.23.2"
 pre-commit = "^4.0.1"
 

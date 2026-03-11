@@ -4,6 +4,40 @@ Changes
 Unreleased
 ----------
 
+Version 3.2.0
+-------------
+
+Released 2025-09-17
+
+- Fix a DeprecationWarning in a test util. `#637 <https://github.com/dajiaji/python-cwt/pull/637>`__ by @achamayou
+- Add a cwt.utils.ResolvedHeaders to allow tstr header labels and values. `#636 <https://github.com/dajiaji/python-cwt/pull/636>`__ by @achamayou
+- Typo fix. `#635 <https://github.com/dajiaji/python-cwt/pull/635>`__ by @achamayou
+- Prevent mutation of supp_pub.protected in to_cis. `#630 <https://github.com/dajiaji/python-cwt/pull/630>`__
+- Use enums on tests. `#625 <https://github.com/dajiaji/python-cwt/pull/625>`__
+- Update dependencies.
+    - Bump cryptography to 46.0.2. `#646 <https://github.com/dajiaji/python-cwt/pull/646>`__
+    - Bump cbor2 to 5.7.0. `#632 <https://github.com/dajiaji/python-cwt/pull/632>`__
+- Update dev dependencies.
+    - Bump pytest-cov to 7.0.0. `#644 <https://github.com/dajiaji/python-cwt/pull/644>`__
+    - Bump tox to 4.30.2. `#642 <https://github.com/dajiaji/python-cwt/pull/642>`__
+    - Bump pytest to 8.4.2. `#641 <https://github.com/dajiaji/python-cwt/pull/641>`__
+
+
+    - Bump pre-commit/black to 25.1.0. `#642 <https://github.com/dajiaji/python-cwt/pull/642>`__
+    - Bump pre-commit/blacken-docs to 1.19.1. `#642 <https://github.com/dajiaji/python-cwt/pull/642>`__
+    - Bump pre-commit/flake8 to 7.2.0. `#642 <https://github.com/dajiaji/python-cwt/pull/642>`__
+    - Bump pre-commit/isort to 6.0.1. `#642 <https://github.com/dajiaji/python-cwt/pull/642>`__
+    - Bump pre-commit/mirrors-mypy to 1.15.0. `#642 <https://github.com/dajiaji/python-cwt/pull/642>`__
+    - Bump pre-commit to 4.2.0. `#642 <https://github.com/dajiaji/python-cwt/pull/642>`__
+
+    - Bump pre-commit/black to 25.1.0. `#646 <https://github.com/dajiaji/python-cwt/pull/646>`__
+    - Bump pre-commit/blacken-docs to 1.19.1. `#646 <https://github.com/dajiaji/python-cwt/pull/646>`__
+    - Bump pre-commit/flake8 to 7.2.0. `#646 <https://github.com/dajiaji/python-cwt/pull/646>`__
+    - Bump pre-commit/isort to 6.0.1. `#646 <https://github.com/dajiaji/python-cwt/pull/646>`__
+    - Bump pre-commit/mirrors-mypy to 1.15.0. `#646 <https://github.com/dajiaji/python-cwt/pull/646>`__
+    - Bump pre-commit to 4.2.0. `#646 <https://github.com/dajiaji/python-cwt/pull/646>`__
+    - Bump requests to 2.32.4. `#646 <https://github.com/dajiaji/python-cwt/pull/646>`__
+
 Version 3.1.0
 -------------
 

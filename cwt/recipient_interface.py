@@ -17,8 +17,8 @@ class RecipientInterface(CBORProcessor):
 
     def __init__(
         self,
-        protected: Optional[Dict[int, Any]] = None,
-        unprotected: Optional[Dict[int, Any]] = None,
+        protected: Optional[Dict[Union[str, int], Any]] = None,
+        unprotected: Optional[Dict[Union[str, int], Any]] = None,
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
         key_ops: List[int] = [],
@@ -106,7 +106,7 @@ class RecipientInterface(CBORProcessor):
         return self._alg
 
     @property
-    def protected(self) -> Dict[int, Any]:
+    def protected(self) -> Dict[Union[str, int], Any]:
         """
         The parameters that are to be cryptographically protected.
         """
@@ -122,7 +122,7 @@ class RecipientInterface(CBORProcessor):
         return self._b_protected
 
     @property
-    def unprotected(self) -> Dict[int, Any]:
+    def unprotected(self) -> Dict[Union[str, int], Any]:
         """
         The parameters that are not cryptographically protected.
         """

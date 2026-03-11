@@ -18,8 +18,8 @@ class ECDH_DirectHKDF(Direct):
 
     def __init__(
         self,
-        protected: Dict[int, Any],
-        unprotected: Dict[int, Any],
+        protected: Dict[Union[str, int], Any],
+        unprotected: Dict[Union[str, int], Any],
         ciphertext: bytes = b"",
         recipients: List[Any] = [],
         sender_key: Optional[COSEKeyInterface] = None,
