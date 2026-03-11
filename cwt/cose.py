@@ -350,7 +350,9 @@ class COSE(CBORProcessor):
             DecodeError: Failed to decode data.
             VerifyError: Failed to verify data.
         """
-        _, _, res = self.decode_with_headers(data, keys, context, external_aad, detached_payload, enable_non_aead, hpke_psk, hpke_info, hpke_aad, extra_info)
+        _, _, res = self.decode_with_headers(
+            data, keys, context, external_aad, detached_payload, enable_non_aead, hpke_psk, hpke_info, hpke_aad, extra_info
+        )
         return res
 
     def decode_with_headers(
@@ -365,7 +367,7 @@ class COSE(CBORProcessor):
         hpke_info: bytes = b"",
         hpke_aad: bytes = b"",
         extra_info: bytes = b"",
-    ) -> Tuple[Dict[int, Any], Dict[int, Any], bytes]:
+    ) -> Tuple[Dict[Union[str, int], Any], Dict[Union[str, int], Any], bytes]:
         """
         Verifies and decodes COSE data, and returns protected headers, unprotected headers and payload.
 
@@ -490,7 +492,9 @@ class COSE(CBORProcessor):
 
         # Encrypt
         if data.tag == 96:
-            rs = Recipients.from_list(data.value[3], self._verify_kid, context, hpke_psk=hpke_psk, extra_info=extra_info, hpke_aad=hpke_aad)
+            rs = Recipients.from_list(
+                data.value[3], self._verify_kid, context, hpke_psk=hpke_psk, extra_info=extra_info, hpke_aad=hpke_aad
+            )
             nonce = u.get(5, b"")
             enc_key = rs.derive_key(keys, alg, external_aad, "Enc_Recipient")
             aad = self._dumps(["Encrypt", data.value[0], external_aad])

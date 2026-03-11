@@ -135,7 +135,15 @@ class Recipient:
         if not isinstance(recipient[2], bytes):
             raise ValueError("ciphertext should be bytes.")
         if len(recipient) == 3:
-            rec = cls.new(protected, recipient[1], recipient[2], hpke_psk=hpke_psk, context=context, extra_info=extra_info, hpke_aad=hpke_aad)
+            rec = cls.new(
+                protected,
+                recipient[1],
+                recipient[2],
+                hpke_psk=hpke_psk,
+                context=context,
+                extra_info=extra_info,
+                hpke_aad=hpke_aad,
+            )
             rec._set_b_protected(recipient[0])
             return rec
         if not isinstance(recipient[3], list):
@@ -143,6 +151,15 @@ class Recipient:
         recipients: List[RecipientInterface] = []
         for r in recipient[3]:
             recipients.append(cls.from_list(r, hpke_psk=hpke_psk, extra_info=extra_info, hpke_aad=hpke_aad))
-        rec = cls.new(protected, recipient[1], recipient[2], recipients, hpke_psk=hpke_psk, context=context, extra_info=extra_info, hpke_aad=hpke_aad)
+        rec = cls.new(
+            protected,
+            recipient[1],
+            recipient[2],
+            recipients,
+            hpke_psk=hpke_psk,
+            context=context,
+            extra_info=extra_info,
+            hpke_aad=hpke_aad,
+        )
         rec._set_b_protected(recipient[0])
         return rec

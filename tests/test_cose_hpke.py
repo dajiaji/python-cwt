@@ -10,7 +10,15 @@ Tests for COSE-HPKE per draft-ietf-cose-hpke-23.
 import cbor2
 import pytest
 
-from cwt import COSE, COSEAlgs, COSEHeaders, COSEKey, DecodeError, EncodeError, Recipient
+from cwt import (
+    COSE,
+    COSEAlgs,
+    COSEHeaders,
+    COSEKey,
+    DecodeError,
+    EncodeError,
+    Recipient,
+)
 
 
 class TestCOSE_HPKE:

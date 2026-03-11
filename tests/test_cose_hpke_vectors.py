@@ -5,7 +5,6 @@ import pytest
 
 from cwt import COSE, COSEKey
 
-
 # --- KE vectors (COSE_Encrypt, tag 96) ---
 
 # HPKE-0-KE private key
@@ -1178,9 +1177,7 @@ class TestCOSEHPKEKEVectors:
             pytest.xfail("draft-ietf-cose-hpke-23 X448 (HPKE-5/6) KE test vectors appear incorrect")
         key = COSEKey.new(cbor2.loads(bytes.fromhex(key_hex)))
         ct = bytes.fromhex(ct_hex)
-        result = COSE.new().decode(
-            ct, key, external_aad=external_aad, extra_info=extra_info, hpke_aad=hpke_aad
-        )
+        result = COSE.new().decode(ct, key, external_aad=external_aad, extra_info=extra_info, hpke_aad=hpke_aad)
         assert result == b"hpke test payload"
 
 

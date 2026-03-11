@@ -83,7 +83,9 @@ class EC2Key(AsymmetricKey):
                 self._key_ops = [2]
         if self._alg:
             # Validate alg for EC2 curve.
-            if self._crv == 1 and self._alg not in ([-7, -9, 35, 45, 46, 53] + list(COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.values())):
+            if self._crv == 1 and self._alg not in (
+                [-7, -9, 35, 45, 46, 53] + list(COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.values())
+            ):
                 raise ValueError(f"Unsupported or unknown alg used with P-256: {self._alg}.")
             elif self._crv == 2 and self._alg not in ([-35, -51, 37, 47] + list(COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.values())):
                 raise ValueError(f"Unsupported or unknown alg used with P-384: {self._alg}.")
