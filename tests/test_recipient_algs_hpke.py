@@ -16,16 +16,24 @@ class TestHPKE:
     @pytest.mark.parametrize(
         "alg",
         [
-            COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
-            COSEAlgs.HPKE_BASE_P256_SHA256_CHACHA20POLY1305,
-            COSEAlgs.HPKE_BASE_P384_SHA384_AES256GCM,
-            COSEAlgs.HPKE_BASE_P384_SHA384_CHACHA20POLY1305,
-            COSEAlgs.HPKE_BASE_P521_SHA512_AES256GCM,
-            COSEAlgs.HPKE_BASE_P521_SHA512_CHACHA20POLY1305,
-            COSEAlgs.HPKE_BASE_X25519_SHA256_AES128GCM,
-            COSEAlgs.HPKE_BASE_X25519_SHA256_CHACHA20POLY1305,
-            COSEAlgs.HPKE_BASE_X448_SHA512_AES256GCM,
-            COSEAlgs.HPKE_BASE_X448_SHA512_CHACHA20POLY1305,
+            # Integrated Encryption
+            COSEAlgs.HPKE_0,
+            COSEAlgs.HPKE_1,
+            COSEAlgs.HPKE_2,
+            COSEAlgs.HPKE_3,
+            COSEAlgs.HPKE_4,
+            COSEAlgs.HPKE_5,
+            COSEAlgs.HPKE_6,
+            COSEAlgs.HPKE_7,
+            # Key Encryption
+            COSEAlgs.HPKE_0_KE,
+            COSEAlgs.HPKE_1_KE,
+            COSEAlgs.HPKE_2_KE,
+            COSEAlgs.HPKE_3_KE,
+            COSEAlgs.HPKE_4_KE,
+            COSEAlgs.HPKE_5_KE,
+            COSEAlgs.HPKE_6_KE,
+            COSEAlgs.HPKE_7_KE,
         ],
     )
     def test_recipient_algs_hpke(self, alg):

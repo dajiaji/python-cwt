@@ -108,7 +108,7 @@ class OKPKey(AsymmetricKey):
                 else:
                     self._key_ops = [1, 2] if -4 in params else [2]
             elif self._alg in COSE_ALGORITHMS_HPKE.values():
-                if self._key_ops:
+                if 4 in params:
                     if -4 in params:
                         # private key for key derivation.
                         if len(self._key_ops) != 1 or self._key_ops[0] != 8:
@@ -118,8 +118,6 @@ class OKPKey(AsymmetricKey):
                         if len(self._key_ops) > 0:
                             raise ValueError("Invalid key_ops for HPKE public key.")
                 else:
-                    if -4 in params and isinstance(self._key_ops, list) and len(self._key_ops) == 0:
-                        raise ValueError("Invalid key_ops for HPKE private key.")
                     self._key_ops = [8] if -4 in params else []
             else:
                 # self._alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.values():

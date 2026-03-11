@@ -6,7 +6,8 @@ from .const import (  # COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP,
     COSE_ALGORITHMS_CKDM,
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT,
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_WITH_KEY_WRAP,
-    COSE_ALGORITHMS_HPKE,
+    COSE_ALGORITHMS_HPKE_INTEGRATED,
+    COSE_ALGORITHMS_HPKE_KE,
     COSE_ALGORITHMS_KEY_WRAP,
     COSE_ALGORITHMS_RECIPIENT,
 )
@@ -38,6 +39,8 @@ class Recipient:
         recipient_key: Optional[COSEKeyInterface] = None,
         hpke_psk: Optional[bytes] = None,
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+        extra_info: bytes = b"",
+        hpke_aad: bytes = b"",
     ) -> RecipientInterface:
         """
         Creates a recipient from a CBOR-like dictionary with numeric keys.
@@ -63,6 +66,8 @@ class Recipient:
         alg = u[1] if 1 in u else p.get(1, 0)
         if alg == 0:
             raise ValueError("alg should be specified.")
+        if alg in COSE_ALGORITHMS_HPKE_KE.values() and 1 not in p:
+            raise ValueError("HPKE recipient algorithms (HPKE-N-KE) must be in the protected header.")
 
         if alg in COSE_ALGORITHMS_CKDM.values():  # Direct encryption mode.
             if len(recipients) > 0:
@@ -80,8 +85,13 @@ class Recipient:
             if not sender_key:
                 sender_key = COSEKey.from_symmetric_key(alg=alg)
             return AESKeyWrap(u, ciphertext, recipients, sender_key)
-        if alg in COSE_ALGORITHMS_HPKE.values():
-            return HPKE(p, u, ciphertext, recipients, recipient_key, psk=hpke_psk)  # TODO sender_key
+        if alg in COSE_ALGORITHMS_HPKE_KE.values():
+            return HPKE(p, u, ciphertext, recipients, recipient_key, psk=hpke_psk, extra_info=extra_info, hpke_aad=hpke_aad)
+        if alg in COSE_ALGORITHMS_HPKE_INTEGRATED.values():
+            raise ValueError(
+                "Integrated HPKE algorithms (HPKE-0 to HPKE-7) cannot be used as recipient algorithms. "
+                "Use HPKE-N-KE variants for Key Encryption mode."
+            )
 
         if context is None:
             raise ValueError("context should be set.")
@@ -100,6 +110,9 @@ class Recipient:
         cls,
         recipient: List[Any],
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+        hpke_psk: Optional[bytes] = None,
+        extra_info: bytes = b"",
+        hpke_aad: bytes = b"",
     ) -> RecipientInterface:
         """
         Creates a recipient from a raw COSE array data.
@@ -122,14 +135,14 @@ class Recipient:
         if not isinstance(recipient[2], bytes):
             raise ValueError("ciphertext should be bytes.")
         if len(recipient) == 3:
-            rec = cls.new(protected, recipient[1], recipient[2], context=context)
+            rec = cls.new(protected, recipient[1], recipient[2], hpke_psk=hpke_psk, context=context, extra_info=extra_info, hpke_aad=hpke_aad)
             rec._set_b_protected(recipient[0])
             return rec
         if not isinstance(recipient[3], list):
             raise ValueError("recipients should be list.")
         recipients: List[RecipientInterface] = []
         for r in recipient[3]:
-            recipients.append(cls.from_list(r))
-        rec = cls.new(protected, recipient[1], recipient[2], recipients, context=context)
+            recipients.append(cls.from_list(r, hpke_psk=hpke_psk, extra_info=extra_info, hpke_aad=hpke_aad))
+        rec = cls.new(protected, recipient[1], recipient[2], recipients, hpke_psk=hpke_psk, context=context, extra_info=extra_info, hpke_aad=hpke_aad)
         rec._set_b_protected(recipient[0])
         return rec

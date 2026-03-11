@@ -13,7 +13,7 @@ implementation compliant with:
 - [RFC9053: CBOR Object Signing and Encryption (COSE): Initial Algorithms](https://www.rfc-editor.org/rfc/rfc9053.html)
 - [RFC9338: CBOR Object Signing and Encryption (COSE): Countersignatures](https://www.rfc-editor.org/rfc/rfc9338.html) - experimental
 - [RFC8392: CWT (CBOR Web Token)](https://tools.ietf.org/html/rfc8392)
-- [draft-15: Use of HPKE with COSE](https://www.ietf.org/archive/id/draft-ietf-cose-hpke-15.html) - experimental
+- [draft-23: Use of HPKE with COSE](https://www.ietf.org/archive/id/draft-ietf-cose-hpke-23.html) - experimental
 - [draft-06: CWT Claims in COSE Headers](https://www.ietf.org/archive/id/draft-ietf-cose-cwt-claims-in-headers-06.html) - experimental
 - [draft-13: Fully-Specified Algorithms for JOSE and COSE](https://www.ietf.org/archive/id/draft-ietf-jose-fully-specified-algorithms-13.html)
 - and related various specifications. See [Referenced Specifications](#referenced-specifications).
@@ -533,7 +533,7 @@ rpk = COSEKey.from_jwk(
 )
 r = Recipient.new(
     protected={
-        COSEHeaders.ALG: COSEAlgs.HPKE_0,
+        COSEHeaders.ALG: COSEAlgs.HPKE_0_KE,
     },
     unprotected={
         COSEHeaders.KID: b"01",  # kid: "01"
@@ -1032,7 +1032,7 @@ rpk = COSEKey.from_jwk(
 )
 r = Recipient.new(
     protected={
-        COSEHeaders.ALG: COSEAlgs.HPKE_0,
+        COSEHeaders.ALG: COSEAlgs.HPKE_0_KE,
     },
     unprotected={
         COSEHeaders.KID: b"01",  # kid: "01"
@@ -1792,7 +1792,7 @@ Python CWT is (partially) compliant with following specifications:
 - [RFC8230: Using RSA Algorithms with COSE Messages](https://tools.ietf.org/html/rfc8230)
 - [RFC9459: CBOR Object Signing and Encryption (COSE): AES-CTR and AES-CBC](https://www.rfc-editor.org/rfc/rfc9459.html) - experimental
 - [RFC8152: CBOR Object Signing and Encryption (COSE)](https://tools.ietf.org/html/rfc8152)
-- [draft-07: Use of HPKE with COSE](https://www.ietf.org/archive/id/draft-ietf-cose-hpke-07.html) - experimental
+- [draft-23: Use of HPKE with COSE](https://www.ietf.org/archive/id/draft-ietf-cose-hpke-23.html) - experimental
 - [draft-06: CWT Claims in COSE Headers](https://www.ietf.org/archive/id/draft-ietf-cose-cwt-claims-in-headers-06.html) - experimental
 - [draft-13: Fully-Specified Algorithms for JOSE and COSE](https://www.ietf.org/archive/id/draft-ietf-jose-fully-specified-algorithms-13.html)
 - [Electronic Health Certificate Specification](https://github.com/ehn-dcc-development/hcert-spec/blob/main/hcert_spec.md)

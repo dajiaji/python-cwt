@@ -310,7 +310,7 @@ class TestCOSESample:
             b"This is the content.",
             rpk,
             protected={
-                COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
+                COSEHeaders.ALG: COSEAlgs.HPKE_0,
             },
             unprotected={
                 COSEHeaders.KID: b"01",
@@ -416,7 +416,7 @@ class TestCOSESample:
         )
         r = Recipient.new(
             protected={
-                COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
+                COSEHeaders.ALG: COSEAlgs.HPKE_0_KE,
             },
             unprotected={
                 COSEHeaders.KID: b"01",
@@ -460,7 +460,7 @@ class TestCOSESample:
         )
         r = Recipient.new(
             protected={
-                COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
+                COSEHeaders.ALG: COSEAlgs.HPKE_0_KE,
             },
             unprotected={
                 COSEHeaders.KID: b"01",
@@ -472,7 +472,7 @@ class TestCOSESample:
             sender.encode_and_encrypt(
                 b"This is the content.",
                 protected={
-                    COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
+                    COSEHeaders.ALG: COSEAlgs.HPKE_0_KE,
                 },
                 unprotected={
                     COSEHeaders.KID: b"xx",
@@ -496,7 +496,7 @@ class TestCOSESample:
         )
         r = Recipient.new(
             protected={
-                COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
+                COSEHeaders.ALG: COSEAlgs.HPKE_0_KE,
             },
             unprotected={
                 COSEHeaders.KID: b"01",
@@ -508,7 +508,7 @@ class TestCOSESample:
             sender.encode_and_encrypt(
                 b"This is the content.",
                 protected={
-                    COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
+                    COSEHeaders.ALG: COSEAlgs.HPKE_0_KE,
                 },
                 unprotected={
                     COSEHeaders.KID: b"xx",  # kid: "xx"

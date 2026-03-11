@@ -702,7 +702,7 @@ class TestRecipients:
                 "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
             }
         )
-        r = Recipient.new(protected={COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM}, recipient_key=rpk)
+        r = Recipient.new(protected={COSEHeaders.ALG: COSEAlgs.HPKE_0_KE}, recipient_key=rpk)
         r.encode(enc_key.key)
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
@@ -727,7 +727,7 @@ class TestRecipients:
                 "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
             }
         )
-        r = Recipient.new(protected={COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM}, recipient_key=rpk)
+        r = Recipient.new(protected={COSEHeaders.ALG: COSEAlgs.HPKE_0_KE}, recipient_key=rpk)
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
@@ -752,7 +752,7 @@ class TestRecipients:
                 "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
             }
         )
-        r = Recipient.new(protected={COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM}, recipient_key=rpk)
+        r = Recipient.new(protected={COSEHeaders.ALG: COSEAlgs.HPKE_0_KE}, recipient_key=rpk)
         r.encode(enc_key.key)
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
@@ -770,7 +770,7 @@ class TestRecipients:
     def test_recipients_open_with_multiple_rsks(self, rpk2, rsk1, rsk2):
         enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
         r = Recipient.new(
-            protected={COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM},
+            protected={COSEHeaders.ALG: COSEAlgs.HPKE_0_KE},
             unprotected={COSEHeaders.KID: b"02"},
             recipient_key=rpk2,
         )
@@ -790,7 +790,7 @@ class TestRecipients:
     def test_recipients_open_with_invalid_rsk(self, rpk1):
         enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
         r = Recipient.new(
-            protected={COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM},
+            protected={COSEHeaders.ALG: COSEAlgs.HPKE_0_KE},
             unprotected={COSEHeaders.KID: b"02"},
             recipient_key=rpk1,
         )
@@ -909,7 +909,7 @@ class TestRecipients:
                 "y": "BGU5soLgsu_y7GN2I3EPUXS9EZ7Sw0qif-V70JtInFI",
             }
         )
-        r = Recipient.new(unprotected={COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM}, recipient_key=rpk)
+        r = Recipient.new(protected={COSEHeaders.ALG: COSEAlgs.HPKE_0_KE}, recipient_key=rpk)
         r.encode(enc_key.key)
         sender = COSE.new()
         encoded = sender.encode_and_encrypt(
@@ -921,6 +921,12 @@ class TestRecipients:
         )
         recipient = COSE.new()
         assert b"This is the content." == recipient.decode(encoded, [rsk1, rsk2], enable_non_aead=True)
+
+    def test_recipients_hpke_alg_in_unprotected_should_fail(self, rpk1):
+        with pytest.raises(ValueError) as err:
+            Recipient.new(unprotected={COSEHeaders.ALG: COSEAlgs.HPKE_0_KE}, recipient_key=rpk1)
+            pytest.fail("Recipient.new() should fail for HPKE alg in unprotected header.")
+        assert "must be in the protected header" in str(err.value)
 
     @pytest.mark.parametrize(
         "key_agreement_alg, key_agreement_alg_id, kw_alg, enc_alg",

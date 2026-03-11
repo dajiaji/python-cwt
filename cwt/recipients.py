@@ -23,13 +23,16 @@ class Recipients(CBORProcessor):
         recipients: List[Any],
         verify_kid: bool = False,
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+        hpke_psk: Optional[bytes] = None,
+        extra_info: bytes = b"",
+        hpke_aad: bytes = b"",
     ):
         """
         Create Recipients from a CBOR-like list.
         """
         res: List[RecipientInterface] = []
         for r in recipients:
-            res.append(Recipient.from_list(r, context))
+            res.append(Recipient.from_list(r, context, hpke_psk=hpke_psk, extra_info=extra_info, hpke_aad=hpke_aad))
         return cls(res, verify_kid)
 
     def derive_key(self, keys: List[COSEKeyInterface], alg: int, external_aad: bytes, content_aad: bytes) -> COSEKeyInterface:

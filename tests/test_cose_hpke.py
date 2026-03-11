@@ -4,18 +4,18 @@
 # W0621: Redefined outer name
 
 """
-Tests for COSE.
+Tests for COSE-HPKE per draft-ietf-cose-hpke-23.
 """
 
 import cbor2
 import pytest
 
-from cwt import COSE, COSEAlgs, COSEHeaders, COSEKey, DecodeError, EncodeError
+from cwt import COSE, COSEAlgs, COSEHeaders, COSEKey, DecodeError, EncodeError, Recipient
 
 
 class TestCOSE_HPKE:
     """
-    Tests for COSE-HPKE.
+    Tests for COSE-HPKE Integrated Encryption (COSE_Encrypt0).
     """
 
     @pytest.mark.parametrize(
@@ -435,3 +435,320 @@ class TestCOSE_HPKE:
         )
         recipient = COSE.new()
         assert b"This is the content." == recipient.decode(encoded, rsk)
+
+    def test_cose_hpke_kem_0x0010_hpke7(self):
+        """Test HPKE-7: DHKEM(P-256) + HKDF-SHA256 + AES-256-GCM."""
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            rpk,
+            protected={COSEHeaders.ALG: COSEAlgs.HPKE_7},
+            unprotected={COSEHeaders.KID: b"01"},
+        )
+
+        rsk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        )
+        recipient = COSE.new()
+        assert b"This is the content." == recipient.decode(encoded, rsk)
+
+    def test_cose_hpke_encrypt0_without_kid(self):
+        """Test HPKE Integrated Encryption without kid."""
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            rpk,
+            protected={COSEHeaders.ALG: COSEAlgs.HPKE_0},
+        )
+
+        rsk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        )
+        recipient = COSE.new()
+        assert b"This is the content." == recipient.decode(encoded, rsk)
+
+
+class TestCOSE_HPKE_KE:
+    """
+    Tests for COSE-HPKE Key Encryption (COSE_Encrypt with HPKE-KE recipients).
+    """
+
+    @pytest.mark.parametrize(
+        "ke_alg",
+        [COSEAlgs.HPKE_0_KE, COSEAlgs.HPKE_7_KE],
+    )
+    def test_cose_hpke_ke_p256_roundtrip(self, ke_alg):
+        """Test HPKE-KE with P-256 key in COSE_Encrypt."""
+        enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+
+        r = Recipient.new(
+            protected={COSEHeaders.ALG: ke_alg},
+            unprotected={COSEHeaders.KID: b"01"},
+            recipient_key=rpk,
+        )
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            enc_key,
+            protected={COSEHeaders.ALG: COSEAlgs.A128GCM},
+            recipients=[r],
+        )
+
+        rsk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        )
+        recipient = COSE.new()
+        assert b"This is the content." == recipient.decode(encoded, rsk)
+
+    def test_cose_hpke_ke_x25519_roundtrip(self):
+        """Test HPKE-3-KE with X25519 key in COSE_Encrypt."""
+        enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "OKP",
+                "crv": "X25519",
+                "kid": "01",
+                "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
+                "key_ops": [],
+            }
+        )
+
+        r = Recipient.new(
+            protected={COSEHeaders.ALG: COSEAlgs.HPKE_3_KE},
+            unprotected={COSEHeaders.KID: b"01"},
+            recipient_key=rpk,
+        )
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            enc_key,
+            protected={COSEHeaders.ALG: COSEAlgs.A128GCM},
+            recipients=[r],
+        )
+
+        rsk = COSEKey.from_jwk(
+            {
+                "kty": "OKP",
+                "crv": "X25519",
+                "kid": "01",
+                "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
+                "d": "vsJ1oX5NNi0IGdwGldiac75r-Utmq3Jq4LGv48Q_Qc4",
+                "key_ops": ["deriveBits"],
+            }
+        )
+        recipient = COSE.new()
+        assert b"This is the content." == recipient.decode(encoded, rsk)
+
+    def test_cose_hpke_ke_multiple_recipients(self):
+        """Test HPKE-KE with multiple recipients in COSE_Encrypt."""
+        enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
+
+        rpk1 = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+        r1 = Recipient.new(
+            protected={COSEHeaders.ALG: COSEAlgs.HPKE_0_KE},
+            unprotected={COSEHeaders.KID: b"01"},
+            recipient_key=rpk1,
+        )
+
+        rpk2 = COSEKey.from_jwk(
+            {
+                "kty": "OKP",
+                "kid": "02",
+                "crv": "X25519",
+                "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
+            }
+        )
+        r2 = Recipient.new(
+            protected={COSEHeaders.ALG: COSEAlgs.HPKE_4_KE},
+            unprotected={COSEHeaders.KID: b"02"},
+            recipient_key=rpk2,
+        )
+
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            enc_key,
+            protected={COSEHeaders.ALG: COSEAlgs.A128GCM},
+            recipients=[r1, r2],
+        )
+
+        # Decode with first recipient's key
+        rsk1 = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        )
+        recipient = COSE.new()
+        assert b"This is the content." == recipient.decode(encoded, rsk1)
+
+        # Decode with second recipient's key
+        rsk2 = COSEKey.from_jwk(
+            {
+                "kty": "OKP",
+                "kid": "02",
+                "crv": "X25519",
+                "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
+                "d": "vsJ1oX5NNi0IGdwGldiac75r-Utmq3Jq4LGv48Q_Qc4",
+            }
+        )
+        assert b"This is the content." == recipient.decode(encoded, rsk2)
+
+    def test_cose_hpke_ke_with_psk_roundtrip(self):
+        """Test HPKE-KE with PSK in COSE_Encrypt."""
+        enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+
+        r = Recipient.new(
+            protected={COSEHeaders.ALG: COSEAlgs.HPKE_0_KE},
+            unprotected={COSEHeaders.KID: b"01", COSEHeaders.PSK_ID: b"psk-01"},
+            recipient_key=rpk,
+            hpke_psk=b"secret-psk",
+        )
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            enc_key,
+            protected={COSEHeaders.ALG: COSEAlgs.A128GCM},
+            recipients=[r],
+        )
+
+        rsk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        )
+        recipient = COSE.new()
+        assert b"This is the content." == recipient.decode(encoded, rsk, hpke_psk=b"secret-psk")
+
+    def test_cose_hpke_ke_integrated_as_recipient_should_fail(self):
+        """Integrated HPKE algorithms cannot be used as recipient algorithms."""
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+        with pytest.raises(ValueError) as err:
+            Recipient.new(
+                protected={COSEHeaders.ALG: COSEAlgs.HPKE_0},
+                recipient_key=rpk,
+            )
+        assert "Integrated HPKE algorithms" in str(err.value)
+
+    def test_cose_hpke_ke_as_outer_alg_should_fail(self):
+        """HPKE-KE algorithms cannot be used as outer algorithm in COSE_Encrypt0."""
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+        sender = COSE.new()
+        with pytest.raises(ValueError) as err:
+            sender.encode_and_encrypt(
+                b"This is the content.",
+                rpk,
+                protected={COSEHeaders.ALG: COSEAlgs.HPKE_0_KE},
+                unprotected={COSEHeaders.KID: b"01"},
+            )
+        assert "HPKE Key Encryption algorithms" in str(err.value)
+
+    def test_cose_hpke_integrated_alg_in_unprotected_should_fail(self):
+        """Integrated HPKE algorithms must be in the protected header."""
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+        sender = COSE.new()
+        with pytest.raises(ValueError) as err:
+            sender.encode_and_encrypt(
+                b"This is the content.",
+                rpk,
+                unprotected={COSEHeaders.ALG: COSEAlgs.HPKE_0, COSEHeaders.KID: b"01"},
+            )
+        assert "must be in the protected header" in str(err.value)
