@@ -11,6 +11,8 @@ from .const import (
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT,
     COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_DIRECT,
     COSE_ALGORITHMS_HPKE,
+    COSE_ALGORITHMS_HPKE_INTEGRATED,
+    COSE_ALGORITHMS_HPKE_KE,
     COSE_ALGORITHMS_KEY_WRAP,
     COSE_ALGORITHMS_MAC,
     COSE_ALGORITHMS_RECIPIENT,
@@ -139,6 +141,8 @@ class COSE(CBORProcessor):
         external_aad: bytes = b"",
         out: str = "",
         enable_non_aead: bool = False,
+        hpke_psk: Optional[bytes] = None,
+        hpke_info: bytes = b"",
     ) -> bytes:
         """
         Encodes COSE message with MAC, signing and encryption.
@@ -175,7 +179,7 @@ class COSE(CBORProcessor):
         p, u = self._encode_headers(key, protected, unprotected, enable_non_aead)
         typ = self._validate_cose_message(key, p, u, recipients, signers)
         if typ == 0:
-            return self._encode_and_encrypt(payload, key, p, u, recipients, external_aad, out)
+            return self._encode_and_encrypt(payload, key, p, u, recipients, external_aad, out, hpke_psk, hpke_info)
         elif typ == 1:
             return self._encode_and_mac(payload, key, p, u, recipients, external_aad, out)
         # elif typ == 2:
@@ -191,6 +195,8 @@ class COSE(CBORProcessor):
         external_aad: bytes = b"",
         out: str = "",
         enable_non_aead: bool = False,
+        hpke_psk: Optional[bytes] = None,
+        hpke_info: bytes = b"",
     ) -> bytes:
         """
         Encodes data with encryption.
@@ -226,7 +232,7 @@ class COSE(CBORProcessor):
         typ = self._validate_cose_message(key, p, u, recipients, [])
         if typ != 0:
             raise ValueError("The COSE message is not suitable for COSE Encrypt0/Encrypt.")
-        return self._encode_and_encrypt(payload, key, p, u, recipients, external_aad, out)
+        return self._encode_and_encrypt(payload, key, p, u, recipients, external_aad, out, hpke_psk, hpke_info)
 
     def encode_and_mac(
         self,
@@ -314,6 +320,10 @@ class COSE(CBORProcessor):
         external_aad: bytes = b"",
         detached_payload: Optional[bytes] = None,
         enable_non_aead: bool = False,
+        hpke_psk: Optional[bytes] = None,
+        hpke_info: bytes = b"",
+        hpke_aad: bytes = b"",
+        extra_info: bytes = b"",
     ) -> bytes:
         """
         Verifies and decodes COSE data, and returns only payload.
@@ -340,7 +350,9 @@ class COSE(CBORProcessor):
             DecodeError: Failed to decode data.
             VerifyError: Failed to verify data.
         """
-        _, _, res = self.decode_with_headers(data, keys, context, external_aad, detached_payload, enable_non_aead)
+        _, _, res = self.decode_with_headers(
+            data, keys, context, external_aad, detached_payload, enable_non_aead, hpke_psk, hpke_info, hpke_aad, extra_info
+        )
         return res
 
     def decode_with_headers(
@@ -351,6 +363,10 @@ class COSE(CBORProcessor):
         external_aad: bytes = b"",
         detached_payload: Optional[bytes] = None,
         enable_non_aead: bool = False,
+        hpke_psk: Optional[bytes] = None,
+        hpke_info: bytes = b"",
+        hpke_aad: bytes = b"",
+        extra_info: bytes = b"",
     ) -> Tuple[Dict[Union[str, int], Any], Dict[Union[str, int], Any], bytes]:
         """
         Verifies and decodes COSE data, and returns protected headers, unprotected headers and payload.
@@ -428,6 +444,8 @@ class COSE(CBORProcessor):
         #     raise ValueError("unprotected header should be dict.")
         p, u = self._decode_headers(data.value[0], data.value[1])
         alg = p[1] if 1 in p else u.get(1, 0)
+        if 1 in u and alg in COSE_ALGORITHMS_HPKE.values():
+            raise ValueError("HPKE algorithms must be in the protected header.")
         if enable_non_aead is False and alg in COSE_ALGORITHMS_CEK_NON_AEAD.values():
             raise ValueError(f"Deprecated non-AEAD algorithm: {alg}.")
 
@@ -443,13 +461,14 @@ class COSE(CBORProcessor):
             kid = self._get_kid(p, u)
             aad = self._dumps(["Encrypt0", protected, external_aad])
             nonce = u.get(5, None)
+            is_hpke = alg in COSE_ALGORITHMS_HPKE_INTEGRATED.values()
             if kid:
                 for _, k in enumerate(keys):
                     if k.kid != kid:
                         continue
                     try:
-                        if not isinstance(p, bytes) and alg in COSE_ALGORITHMS_HPKE.values():  # HPKE
-                            hpke = HPKE(p, u, payload)
+                        if is_hpke:
+                            hpke = HPKE(p, u, payload, psk=hpke_psk, hpke_info=hpke_info)
                             res = hpke.decode(k, aad)
                             if not isinstance(res, bytes):
                                 raise TypeError("Internal type error.")
@@ -460,6 +479,12 @@ class COSE(CBORProcessor):
                 raise err
             for _, k in enumerate(keys):
                 try:
+                    if is_hpke:
+                        hpke = HPKE(p, u, payload, psk=hpke_psk, hpke_info=hpke_info)
+                        res = hpke.decode(k, aad)
+                        if not isinstance(res, bytes):
+                            raise TypeError("Internal type error.")
+                        return p, u, res
                     return p, u, k.decrypt(payload, nonce, aad)
                 except Exception as e:
                     err = e
@@ -467,7 +492,9 @@ class COSE(CBORProcessor):
 
         # Encrypt
         if data.tag == 96:
-            rs = Recipients.from_list(data.value[3], self._verify_kid, context)
+            rs = Recipients.from_list(
+                data.value[3], self._verify_kid, context, hpke_psk=hpke_psk, extra_info=extra_info, hpke_aad=hpke_aad
+            )
             nonce = u.get(5, b"")
             enc_key = rs.derive_key(keys, alg, external_aad, "Enc_Recipient")
             aad = self._dumps(["Encrypt", data.value[0], external_aad])
@@ -498,7 +525,7 @@ class COSE(CBORProcessor):
         # MAC
         if data.tag == 97:
             to_be_maced = self._dumps(["MAC", protected, external_aad, payload])
-            rs = Recipients.from_list(data.value[4], self._verify_kid, context)
+            rs = Recipients.from_list(data.value[4], self._verify_kid, context, hpke_psk=hpke_psk)
             mac_auth_key = rs.derive_key(keys, alg, external_aad, "Mac_Recipient")
             mac_auth_key.verify(to_be_maced, data.value[3])
             return p, u, payload
@@ -654,6 +681,12 @@ class COSE(CBORProcessor):
                 if not isinstance(v, bytes):
                     raise ValueError("IV and Partial IV must be bstr.")
                 iv_count += 1
+            if k == -4:  # ek
+                if not isinstance(v, (bytes, bytearray)):
+                    raise ValueError("ek (-4) must be bstr.")
+            if k == -5:  # psk_id
+                if not isinstance(v, (bytes, bytearray)):
+                    raise ValueError("psk_id (-5) must be bstr.")
             h[k] = v
         for k, v in u.items():
             if k == 2:  # crit
@@ -662,6 +695,12 @@ class COSE(CBORProcessor):
                 if not isinstance(v, bytes):
                     raise ValueError("IV and Partial IV must be bstr.")
                 iv_count += 1
+            if k == -4:  # ek
+                if not isinstance(v, (bytes, bytearray)):
+                    raise ValueError("ek (-4) must be bstr.")
+            if k == -5:  # psk_id
+                if not isinstance(v, (bytes, bytearray)):
+                    raise ValueError("psk_id (-5) must be bstr.")
             h[k] = v
         if len(h) != len(p) + len(u):
             raise ValueError("The same keys are both in protected and unprotected headers.")
@@ -671,6 +710,8 @@ class COSE(CBORProcessor):
         if 1 in p and 1 in u:
             raise ValueError("alg appear both in protected and unprotected.")
         alg = p[1] if 1 in p else u.get(1, 0)
+        if 1 in u and alg in COSE_ALGORITHMS_HPKE.values():
+            raise ValueError("HPKE algorithms must be in the protected header.")
 
         if len(signers) > 0:
             return 2  # Sign
@@ -678,11 +719,13 @@ class COSE(CBORProcessor):
         if len(recipients) == 0:
             if key is None:
                 raise ValueError("key should be set.")
-            if alg not in COSE_ALGORITHMS_HPKE.values() and key.alg != alg:
+            if alg in COSE_ALGORITHMS_HPKE_KE.values():
+                raise ValueError("HPKE Key Encryption algorithms (HPKE-N-KE) must be used with recipients in COSE_Encrypt.")
+            if alg not in COSE_ALGORITHMS_HPKE_INTEGRATED.values() and key.alg != alg:
                 raise ValueError(f"The alg({alg}) in the headers does not match the alg({key.alg}) in the populated key.")
             if alg in COSE_ALGORITHMS_CEK.values():
                 return 0  # Encrypt0
-            if alg in COSE_ALGORITHMS_HPKE.values():
+            if alg in COSE_ALGORITHMS_HPKE_INTEGRATED.values():
                 return 0  # Encrypt0
             if alg in COSE_ALGORITHMS_MAC.values():
                 return 1  # MAC0
@@ -712,7 +755,7 @@ class COSE(CBORProcessor):
 
         if (
             recipients[0].alg == -6  # direct
-            or recipients[0].alg in COSE_ALGORITHMS_HPKE.values()
+            or recipients[0].alg in COSE_ALGORITHMS_HPKE_KE.values()
             or recipients[0].alg in COSE_ALGORITHMS_KEY_WRAP.values()
         ):
             if key is None:
@@ -720,8 +763,6 @@ class COSE(CBORProcessor):
             if key.alg != alg:
                 raise ValueError(f"The alg({alg}) in the headers does not match the alg({key.alg}) in the populated key.")
             if alg in COSE_ALGORITHMS_CEK.values():
-                return 0  # Encrypt
-            if alg in COSE_ALGORITHMS_HPKE.values():
                 return 0  # Encrypt
             if alg in COSE_ALGORITHMS_MAC.values():
                 return 1  # MAC
@@ -732,8 +773,6 @@ class COSE(CBORProcessor):
             or recipients[0].alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.values()
         ):
             if recipients[0].context[0] in COSE_ALGORITHMS_CEK.values():
-                return 0  # Encrypt
-            if recipients[0].context[0] in COSE_ALGORITHMS_HPKE.values():
                 return 0  # Encrypt
             if recipients[0].context[0] in COSE_ALGORITHMS_KEY_WRAP.values():
                 return 0  # Encrypt
@@ -752,6 +791,8 @@ class COSE(CBORProcessor):
         recipients: List[RecipientInterface],
         external_aad: bytes,
         out: str,
+        hpke_psk: Optional[bytes],
+        hpke_info: bytes = b"",
     ) -> bytes:
         b_protected = self._dumps(p) if p else b""
         ciphertext: bytes = b""
@@ -760,8 +801,11 @@ class COSE(CBORProcessor):
         if len(recipients) == 0:
             enc_structure = ["Encrypt0", b_protected, external_aad]
             aad = self._dumps(enc_structure)
-            if 1 in p and p[1] in COSE_ALGORITHMS_HPKE.values():  # HPKE
-                hpke = HPKE(p, u, recipient_key=key)
+            if 1 in p and p[1] in COSE_ALGORITHMS_HPKE_INTEGRATED.values():  # HPKE Integrated Encryption
+                # If user provided ek in header, validate its type before proceeding
+                if -4 in u and not isinstance(u[-4], (bytes, bytearray)):
+                    raise ValueError("ek (-4) must be bstr.")
+                hpke = HPKE(p, u, recipient_key=key, psk=hpke_psk, hpke_info=hpke_info)
                 encoded, _ = hpke.encode(payload, aad)
                 res = CBORTag(16, encoded)
                 return res if out == "cbor2/CBORTag" else self._dumps(res)
@@ -780,10 +824,13 @@ class COSE(CBORProcessor):
         if recipients[0].alg not in COSE_ALGORITHMS_RECIPIENT.values():
             raise NotImplementedError("Algorithms other than direct are not supported for recipients.")
 
+        content_alg = p.get(1, 0) or u.get(1, 0)
         recs = []
         b_key = key.to_bytes() if isinstance(key, COSEKeyInterface) else b""
         cek: Optional[COSEKeyInterface] = None
         for rec in recipients:
+            if isinstance(rec, HPKE):
+                rec.content_alg = content_alg
             aad = self._dumps(["Enc_Recipient", self._dumps(rec.protected) if len(rec.protected) > 0 else b"", external_aad])
             encoded, derived_key = rec.encode(b_key, aad)
             cek = derived_key if derived_key else key
@@ -831,9 +878,12 @@ class COSE(CBORProcessor):
 
         mac_structure = ["MAC", b_protected, external_aad, payload]
 
+        content_alg = p.get(1, 0) or u.get(1, 0)
         recs = []
         b_key = key.to_bytes() if isinstance(key, COSEKeyInterface) else b""
         for rec in recipients:
+            if isinstance(rec, HPKE):
+                rec.content_alg = content_alg
             aad = self._dumps(["Mac_Recipient", self._dumps(rec.protected), external_aad])
             encoded, derived_key = rec.encode(b_key, aad)
             key = derived_key if derived_key else key

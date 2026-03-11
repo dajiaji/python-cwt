@@ -823,11 +823,11 @@ class TestEC2Key:
         "alg, key_ops",
         [
             (
-                "HPKE-Base-P256-SHA256-AES128GCM",
+                "HPKE-0",
                 ["deriveBits"],
             ),
             (
-                "HPKE-Base-P256-SHA256-ChaCha20Poly1305",
+                "HPKE-7",
                 ["deriveBits"],
             ),
         ],
@@ -853,11 +853,11 @@ class TestEC2Key:
         "alg, key_ops",
         [
             (
-                "HPKE-Base-P256-SHA256-AES128GCM",
+                "HPKE-0",
                 [],
             ),
             (
-                "HPKE-Base-P256-SHA256-ChaCha20Poly1305",
+                "HPKE-7",
                 [],
             ),
         ],
@@ -911,7 +911,7 @@ class TestEC2Key:
                     "kty": "EC",
                     "kid": "01",
                     "crv": "P-256",
-                    "alg": "HPKE-Base-P256-SHA256-AES128GCM",
+                    "alg": "HPKE-0",
                     "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
                     "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
                     "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
@@ -952,7 +952,7 @@ class TestEC2Key:
                     "kty": "EC",
                     "kid": "01",
                     "crv": "P-256",
-                    "alg": "HPKE-Base-P256-SHA256-AES128GCM",
+                    "alg": "HPKE-0",
                     "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
                     "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
                     "key_ops": invalid,

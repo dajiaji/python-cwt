@@ -821,11 +821,11 @@ class TestOKPKey:
         "alg, key_ops",
         [
             (
-                "HPKE-Base-X25519-SHA256-AES128GCM",
+                "HPKE-3",
                 ["deriveBits"],
             ),
             (
-                "HPKE-Base-X25519-SHA256-ChaCha20Poly1305",
+                "HPKE-4",
                 ["deriveBits"],
             ),
         ],
@@ -850,11 +850,11 @@ class TestOKPKey:
         "alg, key_ops",
         [
             (
-                "HPKE-Base-X25519-SHA256-AES128GCM",
+                "HPKE-3",
                 [],
             ),
             (
-                "HPKE-Base-X25519-SHA256-ChaCha20Poly1305",
+                "HPKE-4",
                 [],
             ),
         ],
@@ -905,7 +905,7 @@ class TestOKPKey:
             COSEKey.from_jwk(
                 {
                     "kty": "OKP",
-                    "alg": "HPKE-Base-X25519-SHA256-ChaCha20Poly1305",
+                    "alg": "HPKE-4",
                     "kid": "01",
                     "crv": "X25519",
                     "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",
@@ -945,7 +945,7 @@ class TestOKPKey:
             COSEKey.from_jwk(
                 {
                     "kty": "OKP",
-                    "alg": "HPKE-Base-X25519-SHA256-ChaCha20Poly1305",
+                    "alg": "HPKE-4",
                     "kid": "01",
                     "crv": "X25519",
                     "x": "y3wJq3uXPHeoCO4FubvTc7VcBuqpvUrSvU6ZMbHDTCI",

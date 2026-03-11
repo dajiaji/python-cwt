@@ -32,6 +32,8 @@ class COSEHeaders(enum.IntEnum):
     X5U = 35
     CUPH_NONCE = 256
     CUPH_OWNER_PUB_KEY = 257
+    EK = -4
+    PSK_ID = -5
 
 
 class COSEKeyParams(enum.IntEnum):
@@ -114,16 +116,25 @@ class COSEAlgs(enum.IntEnum):
     AES_CCM_16_128_256 = 31
     AES_CCM_64_128_128 = 32
     AES_CCM_64_128_256 = 33
-    HPKE_BASE_P256_SHA256_AES128GCM = 35
-    HPKE_BASE_P256_SHA256_CHACHA20POLY1305 = 36
-    HPKE_BASE_P384_SHA384_AES256GCM = 37
-    HPKE_BASE_P384_SHA384_CHACHA20POLY1305 = 38
-    HPKE_BASE_P521_SHA512_AES256GCM = 39
-    HPKE_BASE_P521_SHA512_CHACHA20POLY1305 = 40
-    HPKE_BASE_X25519_SHA256_AES128GCM = 41
-    HPKE_BASE_X25519_SHA256_CHACHA20POLY1305 = 42
-    HPKE_BASE_X448_SHA512_AES256GCM = 43
-    HPKE_BASE_X448_SHA512_CHACHA20POLY1305 = 44
+    # COSE-HPKE algorithm names per draft-ietf-cose-hpke-23
+    # Integrated Encryption (COSE_Encrypt0)
+    HPKE_0 = 35
+    HPKE_1 = 37
+    HPKE_2 = 39
+    HPKE_3 = 41
+    HPKE_4 = 42
+    HPKE_5 = 43
+    HPKE_6 = 44
+    HPKE_7 = 45
+    # Key Encryption (COSE_Encrypt recipients)
+    HPKE_0_KE = 46
+    HPKE_1_KE = 47
+    HPKE_2_KE = 48
+    HPKE_3_KE = 49
+    HPKE_4_KE = 50
+    HPKE_5_KE = 51
+    HPKE_6_KE = 52
+    HPKE_7_KE = 53
 
 
 class CWTClaims(enum.IntEnum):

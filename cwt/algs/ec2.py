@@ -83,11 +83,13 @@ class EC2Key(AsymmetricKey):
                 self._key_ops = [2]
         if self._alg:
             # Validate alg for EC2 curve.
-            if self._crv == 1 and self._alg not in ([-7, -9, 35, 36] + list(COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.values())):
+            if self._crv == 1 and self._alg not in (
+                [-7, -9, 35, 45, 46, 53] + list(COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.values())
+            ):
                 raise ValueError(f"Unsupported or unknown alg used with P-256: {self._alg}.")
-            elif self._crv == 2 and self._alg not in ([-35, -51, 37, 38] + list(COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.values())):
+            elif self._crv == 2 and self._alg not in ([-35, -51, 37, 47] + list(COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.values())):
                 raise ValueError(f"Unsupported or unknown alg used with P-384: {self._alg}.")
-            elif self._crv == 3 and self._alg not in ([-36, -52, 39, 40] + list(COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.values())):
+            elif self._crv == 3 and self._alg not in ([-36, -52, 39, 48] + list(COSE_ALGORITHMS_CKDM_KEY_AGREEMENT.values())):
                 raise ValueError(f"Unsupported or unknown alg used with P-521: {self._alg}.")
             elif self._crv == 8 and self._alg != -47:
                 raise ValueError(f"Unsupported or unknown alg used with secp256k1: {self._alg}.")
@@ -129,7 +131,7 @@ class EC2Key(AsymmetricKey):
                         # private key for key derivation.
                         self._key_ops = [7, 8]
             elif self._alg in COSE_ALGORITHMS_HPKE.values():
-                if self._key_ops:
+                if 4 in params:
                     if -4 in params:
                         # private key for key derivation.
                         if len(self._key_ops) != 1 or self._key_ops[0] != 8:
@@ -139,8 +141,6 @@ class EC2Key(AsymmetricKey):
                         if len(self._key_ops) > 0:
                             raise ValueError("Invalid key_ops for HPKE public key.")
                 else:
-                    if -4 in params and isinstance(self._key_ops, list) and len(self._key_ops) == 0:
-                        raise ValueError("Invalid key_ops for HPKE private key.")
                     self._key_ops = [8] if -4 in params else []
             else:
                 raise ValueError(f"Unsupported or unknown alg(3) for EC2: {self._alg}.")

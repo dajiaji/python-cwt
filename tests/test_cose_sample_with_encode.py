@@ -339,7 +339,7 @@ class TestCOSESampleWithEncode:
         )
         r1 = Recipient.new(
             protected={
-                COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
+                COSEHeaders.ALG: COSEAlgs.HPKE_0_KE,
             },
             unprotected={
                 COSEHeaders.KID: b"01",
@@ -356,7 +356,7 @@ class TestCOSESampleWithEncode:
         )
         r2 = Recipient.new(
             protected={
-                COSEHeaders.ALG: COSEAlgs.HPKE_BASE_X25519_SHA256_CHACHA20POLY1305,
+                COSEHeaders.ALG: COSEAlgs.HPKE_4_KE,
             },
             unprotected={
                 COSEHeaders.KID: b"02",
@@ -490,7 +490,7 @@ class TestCOSESampleWithEncode:
             b"This is the content.",
             rpk,
             protected={
-                COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
+                COSEHeaders.ALG: COSEAlgs.HPKE_0,
             },
             unprotected={
                 COSEHeaders.KID: b"01",
@@ -612,7 +612,7 @@ class TestCOSESampleWithEncode:
         )
         r1 = Recipient.new(
             protected={
-                COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
+                COSEHeaders.ALG: COSEAlgs.HPKE_0_KE,
             },
             unprotected={
                 COSEHeaders.KID: b"01",
@@ -629,7 +629,7 @@ class TestCOSESampleWithEncode:
         )
         r2 = Recipient.new(
             protected={
-                COSEHeaders.ALG: COSEAlgs.HPKE_BASE_X25519_SHA256_CHACHA20POLY1305,
+                COSEHeaders.ALG: COSEAlgs.HPKE_4_KE,
             },
             unprotected={
                 COSEHeaders.KID: b"02",
@@ -688,7 +688,7 @@ class TestCOSESampleWithEncode:
         )
         r = Recipient.new(
             protected={
-                COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
+                COSEHeaders.ALG: COSEAlgs.HPKE_0_KE,
             },
             unprotected={
                 COSEHeaders.KID: b"01",
@@ -700,7 +700,7 @@ class TestCOSESampleWithEncode:
             sender.encode(
                 b"This is the content.",
                 protected={
-                    COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
+                    COSEHeaders.ALG: COSEAlgs.HPKE_0_KE,
                 },
                 unprotected={
                     COSEHeaders.KID: b"xx",
@@ -724,7 +724,7 @@ class TestCOSESampleWithEncode:
         )
         r = Recipient.new(
             protected={
-                COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
+                COSEHeaders.ALG: COSEAlgs.HPKE_0_KE,
             },
             unprotected={
                 COSEHeaders.KID: b"01",
@@ -736,7 +736,7 @@ class TestCOSESampleWithEncode:
             sender.encode(
                 b"This is the content.",
                 protected={
-                    COSEHeaders.ALG: COSEAlgs.HPKE_BASE_P256_SHA256_AES128GCM,
+                    COSEHeaders.ALG: COSEAlgs.HPKE_0_KE,
                 },
                 unprotected={
                     COSEHeaders.KID: b"xx",

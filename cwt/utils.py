@@ -178,29 +178,44 @@ class ResolvedHeader:
         self.params = params
 
 
+# Parameters whose value type is tstr (text string), not bstr, per RFC 9052 / RFC 9360.
+_COSE_HEADER_TSTR_PARAMS = {"cty", "content type", "x5u"}
+
+
 def to_cose_header(data: Optional[Union[dict, ResolvedHeader]] = None, algs: Dict[str, int] = {}) -> Dict[Union[str, int], Any]:
     if data is None:
         return {}
-    res: Dict[Union[str, int], Any] = {}
     if isinstance(data, ResolvedHeader):
         return data.params
     if len(data) == 0 or not isinstance(list(data.keys())[0], str):
         return data
+    res: Dict[Union[str, int], Any] = {}
     if not algs:
         algs = COSE_NAMED_ALGORITHMS_SUPPORTED
     for k, v in data.items():
-        if k not in COSE_HEADER_PARAMETERS.keys():
-            raise ValueError(f"Unsupported or unknown COSE header parameter: {k}.")
-        if k == "alg":
-            if v not in algs.keys():
-                raise ValueError(f"Unsupported or unknown alg: {v}.")
-            v = algs[v]
+        if isinstance(k, str):
+            if k not in COSE_HEADER_PARAMETERS.keys():
+                raise ValueError(f"Unsupported or unknown COSE header parameter: {k}.")
+            if k == "alg":
+                if v not in algs.keys():
+                    raise ValueError(f"Unsupported or unknown alg: {v}.")
+                v = algs[v]
+            else:
+                if isinstance(v, str) and k not in _COSE_HEADER_TSTR_PARAMS:
+                    v = v.encode("utf-8")
+                if k == "salt":
+                    if not isinstance(v, bytes):
+                        raise ValueError("salt should be bytes or str.")
+                if k == "ek":
+                    if not isinstance(v, (bytes, bytearray)):
+                        raise ValueError("ek (-4) must be bstr.")
+                if k == "psk_id":
+                    if not isinstance(v, (bytes, bytearray)):
+                        raise ValueError("psk_id (-5) must be bstr.")
+            res[COSE_HEADER_PARAMETERS[k]] = v
         else:
-            v = v.encode("utf-8") if isinstance(v, str) else v
-            if k == "salt":
-                if not isinstance(v, bytes):
-                    raise ValueError("salt should be bytes or str.")
-        res[COSE_HEADER_PARAMETERS[k]] = v
+            # keep numeric keys as-is
+            res[k] = v
     return res
 
 
