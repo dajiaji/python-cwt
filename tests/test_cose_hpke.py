@@ -186,8 +186,8 @@ class TestCOSE_HPKE:
             sender.encode_and_encrypt(
                 b"This is the content.",
                 rpk,
-                protected={COSEHeaders.ALG: COSEAlgs.HPKE_0},
-                unprotected={COSEHeaders.KID: b"01", COSEHeaders.PSK_ID: 123},
+                protected={COSEHeaders.ALG: COSEAlgs.HPKE_0, COSEHeaders.PSK_ID: 123},
+                unprotected={COSEHeaders.KID: b"01"},
             )
         assert "psk_id (-5) must be bstr." in str(err.value)
 
@@ -205,8 +205,8 @@ class TestCOSE_HPKE:
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
             rpk,
-            protected={COSEHeaders.ALG: COSEAlgs.HPKE_0},
-            unprotected={COSEHeaders.KID: b"01", COSEHeaders.PSK_ID: b"psk-01"},
+            protected={COSEHeaders.ALG: COSEAlgs.HPKE_0, COSEHeaders.PSK_ID: b"psk-01"},
+            unprotected={COSEHeaders.KID: b"01"},
             hpke_psk=b"secret-psk",
         )
 
@@ -279,8 +279,8 @@ class TestCOSE_HPKE:
             sender.encode_and_encrypt(
                 b"This is the content.",
                 rpk,
-                protected={COSEHeaders.ALG: COSEAlgs.HPKE_0},
-                unprotected={COSEHeaders.KID: b"01", COSEHeaders.PSK_ID: b"psk-01"},
+                protected={COSEHeaders.ALG: COSEAlgs.HPKE_0, COSEHeaders.PSK_ID: b"psk-01"},
+                unprotected={COSEHeaders.KID: b"01"},
             )
         assert "hpke_psk is required when psk_id (-5) is provided." in str(err.value)
 
@@ -295,7 +295,8 @@ class TestCOSE_HPKE:
             }
         )
         sender = COSE.new()
-        # First, produce a base-mode (no psk_id) and then inject psk_id to simulate peer mismatch
+        # First, produce a base-mode (no psk_id) and then inject psk_id into the
+        # protected header to simulate peer mismatch
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
             rpk,
@@ -304,8 +305,10 @@ class TestCOSE_HPKE:
         )
         tag = cbor2.loads(encoded)
         p, u, c = tag.value
-        u[-5] = b"psk-01"
-        tampered = cbor2.dumps(cbor2.CBORTag(16, [p, u, c]))
+        p_map = cbor2.loads(p)
+        p_map[-5] = b"psk-01"
+        tampered_p = cbor2.dumps(p_map)
+        tampered = cbor2.dumps(cbor2.CBORTag(16, [tampered_p, u, c]))
 
         rsk = COSEKey.from_jwk(
             {
@@ -676,8 +679,8 @@ class TestCOSE_HPKE_KE:
         )
 
         r = Recipient.new(
-            protected={COSEHeaders.ALG: COSEAlgs.HPKE_0_KE},
-            unprotected={COSEHeaders.KID: b"01", COSEHeaders.PSK_ID: b"psk-01"},
+            protected={COSEHeaders.ALG: COSEAlgs.HPKE_0_KE, COSEHeaders.PSK_ID: b"psk-01"},
+            unprotected={COSEHeaders.KID: b"01"},
             recipient_key=rpk,
             hpke_psk=b"secret-psk",
         )

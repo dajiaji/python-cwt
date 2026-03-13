@@ -753,12 +753,12 @@ class TestCOSEHPKEKEVectors:
             (
                 HPKE_5_KE_KEY,
                 (
-                    "d8608443a10103a10558204ff93b1cf652bd6b3a78aa66aff3cf0763c4607fec098d0ca74a60"
-                    "36f299ebb2582146d06eb19d65874a09970bcd52bca5d1ae70aef68302b95771ca57914b3100"
-                    "bcd4818353a2011833044d626f622d68706b655f355f6b65a12358384099e311ea6ecb8c1bb5"
-                    "79b3192634863e32c15374551b7cd76f38278cb250654fc7bd8d5d10d3bf020f5338fc89cb27"
-                    "b1be472ef2687617583092b0973eecebaefc480ad5e606d6def1e78d22ee546831e49df7b913"
-                    "82b5d34e41e9262303525bbbe921afce1d3b4c25"
+                    "d8608443a10103a10558205972218d130ebd50902f975638867f4393a02ad5fec6acea3b5acc"
+                    "14b99e7d6f5821e0d433a3f90df4a6bf252d8375c02ed940ae6321ac116865e8a698e3e9826ae"
+                    "00e818353a2011833044d626f622d68706b655f355f6b65a1235838a5617b199ab5a27633ca06"
+                    "3f171039bbbbe50e1563630270f5608b1c80b3add4658ee958f71bef28abe39e20231df1b2a5"
+                    "fdc6e5c7cd4c4258302f8f8d8b1f3bc43d53dbb260c3930310300d4ed07d04702c4e2114e7fcb"
+                    "c27cffe87c754455bb52c2e0d77ffc49f3424"
                 ),
                 b"",
                 b"",
@@ -768,12 +768,12 @@ class TestCOSEHPKEKEVectors:
             (
                 HPKE_5_KE_KEY,
                 (
-                    "d8608443a10103a1055820ee0407489df27075ea6c15d2c798ea0610e969b18d3d301867abfc"
-                    "60d14c571f582102485c143d33f60e3e3e6bf52e24a317991ef505085bee6b593d85bfd763dc"
-                    "7593818353a2011833044d626f622d68706b655f355f6b65a12358381e027e0f01b9ce80513f"
-                    "2945e81582922f593186a4ba6f015bea962a5856e32100552f29a141e7ea288f379a2a3e6a62"
-                    "04ee5cbc37970c955830082a8b17e3e6554820c31107b8b50d97caca42f6fde213a4c7494257"
-                    "d019e7d3bb00410301d3113d81146f64b1d649f7"
+                    "d8608443a10103a10558200ea58687a765e595948d0a4f863ffe895ed35afcc292f8e5f09a59"
+                    "666c018f87582153e80b1f3f78c46d298c2d969bb438269f56fb0db3f8b0dfbc3ce64d9bdb91"
+                    "0905818353a2011833044d626f622d68706b655f355f6b65a1235838d9d4ce1da2bb47ce71c0"
+                    "92855f2982a108793dad43b58ad4f378c35e50ae960124ec906f02e959783559b189d73b4245"
+                    "bf6d12a291a66f2b5830816961b03ac6df31f593d4e3b8cca193e330d5ad273cd8e4fe1355c6"
+                    "85c0b2a804fd8b5871346c3a640df51e2885aafb"
                 ),
                 b"",
                 b"",
@@ -783,12 +783,12 @@ class TestCOSEHPKEKEVectors:
             (
                 HPKE_5_KE_KEY,
                 (
-                    "d8608443a10103a1055820add0563a9487a69fd84c520c1b403ca469bfd31b3888a7badf1ace"
-                    "338489cc9e5821e5f53fb6e1baeb79c1e42bc88e414d25bb0deecb3fb75b5e5ccc71a5c514b1"
-                    "b33c818353a2011833044d626f622d68706b655f355f6b65a1235838a1cb8855ddead0ae82b4"
-                    "e87df4b399b7197b2f06d5ba0f4b053b104b760db9e9b2d53d924d403bb243cc2fa51d9d0eab"
-                    "f20150db69ad419b583014330834835b5951ee83fd58ebea9bb375ec5df0b373eec65c15a1f5"
-                    "9ae7fddc8d16eaf11f67d98dcf4ab833b21e2669"
+                    "d8608443a10103a1055820febe825f97612663cb5b37322f6d27a4a69cfb984b770391db1ddd"
+                    "4351c565ea582163f837fa3fc30525c6dcd8fd38b0fdf4cb0732726d4e48479faf4cd19c106c"
+                    "b61d818353a2011833044d626f622d68706b655f355f6b65a12358386d8ab86baef7eb8b1b4b"
+                    "9812b8ee20de9bb7665db246a4058d557ef7b5a175378825d6c3878cfe4cded34a63cd3f23b0"
+                    "c0a486fd742824af5830a5ff5e55b20975bfb4288eed91aae3181599c9444f56bd7d845e537f"
+                    "75e0001b860939ff406e3de872af20939444fb97"
                 ),
                 b"external-aad",
                 b"",
@@ -798,12 +798,12 @@ class TestCOSEHPKEKEVectors:
             (
                 HPKE_5_KE_KEY,
                 (
-                    "d8608443a10103a10558204427ccf295f6163509a646b90fd9c40ed7a0fe9384cb1036a17b81"
-                    "3b237524f2582103723c06533e16224e98d151063d708c7dc4c09b53b872346c6083adee8b2f"
-                    "b43f818353a2011833044d626f622d68706b655f355f6b65a1235838d6b7013b4c9f9b44ea55"
-                    "d9edaec03be7591cda435670066f3878c89ea5d49005f683d0dc1a8c85dddd9a79c8ff599387"
-                    "6b25dbc5e1231b275830ddafd2a0712a6845f11970adaf619f844eff75c8a381f80533c393fc"
-                    "5dc114b83a902c672af3d5390a4e478ec6897ede"
+                    "d8608443a10103a1055820e651daaf30ef27e8898bd2f0f71eb81105a65ca9d625deba0ff73e"
+                    "fa5518a0fe58216f7ed02b0a8c3be5f2e2d15bd58c357c65b688cace33d2e50e7a5e48a20b16"
+                    "12f2818353a2011833044d626f622d68706b655f355f6b65a12358380f782ab1db5dbdff4310"
+                    "356362f1fd48c0cce05f4cf5f10ed17dd4ef5489513a63d3f357875f8d4f80c8c44afcb46897"
+                    "b623ef3909a043e358304fdb1f7cc531e49ff9d6fb934a0a56b0c39fb161802304ee2d6aa2e0"
+                    "38b7a1f604c643cfd3ba046f85579e06ad7e58db"
                 ),
                 b"external-aad",
                 b"",
@@ -813,12 +813,12 @@ class TestCOSEHPKEKEVectors:
             (
                 HPKE_5_KE_KEY,
                 (
-                    "d8608443a10103a10558208919fd6f31b0cbbdda4875af585af67e0c0823cef6d0becd6802ea"
-                    "3ecef0c9a55821fb88175fd00fdda16def7f4110899c4f9017c63ec4b37573f0dc4a97b6d952"
-                    "7b22818353a2011833044d626f622d68706b655f355f6b65a1235838203f42bbdb8cfeb59f7c"
-                    "05a1580a885554f5ef8848c76a04a011b2b9521f08a4bf7d159b8f01762ab304ff57637400ac"
-                    "c22d62746a942ffa5830ad7cb3c1c79711a11aff71f09a29228341485376d569fae65673c5a0"
-                    "ba0a4dbd5b7904ad2cea0ce1aa2daf37adc25e73"
+                    "d8608443a10103a1055820bc667687a2c9ba3a67811138b684871cc443c3a656602b8c7fa229"
+                    "e73fd873f358218bf0c9204e988d76554b1195baee96da10ac58867a1daa775eefe9710307bc"
+                    "4cec818353a2011833044d626f622d68706b655f355f6b65a12358380e5096bad10fa4fcdd44"
+                    "0552c14da49d819eb5fb2dd333ee59cfa845f51406d7cab97f61a5c852b3312fddbdf347cdd6"
+                    "6d0ac3fd6aeba8825830a961291467b70f5ba8e1c02417d0048f3f2000ac4dc11722d8cd88b7"
+                    "5e0dbf7c084740adacb62fb7b10b8b15649dba17"
                 ),
                 b"",
                 b"external-info",
@@ -828,12 +828,12 @@ class TestCOSEHPKEKEVectors:
             (
                 HPKE_5_KE_KEY,
                 (
-                    "d8608443a10103a105582085aa9e38bdbf1f258426becc819a929c55e719cc75227ba515ae09"
-                    "a8267bf4925821f5d3bd70c82cdcd96595efbc671919c2698af5ef96667ab16894f6dd7ec5dc"
-                    "6a95818353a2011833044d626f622d68706b655f355f6b65a12358384d97b5bc0f662d782b91"
-                    "22f113ca655d156674d3381b45f61a55f6f670771bbaeff2187824469740f49ed0ec5bcebcf9"
-                    "91851bd41fa95d5858306e0bd0c92cd5e4f6c74a34319a4738051e96cc3ddb69b6ef8dc07109"
-                    "18d02940c10688cd828b303b4b3595d8bf2c0056"
+                    "d8608443a10103a1055820330886cc981a8fc93e5f508127f1adfc8d4db541d3618c887ddc4f"
+                    "8ac952b78c5821652e76d1029e9749fdc28bea647b1e3e3d62bd57676cfbe857b84703a1c5a0"
+                    "7b15818353a2011833044d626f622d68706b655f355f6b65a123583846c302c3731504388199"
+                    "bc3e885b9fac2171f59c1f9cafd8b909f6b5f7d3360f261101400b33c8c10b5be896d2b2bf2d"
+                    "c324018be31a46175830b11375f3eac8a4f569ea3e6c31f8a27deeb029d54597496db6fbd2e8"
+                    "53b59e1ef1fc30c312e7d0b6f482558d95f9bb5c"
                 ),
                 b"",
                 b"external-info",
@@ -843,12 +843,12 @@ class TestCOSEHPKEKEVectors:
             (
                 HPKE_5_KE_KEY,
                 (
-                    "d8608443a10103a10558201806b9f94e356ed2f2c10b0822ff35b1504dba0b5a1db8af9b8e0d"
-                    "5c3792068058210a5eabd5d60b81eeff382c7598898e4fca0efcad5b27b3cdc05ae412b77149"
-                    "5d4f818353a2011833044d626f622d68706b655f355f6b65a1235838e3fbd237c85215a1d247"
-                    "176714e27f198a0f7a76e83f5116c97b218b5204c30006dd08abf94892a44bf00a358f67822d"
-                    "3bf92d331b6430ba58307fd5803d162ea9eaadb8fc37b327d6b4a526a07ce4a13697195579ba"
-                    "6d7230f444568d1b731443f3bf6ff5d4f2c4e375"
+                    "d8608443a10103a1055820968e5870eb26e9e8777dafb83becedb4c9ee1ac75e57b9635739e7"
+                    "ba96925d7c5821d65d8d5bb8922d7e16a6ec3a0a2c7b6432c569510a946953c891442704e3db"
+                    "ba78818353a2011833044d626f622d68706b655f355f6b65a12358385545cbe1853c1c43e456"
+                    "f5fefd73004bb1d21684970adf8f8fbaa9681b83576780d138948bb82b1094fdbac6c3388cd8"
+                    "247acf1493e969f458306c2f2c32734dd4f6af964e9546d0a642107831b5c4bbf0b8edb87e38"
+                    "e3755e2da85b1e8f14097d51159b7df7cafc34f8"
                 ),
                 b"external-aad",
                 b"external-info",
@@ -858,12 +858,12 @@ class TestCOSEHPKEKEVectors:
             (
                 HPKE_5_KE_KEY,
                 (
-                    "d8608443a10103a1055820de43c2aa8af6fcaf531231f6403cee6800fe1e3d0fc6147e090c15"
-                    "95fe8467ae5821f29e9f566935b3ef34e043891c935094dc1fe4984dd30aac5877f98b075905"
-                    "5303818353a2011833044d626f622d68706b655f355f6b65a123583803884f02e4d336a19395"
-                    "9844a73db0b95f2511121886dc7bf82b945f8337c02556efa96811b63cba029b13c60e9581a3"
-                    "8366d6366177db4e5830eb8e0f189adaaf287119963680320da63ee1dc219982e7145cbef643"
-                    "7472b977344bdf141ceac4c4521bcd971c154ee1"
+                    "d8608443a10103a105582012c4b7c5277a67a1f0cd348eaead14678fbb47428daebc43426b56"
+                    "30bbc08bbc58217d6af626389f2eecf2cdcff8d3716033aab7a922a1b3e6ac66edead54f7c45"
+                    "1284818353a2011833044d626f622d68706b655f355f6b65a123583840a712d7894f87c5c5dd"
+                    "263a97bafb6fcf06e22e9ed801a1034aada201fe9c1a49e8e073746f6c713306f00c4335ebe8"
+                    "c9159910c659610c58303b5eefa35efee50c73134120b7f24bfe68936b628c78291208608744"
+                    "1754d408fa877cf15e4374a8c3af19a048df2896"
                 ),
                 b"external-aad",
                 b"external-info",
@@ -873,11 +873,12 @@ class TestCOSEHPKEKEVectors:
             (
                 HPKE_6_KE_KEY,
                 (
-                    "d8608444a1011818a1054cdc91705d85a0564634c28b9458210a72029b5ce3c44b8528862f5f"
-                    "5764e438c7d723cd412bf65f681f7382b2084ecc818353a2011834044d626f622d68706b655f"
-                    "365f6b65a1235838e2d1ffe83d043f7fde6f14658e6ea3827e578bd060def6491ada7311a260"
-                    "c4b3f0734b97d3c3b8cd50c6f667df518c3d6a9d60c1d2563e8058300dc6bf0ce7314032e954"
-                    "f5eac21d5646b3d8a0f50a1beb3414da3e60333d15b9edc7b8f9615bbb411b053268968b0be3"
+                    "d8608443a10103a10558202b413539e41b5be049097d8c7336c564da6910493f34cac7be758d"
+                    "9be0bbc2a45821895a2fe91419e7f4e56cdad089d97b4313fd4d64b50751aa35b8ae2a5a1f0f"
+                    "49c0818353a2011834044d626f622d68706b655f365f6b65a12358389e4bc52535fd7d7de199"
+                    "cd9d3bc1ead38132ce559491daa8291ae62e27a305cfa0e5301c44ada163e8c6d003cc201d84"
+                    "d6e56a0fbbff09aa5830386b65b7d4658bb2cc1cb93e05d94685cceec0f155d39f46b74fd67d"
+                    "b0ede3aaf653f5d44a79b2bc0b5c5c186f42a0e4"
                 ),
                 b"",
                 b"",
@@ -887,11 +888,12 @@ class TestCOSEHPKEKEVectors:
             (
                 HPKE_6_KE_KEY,
                 (
-                    "d8608444a1011818a1054c161f8d0c535147d452345f7b582105686a0762c213b2ab775b71f5"
-                    "752e91a14ea742afc9be7d4dcef77408cbb3b474818353a2011834044d626f622d68706b655f"
-                    "365f6b65a1235838a06b9b5d98702887a49304d2cd174da2901408c3a012cbc97c8548afd5e1"
-                    "13a8fbbafa02df731f4f9ec314aacb389766defccbe5087da31d5830395054dceb31dbac2381"
-                    "c37bf04f1db0f79b184482fba8f92a7ce31cb4fae7ebd9c4f52a1730ca3cb76695af047ff6cc"
+                    "d8608443a10103a1055820c38056dd0acc795392719d75883a9efa306688289e317fbcaa907a"
+                    "593ef7fbd058211d3a68fca3448e77c0350164e7ccef263ddf6e52c00b5d7467137987d9322b"
+                    "0edd818353a2011834044d626f622d68706b655f365f6b65a123583873272b13d50c86ade06a"
+                    "d70f4067d8b9dd546dea6699cb8937b79106a2d178c6e3dab8b403b60a05efa417ddeb14e97d"
+                    "cb8b46c866ec027458302ac2d004b9a0a638932cb41dfcf2980e731dc1e164e78755e54be305"
+                    "f821130e25bfd8f9e423132f9984e587ff58aea0"
                 ),
                 b"",
                 b"",
@@ -901,11 +903,12 @@ class TestCOSEHPKEKEVectors:
             (
                 HPKE_6_KE_KEY,
                 (
-                    "d8608444a1011818a1054c2eaa13b8a25bf8e0971fbaaa5821abe79da1ef9aa997ec00bcfbad"
-                    "70283b1c82874557c74f6d411742f0f35534c232818353a2011834044d626f622d68706b655f"
-                    "365f6b65a1235838c88eb6e1e4a8901cdda6340b0f6f0a22aef1eb93b8c9b0396e0390e4e11c"
-                    "eace150773c38614076b4a65890cfd87376117e9292580ce9ba55830a1fc1274c68b001884bc"
-                    "c2c0bacfcd1c16ae3bd12366edf28da11adcede0a5ba7b02550ac305f74e0c2e6993eb980617"
+                    "d8608443a10103a105582054037148342b2929d4126a1daa1a5cf49963f07f4bcfc6b125cc95"
+                    "69315d428158212c12be5f1b14cb0be9cbc7f89e7d17cf6332f978ed3ff28e6ecf4177b43991"
+                    "1f1f818353a2011834044d626f622d68706b655f365f6b65a1235838fe5677121bc5b939bd1f"
+                    "3183d63ca7a1eb9834655073980f22463e0f4347c823ae7fbcb106311bfe1862b5d8fb09be30"
+                    "222d73a1aec51a6d583092c3aeb223577ce70c4eb6d3fbdde2507ab0eb66684450f313a60987"
+                    "82bc2b7042880301438d9d3b1a8f65b8103a611c"
                 ),
                 b"external-aad",
                 b"",
@@ -915,11 +918,12 @@ class TestCOSEHPKEKEVectors:
             (
                 HPKE_6_KE_KEY,
                 (
-                    "d8608444a1011818a1054c777589e4029d40667c3f5113582178d2b8e3a9b4b7a6760a5d4424"
-                    "76370bb171134189415ce45957c2325ad5e6e8fa818353a2011834044d626f622d68706b655f"
-                    "365f6b65a123583805ab0e5f240b5a0add796adcf658a865eac3b661b19b45ec84d19d87eb4c"
-                    "e789f11e51a6641907d71a79a7e9e00372f8b03185a0aaafc23158303e0e1cf5cbe04cd7c99c"
-                    "804ab120374f4a53aa31cf867cdc6222e1c33329e271e2b10723e09c3e58e0d5440ff1674877"
+                    "d8608443a10103a10558204717640f13442de964fe2df975d1f5b9049338cdc799143725983f"
+                    "3aac5e3bc45821c259895cb58581bcccb17204a6b99ea05cb1c556420025c4487f7df0d1a7ca"
+                    "89db818353a2011834044d626f622d68706b655f365f6b65a123583835b83dad83bce401ecbc"
+                    "78215d29c362be31727d86d14d1a983ee709f9cf23b44d1be7146c2ebab629d5e9d3a78e7ddc"
+                    "3b2ae9490ffedb355830652b1c2e54232fd67da865383a4196b3081d6af8f3dce4cfb2cbf74c"
+                    "b631df27c4180e081c4456df72e306b033871415"
                 ),
                 b"external-aad",
                 b"",
@@ -929,11 +933,12 @@ class TestCOSEHPKEKEVectors:
             (
                 HPKE_6_KE_KEY,
                 (
-                    "d8608444a1011818a1054c79c3898eee0f5d0c139ea9d1582122c443c0fb066dddd005678ab3"
-                    "5d2409e37145f3a2c660212b307c567107d481e8818353a2011834044d626f622d68706b655f"
-                    "365f6b65a1235838c0d3df69fd572cc5b4ea701c50d3251b9aa28620a0885b9377b2287c52ac"
-                    "6a25381921c735c82f0d471ccf8eff4f7096336db9d76231c8fd5830152b3a5f3833c4aed2d9"
-                    "d5a8e15b782543dc84709ac4706379eee3e5e334b0b9f56aec8770765c7b26bde266af673208"
+                    "d8608443a10103a1055820cf185363d088aa84b66d952d905d67801aac1692a51fd70c5198bf"
+                    "ec655cc17958219df95a1b0832f6ba161f831da0511904d075628c42d88bd96c6d051edd67d7"
+                    "082f818353a2011834044d626f622d68706b655f365f6b65a12358385148182fcb71312bda64"
+                    "8d9a7a4c4dd74ae840a0f0617f2d4b89c834eaa55b4e9636334a53bb1821e0fa15c38590c75f"
+                    "d2e09a5c678c6f0758306a9450456cd531a0b2d8215f7c6f67b8d8fee596d5093f9ae8e3d0fa"
+                    "4d606c6b9c06fbe22cc186807e20816d411a3c8c"
                 ),
                 b"",
                 b"external-info",
@@ -943,11 +948,12 @@ class TestCOSEHPKEKEVectors:
             (
                 HPKE_6_KE_KEY,
                 (
-                    "d8608444a1011818a1054c342275d497bd01b56282649c58219cedf5c89b5f3e1bcad64725c0"
-                    "d90a2184eedd1e8b7138b80d8c0f5cc1abf89e33818353a2011834044d626f622d68706b655f"
-                    "365f6b65a12358386e741c2825336f78c666cc7ad296920b25c11b6d482b235ad243172ce301"
-                    "dcbcaee23a076beabc6c282f2ba757d50fec9c6af0d0706d98275830e89f61c2fbdafb5573cf"
-                    "d12220dbd4545fa54b4d1412833db1b56ab484f486164138d9b84a2b16bdba3c7993ed8bd4a6"
+                    "d8608443a10103a1055820561f96247e2ea00c85aac63bbeb1ee480f21ab3e9ebf2dfc54c324"
+                    "e1440b8da158216ec7606341f7ca01b47a12f96b14b592a19acec35fc8575a14e77c1120f62a"
+                    "9ace818353a2011834044d626f622d68706b655f365f6b65a1235838f60e9ef789715248f9f3"
+                    "1fb9436aecee7a2fea8799fe436a97b5ad25b5dfbb697f9965e6f446e91fcffc3ff5e682fcb4"
+                    "e7a4bffa596f0a395830dee903c258f9be6e9019e2663c97b5912bac14ec09f814b9501dcc29"
+                    "c7211a60b0b15ecb21ea434c38dd8363d2783e3e"
                 ),
                 b"",
                 b"external-info",
@@ -957,11 +963,12 @@ class TestCOSEHPKEKEVectors:
             (
                 HPKE_6_KE_KEY,
                 (
-                    "d8608444a1011818a1054ca9fa34a4e5f1846e9afeb0a258219e4b6d9512d4d4fde5c5ca94d3"
-                    "babd478132a1ba3f92448fd25dcd26a483c2cb25818353a2011834044d626f622d68706b655f"
-                    "365f6b65a1235838a23c08691c61200eb23cf535ba0f0252f7f009f9ce24f7df7ad71a974536"
-                    "a01ff52d2ba12345d74bf751fd5382166aed53b2a78635d4aa7d5830691f2d587f1748e87ba1"
-                    "1dc1c10dd7602712789e85eaf63990d36a005ceb9041c119c8629d0cb366a8aafe0473a56b4f"
+                    "d8608443a10103a1055820dc036988cb1a9f5c3c2ab7320fd3a38bacb9c23b034172c59fbeb0"
+                    "26dc9f744658210c6ba63dfb087141b507a55070900ea3ae097aaacd3a400c83148f55e85134"
+                    "032c818353a2011834044d626f622d68706b655f365f6b65a1235838bdc971ce40e3e124a014"
+                    "5a622e1ec19182bfdc0cd66fbf8f6ff8fe7b43af1363c26be033563da00e96c8008f8804884d"
+                    "ff825beacc89f63858305a3af658bcc81a615f025485efd9925e243d9d3331f0a0fd1a65fc6f"
+                    "28a0895bc30eabac5cdb11e6cf82204d096e7489"
                 ),
                 b"external-aad",
                 b"external-info",
@@ -971,11 +978,12 @@ class TestCOSEHPKEKEVectors:
             (
                 HPKE_6_KE_KEY,
                 (
-                    "d8608444a1011818a1054c226a8d618d7ce2f1a116e7a8582120c2989b87f908e508443d80c3"
-                    "c7d35c3860da0fdf77edd51846874e38153d9b43818353a2011834044d626f622d68706b655f"
-                    "365f6b65a1235838ae833f2ab29229c1fe66f025d30facde2e8771940275f0b67934cad41822"
-                    "a7325ae9669f3cf8dc11c034c9105d67188a40d0343bce70bcdd58301e78d4468b91719a6f1e"
-                    "6f6a2e98efa55f92a0713984e4fa677f44f39acacf65559af142b5216786588123e8fa3d73d8"
+                    "d8608443a10103a10558209bedce93fc7ff55e06af978546a3b48e5a4c46caf3c1dcd70e1452"
+                    "9d98c0278a582144091e536a28a763f4441b7432ea884c7ec2ac0b68e938c8de8c05c5009e82"
+                    "d6e2818353a2011834044d626f622d68706b655f365f6b65a1235838ed5e7fdd82a824dc43c8"
+                    "7a72f84943d3d7ea70331dc513ebaa11136fce401eee755106b7498ba2dcbf6180677b735796"
+                    "bd9ed654c23ac2215830802d61870ffd823813b63c670db3319374b040e6de9a9b14015d2d2d"
+                    "e1601f13ddfb6e054c78e4bb35127be2bb775803"
                 ),
                 b"external-aad",
                 b"external-info",
@@ -1169,12 +1177,7 @@ class TestCOSEHPKEKEVectors:
             "HPKE-7-KE-external-aad-external-info-external-hpke-aad",
         ],
     )
-    def test_ke_vector(self, key_hex, ct_hex, external_aad, extra_info, hpke_aad, request):
-        # HPKE-5 and HPKE-6 (X448) test vectors in the draft appear to be incorrect.
-        # Key pairs are valid and roundtrip works, but the ciphertext cannot be decrypted.
-        test_id = request.node.callspec.id
-        if test_id.startswith("HPKE-5-KE") or test_id.startswith("HPKE-6-KE"):
-            pytest.xfail("draft-ietf-cose-hpke-23 X448 (HPKE-5/6) KE test vectors appear incorrect")
+    def test_ke_vector(self, key_hex, ct_hex, external_aad, extra_info, hpke_aad):
         key = COSEKey.new(cbor2.loads(bytes.fromhex(key_hex)))
         ct = bytes.fromhex(ct_hex)
         result = COSE.new().decode(ct, key, external_aad=external_aad, extra_info=extra_info, hpke_aad=hpke_aad)
@@ -1435,10 +1438,10 @@ class TestCOSEHPKEEncrypt0Vectors:
             (
                 HPKE_5_KEY,
                 (
-                    "d08344a101182ba2044e626f622d68706b655f352d696e74235838a7887685085eefbcf8230c"
-                    "e60ab6d18c01044807413f38ef1203b73b8083d37c3474fe2e822945c77fa011a4c808f55fbe"
-                    "d005c8e90a90e4582101dd9b944c4e051fa9214aa99296a83f81c04642f1f6aecd6f9304bbe5"
-                    "a92954f8"
+                    "d08344a101182ba2044e626f622d68706b655f352d696e742358388f5af58e1f0db443f7404b"
+                    "1ede00a32b977cd3a699b46928f5c571c306deed1f2d859381c0b6b6f666a78514b5041fb2e7"
+                    "f694d5692598ec58216a365c1bdcac86157cbacf68ac46d89597440a775607af455e754d42f9"
+                    "8b197336"
                 ),
                 b"",
                 b"",
@@ -1447,10 +1450,10 @@ class TestCOSEHPKEEncrypt0Vectors:
             (
                 HPKE_5_KEY,
                 (
-                    "d08344a101182ba2044e626f622d68706b655f352d696e742358388cde9ba79de94537b33e12"
-                    "1f3c8d3c5a720c9d3e5eaad0f0e0f84e323d592d20afa87a09657765d5ea57b27659366cfde2"
-                    "6a80d817e5b6ed58213794aa4fbbc9807f953c23eed30e575d16e83b488a521b03a7e737ce9a"
-                    "6f7e90e4"
+                    "d08344a101182ba2044e626f622d68706b655f352d696e74235838981878c54475dc1e97661a"
+                    "bdb4189c05b5063564297b3e6ac252412720eaf098cf854555ac700035374a0cba8abc3bdcb7"
+                    "0e42d202f55410582139fece2ab3dd76bb900ebec9c8436ff8b4e129499e10c703fce9099b96"
+                    "2a2baf2e"
                 ),
                 b"external-aad",
                 b"",
@@ -1459,10 +1462,10 @@ class TestCOSEHPKEEncrypt0Vectors:
             (
                 HPKE_5_KEY,
                 (
-                    "d08344a101182ba2044e626f622d68706b655f352d696e74235838ca713a0271741cac564ae3"
-                    "5b5278b343ce9b3f0f2a5379a0f20f6f759b682ad9884926185e7f2fb9dba541bc2a41034392"
-                    "e430c3f429f16a58211b393d9ba77bf79efa231d87033cf8a407ba249891c098abf834b63e22"
-                    "2aa744b3"
+                    "d08344a101182ba2044e626f622d68706b655f352d696e74235838cfc56e2a7bc6e0968b29a1"
+                    "3c995a2f1d6c14096facae8f6c4de89e5f59baf0c25dd5547034c2cb157b275b0f7dc74837b6"
+                    "5f4092bc6bbfbf582162df9346e36efb8d4a3b55dff58ab2095a31b5de9973dd51f9c8859902"
+                    "566c345d"
                 ),
                 b"",
                 b"external-info",
@@ -1471,10 +1474,10 @@ class TestCOSEHPKEEncrypt0Vectors:
             (
                 HPKE_5_KEY,
                 (
-                    "d08344a101182ba2044e626f622d68706b655f352d696e742358388c4b45493d8b3a5cd88bb3"
-                    "022e3e0a3777ac3b5f480e448b509089bb801608654a984e85200a70476f206b0bdf045063a5"
-                    "7f472d63c69b1a58212a35247d2dd06d3bcdf02f6d26e751420ea966907612e4431f44d7f792"
-                    "e91818a2"
+                    "d08344a101182ba2044e626f622d68706b655f352d696e74235838e7bfbb375d9d1ec703b833"
+                    "3d50f5bb62e5a8ebe093e207cc7f65b102f03706bce492b83be7d86b61c00863e96edff00888"
+                    "dad9ba39e60143582112636db0edaa6c58de1b9029084a0dfb8c26b09f3e7bd8d0f962a1e8ba"
+                    "c74f71cc"
                 ),
                 b"external-aad",
                 b"external-info",
@@ -1483,10 +1486,10 @@ class TestCOSEHPKEEncrypt0Vectors:
             (
                 HPKE_6_KEY,
                 (
-                    "d08344a101182ca2044e626f622d68706b655f362d696e74235838a17baa842458b4d082f042"
-                    "e5598e072bbe19b9970963ca0428a577add73c7a8d275e63f53971f4ba96bf842201d1c47761"
-                    "22dfffbc04e6cc582157e46f77fd6c2f2cab3d0810d67b7eac7341c0726ebaf978a8fafda78f"
-                    "295fad0e"
+                    "d08344a101182ca2044e626f622d68706b655f362d696e7423583805b7dc9742e800cda70b5b"
+                    "f55e2cfafb1414b630dca621999897a223c6564295328f4d913deff488d7a5ac70b089679e80"
+                    "8b1b9ecf18e43458217bba22205a379a6af9cbc37dc608d0571ca8f0146e4ddbe0bcacb5ffc2"
+                    "59a3325f"
                 ),
                 b"",
                 b"",
@@ -1495,10 +1498,10 @@ class TestCOSEHPKEEncrypt0Vectors:
             (
                 HPKE_6_KEY,
                 (
-                    "d08344a101182ca2044e626f622d68706b655f362d696e7423583851e914d34210e5fe233283"
-                    "c2755b6a42cfb1ada1139d9ece7664e57336b03892bdc67cec396c13dae437801cca5c885901"
-                    "fb616a96166ce75821fb3979eea60600d09bb76b4f3a5596ad5b194b21e713070fe7b0fa1443"
-                    "b809f65d"
+                    "d08344a101182ca2044e626f622d68706b655f362d696e742358385b964c5c2e9a12226b649c"
+                    "eaf964a4e50a8fe428fb288756c59cb92bd03d4c0eaa8c2104907cb8fe7487c14e4ef7ce11f3"
+                    "9cd4d1f1b209d1582151c6acdfdc65920d6d047a7d47acdab642493698a89444c5f32e688804"
+                    "7611c48b"
                 ),
                 b"external-aad",
                 b"",
@@ -1507,10 +1510,10 @@ class TestCOSEHPKEEncrypt0Vectors:
             (
                 HPKE_6_KEY,
                 (
-                    "d08344a101182ca2044e626f622d68706b655f362d696e7423583842ad024c1f764cbb797b35"
-                    "58d9c8ed9c3559c65870620c7b56f3367fdc65bc7b696d96411b57cd47a156fb945a939aca63"
-                    "f1a168f1a7d96a582197c449697f868ac6a708a8f9a1b1c325372edf6333c87e8d5f1853e859"
-                    "9a7848d2"
+                    "d08344a101182ca2044e626f622d68706b655f362d696e74235838f601104f62360338e92952"
+                    "7dba71011acc9ea59ec3fe3fb5cc338a3ce03b75664111ac030a6260091a80a4926447010c97"
+                    "b6079bd6cd33b75821fb8851b4c848830717589eedf46fc7dcd23af1de491a4c2273918bb78e"
+                    "7d8e232c"
                 ),
                 b"",
                 b"external-info",
@@ -1519,10 +1522,10 @@ class TestCOSEHPKEEncrypt0Vectors:
             (
                 HPKE_6_KEY,
                 (
-                    "d08344a101182ca2044e626f622d68706b655f362d696e742358380a100686fd1f040155a64d"
-                    "a572a9e9109487a55c7fed63c68c7bb38311a7b9c48d1555e006f0db2884bb4306703a9c5cb7"
-                    "c4a0e4afd1297b582199c40b5fcba3fa474ebd9f44326e308b462a2171a5c50294329284f0e3"
-                    "33ed5f15"
+                    "d08344a101182ca2044e626f622d68706b655f362d696e7423583869e66f4b70a1306856a7f0"
+                    "9e5d8b41fb808786c30a54e1627f2f65c33ce66212f0c2e5bf769391b7fd7d691f1dfe7c8b13"
+                    "1793e9727314f658216df8f6658779fc5f234cd58e6049f6795524f9ba00549772ca617d6262"
+                    "b230b81d"
                 ),
                 b"external-aad",
                 b"external-info",
@@ -1611,11 +1614,7 @@ class TestCOSEHPKEEncrypt0Vectors:
             "HPKE-7-Encrypt0-external-aad-external-info",
         ],
     )
-    def test_encrypt0_vector(self, key_hex, ct_hex, external_aad, hpke_info, request):
-        # HPKE-5 and HPKE-6 (X448) test vectors in the draft appear to be incorrect.
-        test_id = request.node.callspec.id
-        if test_id.startswith("HPKE-5-Encrypt0") or test_id.startswith("HPKE-6-Encrypt0"):
-            pytest.xfail("draft-ietf-cose-hpke-23 X448 (HPKE-5/6) Encrypt0 test vectors appear incorrect")
+    def test_encrypt0_vector(self, key_hex, ct_hex, external_aad, hpke_info):
         key = COSEKey.new(cbor2.loads(bytes.fromhex(key_hex)))
         ct = bytes.fromhex(ct_hex)
         result = COSE.new().decode(ct, key, external_aad=external_aad, hpke_info=hpke_info)
