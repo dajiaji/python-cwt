@@ -102,7 +102,8 @@ class HPKE(RecipientInterface):
             raise ValueError("recipient_key should be set in advance.")
         self._kem_key = self._to_kem_key(self._recipient_key)
         try:
-            psk_id = self._unprotected.get(-5, None)
+            # psk_id MUST be in the protected header (draft-ietf-cose-hpke)
+            psk_id = self._protected.get(-5, None) if isinstance(self._protected, dict) else None
             if psk_id is not None and not isinstance(psk_id, (bytes, bytearray)):
                 raise EncodeError("psk_id (-5) must be bstr.")
             if self._psk is not None and psk_id is None:
@@ -147,7 +148,8 @@ class HPKE(RecipientInterface):
         if not isinstance(ek, (bytes, bytearray)):
             raise DecodeError("ek (-4) must be bstr.")
         try:
-            psk_id = self._unprotected.get(-5, None)
+            # psk_id MUST be in the protected header (draft-ietf-cose-hpke)
+            psk_id = self._protected.get(-5, None) if isinstance(self._protected, dict) else None
             if psk_id is not None and not isinstance(psk_id, (bytes, bytearray)):
                 raise DecodeError("psk_id (-5) must be bstr.")
             if self._psk is not None and psk_id is None:

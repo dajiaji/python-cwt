@@ -350,8 +350,8 @@ class TestCOSESample:
         encoded = sender.encode_and_encrypt(
             b"This is the content.",
             rpk,
-            protected={COSEHeaders.ALG: COSEAlgs.HPKE_0},
-            unprotected={COSEHeaders.KID: b"01", COSEHeaders.PSK_ID: b"psk-01"},
+            protected={COSEHeaders.ALG: COSEAlgs.HPKE_0, COSEHeaders.PSK_ID: b"psk-01"},
+            unprotected={COSEHeaders.KID: b"01"},
             hpke_psk=b"secret-psk",
         )
 
