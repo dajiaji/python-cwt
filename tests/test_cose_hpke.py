@@ -223,6 +223,38 @@ class TestCOSE_HPKE:
         recipient = COSE.new()
         assert b"This is the content." == recipient.decode(encoded, rsk, hpke_psk=b"secret-psk")
 
+    def test_cose_hpke_encrypt0_with_unprotected_psk_id_roundtrip(self):
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            rpk,
+            protected={COSEHeaders.ALG: COSEAlgs.HPKE_0},
+            unprotected={COSEHeaders.KID: b"01", COSEHeaders.PSK_ID: b"psk-01"},
+            hpke_psk=b"secret-psk",
+        )
+
+        rsk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        )
+        recipient = COSE.new()
+        assert b"This is the content." == recipient.decode(encoded, rsk, hpke_psk=b"secret-psk")
+
     @pytest.mark.parametrize(
         "alg",
         [COSEAlgs.HPKE_1],
@@ -681,6 +713,45 @@ class TestCOSE_HPKE_KE:
         r = Recipient.new(
             protected={COSEHeaders.ALG: COSEAlgs.HPKE_0_KE, COSEHeaders.PSK_ID: b"psk-01"},
             unprotected={COSEHeaders.KID: b"01"},
+            recipient_key=rpk,
+            hpke_psk=b"secret-psk",
+        )
+        sender = COSE.new()
+        encoded = sender.encode_and_encrypt(
+            b"This is the content.",
+            enc_key,
+            protected={COSEHeaders.ALG: COSEAlgs.A128GCM},
+            recipients=[r],
+        )
+
+        rsk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+                "d": "V8kgd2ZBRuh2dgyVINBUqpPDr7BOMGcF22CQMIUHtNM",
+            }
+        )
+        recipient = COSE.new()
+        assert b"This is the content." == recipient.decode(encoded, rsk, hpke_psk=b"secret-psk")
+
+    def test_cose_hpke_ke_with_unprotected_psk_roundtrip(self):
+        enc_key = COSEKey.from_symmetric_key(alg="A128GCM")
+        rpk = COSEKey.from_jwk(
+            {
+                "kty": "EC",
+                "kid": "01",
+                "crv": "P-256",
+                "x": "usWxHK2PmfnHKwXPS54m0kTcGJ90UiglWiGahtagnv8",
+                "y": "IBOL-C3BttVivg-lSreASjpkttcsz-1rb7btKLv8EX4",
+            }
+        )
+
+        r = Recipient.new(
+            protected={COSEHeaders.ALG: COSEAlgs.HPKE_0_KE},
+            unprotected={COSEHeaders.KID: b"01", COSEHeaders.PSK_ID: b"psk-01"},
             recipient_key=rpk,
             hpke_psk=b"secret-psk",
         )

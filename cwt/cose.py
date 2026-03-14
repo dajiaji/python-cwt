@@ -699,7 +699,8 @@ class COSE(CBORProcessor):
                 if not isinstance(v, (bytes, bytearray)):
                     raise ValueError("ek (-4) must be bstr.")
             if k == -5:  # psk_id
-                raise ValueError("psk_id (-5) must be placed only in the protected header.")
+                if not isinstance(v, (bytes, bytearray)):
+                    raise ValueError("psk_id (-5) must be bstr.")
             h[k] = v
         if len(h) != len(p) + len(u):
             raise ValueError("The same keys are both in protected and unprotected headers.")
