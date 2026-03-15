@@ -1,5 +1,7 @@
 """Tests for COSE-HPKE test vectors from draft-ietf-cose-hpke-23 Appendix C."""
 
+import os
+
 import cbor2
 import pytest
 
@@ -1619,3 +1621,95 @@ class TestCOSEHPKEEncrypt0Vectors:
         ct = bytes.fromhex(ct_hex)
         result = COSE.new().decode(ct, key, external_aad=external_aad, hpke_info=hpke_info)
         assert result == b"hpke test payload"
+
+
+# --- PSK vectors loaded from testvectors.txt ---
+
+VECTORS_PATH = os.path.join(os.path.dirname(__file__), "vectors", "testvectors.txt")
+
+PLAINTEXT = b"hpke test payload"
+
+PSK = bytes.fromhex("0247fd33b913760fa1fa51e1892d9f307fbe65eb171e8132c2af18555a738b82")
+
+EXT_AAD = b"external-aad"
+EXT_INFO = b"external-info"
+EXT_HPKE_AAD = b"external-hpke-aad"
+
+
+def _parse_psk_vectors():
+    """Parse testvectors.txt and return KE+PSK and Encrypt0+PSK vectors."""
+    with open(VECTORS_PATH) as f:
+        lines = f.readlines()
+
+    ke_psk = []
+    e0_psk = []
+
+    current_key = None
+    i = 0
+    while i < len(lines):
+        line = lines[i].rstrip("\n")
+        i += 1
+
+        if "COSE_Key" in line:
+            idx = line.rfind(": ")
+            if idx >= 0:
+                current_key = line[idx + 2 :].strip()
+            continue
+
+        if "KE+PSK with" in line:
+            desc = line
+            while i < len(lines):
+                ct_line = lines[i].rstrip("\n")
+                i += 1
+                if ct_line.startswith("Ciphertext: "):
+                    ct_hex = ct_line[len("Ciphertext: ") :]
+                    break
+            ext_aad = EXT_AAD if "external aad" in desc else b""
+            extra_info = EXT_INFO if "external info" in desc else b""
+            hpke_aad = EXT_HPKE_AAD if "external hpke aad" in desc else b""
+            ke_psk.append((current_key, ct_hex, ext_aad, extra_info, hpke_aad))
+
+        elif "Encrypt0+PSK with" in line:
+            desc = line
+            while i < len(lines):
+                ct_line = lines[i].rstrip("\n")
+                i += 1
+                if ct_line.startswith("Ciphertext: "):
+                    ct_hex = ct_line[len("Ciphertext: ") :]
+                    break
+            ext_aad = EXT_AAD if "external aad" in desc else b""
+            hpke_info = EXT_INFO if "external info" in desc else b""
+            e0_psk.append((current_key, ct_hex, ext_aad, hpke_info))
+
+    return ke_psk, e0_psk
+
+
+_KE_PSK_VECTORS, _E0_PSK_VECTORS = _parse_psk_vectors()
+
+
+class TestCOSEHPKEKEPSKVectors:
+    """Test vectors for COSE-HPKE Key Encryption with PSK (COSE_Encrypt)."""
+
+    @pytest.mark.parametrize(
+        "key_hex, ct_hex, external_aad, extra_info, hpke_aad",
+        _KE_PSK_VECTORS,
+    )
+    def test_ke_psk_vector(self, key_hex, ct_hex, external_aad, extra_info, hpke_aad):
+        key = COSEKey.new(cbor2.loads(bytes.fromhex(key_hex)))
+        ct = bytes.fromhex(ct_hex)
+        result = COSE.new().decode(ct, key, external_aad=external_aad, extra_info=extra_info, hpke_aad=hpke_aad, hpke_psk=PSK)
+        assert result == PLAINTEXT
+
+
+class TestCOSEHPKEEncrypt0PSKVectors:
+    """Test vectors for COSE-HPKE Integrated Encryption with PSK (COSE_Encrypt0)."""
+
+    @pytest.mark.parametrize(
+        "key_hex, ct_hex, external_aad, hpke_info",
+        _E0_PSK_VECTORS,
+    )
+    def test_encrypt0_psk_vector(self, key_hex, ct_hex, external_aad, hpke_info):
+        key = COSEKey.new(cbor2.loads(bytes.fromhex(key_hex)))
+        ct = bytes.fromhex(ct_hex)
+        result = COSE.new().decode(ct, key, external_aad=external_aad, hpke_info=hpke_info, hpke_psk=PSK)
+        assert result == PLAINTEXT
