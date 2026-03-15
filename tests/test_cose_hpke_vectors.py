@@ -6,8 +6,6 @@ Test vectors are loaded from tests/vectors/testvectors.txt.
 import os
 import re
 
-import os
-
 import cbor2
 import pytest
 
