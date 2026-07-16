@@ -4,6 +4,32 @@ Changes
 Unreleased
 ----------
 
+Version 3.3.0
+-------------
+
+Released 2026-07-16
+
+- Relax the upper limit of cryptography to <52. `#672 <https://github.com/dajiaji/python-cwt/pull/672>`__
+- Drop support for Python 3.9. `#671 <https://github.com/dajiaji/python-cwt/pull/671>`__
+- Allow newer cryptography and add Python 3.14 tox. `#670 <https://github.com/dajiaji/python-cwt/pull/670>`__
+- Add script to generate testvectors.txt with PSK vectors. `#663 <https://github.com/dajiaji/python-cwt/pull/663>`__
+- Add PSK vectors from testvectors.txt. `#662 <https://github.com/dajiaji/python-cwt/pull/662>`__
+- Load COSE-HPKE vectors from external file. `#660 <https://github.com/dajiaji/python-cwt/pull/660>`__
+- Require psk_id in protected header and update test vectors. `#659 <https://github.com/dajiaji/python-cwt/pull/659>`__
+- Follow draft-ietf-cose-hpke-23. `#638 <https://github.com/dajiaji/python-cwt/pull/638>`__
+- Update dependencies.
+    - Bump cryptography to 46.0.5. `#658 <https://github.com/dajiaji/python-cwt/pull/658>`__
+    - Bump cbor2 to 5.8.0. `#653 <https://github.com/dajiaji/python-cwt/pull/653>`__
+    - Bump cbor2 to 5.7.1. `#651 <https://github.com/dajiaji/python-cwt/pull/651>`__
+    - Bump cryptography to 46.0.3. `#650 <https://github.com/dajiaji/python-cwt/pull/650>`__
+    - Bump pyhpke to 0.6.3. `#649 <https://github.com/dajiaji/python-cwt/pull/649>`__
+- Update dev dependencies.
+    - Bump virtualenv to 20.36.1. `#656 <https://github.com/dajiaji/python-cwt/pull/656>`__
+    - Bump sphinx-rtd-theme to 3.1.0. `#655 <https://github.com/dajiaji/python-cwt/pull/655>`__
+    - Bump urllib3 to 2.6.3. `#654 <https://github.com/dajiaji/python-cwt/pull/654>`__
+    - Bump urllib3 to 2.6.0. `#652 <https://github.com/dajiaji/python-cwt/pull/652>`__
+    - Bump tox to 4.30.3. `#648 <https://github.com/dajiaji/python-cwt/pull/648>`__
+
 Version 3.2.0
 -------------
 
