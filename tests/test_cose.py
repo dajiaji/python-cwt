@@ -16,7 +16,15 @@ import pytest
 from cbor2 import CBORTag
 
 import cwt
-from cwt import COSE, COSEKey, DecodeError, EncodeError, Recipient, VerifyError
+from cwt import (
+    COSE,
+    COSEKey,
+    COSEMessage,
+    DecodeError,
+    EncodeError,
+    Recipient,
+    VerifyError,
+)
 from cwt.enums import COSEAlgs, COSEHeaders
 from cwt.recipient_interface import RecipientInterface
 from cwt.signer import Signer
@@ -27,6 +35,42 @@ from .utils import key_path
 @pytest.fixture(scope="session", autouse=True)
 def ctx():
     return COSE.new(alg_auto_inclusion=True)
+
+
+@pytest.fixture(scope="session")
+def signing_key():
+    with open(key_path("private_key_ed25519.json")) as key_file:
+        return COSEKey.from_jwk(key_file.read())
+
+
+@pytest.fixture(params=[16, 96, 17, 97, 18, 98])
+def tagged_message(request, signing_key):
+    tag = request.param
+    cose = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+    if tag in (16, 96):
+        key = COSEKey.generate_symmetric_key(alg="A128GCM", kid="secret")
+    elif tag in (17, 97):
+        key = COSEKey.generate_symmetric_key(alg="HS256", kid="secret")
+    else:
+        key = signing_key
+
+    recipients = []
+    signers = []
+    if tag in (96, 97):
+        recipients = [Recipient.new(unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: key.kid})]
+    elif tag == 98:
+        signers = [Signer.new(key, {COSEHeaders.ALG: key.alg}, {COSEHeaders.KID: key.kid})]
+
+    tagged = cose.encode(
+        b"payload",
+        key,
+        unprotected={1000: {"chain": [b"certificate"]}},
+        recipients=recipients,
+        signers=signers,
+        out="cbor2/CBORTag",
+    )
+    assert tagged.tag == tag
+    return tagged, key
 
 
 class TestCOSE:
@@ -1138,3 +1182,103 @@ class TestCOSE:
             ctx.encode(b"This is the content.", recipients=[recipient, recipient])
             pytest.fail("encode should fail.")
         assert "There must be only one recipient in direct key agreement mode." in str(err.value)
+
+    @pytest.mark.parametrize("input_kind", ["bytes", "decoded_tag", "constructed_tag"])
+    def test_cose_decode_with_headers_returns_mutable_containers(self, tagged_message, input_kind):
+        tagged, key = tagged_message
+        if input_kind == "bytes":
+            data = cbor2.dumps(tagged)
+        elif input_kind == "decoded_tag":
+            data = cbor2.loads(cbor2.dumps(tagged))
+        else:
+            data = tagged
+
+        protected, unprotected, payload = COSE.new().decode_with_headers(data, key)
+        assert payload == b"payload"
+        assert isinstance(protected, dict)
+        assert isinstance(unprotected, dict)
+        assert isinstance(unprotected[1000], dict)
+        assert isinstance(unprotected[1000]["chain"], list)
+
+    def test_cose_decode_with_headers_does_not_modify_input(self, tagged_message):
+        tagged, key = tagged_message
+        encoded = cbor2.dumps(tagged)
+        cose = COSE.new()
+
+        _, unprotected, _ = cose.decode_with_headers(tagged, key)
+        unprotected[1000]["chain"].append(b"another certificate")
+
+        assert cbor2.dumps(tagged) == encoded
+        assert cose.decode(tagged, key) == b"payload"
+
+    def test_cose_decode_with_detached_payload_roundtrip(self, tagged_message):
+        tagged, key = tagged_message
+        message = COSEMessage.loads(cbor2.dumps(tagged))
+        cose = COSE.new()
+
+        detached, payload = message.detach_payload()
+        assert cose.decode(detached.dumps(), key, detached_payload=payload) == b"payload"
+        assert cose.decode(detached.attach_payload(payload).dumps(), key) == b"payload"
+
+    @pytest.mark.parametrize("tag", [18, 98])
+    def test_cose_decode_preserves_protected_header_bytes(self, tag, signing_key):
+        # Non-minimal integer encodings must not be normalized before verification.
+        protected = bytes.fromhex("a1180127")
+        payload = b"payload"
+        if tag == 18:
+            to_sign = ["Signature1", protected, b"", payload]
+            signature = signing_key.sign(cbor2.dumps(to_sign))
+            fields = [protected, {COSEHeaders.KID: signing_key.kid}, payload, signature]
+        else:
+            to_sign = ["Signature", protected, protected, b"", payload]
+            signature = signing_key.sign(cbor2.dumps(to_sign))
+            fields = [protected, {}, payload, [[protected, {COSEHeaders.KID: signing_key.kid}, signature]]]
+
+        encoded = cbor2.dumps(CBORTag(tag, fields))
+        cose = COSE.new()
+
+        assert cose.decode(encoded, signing_key) == payload
+        assert cose.decode(cbor2.loads(encoded), signing_key) == payload
+
+    def test_cose_decode_with_headers_preserves_shared_containers(self):
+        shared = [b"leaf"]
+        for _ in range(12):
+            shared = [shared, shared]
+
+        key = COSEKey.generate_symmetric_key(alg="HS256")
+        protected = cbor2.dumps({COSEHeaders.ALG: key.alg})
+        payload = b"payload"
+        mac = key.sign(cbor2.dumps(["MAC0", protected, b"", payload]))
+        fields = [protected, {1000: shared, 1001: shared}, payload, mac]
+        encoded = cbor2.dumps(CBORTag(17, fields), value_sharing=True)
+
+        _, unprotected, _ = COSE.new().decode_with_headers(encoded, key)
+
+        assert len(encoded) < 512
+        assert unprotected[1000] is unprotected[1001]
+        node = unprotected[1000]
+        for _ in range(12):
+            assert isinstance(node, list)
+            assert node[0] is node[1]
+            node = node[0]
+        assert node == [b"leaf"]
+
+    @pytest.mark.parametrize("tag", [16, 96, 17, 97, 18, 98])
+    @pytest.mark.parametrize("value", [b"abc", "abc", {}, None, 42])
+    def test_cose_decode_with_non_array_tagged_value(self, tag, value, signing_key):
+        with pytest.raises(ValueError, match="Invalid .* format"):
+            COSE.new().decode(CBORTag(tag, value), signing_key)
+
+    @pytest.mark.parametrize("headers", [b"", "", [], (), None, 42])
+    def test_cose_decode_with_non_map_unprotected_headers(self, headers, signing_key):
+        tagged = CBORTag(18, (b"", headers, b"payload", b"signature"))
+
+        with pytest.raises(ValueError, match="unprotected header"):
+            COSE.new().decode(tagged, signing_key)
+
+    @pytest.mark.parametrize("value", [b"abc", "abc", {}, None, 42])
+    def test_cose_decode_with_non_array_signature(self, value, signing_key):
+        tagged = CBORTag(98, (b"", {}, b"payload", (value,)))
+
+        with pytest.raises(ValueError, match="Invalid Signature format"):
+            COSE.new().decode(tagged, signing_key)
