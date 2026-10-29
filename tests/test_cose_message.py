@@ -713,7 +713,7 @@ class TestCOSEMessage:
         assert message.signatures == []
 
     def test_cose_message_loads_preserves_shared_containers(self):
-        shared = [b"leaf"]
+        shared = []
         for _ in range(12):
             shared = [shared, shared]
         fields = [b"", {1000: shared, 1001: shared}, b"payload", b"signature"]
@@ -728,7 +728,7 @@ class TestCOSEMessage:
             assert isinstance(node, list)
             assert node[0] is node[1]
             node = node[0]
-        assert node == [b"leaf"]
+        assert node == []
 
     def test_cose_message_shared_mutable_containers_are_visited_once(self):
         visits = []

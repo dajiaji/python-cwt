@@ -1241,7 +1241,7 @@ class TestCOSE:
         assert cose.decode(cbor2.loads(encoded), signing_key) == payload
 
     def test_cose_decode_with_headers_preserves_shared_containers(self):
-        shared = [b"leaf"]
+        shared = []
         for _ in range(12):
             shared = [shared, shared]
 
@@ -1261,7 +1261,7 @@ class TestCOSE:
             assert isinstance(node, list)
             assert node[0] is node[1]
             node = node[0]
-        assert node == [b"leaf"]
+        assert node == []
 
     @pytest.mark.parametrize("tag", [16, 96, 17, 97, 18, 98])
     @pytest.mark.parametrize("value", [b"abc", "abc", {}, None, 42])

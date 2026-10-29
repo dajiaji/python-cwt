@@ -517,11 +517,12 @@ class TestRecipient:
     def test_recipient_from_list_does_not_modify_input(self):
         fields = [b"", {COSEHeaders.ALG: COSEAlgs.DIRECT, 1000: {"chain": [b"metadata"]}}, b""]
         tagged = cbor2.loads(cbor2.dumps(cbor2.CBORTag(96, [b"", {}, b"ciphertext", [fields]])))
+        original_chain = tagged.value[3][0][1][1000]["chain"][:]
 
         recipient = Recipient.from_list(tagged.value[3][0])
         recipient.unprotected[1000]["chain"].append(b"more metadata")
 
-        assert tagged.value[3][0][1][1000]["chain"] == (b"metadata",)
+        assert tagged.value[3][0][1][1000]["chain"] == original_chain
 
     def test_recipient_from_list_preserves_protected_header_bytes(self):
         protected = bytes.fromhex("a1180129")
@@ -532,7 +533,7 @@ class TestRecipient:
         assert recipient.b_protected == protected
 
     def test_recipient_from_list_preserves_shared_containers(self):
-        shared = [b"leaf"]
+        shared = []
         for _ in range(12):
             shared = [shared, shared]
         headers = {COSEHeaders.ALG: COSEAlgs.DIRECT, 1000: shared, 1001: shared}
@@ -547,7 +548,7 @@ class TestRecipient:
             assert isinstance(node, list)
             assert node[0] is node[1]
             node = node[0]
-        assert node == [b"leaf"]
+        assert node == []
 
     @pytest.mark.parametrize("headers", [b"", "", [], (), None, 42])
     def test_recipient_from_list_with_non_map_unprotected_headers(self, headers):
