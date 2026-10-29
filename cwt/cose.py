@@ -1,3 +1,4 @@
+from collections.abc import Mapping
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from cbor2 import CBORTag
@@ -23,7 +24,12 @@ from .recipient_algs.hpke import HPKE
 from .recipient_interface import RecipientInterface
 from .recipients import Recipients
 from .signer import Signer
-from .utils import ResolvedHeader, sort_keys_for_deterministic_encoding, to_cose_header
+from .utils import (
+    ResolvedHeader,
+    sort_keys_for_deterministic_encoding,
+    to_cose_header,
+    to_mutable,
+)
 
 
 class COSE(CBORProcessor):
@@ -405,44 +411,45 @@ class COSE(CBORProcessor):
 
         if data.tag == 16:
             keys = self._filter_by_key_ops(keys, 4)
-            if not isinstance(data.value, list) or len(data.value) != 3:
+            if not isinstance(data.value, (list, tuple)) or len(data.value) != 3:
                 raise ValueError("Invalid Encrypt0 format.")
         elif data.tag == 96:
             keys = self._filter_by_key_ops(keys, 4)
-            if not isinstance(data.value, list) or len(data.value) != 4:
+            if not isinstance(data.value, (list, tuple)) or len(data.value) != 4:
                 raise ValueError("Invalid Encrypt format.")
         elif data.tag == 17:
             keys = self._filter_by_key_ops(keys, 10)
-            if not isinstance(data.value, list) or len(data.value) != 4:
+            if not isinstance(data.value, (list, tuple)) or len(data.value) != 4:
                 raise ValueError("Invalid MAC0 format.")
         elif data.tag == 97:
             keys = self._filter_by_key_ops(keys, 10)
-            if not isinstance(data.value, list) or len(data.value) != 5:
+            if not isinstance(data.value, (list, tuple)) or len(data.value) != 5:
                 raise ValueError("Invalid MAC format.")
         elif data.tag == 18:
             keys = self._filter_by_key_ops(keys, 2)
-            if not isinstance(data.value, list) or len(data.value) != 4:
+            if not isinstance(data.value, (list, tuple)) or len(data.value) != 4:
                 raise ValueError("Invalid Signature1 format.")
         elif data.tag == 98:
             keys = self._filter_by_key_ops(keys, 2)
-            if not isinstance(data.value, list) or len(data.value) != 4:
+            if not isinstance(data.value, (list, tuple)) or len(data.value) != 4:
                 raise ValueError("Invalid Signature format.")
         else:
             raise ValueError(f"Unsupported or unknown CBOR tag({data.tag}).")
 
-        payload = data.value[2]
+        value = list(data.value)
+        payload = value[2]
         if detached_payload is not None:
-            if data.value[2] is not None:
+            if value[2] is not None:
                 raise ValueError("The payload already exists.")
             payload = detached_payload
         if payload is None:
             raise ValueError("detached_payload should be set.")
 
-        # protected: Union[Dict[int, Any], bytes] = self._loads(data.value[0]) if data.value[0] else b""
-        # unprotected = data.value[1]
+        # protected: Union[Dict[int, Any], bytes] = self._loads(value[0]) if value[0] else b""
+        # unprotected = value[1]
         # if not isinstance(unprotected, dict):
         #     raise ValueError("unprotected header should be dict.")
-        p, u = self._decode_headers(data.value[0], data.value[1])
+        p, u = self._decode_headers(value[0], value[1])
         alg = p[1] if 1 in p else u.get(1, 0)
         if 1 in u and alg in COSE_ALGORITHMS_HPKE.values():
             raise ValueError("HPKE algorithms must be in the protected header.")
@@ -452,7 +459,7 @@ class COSE(CBORProcessor):
         # Local variable `protected` is byte encoded protected header
         # Sender is allowed to encode empty protected header into a bstr-wrapped zero-length map << {} >> (0x40A0)
         # but Recipient MUST treat it as a zero-length byte string h'' (0x40) while decoding
-        protected = data.value[0] if len(p) > 0 else b""
+        protected = value[0] if len(p) > 0 else b""
 
         err: Exception = ValueError("key is not found.")
 
@@ -493,11 +500,11 @@ class COSE(CBORProcessor):
         # Encrypt
         if data.tag == 96:
             rs = Recipients.from_list(
-                data.value[3], self._verify_kid, context, hpke_psk=hpke_psk, extra_info=extra_info, hpke_aad=hpke_aad
+                value[3], self._verify_kid, context, hpke_psk=hpke_psk, extra_info=extra_info, hpke_aad=hpke_aad
             )
             nonce = u.get(5, b"")
             enc_key = rs.derive_key(keys, alg, external_aad, "Enc_Recipient")
-            aad = self._dumps(["Encrypt", data.value[0], external_aad])
+            aad = self._dumps(["Encrypt", value[0], external_aad])
             return p, u, enc_key.decrypt(payload, nonce, aad)
 
         # MAC0
@@ -509,14 +516,14 @@ class COSE(CBORProcessor):
                     if k.kid != kid:
                         continue
                     try:
-                        k.verify(msg, data.value[3])
+                        k.verify(msg, value[3])
                         return p, u, payload
                     except Exception as e:
                         err = e
                 raise err
             for _, k in enumerate(keys):
                 try:
-                    k.verify(msg, data.value[3])
+                    k.verify(msg, value[3])
                     return p, u, payload
                 except Exception as e:
                     err = e
@@ -525,9 +532,9 @@ class COSE(CBORProcessor):
         # MAC
         if data.tag == 97:
             to_be_maced = self._dumps(["MAC", protected, external_aad, payload])
-            rs = Recipients.from_list(data.value[4], self._verify_kid, context, hpke_psk=hpke_psk)
+            rs = Recipients.from_list(value[4], self._verify_kid, context, hpke_psk=hpke_psk)
             mac_auth_key = rs.derive_key(keys, alg, external_aad, "Mac_Recipient")
-            mac_auth_key.verify(to_be_maced, data.value[3])
+            mac_auth_key.verify(to_be_maced, value[3])
             return p, u, payload
 
         # Signature1
@@ -541,7 +548,7 @@ class COSE(CBORProcessor):
                     try:
                         if self._ca_certs:
                             k.validate_certificate(self._ca_certs)
-                        k.verify(to_be_signed, data.value[3])
+                        k.verify(to_be_signed, value[3])
                         return p, u, payload
                     except Exception as e:
                         err = e
@@ -550,7 +557,7 @@ class COSE(CBORProcessor):
                 try:
                     if self._ca_certs:
                         k.validate_certificate(self._ca_certs)
-                    k.verify(to_be_signed, data.value[3])
+                    k.verify(to_be_signed, value[3])
                     return p, u, payload
                 except Exception as e:
                     err = e
@@ -558,16 +565,16 @@ class COSE(CBORProcessor):
 
         # Signature
         # if data.tag == 98:
-        sigs = data.value[3]
-        if not isinstance(sigs, list):
+        sigs = value[3]
+        if not isinstance(sigs, (list, tuple)):
             raise ValueError("Invalid Signature format.")
         for sig in sigs:
-            if not isinstance(sig, list) or len(sig) != 3:
+            if not isinstance(sig, (list, tuple)) or len(sig) != 3:
                 raise ValueError("Invalid Signature format.")
 
             sp = self._loads(sig[0]) if sig[0] else b""
             su = sig[1]
-            if not isinstance(su, dict):
+            if not isinstance(su, Mapping):
                 raise ValueError("unprotected header in signature structure should be dict.")
             kid = self._get_kid(sp, su)
             if kid:
@@ -648,9 +655,9 @@ class COSE(CBORProcessor):
             if len(p) > 0:
                 raise ValueError("Invalid protected header.")
             p = {}
-        u: Dict[Union[str, int], Any] = unprotected
-        if not isinstance(u, dict):
+        if not isinstance(unprotected, Mapping):
             raise ValueError("unprotected header should be dict.")
+        u: Dict[Union[str, int], Any] = to_mutable(unprotected)
         return p, u
 
     def _validate_cose_message(
@@ -934,11 +941,11 @@ class COSE(CBORProcessor):
         return res
 
     def _get_alg(self, protected: Any) -> int:
-        return protected[1] if isinstance(protected, dict) and 1 in protected else 0
+        return protected[1] if isinstance(protected, Mapping) and 1 in protected else 0
 
-    def _get_kid(self, protected: Any, unprotected: dict) -> bytes:
+    def _get_kid(self, protected: Any, unprotected: Mapping) -> bytes:
         kid = b""
-        if isinstance(protected, dict) and 4 in protected:
+        if isinstance(protected, Mapping) and 4 in protected:
             kid = protected[4]
         elif 4 in unprotected:
             kid = unprotected[4]

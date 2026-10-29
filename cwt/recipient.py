@@ -1,4 +1,5 @@
-from typing import Any, Dict, List, Optional, Union
+from collections.abc import Mapping
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import cbor2
 
@@ -20,7 +21,7 @@ from .recipient_algs.ecdh_aes_key_wrap import ECDH_AESKeyWrap
 from .recipient_algs.ecdh_direct_hkdf import ECDH_DirectHKDF
 from .recipient_algs.hpke import HPKE
 from .recipient_interface import RecipientInterface
-from .utils import ResolvedHeader, to_cose_header, to_recipient_context
+from .utils import ResolvedHeader, to_cose_header, to_mutable, to_recipient_context
 
 
 class Recipient:
@@ -108,7 +109,7 @@ class Recipient:
     @classmethod
     def from_list(
         cls,
-        recipient: List[Any],
+        recipient: Union[List[Any], Tuple[Any, ...]],
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
         hpke_psk: Optional[bytes] = None,
         extra_info: bytes = b"",
@@ -118,26 +119,27 @@ class Recipient:
         Creates a recipient from a raw COSE array data.
 
         Args:
-            data (Union[str, bytes, Dict[str, Any]]): JSON-formatted recipient data.
+            recipient (Union[List[Any], Tuple[Any, ...]]): A raw COSE recipient array.
         Returns:
             RecipientInterface: A recipient object.
         Raises:
             ValueError: Invalid arguments.
             DecodeError: Failed to decode the key data.
         """
-        if not isinstance(recipient, list) or (len(recipient) != 3 and len(recipient) != 4):
+        if not isinstance(recipient, (list, tuple)) or (len(recipient) != 3 and len(recipient) != 4):
             raise ValueError("Invalid recipient format.")
         if not isinstance(recipient[0], bytes):
             raise ValueError("protected header should be bytes.")
         protected = {} if not recipient[0] else cbor2.loads(recipient[0])
-        if not isinstance(recipient[1], dict):
+        if not isinstance(recipient[1], Mapping):
             raise ValueError("unprotected header should be dict.")
+        unprotected = to_mutable(recipient[1])
         if not isinstance(recipient[2], bytes):
             raise ValueError("ciphertext should be bytes.")
         if len(recipient) == 3:
             rec = cls.new(
                 protected,
-                recipient[1],
+                unprotected,
                 recipient[2],
                 hpke_psk=hpke_psk,
                 context=context,
@@ -146,14 +148,14 @@ class Recipient:
             )
             rec._set_b_protected(recipient[0])
             return rec
-        if not isinstance(recipient[3], list):
+        if not isinstance(recipient[3], (list, tuple)):
             raise ValueError("recipients should be list.")
         recipients: List[RecipientInterface] = []
         for r in recipient[3]:
             recipients.append(cls.from_list(r, hpke_psk=hpke_psk, extra_info=extra_info, hpke_aad=hpke_aad))
         rec = cls.new(
             protected,
-            recipient[1],
+            unprotected,
             recipient[2],
             recipients,
             hpke_psk=hpke_psk,

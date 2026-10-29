@@ -6,6 +6,8 @@
 """
 Tests for Recipient.
 """
+from types import MappingProxyType
+
 import cbor2
 import pytest
 
@@ -492,6 +494,71 @@ class TestRecipient:
             Recipient.new(unprotected=data, sender_key=COSEKey.from_jwk(key))
             pytest.fail("Recipient() should fail.")
         assert msg in str(err.value)
+
+    def test_recipient_from_list_with_nested_immutable_recipients(self):
+        fields = [
+            b"",
+            {COSEHeaders.ALG: COSEAlgs.A128KW, COSEHeaders.KID: b"parent", 1000: {"chain": [b"metadata"]}},
+            b"wrapped key",
+            [[b"", {COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: b"child"}, b""]],
+        ]
+        tagged = cbor2.loads(cbor2.dumps(cbor2.CBORTag(96, [b"", {}, b"ciphertext", [fields]])))
+
+        recipient = Recipient.from_list(tagged.value[3][0])
+
+        assert recipient.kid == b"parent"
+        assert recipient.recipients[0].kid == b"child"
+        assert isinstance(recipient.unprotected, dict)
+        assert isinstance(recipient.unprotected[1000], dict)
+        assert isinstance(recipient.unprotected[1000]["chain"], list)
+        assert isinstance(recipient.to_list(), list)
+        assert isinstance(recipient.to_list()[3][0], list)
+
+    def test_recipient_from_list_does_not_modify_input(self):
+        fields = [b"", {COSEHeaders.ALG: COSEAlgs.DIRECT, 1000: {"chain": [b"metadata"]}}, b""]
+        tagged = cbor2.loads(cbor2.dumps(cbor2.CBORTag(96, [b"", {}, b"ciphertext", [fields]])))
+        original_chain = tagged.value[3][0][1][1000]["chain"][:]
+
+        recipient = Recipient.from_list(tagged.value[3][0])
+        recipient.unprotected[1000]["chain"].append(b"more metadata")
+
+        assert tagged.value[3][0][1][1000]["chain"] == original_chain
+
+    def test_recipient_from_list_preserves_protected_header_bytes(self):
+        protected = bytes.fromhex("a1180129")
+        unprotected = MappingProxyType({COSEHeaders.KID: b"recipient"})
+
+        recipient = Recipient.from_list((protected, unprotected, b""), context={"alg": "A128GCM"})
+
+        assert recipient.b_protected == protected
+
+    def test_recipient_from_list_preserves_shared_containers(self):
+        shared = []
+        for _ in range(12):
+            shared = [shared, shared]
+        headers = {COSEHeaders.ALG: COSEAlgs.DIRECT, 1000: shared, 1001: shared}
+        encoded = cbor2.dumps(cbor2.CBORTag(999, [b"", headers, b""]), value_sharing=True)
+
+        recipient = Recipient.from_list(cbor2.loads(encoded).value)
+
+        assert len(encoded) < 512
+        assert recipient.unprotected[1000] is recipient.unprotected[1001]
+        node = recipient.unprotected[1000]
+        for _ in range(12):
+            assert isinstance(node, list)
+            assert node[0] is node[1]
+            node = node[0]
+        assert node == []
+
+    @pytest.mark.parametrize("headers", [b"", "", [], (), None, 42])
+    def test_recipient_from_list_with_non_map_unprotected_headers(self, headers):
+        with pytest.raises(ValueError, match="unprotected header"):
+            Recipient.from_list((b"", headers, b""))
+
+    @pytest.mark.parametrize("value", [b"abc", "abc", {}, None, 42])
+    def test_recipient_from_list_with_non_array(self, value):
+        with pytest.raises(ValueError, match="Invalid recipient format"):
+            Recipient.from_list(value)
 
 
 class TestRecipients:
