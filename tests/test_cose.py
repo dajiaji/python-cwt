@@ -10,6 +10,7 @@ Tests for COSE.
 import base64
 import datetime
 from secrets import token_bytes
+from typing import Any, Dict, Union
 
 import cbor2
 import pytest
@@ -28,6 +29,7 @@ from cwt import (
 from cwt.enums import COSEAlgs, COSEHeaders
 from cwt.recipient_interface import RecipientInterface
 from cwt.signer import Signer
+from cwt.utils import ResolvedHeader
 
 from .utils import key_path
 
@@ -176,6 +178,48 @@ class TestCOSE:
         )
         encoded = ctx.encode_and_sign(b"Hello world!", sig_key)
         assert b"Hello world!" == ctx.decode(encoded, sig_key)
+
+    @pytest.mark.parametrize("wrap_protected", [False, True])
+    @pytest.mark.parametrize("wrap_unprotected", [False, True])
+    @pytest.mark.parametrize("out", ["", "cbor2/CBORTag"])
+    def test_cose_signing_resolved_headers(self, ctx, wrap_protected, wrap_unprotected, out):
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            private_key = COSEKey.from_pem(key_file.read())
+        with open(key_path("public_key_ed25519.pem")) as key_file:
+            public_key = COSEKey.from_pem(key_file.read(), kid="01")
+        protected: Dict[Union[str, int], Any] = {1: -8, -65537: "protected text", -65538: b"protected bytes"}
+        unprotected: Dict[Union[str, int], Any] = {4: b"01", -65539: "unprotected text", -65540: b"unprotected bytes"}
+        if wrap_protected:
+            protected["application"] = "protected application text"
+        if wrap_unprotected:
+            unprotected["kid"] = "literal application label and text"
+        encoded = ctx.encode_and_sign(
+            b"Hello world!",
+            private_key,
+            protected=ResolvedHeader(protected) if wrap_protected else protected,
+            unprotected=ResolvedHeader(unprotected) if wrap_unprotected else unprotected,
+            out=out,
+        )
+        assert isinstance(encoded, CBORTag if out else bytes)
+        p, u, payload = ctx.decode_with_headers(encoded, public_key)
+        assert p == protected
+        assert u == unprotected
+        assert payload == b"Hello world!"
+
+    def test_cose_signing_named_headers(self, ctx):
+        with open(key_path("private_key_ed25519.pem")) as key_file:
+            key = COSEKey.from_pem(key_file.read(), kid="01")
+        encoded = ctx.encode_and_sign(
+            b"Hello world!",
+            key,
+            protected={"alg": "EdDSA", "kid": "01"},
+            unprotected={"cty": "application/cose", "x5u": "https://example.com/cert"},
+        )
+        assert isinstance(encoded, bytes)
+        p, u, payload = ctx.decode_with_headers(encoded, key)
+        assert p == {1: -8, 4: b"01"}
+        assert u == {3: "application/cose", 35: "https://example.com/cert"}
+        assert payload == b"Hello world!"
 
     # def test_cose_encode_and_decode_mac0_with_protected_bytes(self):
     #     ctx = COSE.new(kid_auto_inclusion=True)

@@ -4,6 +4,8 @@ Changes
 Unreleased
 ----------
 
+- Correct COSE signing header annotations to accept dictionaries and ResolvedHeader in strict type checkers.
+
 Version 3.3.0
 -------------
 

@@ -280,8 +280,8 @@ class COSE(CBORProcessor):
         self,
         payload: bytes,
         key: Optional[COSEKeyInterface] = None,
-        protected: Optional[dict] = None,
-        unprotected: Optional[dict] = None,
+        protected: Optional[Union[Dict[Any, Any], ResolvedHeader]] = None,
+        unprotected: Optional[Union[Dict[Any, Any], ResolvedHeader]] = None,
         signers: List[Signer] = [],
         external_aad: bytes = b"",
         out: str = "",
@@ -294,8 +294,12 @@ class COSE(CBORProcessor):
             key (Optional[COSEKeyInterface]): A signing key for single signer
                 cases. When the ``signers`` parameter is set, this ``key`` will
                 be ignored and should not be set.
-            protected (Optional[dict]): Parameters that are to be cryptographically protected.
-            unprotected (Optional[dict]): Parameters that are not cryptographically protected.
+            protected (Optional[Union[Dict[Any, Any], ResolvedHeader]]): Parameters that are
+                to be cryptographically protected. Use ``ResolvedHeader`` to bypass
+                named-header resolution and value conversion.
+            unprotected (Optional[Union[Dict[Any, Any], ResolvedHeader]]): Parameters that are
+                not cryptographically protected. Use ``ResolvedHeader`` to bypass
+                named-header resolution and value conversion.
             signers (List[Signer]): A list of signer information objects for
                 multiple signer cases.
             external_aad(bytes): External additional authenticated data supplied
