@@ -989,7 +989,7 @@ class TestSample:
             },
         )
         protected = {
-            COSEHeaders.CWT_CLAIMS: {  # 13
+            COSEHeaders.CWT_CLAIMS: {  # 15
                 CWTClaims.ISS: "coap://as.example.com",
             }
         }

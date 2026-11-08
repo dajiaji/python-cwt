@@ -13,8 +13,8 @@ implementation compliant with:
 - [RFC9053: CBOR Object Signing and Encryption (COSE): Initial Algorithms](https://www.rfc-editor.org/rfc/rfc9053.html)
 - [RFC9338: CBOR Object Signing and Encryption (COSE): Countersignatures](https://www.rfc-editor.org/rfc/rfc9338.html) - experimental
 - [RFC8392: CWT (CBOR Web Token)](https://tools.ietf.org/html/rfc8392)
+- [RFC9597: CBOR Web Token (CWT) Claims in COSE Headers](https://www.rfc-editor.org/rfc/rfc9597.html)
 - [draft-23: Use of HPKE with COSE](https://www.ietf.org/archive/id/draft-ietf-cose-hpke-23.html) - experimental
-- [draft-06: CWT Claims in COSE Headers](https://www.ietf.org/archive/id/draft-ietf-cose-cwt-claims-in-headers-06.html) - experimental
 - [draft-13: Fully-Specified Algorithms for JOSE and COSE](https://www.ietf.org/archive/id/draft-ietf-jose-fully-specified-algorithms-13.html)
 - and related various specifications. See [Referenced Specifications](#referenced-specifications).
 
@@ -1562,9 +1562,25 @@ assert readable.get("ext_4") == 123
 
 ### CWT with CWT claims in COSE headers
 
-Python CWT supports [CWT Claims in COSE Headers](https://www.ietf.org/archive/id/draft-ietf-cose-cwt-claims-in-headers-06.html)  experimentally.
+Python CWT supports [RFC9597: CBOR Web Token (CWT) Claims in COSE Headers](https://www.rfc-editor.org/rfc/rfc9597.html).
+The CWT Claims header parameter uses the label `15` (`COSEHeaders.CWT_CLAIMS`), and its value is a map of CWT claims.
 
-If a CWT message has a CWT Claims header parameter in its protected header, `cwt.decode()` checks whether the values of the claims included in that parameter match the values of the corresponding claims in the payload. If they do not match, `VerifyError` is raised.
+**Note:** Python CWT v3.3.0 and earlier implemented [draft-06](https://www.ietf.org/archive/id/draft-ietf-cose-cwt-claims-in-headers-06.html),
+which requested the label `13`. IANA assigned `15` to CWT Claims in RFC9597 and assigned `13` to the unrelated
+`kcwt` header parameter ([RFC9528](https://www.rfc-editor.org/rfc/rfc9528.html)). `COSEHeaders.CWT_CLAIMS` is now `15`,
+and the label `13` is no longer interpreted as CWT Claims. Tokens issued with the draft label `13` are not cross-checked
+by `cwt.decode()` and should be re-issued with `15`.
+
+If a CWT has a CWT Claims header parameter in the protected or unprotected header of any of its COSE layers
+(including the outer layers of a nested CWT), `cwt.decode()` checks that the value of each claim in that parameter is
+identical to the value of the corresponding claim in the payload, if present. Values are compared as CBOR data items,
+so, for example, `1`, `1.0` and `True` are not identical, while map key order does not matter. If they do not match, `VerifyError` is raised.
+`ValueError` is raised if the parameter value is not a map or if the parameter occurs in both the protected and
+unprotected headers. These checks are skipped if `no_verify=True` is specified. Headers of individual signers
+(`COSE_Signature`) and recipients (`COSE_recipient`) are not checked.
+
+See [RFC9597 Sections 2–4](https://www.rfc-editor.org/rfc/rfc9597.html#section-2) for recommendations on placing the
+parameter in the protected header, privacy, and security considerations.
 
 ```py
 from cwt import COSE, COSEHeaders, COSEKey, CWT, CWTClaims
@@ -1585,7 +1601,7 @@ payload = cbor2.dumps(
     },
 )
 protected = {
-    COSEHeaders.CWT_CLAIMS: {  # 13
+    COSEHeaders.CWT_CLAIMS: {  # 15
         CWTClaims.ISS: "coap://as.example.com",
     }
 }
@@ -1598,6 +1614,9 @@ decoded = recipient.decode(token, enc_key)
 assert decoded[CWTClaims.ISS] == "coap://as.example.com"
 assert decoded[CWTClaims.SUB] == "erikw"
 ```
+
+The CWT Claims header parameter is not restricted to CWTs. It can be set in the headers of any COSE message
+created with `COSE`, including ones whose payload is not CBOR.
 
 ### CWT with PoP Key
 
@@ -1800,9 +1819,9 @@ Python CWT is (partially) compliant with following specifications:
 - [RFC8392: CWT (CBOR Web Token)](https://tools.ietf.org/html/rfc8392)
 - [RFC8230: Using RSA Algorithms with COSE Messages](https://tools.ietf.org/html/rfc8230)
 - [RFC9459: CBOR Object Signing and Encryption (COSE): AES-CTR and AES-CBC](https://www.rfc-editor.org/rfc/rfc9459.html) - experimental
+- [RFC9597: CBOR Web Token (CWT) Claims in COSE Headers](https://www.rfc-editor.org/rfc/rfc9597.html)
 - [RFC8152: CBOR Object Signing and Encryption (COSE)](https://tools.ietf.org/html/rfc8152)
 - [draft-23: Use of HPKE with COSE](https://www.ietf.org/archive/id/draft-ietf-cose-hpke-23.html) - experimental
-- [draft-06: CWT Claims in COSE Headers](https://www.ietf.org/archive/id/draft-ietf-cose-cwt-claims-in-headers-06.html) - experimental
 - [draft-13: Fully-Specified Algorithms for JOSE and COSE](https://www.ietf.org/archive/id/draft-ietf-jose-fully-specified-algorithms-13.html)
 - [Electronic Health Certificate Specification](https://github.com/ehn-dcc-development/hcert-spec/blob/main/hcert_spec.md)
 - [Technical Specifications for Digital Green Certificates Volume 1](https://ec.europa.eu/health/sites/default/files/ehealth/docs/digital-green-certificates_v1_en.pdf)

@@ -1,14 +1,16 @@
 from calendar import timegm
+from collections.abc import Mapping
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from cbor2 import CBORTag
+from cbor2 import CBORTag, dumps
 
 from .cbor_processor import CBORProcessor
 from .claims import Claims
 from .const import COSE_KEY_OPERATION_VALUES
 from .cose import COSE
 from .cose_key_interface import COSEKeyInterface
+from .enums import COSEHeaders
 from .exceptions import DecodeError, VerifyError
 from .recipient_interface import RecipientInterface
 from .signer import Signer
@@ -320,6 +322,12 @@ class CWT(CBORProcessor):
         """
         Verifies and decodes CWT.
 
+        Unless ``no_verify`` is set, if a CWT Claims header parameter
+        (`RFC 9597 <https://www.rfc-editor.org/rfc/rfc9597.html>`_, label 15) is
+        present in the protected or unprotected header of any COSE layer, the
+        value of each claim in it must be identical (as a CBOR data item) to the
+        corresponding claim in the payload, if present.
+
         Args:
             data (bytes): A byte string of an encoded CWT.
             keys (Union[COSEKeyInterface, List[COSEKeyInterface]]): A COSE key
@@ -337,12 +345,13 @@ class CWT(CBORProcessor):
         if isinstance(cwt, CBORTag) and cwt.tag == CWT.CBOR_TAG:
             cwt = cwt.value
         keys = [keys] if isinstance(keys, COSEKeyInterface) else keys
-        p: Dict[Union[str, int], Any] = {}
+        headers: List[Tuple[Dict[Union[str, int], Any], Dict[Union[str, int], Any]]] = []
         while isinstance(cwt, CBORTag):
             p, u, cwt = self._cose.decode_with_headers(cwt, keys)
+            headers.append((p, u))
             cwt = self._loads(cwt)
         if not no_verify:
-            self._verify(cwt, p)
+            self._verify(cwt, headers)
         return cwt
 
     def set_private_claim_names(self, claim_names: Dict[str, int]):
@@ -399,7 +408,11 @@ class CWT(CBORProcessor):
         Claims.validate(claims)
         return
 
-    def _verify(self, claims: Union[Dict[Union[str, int], Any], bytes], protected: Dict[Union[str, int], Any] = {}):
+    def _verify(
+        self,
+        claims: Union[Dict[Union[str, int], Any], bytes],
+        headers: Optional[List[Tuple[Dict[Union[str, int], Any], Dict[Union[str, int], Any]]]] = None,
+    ):
         if not isinstance(claims, dict):
             raise DecodeError("Failed to decode.")
 
@@ -418,10 +431,31 @@ class CWT(CBORProcessor):
             else:
                 raise ValueError("nbf should be int or float.")
 
-        if 13 in protected:  # CWT claims in protected headers
-            for k, v in protected[13].items():
-                if k in claims and claims[k] != v:
-                    raise VerifyError(f"The CWT claim({k}) value in protected header does not match the values in the payload.")
+        for protected, unprotected in headers or []:
+            self._verify_cwt_claims_header(claims, protected, unprotected)
+        return
+
+    def _verify_cwt_claims_header(
+        self,
+        claims: Dict[Union[str, int], Any],
+        protected: Dict[Union[str, int], Any],
+        unprotected: Dict[Union[str, int], Any],
+    ):
+        # RFC 9597 Section 2
+        label = COSEHeaders.CWT_CLAIMS
+        if label in protected and label in unprotected:
+            raise ValueError(
+                f"The CWT Claims header parameter({label}) must occur only once in either the protected or unprotected header."
+            )
+        for where, header in (("protected", protected), ("unprotected", unprotected)):
+            if label not in header:
+                continue
+            if not isinstance(header[label], Mapping):
+                raise ValueError(f"The CWT Claims header parameter({label}) should be map.")
+            for k, v in header[label].items():
+                # Compare deterministic CBOR encodings so that e.g. 1, 1.0 and True are not identical.
+                if k in claims and dumps(claims[k], canonical=True) != dumps(v, canonical=True):
+                    raise VerifyError(f"The CWT claim({k}) value in {where} header does not match the values in the payload.")
         return
 
     def _set_default_value(self, claims: Union[Dict[int, Any], bytes]):

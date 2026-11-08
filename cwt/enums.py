@@ -25,7 +25,7 @@ class COSEHeaders(enum.IntEnum):
     KID_CONTEXT = 10
     COUNTER_SIGNATURE_V2 = 11
     COUNTER_SIGNATURE_0_V2 = 12
-    CWT_CLAIMS = 13
+    CWT_CLAIMS = 15
     X5BAG = 32
     X5CHAIN = 33
     X5T = 34
