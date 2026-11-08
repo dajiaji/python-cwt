@@ -55,7 +55,7 @@ class TestCOSESampleWithEncode:
                 "kid": "01",
                 "kty": "OKP",
                 "crv": "Ed25519",
-                "alg": "EdDSA",
+                "alg": "Ed25519",
                 "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
                 "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
             },
@@ -68,7 +68,7 @@ class TestCOSESampleWithEncode:
                 "kid": "01",
                 "kty": "OKP",
                 "crv": "Ed25519",
-                "alg": "EdDSA",
+                "alg": "Ed25519",
                 "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
             },
         )
@@ -79,7 +79,7 @@ class TestCOSESampleWithEncode:
         except Exception as err:
             pytest.fail(f"failed to verify: {err}")
         countersignature = COSEMessage.from_cose_signature(sig)
-        assert countersignature.protected[1] == -8  # alg: "EdDSA"
+        assert countersignature.protected[1] == -19  # alg: "Ed25519"
         assert countersignature.unprotected[4] == b"01"  # kid: b"01"
 
     def test_cose_usage_examples_cose_mac_direct(self):
@@ -295,7 +295,7 @@ class TestCOSESampleWithEncode:
                 "kid": "01",
                 "kty": "OKP",
                 "crv": "Ed25519",
-                "alg": "EdDSA",
+                "alg": "Ed25519",
                 "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
                 "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
             },
@@ -310,7 +310,7 @@ class TestCOSESampleWithEncode:
                 "kid": "01",
                 "kty": "OKP",
                 "crv": "Ed25519",
-                "alg": "EdDSA",
+                "alg": "Ed25519",
                 "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
             },
         )
@@ -321,7 +321,7 @@ class TestCOSESampleWithEncode:
         except Exception as err:
             pytest.fail(f"failed to verify: {err}")
         countersignature = COSEMessage.from_cose_signature(sig)
-        assert countersignature.protected[1] == -8  # alg: "EdDSA"
+        assert countersignature.protected[1] == -19  # alg: "Ed25519"
         assert countersignature.unprotected[4] == b"01"  # kid: b"01"
 
     def test_cose_usage_examples_cose_mac_hpke(self):
@@ -445,7 +445,7 @@ class TestCOSESampleWithEncode:
                 "kid": "01",
                 "kty": "OKP",
                 "crv": "Ed25519",
-                "alg": "EdDSA",
+                "alg": "Ed25519",
                 "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
                 "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
             },
@@ -458,7 +458,7 @@ class TestCOSESampleWithEncode:
                 "kid": "01",
                 "kty": "OKP",
                 "crv": "Ed25519",
-                "alg": "EdDSA",
+                "alg": "Ed25519",
                 "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
             },
         )
@@ -469,7 +469,7 @@ class TestCOSESampleWithEncode:
         except Exception as err:
             pytest.fail(f"failed to verify: {err}")
         countersignature = COSEMessage.from_cose_signature(sig)
-        assert countersignature.protected[1] == -8  # alg: "EdDSA"
+        assert countersignature.protected[1] == -19  # alg: "Ed25519"
         assert countersignature.unprotected[4] == b"01"  # kid: b"01"
 
     def test_cose_usage_examples_cose_encrypt0_hpke(self):
@@ -570,7 +570,7 @@ class TestCOSESampleWithEncode:
                 "kid": "01",
                 "kty": "OKP",
                 "crv": "Ed25519",
-                "alg": "EdDSA",
+                "alg": "Ed25519",
                 "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
                 "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
             },
@@ -583,7 +583,7 @@ class TestCOSESampleWithEncode:
                 "kid": "01",
                 "kty": "OKP",
                 "crv": "Ed25519",
-                "alg": "EdDSA",
+                "alg": "Ed25519",
                 "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
             },
         )
@@ -595,7 +595,7 @@ class TestCOSESampleWithEncode:
         except Exception as err:
             pytest.fail(f"failed to verify: {err}")
         countersignature = COSEMessage.from_cose_signature(sig)
-        assert countersignature.protected[1] == -8  # alg: "EdDSA"
+        assert countersignature.protected[1] == -19  # alg: "Ed25519"
         assert countersignature.unprotected[4] == b"01"  # kid: b"01"
 
     def test_cose_usage_examples_cose_encrypt_hpke(self):
@@ -1002,7 +1002,7 @@ class TestCOSESampleWithEncode:
                 "kid": "01",
                 "kty": "OKP",
                 "crv": "Ed25519",
-                "alg": "EdDSA",
+                "alg": "Ed25519",
                 "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
                 "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
             },
@@ -1024,7 +1024,7 @@ class TestCOSESampleWithEncode:
                 "kid": "01",
                 "kty": "OKP",
                 "crv": "Ed25519",
-                "alg": "EdDSA",
+                "alg": "Ed25519",
                 "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
             },
         )
@@ -1035,7 +1035,7 @@ class TestCOSESampleWithEncode:
         except Exception as err:
             pytest.fail(f"failed to verify: {err}")
         countersignature = COSEMessage.from_cose_signature(sig)
-        assert countersignature.protected[1] == -8  # alg: "EdDSA"
+        assert countersignature.protected[1] == -19  # alg: "Ed25519"
         assert countersignature.unprotected[4] == b"01"  # kid: b"01"
 
     def test_cose_usage_examples_cose_signature(self):
@@ -1097,7 +1097,7 @@ class TestCOSESampleWithEncode:
                 "kty": "OKP",
                 "kid": "n01",
                 "crv": "Ed25519",
-                "alg": "EdDSA",
+                "alg": "Ed25519",
                 "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
                 "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
             },
@@ -1128,7 +1128,7 @@ class TestCOSESampleWithEncode:
                 "kty": "OKP",
                 "kid": "n01",
                 "crv": "Ed25519",
-                "alg": "EdDSA",
+                "alg": "Ed25519",
                 "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
             },
         )
@@ -1141,7 +1141,7 @@ class TestCOSESampleWithEncode:
         except Exception as err:
             pytest.fail(f"failed to verify: {err}")
         countersignature = COSEMessage.from_cose_signature(sig)
-        assert countersignature.protected[COSEHeaders.ALG] == COSEAlgs.EDDSA
+        assert countersignature.protected[COSEHeaders.ALG] == COSEAlgs.ED25519
         assert countersignature.unprotected[COSEHeaders.KID] == b"n01"
 
     def test_cose_usage_examples_detached_cose_sign_with_countersignature(self):
@@ -1175,7 +1175,7 @@ class TestCOSESampleWithEncode:
                 "kty": "OKP",
                 "kid": "n01",
                 "crv": "Ed25519",
-                "alg": "EdDSA",
+                "alg": "Ed25519",
                 "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
                 "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
             },
@@ -1213,7 +1213,7 @@ class TestCOSESampleWithEncode:
                 "kty": "OKP",
                 "kid": "n01",
                 "crv": "Ed25519",
-                "alg": "EdDSA",
+                "alg": "Ed25519",
                 "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
             },
         )
@@ -1231,5 +1231,5 @@ class TestCOSESampleWithEncode:
         except Exception as err:
             pytest.fail(f"failed to verify: {err}")
         countersignature = COSEMessage.from_cose_signature(sig)
-        assert countersignature.protected[COSEHeaders.ALG] == COSEAlgs.EDDSA
+        assert countersignature.protected[COSEHeaders.ALG] == COSEAlgs.ED25519
         assert countersignature.unprotected[COSEHeaders.KID] == b"n01"

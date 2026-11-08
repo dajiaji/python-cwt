@@ -270,9 +270,9 @@ COSE_ALGORITHMS_MAC = {
 
 # COSE Algorithms for Signature with OKP.
 COSE_ALGORITHMS_SIG_OKP = {
-    "EdDSA": -8,  # EdDSA
-    "Ed25519": -19,  # EdDSA using Ed25519 curve
-    "Ed448": -53,  # EdDSA using Ed448 curve
+    "EdDSA": -8,  # EdDSA (Deprecated by RFC 9864)
+    "Ed25519": -19,  # EdDSA using the Ed25519 parameter set in Section 5.1 of RFC 8032
+    "Ed448": -53,  # EdDSA using the Ed448 parameter set in Section 5.2 of RFC 8032
 }
 
 # COSE Algorithms for Signature with EC2.
@@ -280,10 +280,10 @@ COSE_ALGORITHMS_SIG_EC2 = {
     "ESP512": -52,  # ECDSA using P-521 curve and SHA-512
     "ESP384": -51,  # ECDSA using P-384 curve and SHA-384
     "ES256K": -47,  # ECDSA using secp256k1 curve and SHA-256
-    "ES512": -36,  # ECDSA w/ SHA-512 (any curve is not specified but python-cwt uses P-521 curve)
-    "ES384": -35,  # ECDSA w/ SHA-384 (any curve is not specified but python-cwt uses P-384 curve)
+    "ES512": -36,  # ECDSA w/ SHA-512 (Deprecated by RFC 9864; python-cwt uses P-521 curve)
+    "ES384": -35,  # ECDSA w/ SHA-384 (Deprecated by RFC 9864; python-cwt uses P-384 curve)
     "ESP256": -9,  # ECDSA using P-256 curve and SHA-256
-    "ES256": -7,  # ECDSA w/ SHA-256 (any curve is not specified but python-cwt uses P-256 curve)
+    "ES256": -7,  # ECDSA w/ SHA-256 (Deprecated by RFC 9864; python-cwt uses P-256 curve)
 }
 
 # COSE Algorithms for Signature with RSA.
@@ -303,13 +303,15 @@ JOSE_ALGORITHMS_SUPPORTED = {
     "RS512": -259,
     "RS384": -258,
     "RS256": -257,
+    "Ed448": -53,
     "ES256K": -47,
     "PS512": -39,
     "PS384": -38,
     "PS256": -37,
     "ES512": -36,
     "ES384": -35,
-    "EdDSA": -8,
+    "Ed25519": -19,
+    "EdDSA": -8,  # Deprecated by RFC 9864
     "ES256": -7,
     "dir": -6,
     "A128GCM": 1,
