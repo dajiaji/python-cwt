@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from .cbor_processor import CBORProcessor
 from .cose_key import COSEKey
@@ -20,7 +20,7 @@ class Recipients(CBORProcessor):
     @classmethod
     def from_list(
         cls,
-        recipients: List[Any],
+        recipients: Union[List[Any], Tuple[Any, ...]],
         verify_kid: bool = False,
         context: Optional[Union[List[Any], Dict[str, Any]]] = None,
         hpke_psk: Optional[bytes] = None,

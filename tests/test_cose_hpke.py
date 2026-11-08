@@ -132,6 +132,7 @@ class TestCOSE_HPKE:
         tag = cbor2.loads(encoded)
         assert tag.tag == 16
         p, u, c = tag.value
+        u = dict(u)
         u[-4] = 123  # wrong type
         tampered = cbor2.CBORTag(16, [p, u, c])
         tampered_bytes = cbor2.dumps(tampered)

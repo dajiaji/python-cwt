@@ -46,7 +46,7 @@ nitpick_ignore = [
     ("py:class", "ResolvedHeader"),
     ("py:class", "cwt.claims.T"),
     ("py:class", "cwt.cbor_processor.CBORProcessor"),
-    ("py:class", "_cbor2.CBORTag"),
+    ("py:class", "cbor2.CBORTag"),
     ("py:class", "cwt.exceptions.CWTError"),
     ("py:class", "cwt.recipient.Recipient"),
     ("py:class", "CBORTag"),

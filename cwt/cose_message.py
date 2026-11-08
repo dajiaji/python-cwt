@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from cbor2 import CBORTag, loads
@@ -9,6 +10,7 @@ from .const import COSE_TAG_TO_TYPE, COSE_TYPE_TO_TAG
 from .cose_key_interface import COSEKeyInterface
 from .enums import COSETypes
 from .signer import Signer
+from .utils import to_mutable
 
 
 class COSEMessage(CBORProcessor):
@@ -16,16 +18,16 @@ class COSEMessage(CBORProcessor):
     The COSE message.
     """
 
-    def __init__(self, type: COSETypes, msg: List[Any]):
+    def __init__(self, type: COSETypes, msg: Union[List[Any], Tuple[Any, ...]]):
         """
         Constructor.
 
         Args:
             type (List[Any]): A type of the COSE message.
-            msg (List[Any]): A COSE message as a CBOR array.
+            msg (Union[List[Any], Tuple[Any, ...]]): A COSE message as a CBOR array.
         """
         self._validate_cose_message(msg)
-        self._msg = msg
+        self._msg = msg if isinstance(msg, list) else list(msg)
         self._type = type
         self._protected = msg[0]
         self._unprotected = msg[1]
@@ -41,11 +43,10 @@ class COSEMessage(CBORProcessor):
         elif self._type == COSETypes.ENCRYPT:
             if len(self._msg) != 4:
                 raise ValueError("Invalid COSE_Encrypt message.")
-            if not isinstance(self._msg[3], list):
+            if not isinstance(self._msg[3], (list, tuple)):
                 raise ValueError("The COSE recipients should be array.")
             for recipient in self._msg[3]:
                 self._validate_cose_message(recipient)
-            self._recipients = self._msg[3]
 
         elif self._type == COSETypes.MAC0:
             if len(self._msg) != 4:
@@ -60,11 +61,10 @@ class COSEMessage(CBORProcessor):
             if not isinstance(self._msg[3], bytes):
                 raise ValueError("The tag value should be bytes.")
             self._other_fields = [self._msg[3]]  # tag
-            if not isinstance(self._msg[4], list):
+            if not isinstance(self._msg[4], (list, tuple)):
                 raise ValueError("The COSE recipients should be array.")
             for recipient in self._msg[4]:
                 self._validate_cose_message(recipient)
-            self._recipients = self._msg[4]
 
         elif self._type == COSETypes.SIGN1:
             if len(self._msg) != 4:
@@ -76,11 +76,10 @@ class COSEMessage(CBORProcessor):
         elif self._type == COSETypes.SIGN:
             if len(self._msg) != 4:
                 raise ValueError("Invalid COSE_Sign message.")
-            if not isinstance(self._msg[3], list):
+            if not isinstance(self._msg[3], (list, tuple)):
                 raise ValueError("The COSE signatures should be array.")
             for signature in self._msg[3]:
                 self._validate_cose_message(signature)
-            self._signatures = self._msg[3]
 
         elif self._type == COSETypes.COUNTERSIGNATURE:
             if len(self._msg) != 3:
@@ -96,6 +95,15 @@ class COSEMessage(CBORProcessor):
 
         else:
             raise ValueError(f"Invalid COSETypes({type}) for COSE message.")
+
+        # Convert only after validation, preserving child references for countersigning.
+        self._msg = to_mutable(self._msg, preserve_mutable=True)
+        self._unprotected = self._msg[1]
+        if self._type in (COSETypes.ENCRYPT, COSETypes.MAC):
+            self._recipients = self._msg[-1]
+        elif self._type == COSETypes.SIGN:
+            self._signatures = self._msg[3]
+
         return
 
     def __eq__(self: COSEMessage, other: object) -> bool:
@@ -117,11 +125,11 @@ class COSEMessage(CBORProcessor):
         return cls(type, tagged.value)
 
     @classmethod
-    def from_cose_signature(cls, signature: List[Any]):
+    def from_cose_signature(cls, signature: Union[List[Any], Tuple[Any, ...]]):
         return cls(COSETypes.SIGNATURE, signature)
 
     @classmethod
-    def from_cose_recipient(cls, recipient: List[Any]):
+    def from_cose_recipient(cls, recipient: Union[List[Any], Tuple[Any, ...]]):
         return cls(COSETypes.RECIPIENT, recipient)
 
     @property
@@ -317,12 +325,12 @@ class COSEMessage(CBORProcessor):
                 err = e
         raise err
 
-    def _validate_cose_message(self, msg: List[Any]):
-        if len(msg) < 3:
+    def _validate_cose_message(self, msg: Union[List[Any], Tuple[Any, ...]]):
+        if not isinstance(msg, (list, tuple)) or len(msg) < 3:
             raise ValueError("Invalid COSE message.")
         if not isinstance(msg[0], bytes):
             raise ValueError("The protected headers should be bytes.")
-        if not isinstance(msg[1], dict):
+        if not isinstance(msg[1], Mapping):
             raise ValueError("The unprotected headers should be Dict[int, Any].")
         if not isinstance(msg[2], bytes) and msg[2] is not None:
             raise ValueError("The payload should be bytes or null.")
@@ -330,13 +338,13 @@ class COSEMessage(CBORProcessor):
         countersignatures = msg[1].get(11, None)
         if countersignatures is None:
             return
-        if not isinstance(countersignatures, list):
+        if not isinstance(countersignatures, (list, tuple)):
             raise ValueError("The countersignature should be array.")
         if len(countersignatures) == 0:
             raise ValueError("Invalid countersignature.")
         if isinstance(countersignatures[0], bytes):
             return self._validate_cose_message(countersignatures)
-        elif not isinstance(countersignatures[0], list):
+        elif not isinstance(countersignatures[0], (list, tuple)):
             raise ValueError("Invalid countersignature.")
         for cs in countersignatures:
             self._validate_cose_message(cs)

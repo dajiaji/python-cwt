@@ -1,6 +1,7 @@
 import base64
 import copy
 import json
+from collections.abc import Mapping
 from typing import Any, Dict, List, Optional, Union
 
 import cbor2
@@ -20,6 +21,36 @@ from .const import (
     JWK_PARAMS_OKP,
     JWK_PARAMS_RSA,
 )
+
+
+def to_mutable(obj: Any, *, preserve_mutable: bool = False) -> Any:
+    """Convert containers, preserving shared references, byte strings and map keys."""
+    memo: Dict[int, Any] = {}
+
+    def convert(value: Any) -> Any:
+        if not isinstance(value, (Mapping, list, tuple)):
+            return value
+
+        if id(value) in memo:
+            return memo[id(value)]
+
+        if isinstance(value, Mapping):
+            result: Dict[Any, Any] = value if preserve_mutable and isinstance(value, dict) else {}
+            memo[id(value)] = result
+            for key, item in value.items():
+                result[key] = convert(item)
+            return result
+
+        items: List[Any] = value if preserve_mutable and isinstance(value, list) else []
+        memo[id(value)] = items
+        for i, item in enumerate(value):
+            if items is value:
+                items[i] = convert(item)
+            else:
+                items.append(convert(item))
+        return items
+
+    return convert(obj)
 
 
 def i2osp(x: int, x_len: int) -> bytes:
