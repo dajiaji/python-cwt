@@ -10,6 +10,10 @@ Unreleased
     - ``CWT.decode()`` now checks the CWT Claims header parameter in unprotected headers and in every COSE layer of a nested CWT, not only in the protected header of the innermost layer.
     - ``CWT.decode()`` now requires header and payload claim values to be identical CBOR data items (e.g. ``1``, ``1.0`` and ``True`` no longer compare equal), as RFC 9597 requires.
     - ``CWT.decode()`` now raises ``ValueError`` if the CWT Claims header parameter is not a map or occurs in both the protected and unprotected headers.
+- Follow RFC 9864 (Fully-Specified Algorithms for JOSE and COSE), formerly draft-ietf-jose-fully-specified-algorithms-13.
+    - Add Ed25519 and Ed448 to supported JOSE algorithms.
+    - Mark EdDSA, ES256, ES384 and ES512 as deprecated in docs.
+    - Use Ed25519 instead of EdDSA in README examples.
 
 Version 3.3.0
 -------------

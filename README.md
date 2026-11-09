@@ -15,7 +15,7 @@ implementation compliant with:
 - [RFC8392: CWT (CBOR Web Token)](https://tools.ietf.org/html/rfc8392)
 - [RFC9597: CBOR Web Token (CWT) Claims in COSE Headers](https://www.rfc-editor.org/rfc/rfc9597.html)
 - [draft-23: Use of HPKE with COSE](https://www.ietf.org/archive/id/draft-ietf-cose-hpke-23.html) - experimental
-- [draft-13: Fully-Specified Algorithms for JOSE and COSE](https://www.ietf.org/archive/id/draft-ietf-jose-fully-specified-algorithms-13.html)
+- [RFC9864: Fully-Specified Algorithms for JSON Object Signing and Encryption (JOSE) and CBOR Object Signing and Encryption (COSE)](https://www.rfc-editor.org/rfc/rfc9864.html)
 - and related various specifications. See [Referenced Specifications](#referenced-specifications).
 
 It is designed to make users who already know about [JWS](https://tools.ietf.org/html/rfc7515)/[JWE](https://tools.ietf.org/html/rfc7516)/[JWT](https://tools.ietf.org/html/rfc7519)
@@ -254,7 +254,7 @@ notary = Signer.from_jwk(
         "kid": "01",
         "kty": "OKP",
         "crv": "Ed25519",
-        "alg": "EdDSA",
+        "alg": "Ed25519",
         "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
         "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
     },
@@ -267,7 +267,7 @@ pub_key = COSEKey.from_jwk(
         "kid": "01",
         "kty": "OKP",
         "crv": "Ed25519",
-        "alg": "EdDSA",
+        "alg": "Ed25519",
         "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
     },
 )
@@ -278,7 +278,7 @@ try:
 except Exception as err:
     pytest.fail(f"failed to verify: {err}")
 countersignature = COSEMessage.from_cose_signature(sig)
-assert countersignature.protected[1] == -8  # alg: "EdDSA"
+assert countersignature.protected[1] == -19  # alg: "Ed25519"
 assert countersignature.unprotected[4] == b"01"  # kid: b"01"
 ```
 
@@ -491,7 +491,7 @@ notary = Signer.from_jwk(
         "kid": "01",
         "kty": "OKP",
         "crv": "Ed25519",
-        "alg": "EdDSA",
+        "alg": "Ed25519",
         "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
         "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
     },
@@ -504,7 +504,7 @@ pub_key = COSEKey.from_jwk(
         "kid": "01",
         "kty": "OKP",
         "crv": "Ed25519",
-        "alg": "EdDSA",
+        "alg": "Ed25519",
         "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
     },
 )
@@ -515,7 +515,7 @@ try:
 except Exception as err:
     pytest.fail(f"failed to verify: {err}")
 countersignature = COSEMessage.from_cose_signature(sig)
-assert countersignature.protected[1] == -8  # alg: "EdDSA"
+assert countersignature.protected[1] == -19  # alg: "Ed25519"
 assert countersignature.unprotected[4] == b"01"  # kid: b"01"
 ```
 
@@ -637,7 +637,7 @@ notary = Signer.from_jwk(
         "kid": "01",
         "kty": "OKP",
         "crv": "Ed25519",
-        "alg": "EdDSA",
+        "alg": "Ed25519",
         "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
         "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
     },
@@ -650,7 +650,7 @@ pub_key = COSEKey.from_jwk(
         "kid": "01",
         "kty": "OKP",
         "crv": "Ed25519",
-        "alg": "EdDSA",
+        "alg": "Ed25519",
         "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
     },
 )
@@ -661,7 +661,7 @@ try:
 except Exception as err:
     pytest.fail(f"failed to verify: {err}")
 countersignature = COSEMessage.from_cose_signature(sig)
-assert countersignature.protected[1] == -8  # alg: "EdDSA"
+assert countersignature.protected[1] == -19  # alg: "Ed25519"
 assert countersignature.unprotected[4] == b"01"  # kid: b"01"
 ```
 
@@ -990,7 +990,7 @@ notary = Signer.from_jwk(
         "kid": "01",
         "kty": "OKP",
         "crv": "Ed25519",
-        "alg": "EdDSA",
+        "alg": "Ed25519",
         "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
         "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
     },
@@ -1003,7 +1003,7 @@ pub_key = COSEKey.from_jwk(
         "kid": "01",
         "kty": "OKP",
         "crv": "Ed25519",
-        "alg": "EdDSA",
+        "alg": "Ed25519",
         "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
     },
 )
@@ -1015,7 +1015,7 @@ try:
 except Exception as err:
     pytest.fail(f"failed to verify: {err}")
 countersignature = COSEMessage.from_cose_signature(sig)
-assert countersignature.protected[1] == -8  # alg: "EdDSA"
+assert countersignature.protected[1] == -19  # alg: "Ed25519"
 assert countersignature.unprotected[4] == b"01"  # kid: b"01"
 ```
 
@@ -1139,7 +1139,7 @@ notary = Signer.from_jwk(
         "kid": "01",
         "kty": "OKP",
         "crv": "Ed25519",
-        "alg": "EdDSA",
+        "alg": "Ed25519",
         "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
         "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
     },
@@ -1161,7 +1161,7 @@ notary_pub_key = COSEKey.from_jwk(
         "kid": "01",
         "kty": "OKP",
         "crv": "Ed25519",
-        "alg": "EdDSA",
+        "alg": "Ed25519",
         "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
     },
 )
@@ -1172,7 +1172,7 @@ try:
 except Exception as err:
     pytest.fail(f"failed to verify: {err}")
 countersignature = COSEMessage.from_cose_signature(sig)
-assert countersignature.protected[1] == -8  # alg: "EdDSA"
+assert countersignature.protected[1] == -19  # alg: "Ed25519"
 assert countersignature.unprotected[4] == b"01"  # kid: b"01"
 ```
 
@@ -1242,7 +1242,7 @@ notary = Signer.from_jwk(
         "kid": "01",
         "kty": "OKP",
         "crv": "Ed25519",
-        "alg": "EdDSA",
+        "alg": "Ed25519",
         "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
         "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
     },
@@ -1264,7 +1264,7 @@ notary_pub_key = COSEKey.from_jwk(
         "kid": "01",
         "kty": "OKP",
         "crv": "Ed25519",
-        "alg": "EdDSA",
+        "alg": "Ed25519",
         "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
     },
 )
@@ -1276,7 +1276,7 @@ try:
 except Exception as err:
     pytest.fail(f"failed to verify: {err}")
 countersignature = COSEMessage.from_cose_signature(sig)
-assert countersignature.protected[1] == -8  # alg: "EdDSA"
+assert countersignature.protected[1] == -19  # alg: "Ed25519"
 assert countersignature.unprotected[4] == b"01"  # kid: b"01"
 ```
 
@@ -1384,7 +1384,7 @@ private_key = COSEKey.from_jwk(
         "kid": "01",
         "kty": "OKP",
         "key_ops": ["sign"],
-        "alg": "EdDSA",
+        "alg": "Ed25519",
         "crv": "Ed25519",
         "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
         "d": "L8JS08VsFZoZxGa9JvzYmCWOwg7zaKcei3KZmYsj7dc",
@@ -1646,7 +1646,7 @@ token = cwt.encode(
                 "crv": "Ed25519",
                 "kid": "presenter-01",
                 "x": "2E6dX83gqD_D0eAmqnaHe1TC1xuld6iAKXfw2OVATr0",
-                "alg": "EdDSA",
+                "alg": "Ed25519",
             },
         },
     },
@@ -1822,7 +1822,7 @@ Python CWT is (partially) compliant with following specifications:
 - [RFC9597: CBOR Web Token (CWT) Claims in COSE Headers](https://www.rfc-editor.org/rfc/rfc9597.html)
 - [RFC8152: CBOR Object Signing and Encryption (COSE)](https://tools.ietf.org/html/rfc8152)
 - [draft-23: Use of HPKE with COSE](https://www.ietf.org/archive/id/draft-ietf-cose-hpke-23.html) - experimental
-- [draft-13: Fully-Specified Algorithms for JOSE and COSE](https://www.ietf.org/archive/id/draft-ietf-jose-fully-specified-algorithms-13.html)
+- [RFC9864: Fully-Specified Algorithms for JSON Object Signing and Encryption (JOSE) and CBOR Object Signing and Encryption (COSE)](https://www.rfc-editor.org/rfc/rfc9864.html)
 - [Electronic Health Certificate Specification](https://github.com/ehn-dcc-development/hcert-spec/blob/main/hcert_spec.md)
 - [Technical Specifications for Digital Green Certificates Volume 1](https://ec.europa.eu/health/sites/default/files/ehealth/docs/digital-green-certificates_v1_en.pdf)
 
