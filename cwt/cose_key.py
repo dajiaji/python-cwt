@@ -188,7 +188,7 @@ class COSEKey:
             ValueError: Invalid arguments.
             DecodeError: Failed to decode the key data.
         """
-        params = cbor2.loads(key_data)
+        params = cbor2.loads(key_data, allow_duplicate_keys=False)
         return cls.new(params)
 
     @classmethod

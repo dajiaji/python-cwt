@@ -70,5 +70,5 @@ class EncryptedCOSEKey(CBORProcessor):
             DecodeError: Failed to decode the COSE key.
             VerifyError: Failed to verify the COSE key.
         """
-        res = cbor2.loads(COSE().decode(CBORTag(16, key), encryption_key))
+        res = cbor2.loads(COSE().decode(CBORTag(16, key), encryption_key), allow_duplicate_keys=False)
         return COSEKey.new(res)
