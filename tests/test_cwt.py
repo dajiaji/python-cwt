@@ -681,3 +681,150 @@ class TestCWT:
             ctx.decode(cwt, mac_key)
             pytest.fail("verify should fail.")
         assert msg in str(err.value)
+
+    def test_cwt_claims_header_label_is_rfc9597(self, ctx):
+        assert COSEHeaders.CWT_CLAIMS == 15
+        cose = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        payload = dumps({CWTClaims.ISS: "https://as.example"})
+        protected = {COSEHeaders.CWT_CLAIMS: {CWTClaims.ISS: "https://as.example"}}
+        mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+        encoded = cbor2.loads(cose.encode_and_mac(payload, mac_key, protected))
+        p = cbor2.loads(encoded.value[0])
+        assert 15 in p and 13 not in p
+        assert p[15] == {CWTClaims.ISS: "https://as.example"}
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            b"\xd8\x3d\x84",  # kcwt (RFC 9528) value, not a CWT Claims map
+            {CWTClaims.ISS: "https://asx.example"},  # draft-ietf-cose-cwt-claims-in-headers label
+        ],
+    )
+    def test_cwt_decode_ignores_label_13(self, ctx, value):
+        cose = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        payload = dumps({CWTClaims.ISS: "https://as.example"})
+        mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+        cwt = cose.encode_and_mac(payload, mac_key, {13: value})
+        decoded = ctx.decode(cwt, mac_key)
+        assert decoded[CWTClaims.ISS] == "https://as.example"
+
+    def test_cwt_decode_with_cwt_claims_in_unprotected_header(self, ctx):
+        cose = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        payload = dumps({CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone"})
+        mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+        unprotected = {COSEHeaders.CWT_CLAIMS: {CWTClaims.ISS: "https://as.example"}}
+        cwt = cose.encode_and_mac(payload, mac_key, unprotected=unprotected)
+        decoded = ctx.decode(cwt, mac_key)
+        assert decoded[CWTClaims.ISS] == "https://as.example"
+
+    def test_cwt_decode_with_invalid_cwt_claims_in_unprotected_header(self, ctx):
+        cose = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        payload = dumps({CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone"})
+        mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+        unprotected = {COSEHeaders.CWT_CLAIMS: {CWTClaims.ISS: "https://asx.example"}}
+        cwt = cose.encode_and_mac(payload, mac_key, unprotected=unprotected)
+        with pytest.raises(VerifyError) as err:
+            ctx.decode(cwt, mac_key)
+            pytest.fail("verify should fail.")
+        assert f"The CWT claim({CWTClaims.ISS}) value in unprotected header does not match the values in the payload." in str(
+            err.value
+        )
+
+    def test_cwt__verify_with_cwt_claims_in_both_headers(self, ctx):
+        claims = {CWTClaims.ISS: "https://as.example"}
+        hdr = {COSEHeaders.CWT_CLAIMS: {CWTClaims.ISS: "https://as.example"}}
+        with pytest.raises(ValueError) as err:
+            ctx._verify(claims, [(hdr, hdr)])
+            pytest.fail("_verify should fail.")
+        assert "must occur only once in either the protected or unprotected header." in str(err.value)
+
+    @pytest.mark.parametrize("invalid", [b"", [], 1, "x", None])
+    @pytest.mark.parametrize("protected", [True, False])
+    def test_cwt_decode_with_non_map_cwt_claims_in_headers(self, ctx, invalid, protected):
+        cose = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        payload = dumps({CWTClaims.ISS: "https://as.example"})
+        mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+        hdr = {COSEHeaders.CWT_CLAIMS: invalid}
+        if protected:
+            cwt = cose.encode_and_mac(payload, mac_key, protected=hdr)
+        else:
+            cwt = cose.encode_and_mac(payload, mac_key, unprotected=hdr)
+        with pytest.raises(ValueError) as err:
+            ctx.decode(cwt, mac_key)
+            pytest.fail("decode should fail.")
+        assert "The CWT Claims header parameter(15) should be map." in str(err.value)
+
+    def test_cwt_decode_with_cwt_claims_absent_from_payload_or_structured(self, ctx):
+        cose = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        aud = ["https://rs1.example", "https://rs2.example"]
+        cnf = {1: {1: 4, 2: b"kid", -1: b"\x00" * 16}}
+        payload = dumps({CWTClaims.ISS: "https://as.example", CWTClaims.AUD: aud, CWTClaims.CNF: cnf})
+        protected = {
+            COSEHeaders.CWT_CLAIMS: {
+                CWTClaims.SUB: "only-in-header",
+                CWTClaims.AUD: aud,
+                CWTClaims.CNF: cnf,
+            }
+        }
+        mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+        cwt = cose.encode_and_mac(payload, mac_key, protected)
+        decoded = ctx.decode(cwt, mac_key)
+        assert CWTClaims.SUB not in decoded
+        assert decoded[CWTClaims.AUD] == aud
+
+    @pytest.mark.parametrize("header_value", [1.0, True, "1", b"\x01", [1]])
+    def test_cwt_decode_with_cwt_claims_in_headers_not_identical_type(self, ctx, header_value):
+        cose = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        payload = dumps({CWTClaims.ISS: "https://as.example", -70001: 1})
+        protected = {COSEHeaders.CWT_CLAIMS: {-70001: header_value}}
+        mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+        cwt = cose.encode_and_mac(payload, mac_key, protected)
+        with pytest.raises(VerifyError) as err:
+            ctx.decode(cwt, mac_key)
+            pytest.fail("decode should fail.")
+        assert "The CWT claim(-70001) value in protected header does not match the values in the payload." in str(err.value)
+
+    def test_cwt_decode_with_cwt_claims_in_headers_map_order_independent(self, ctx):
+        cose = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        payload = dumps({CWTClaims.ISS: "https://as.example", -70001: {"a": 1, "b": 2}})
+        protected = {COSEHeaders.CWT_CLAIMS: {-70001: {"b": 2, "a": 1}}}
+        mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+        cwt = cose.encode_and_mac(payload, mac_key, protected)
+        decoded = ctx.decode(cwt, mac_key)
+        assert decoded[-70001] == {"a": 1, "b": 2}
+
+    def test_cwt_decode_with_cwt_claims_in_headers_with_no_verify(self, ctx):
+        cose = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        payload = dumps({CWTClaims.ISS: "https://as.example"})
+        protected = {COSEHeaders.CWT_CLAIMS: {CWTClaims.ISS: "https://asx.example"}}
+        mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+        cwt = cose.encode_and_mac(payload, mac_key, protected)
+        decoded = ctx.decode(cwt, mac_key, no_verify=True)
+        assert decoded[CWTClaims.ISS] == "https://as.example"
+
+    @pytest.mark.parametrize(
+        "outer_iss, inner_iss, where",
+        [
+            ("https://as.example", "https://as.example", None),
+            ("https://asx.example", None, "outer"),
+            (None, "https://asx.example", "inner"),
+            ("https://as.example", "https://asx.example", "inner"),
+        ],
+    )
+    def test_cwt_decode_nested_with_cwt_claims_in_headers(self, ctx, outer_iss, inner_iss, where):
+        cose = COSE.new(alg_auto_inclusion=True, kid_auto_inclusion=True)
+        payload = dumps({CWTClaims.ISS: "https://as.example", CWTClaims.SUB: "someone"})
+        mac_key = COSEKey.from_symmetric_key(alg="HS256", kid="01")
+        enc_key = COSEKey.from_symmetric_key(alg="A128GCM", kid="02")
+        inner_p = {COSEHeaders.CWT_CLAIMS: {CWTClaims.ISS: inner_iss}} if inner_iss else {}
+        outer_p = {COSEHeaders.CWT_CLAIMS: {CWTClaims.ISS: outer_iss}} if outer_iss else {}
+        inner = cose.encode_and_mac(payload, mac_key, inner_p)
+        token = cose.encode_and_encrypt(inner, enc_key, outer_p)
+        if where is None:
+            decoded = ctx.decode(token, [enc_key, mac_key])
+            assert decoded[CWTClaims.ISS] == "https://as.example"
+            return
+        with pytest.raises(VerifyError) as err:
+            ctx.decode(token, [enc_key, mac_key])
+            pytest.fail("decode should fail.")
+        assert f"The CWT claim({CWTClaims.ISS}) value in protected header does not match" in str(err.value)

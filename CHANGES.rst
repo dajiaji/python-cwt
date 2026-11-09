@@ -5,6 +5,11 @@ Unreleased
 ----------
 
 - Correct COSE signing header annotations to accept dictionaries and ResolvedHeader in strict type checkers.
+- Follow RFC 9597 (CWT Claims in COSE Headers), which supersedes draft-ietf-cose-cwt-claims-in-headers-06.
+    - **Breaking change**: ``COSEHeaders.CWT_CLAIMS`` is now ``15``, the label assigned by IANA in RFC 9597 (it was ``13``, the label requested by draft-06). IANA assigned ``13`` to the unrelated ``kcwt`` header parameter (RFC 9528), so ``13`` is no longer interpreted as CWT Claims. Tokens using the draft label are no longer cross-checked by ``CWT.decode()``.
+    - ``CWT.decode()`` now checks the CWT Claims header parameter in unprotected headers and in every COSE layer of a nested CWT, not only in the protected header of the innermost layer.
+    - ``CWT.decode()`` now requires header and payload claim values to be identical CBOR data items (e.g. ``1``, ``1.0`` and ``True`` no longer compare equal), as RFC 9597 requires.
+    - ``CWT.decode()`` now raises ``ValueError`` if the CWT Claims header parameter is not a map or occurs in both the protected and unprotected headers.
 
 Version 3.3.0
 -------------
