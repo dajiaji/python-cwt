@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 import cryptography
 from cryptography.hazmat.primitives import hashes
@@ -38,7 +38,7 @@ class EC2Key(AsymmetricKey):
         COSE_KEY_OPERATION_VALUES["deriveBits"],
     ]
 
-    def __init__(self, params: Dict[int, Any]):
+    def __init__(self, params: dict[int, Any]):
         super().__init__(params)
         self._public_key: Any = None
         self._private_key: Any = None
@@ -72,7 +72,7 @@ class EC2Key(AsymmetricKey):
 
         # Validate alg and key_ops.
         if self._key_ops:
-            if set(self._key_ops) & set([3, 4, 5, 6, 9, 10]):
+            if set(self._key_ops) & {3, 4, 5, 6, 9, 10}:
                 raise ValueError("Unknown or not permissible key_ops(4) for EC2.")
 
         if not self._alg and not self._key_ops:
@@ -99,9 +99,9 @@ class EC2Key(AsymmetricKey):
                 if self._key_ops:
                     if -4 in params:
                         # private key for signing.
-                        if not (set(self._key_ops) & set([1, 2])):
+                        if not (set(self._key_ops) & {1, 2}):
                             raise ValueError("Invalid key_ops for signing key.")
-                        if set(self._key_ops) & set([7, 8]):
+                        if set(self._key_ops) & {7, 8}:
                             raise ValueError("Signing key should not be used for key derivation.")
                     else:
                         # public key for signing.
@@ -119,9 +119,9 @@ class EC2Key(AsymmetricKey):
                 if self._key_ops:
                     if -4 in params:
                         # private key for key derivation.
-                        if not (set(self._key_ops) & set([7, 8])):
+                        if not (set(self._key_ops) & {7, 8}):
                             raise ValueError("Invalid key_ops for key derivation.")
-                        if set(self._key_ops) & set([1, 2]):
+                        if set(self._key_ops) & {1, 2}:
                             raise ValueError("ECDHE key should not be used for signing.")
                     else:
                         # public key for key derivation.
@@ -147,9 +147,9 @@ class EC2Key(AsymmetricKey):
         else:
             if -4 in params:
                 # private key.
-                if set(self._key_ops) & set([1, 2]):
+                if set(self._key_ops) & {1, 2}:
                     # private key for signing.
-                    if set(self._key_ops) & set([7, 8]):
+                    if set(self._key_ops) & {7, 8}:
                         raise ValueError("EC2 Private key should not be used for both signing and key derivation.")
                     if self._crv == 1:
                         self._alg = -7  # ES256
@@ -164,7 +164,7 @@ class EC2Key(AsymmetricKey):
                 if 2 in self._key_ops:
                     if len(self._key_ops) > 1:
                         raise ValueError("Invalid key_ops for public key.")
-                elif not (set(self._key_ops) & set([7, 8])):
+                elif not (set(self._key_ops) & {7, 8}):
                     raise ValueError("Invalid key_ops for public key.")
 
         if self._alg in COSE_ALGORITHMS_CKDM_KEY_AGREEMENT_ES.values():
@@ -223,9 +223,9 @@ class EC2Key(AsymmetricKey):
         return
 
     @staticmethod
-    def to_cose_key(k: Union[EllipticCurvePrivateKey, EllipticCurvePublicKey]) -> Dict[int, Any]:
+    def to_cose_key(k: EllipticCurvePrivateKey | EllipticCurvePublicKey) -> dict[int, Any]:
         key_len: int = 32
-        cose_key: Dict[int, Any] = {}
+        cose_key: dict[int, Any] = {}
 
         cose_key[1] = COSE_KEY_TYPES["EC2"]
         if not hasattr(k, "curve"):
@@ -250,14 +250,14 @@ class EC2Key(AsymmetricKey):
         return cose_key
 
     @property
-    def key(self) -> Union[EllipticCurvePublicKey, EllipticCurvePrivateKey]:
+    def key(self) -> EllipticCurvePublicKey | EllipticCurvePrivateKey:
         return self._key
 
     @property
     def crv(self) -> int:
         return self._crv
 
-    def to_dict(self) -> Dict[int, Any]:
+    def to_dict(self) -> dict[int, Any]:
         res = super().to_dict()
         res[-1] = self._crv
         res[-2] = self._x
@@ -288,7 +288,7 @@ class EC2Key(AsymmetricKey):
         except ValueError as err:
             raise VerifyError("Invalid signature.") from err
 
-    def derive_bytes(self, length: int, material: bytes = b"", info: bytes = b"", public_key: Optional[Any] = None) -> bytes:
+    def derive_bytes(self, length: int, material: bytes = b"", info: bytes = b"", public_key: Any | None = None) -> bytes:
         if self._public_key:
             raise ValueError("Public key cannot be used for key derivation.")
         if not public_key:

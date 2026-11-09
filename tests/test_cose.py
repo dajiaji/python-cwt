@@ -10,7 +10,7 @@ Tests for COSE.
 import base64
 import datetime
 from secrets import token_bytes
-from typing import Any, Dict, Union
+from typing import Any
 
 import cbor2
 import pytest
@@ -187,8 +187,8 @@ class TestCOSE:
             private_key = COSEKey.from_pem(key_file.read())
         with open(key_path("public_key_ed25519.pem")) as key_file:
             public_key = COSEKey.from_pem(key_file.read(), kid="01")
-        protected: Dict[Union[str, int], Any] = {1: -8, -65537: "protected text", -65538: b"protected bytes"}
-        unprotected: Dict[Union[str, int], Any] = {4: b"01", -65539: "unprotected text", -65540: b"unprotected bytes"}
+        protected: dict[str | int, Any] = {1: -8, -65537: "protected text", -65538: b"protected bytes"}
+        unprotected: dict[str | int, Any] = {4: b"01", -65539: "unprotected text", -65540: b"unprotected bytes"}
         if wrap_protected:
             protected["application"] = "protected application text"
         if wrap_unprotected:

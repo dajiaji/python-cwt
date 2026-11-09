@@ -1,7 +1,7 @@
 from calendar import timegm
 from collections.abc import Mapping
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Self, Tuple, Union
+from typing import Any, Self
 
 from cbor2 import CBORTag, dumps
 
@@ -53,7 +53,7 @@ class CWT(CBORProcessor):
             verify_kid=True,
             ca_certs=ca_certs,
         )
-        self._claim_names: Dict[str, int] = {}
+        self._claim_names: dict[str, int] = {}
 
     @classmethod
     def new(
@@ -134,11 +134,11 @@ class CWT(CBORProcessor):
 
     def encode(
         self,
-        claims: Union[Claims, Dict[str, Any], Dict[int, Any], bytes],
+        claims: Claims | dict[str, Any] | dict[int, Any] | bytes,
         key: COSEKeyInterface,
         nonce: bytes = b"",
-        recipients: List[RecipientInterface] = [],
-        signers: List[Signer] = [],
+        recipients: list[RecipientInterface] = [],
+        signers: list[Signer] = [],
         tagged: bool = False,
     ) -> bytes:
         """
@@ -154,12 +154,12 @@ class CWT(CBORProcessor):
         parameter set to identify the usage.
 
         Args:
-            claims (Union[Claims, Dict[str, Any], Dict[int, Any], bytes]): A CWT
+            claims (Claims | dict[str, Any] | dict[int, Any] | bytes): A CWT
                 claims object, or a JWT claims object, text string or byte string.
             key (COSEKeyInterface): A COSE key used to generate a MAC for the claims.
             nonce (bytes): A nonce for encryption.
-            recipients (List[RecipientInterface]): A list of recipient information structures.
-            signers (List[Signer]): A list of signer information structures for
+            recipients (list[RecipientInterface]): A list of recipient information structures.
+            signers (list[Signer]): A list of signer information structures for
                 multiple signer cases.
             tagged (bool): An indicator whether the response is wrapped by CWT
                 tag(61) or not.
@@ -185,7 +185,7 @@ class CWT(CBORProcessor):
             #         claims = Claims.from_json(claims)
             #     break
             # To avoid the error:
-            json_claims: Dict[str, Any] = {}
+            json_claims: dict[str, Any] = {}
             for k, v in claims.items():
                 if isinstance(k, str):
                     json_claims[k] = v
@@ -195,19 +195,19 @@ class CWT(CBORProcessor):
 
     def encode_and_mac(
         self,
-        claims: Union[Claims, Dict[int, Any], bytes],
+        claims: Claims | dict[int, Any] | bytes,
         key: COSEKeyInterface,
-        recipients: List[RecipientInterface] = [],
+        recipients: list[RecipientInterface] = [],
         tagged: bool = False,
     ) -> bytes:
         """
         Encodes with MAC.
 
         Args:
-            claims (Union[Claims, Dict[int, Any], bytes]): A CWT claims object or byte
+            claims (Claims | dict[int, Any] | bytes): A CWT claims object or byte
                 string.
             key (COSEKeyInterface): A COSE key used to generate a MAC for the claims.
-            recipients (Optional[List[RecipientInterface]]): A list of recipient
+            recipients (list[RecipientInterface] | None): A list of recipient
                 information structures.
             tagged (bool): An indicator whether the response is wrapped by CWT
                 tag(61) or not.
@@ -230,21 +230,21 @@ class CWT(CBORProcessor):
 
     def encode_and_sign(
         self,
-        claims: Union[Claims, Dict[int, Any], bytes],
-        key: Optional[COSEKeyInterface] = None,
-        signers: List[Signer] = [],
+        claims: Claims | dict[int, Any] | bytes,
+        key: COSEKeyInterface | None = None,
+        signers: list[Signer] = [],
         tagged: bool = False,
     ) -> bytes:
         """
         Encodes CWT with signing.
 
         Args:
-            claims (Claims, Union[Dict[int, Any], bytes]): A CWT claims object or
+            claims (Claims, dict[int, Any] | bytes): A CWT claims object or
                 byte string.
-            key (Optional[COSEKeyInterface]): A COSE key or a list of the keys
+            key (COSEKeyInterface | None): A COSE key or a list of the keys
                used to sign claims. When the ``signers`` parameter is set, this
                ``key`` parameter will be ignored and should not be set.
-            signers (List[Signer]): A list of signer information structures for
+            signers (list[Signer]): A list of signer information structures for
                 multiple signer cases.
             tagged (bool): An indicator whether the response is wrapped by CWT
                 tag(61) or not.
@@ -267,21 +267,21 @@ class CWT(CBORProcessor):
 
     def encode_and_encrypt(
         self,
-        claims: Union[Claims, Dict[int, Any], bytes],
+        claims: Claims | dict[int, Any] | bytes,
         key: COSEKeyInterface,
         nonce: bytes = b"",
-        recipients: List[RecipientInterface] = [],
+        recipients: list[RecipientInterface] = [],
         tagged: bool = False,
     ) -> bytes:
         """
         Encodes CWT with encryption.
 
         Args:
-            claims (Claims, Union[Dict[int, Any], bytes]): A CWT claims object or
+            claims (Claims, dict[int, Any] | bytes): A CWT claims object or
                 byte string.
             key (COSEKeyInterface): A COSE key used to encrypt the claims.
             nonce (bytes): A nonce for encryption.
-            recipients (List[RecipientInterface]): A list of recipient information
+            recipients (list[RecipientInterface]): A list of recipient information
                 structures.
             tagged (bool): An indicator whether the response is wrapped by CWT
                 tag(61) or not.
@@ -316,9 +316,9 @@ class CWT(CBORProcessor):
     def decode(
         self,
         data: bytes,
-        keys: Union[COSEKeyInterface, List[COSEKeyInterface]],
+        keys: COSEKeyInterface | list[COSEKeyInterface],
         no_verify: bool = False,
-    ) -> Union[Dict[Union[str, int], Any], bytes]:
+    ) -> dict[str | int, Any] | bytes:
         """
         Verifies and decodes CWT.
 
@@ -330,22 +330,22 @@ class CWT(CBORProcessor):
 
         Args:
             data (bytes): A byte string of an encoded CWT.
-            keys (Union[COSEKeyInterface, List[COSEKeyInterface]]): A COSE key
+            keys (COSEKeyInterface | list[COSEKeyInterface]): A COSE key
                 or a list of the keys used to verify and decrypt the encoded CWT.
             no_verify (bool): An indicator whether token verification is skiped
                 or not.
         Returns:
-            Union[Dict[int, Any], bytes]: A byte string of the decoded CWT.
+            dict[int, Any] | bytes: A byte string of the decoded CWT.
         Raises:
             ValueError: Invalid arguments.
             DecodeError: Failed to decode the CWT.
             VerifyError: Failed to verify the CWT.
         """
-        cwt: Union[bytes, CBORTag, Dict[Union[str, int], Any]] = self._loads(data)
+        cwt: bytes | CBORTag | dict[str | int, Any] = self._loads(data)
         if isinstance(cwt, CBORTag) and cwt.tag == CWT.CBOR_TAG:
             cwt = cwt.value
         keys = [keys] if isinstance(keys, COSEKeyInterface) else keys
-        headers: List[Tuple[Dict[Union[str, int], Any], Dict[Union[str, int], Any]]] = []
+        headers: list[tuple[dict[str | int, Any], dict[str | int, Any]]] = []
         while isinstance(cwt, CBORTag):
             p, u, cwt = self._cose.decode_with_headers(cwt, keys)
             headers.append((p, u))
@@ -354,13 +354,13 @@ class CWT(CBORProcessor):
             self._verify(cwt, headers)
         return cwt
 
-    def set_private_claim_names(self, claim_names: Dict[str, int]):
+    def set_private_claim_names(self, claim_names: dict[str, int]):
         """
         Sets private claim definitions. The definitions will be used in
         :func:`encode <cwt.CWT.encode>` when it is called with JSON-based claims.
 
         Args:
-            claim_names (Dict[str, int]): A set of private claim definitions which
+            claim_names (dict[str, int]): A set of private claim definitions which
                 consist of a readable claim name(str) and a claim key(int).
                 The claim key should be less than -65536 but you  can use the
                 numbers other than pre-registered numbers listed in
@@ -373,11 +373,11 @@ class CWT(CBORProcessor):
 
     def _encode(
         self,
-        claims: Union[Claims, Dict[Any, Any], bytes],
+        claims: Claims | dict[Any, Any] | bytes,
         key: COSEKeyInterface,
         nonce: bytes = b"",
-        recipients: List[RecipientInterface] = [],
-        signers: List[Signer] = [],
+        recipients: list[RecipientInterface] = [],
+        signers: list[Signer] = [],
         tagged: bool = False,
     ) -> bytes:
         if COSE_KEY_OPERATION_VALUES["sign"] in key.key_ops:
@@ -394,7 +394,7 @@ class CWT(CBORProcessor):
             return self.encode_and_mac(claims, key, recipients, tagged)
         raise ValueError("The key operation could not be specified.")
 
-    def _validate(self, claims: Union[Dict[int, Any], bytes]):
+    def _validate(self, claims: dict[int, Any] | bytes):
         if isinstance(claims, bytes):
             try:
                 nested = self._loads(claims)
@@ -410,8 +410,8 @@ class CWT(CBORProcessor):
 
     def _verify(
         self,
-        claims: Union[Dict[Union[str, int], Any], bytes],
-        headers: Optional[List[Tuple[Dict[Union[str, int], Any], Dict[Union[str, int], Any]]]] = None,
+        claims: dict[str | int, Any] | bytes,
+        headers: list[tuple[dict[str | int, Any], dict[str | int, Any]]] | None = None,
     ):
         if not isinstance(claims, dict):
             raise DecodeError("Failed to decode.")
@@ -437,9 +437,9 @@ class CWT(CBORProcessor):
 
     def _verify_cwt_claims_header(
         self,
-        claims: Dict[Union[str, int], Any],
-        protected: Dict[Union[str, int], Any],
-        unprotected: Dict[Union[str, int], Any],
+        claims: dict[str | int, Any],
+        protected: dict[str | int, Any],
+        unprotected: dict[str | int, Any],
     ):
         # RFC 9597 Section 2
         label = COSEHeaders.CWT_CLAIMS
@@ -458,7 +458,7 @@ class CWT(CBORProcessor):
                     raise VerifyError(f"The CWT claim({k}) value in {where} header does not match the values in the payload.")
         return
 
-    def _set_default_value(self, claims: Union[Dict[int, Any], bytes]):
+    def _set_default_value(self, claims: dict[int, Any] | bytes):
         if isinstance(claims, bytes):
             return
         now = timegm(datetime.now(tz=timezone.utc).utctimetuple())
@@ -476,39 +476,39 @@ _cwt = CWT()
 
 
 def encode(
-    claims: Union[Claims, Dict[str, Any], Dict[int, Any], bytes],
+    claims: Claims | dict[str, Any] | dict[int, Any] | bytes,
     key: COSEKeyInterface,
     nonce: bytes = b"",
-    recipients: List[RecipientInterface] = [],
-    signers: List[Signer] = [],
+    recipients: list[RecipientInterface] = [],
+    signers: list[Signer] = [],
     tagged: bool = False,
 ) -> bytes:
     return _cwt.encode(claims, key, nonce, recipients, signers, tagged)
 
 
 def encode_and_mac(
-    claims: Union[Claims, Dict[int, Any], bytes],
+    claims: Claims | dict[int, Any] | bytes,
     key: COSEKeyInterface,
-    recipients: List[RecipientInterface] = [],
+    recipients: list[RecipientInterface] = [],
     tagged: bool = False,
 ) -> bytes:
     return _cwt.encode_and_mac(claims, key, recipients, tagged)
 
 
 def encode_and_sign(
-    claims: Union[Claims, Dict[int, Any], bytes],
-    key: Optional[COSEKeyInterface] = None,
-    signers: List[Signer] = [],
+    claims: Claims | dict[int, Any] | bytes,
+    key: COSEKeyInterface | None = None,
+    signers: list[Signer] = [],
     tagged: bool = False,
 ) -> bytes:
     return _cwt.encode_and_sign(claims, key, signers, tagged)
 
 
 def encode_and_encrypt(
-    claims: Union[Claims, Dict[int, Any], bytes],
+    claims: Claims | dict[int, Any] | bytes,
     key: COSEKeyInterface,
     nonce: bytes = b"",
-    recipients: List[RecipientInterface] = [],
+    recipients: list[RecipientInterface] = [],
     tagged: bool = False,
 ) -> bytes:
     return _cwt.encode_and_encrypt(claims, key, nonce, recipients, tagged)
@@ -516,11 +516,11 @@ def encode_and_encrypt(
 
 def decode(
     data: bytes,
-    keys: Union[COSEKeyInterface, List[COSEKeyInterface]],
+    keys: COSEKeyInterface | list[COSEKeyInterface],
     no_verify: bool = False,
-) -> Union[Dict[Union[str, int], Any], bytes]:
+) -> dict[str | int, Any] | bytes:
     return _cwt.decode(data, keys, no_verify)
 
 
-def set_private_claim_names(claim_names: Dict[str, int]):
+def set_private_claim_names(claim_names: dict[str, int]):
     return _cwt.set_private_claim_names(claim_names)

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 from ..const import COSE_KEY_OPERATION_VALUES
 from ..cose_key import COSEKey
@@ -15,10 +15,10 @@ class AESKeyWrap(RecipientInterface):
 
     def __init__(
         self,
-        unprotected: Dict[Union[str, int], Any],
+        unprotected: dict[str | int, Any],
         ciphertext: bytes = b"",
-        recipients: List[Any] = [],
-        sender_key: Optional[COSEKeyInterface] = None,
+        recipients: list[Any] = [],
+        sender_key: COSEKeyInterface | None = None,
     ):
         if sender_key is None:
             raise ValueError("sender_key should be set.")
@@ -38,13 +38,13 @@ class AESKeyWrap(RecipientInterface):
         )
         self._sender_key: COSEKeyInterface = sender_key
 
-    def encode(self, plaintext: bytes = b"", aad: bytes = b"") -> Tuple[List[Any], Optional[COSEKeyInterface]]:
+    def encode(self, plaintext: bytes = b"", aad: bytes = b"") -> tuple[list[Any], COSEKeyInterface | None]:
         self._ciphertext = self._sender_key.wrap_key(plaintext)
         return self.to_list(), None
 
     def decode(
         self, key: COSEKeyInterface, aad: bytes = b"", alg: int = 0, as_cose_key: bool = False
-    ) -> Union[bytes, COSEKeyInterface]:
+    ) -> bytes | COSEKeyInterface:
         try:
             unwrapped = key.unwrap_key(self._ciphertext)
         except Exception as err:

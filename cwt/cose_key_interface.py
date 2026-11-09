@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from .cbor_processor import CBORProcessor
 from .const import (
@@ -13,13 +13,13 @@ class COSEKeyInterface(CBORProcessor):
     The interface class for a COSE Key used for MAC, signing/verifying and encryption/decryption.
     """
 
-    def __init__(self, params: Dict[int, Any]):
+    def __init__(self, params: dict[int, Any]):
         """
         Constructor.
 
         Args:
-            params (Dict[int, Any]): A COSE key common parameter object formatted to CBOR-like
-                structure ((Dict[int, Any])).
+            params (dict[int, Any]): A COSE key common parameter object formatted to CBOR-like
+                structure ((dict[int, Any])).
         """
 
         # kty
@@ -50,7 +50,7 @@ class COSEKeyInterface(CBORProcessor):
         # key_ops
         if 4 in params and not isinstance(params[4], list):
             raise ValueError("key_ops(4) should be list.")
-        self._key_ops: List[int] = params[4] if 4 in params else []
+        self._key_ops: list[int] = params[4] if 4 in params else []
         for v in self._key_ops:
             if v not in COSE_KEY_OPERATION_VALUES.values():
                 raise ValueError(f"key_ops(4) includes invalid value: {v}.")
@@ -69,28 +69,28 @@ class COSEKeyInterface(CBORProcessor):
         return self._kty
 
     @property
-    def kid(self) -> Union[bytes, None]:
+    def kid(self) -> bytes | None:
         """
         The key identifier.
         """
         return self._kid
 
     @property
-    def alg(self) -> Union[int, None]:
+    def alg(self) -> int | None:
         """
         The algorithm that is used with the key.
         """
         return self._alg
 
     @property
-    def key_ops(self) -> List[int]:
+    def key_ops(self) -> list[int]:
         """
         A set of permissible operations that the key is to be used for.
         """
         return self._key_ops
 
     @property
-    def base_iv(self) -> Union[bytes, None]:
+    def base_iv(self) -> bytes | None:
         """
         Base IV to be xor-ed with Partial IVs.
         """
@@ -117,14 +117,14 @@ class COSEKeyInterface(CBORProcessor):
         """
         raise NotImplementedError
 
-    def to_dict(self) -> Dict[int, Any]:
+    def to_dict(self) -> dict[int, Any]:
         """
-        Returns the CBOR-like structure (Dict[int, Any]) of the COSE key.
+        Returns the CBOR-like structure (dict[int, Any]) of the COSE key.
 
         Returns:
-            Dict[int, Any]: The CBOR-like structure of the COSE key.
+            dict[int, Any]: The CBOR-like structure of the COSE key.
         """
-        res: Dict[int, Any] = {1: self._kty}
+        res: dict[int, Any] = {1: self._kty}
         if self._kid:
             res[2] = self._kid
         if self._alg:
@@ -185,13 +185,13 @@ class COSEKeyInterface(CBORProcessor):
         """
         raise NotImplementedError
 
-    def validate_certificate(self, ca_certs: List[bytes]) -> bool:
+    def validate_certificate(self, ca_certs: list[bytes]) -> bool:
         """
         Validate a certificate bound to the key with given trusted CA
         certificates if the key has `x5c` parameter.
 
         Args:
-            ca_certs(List[bytes]): A list of DER-formatted trusted root CA
+            ca_certs(list[bytes]): A list of DER-formatted trusted root CA
                 certificates which contains a concatenated list of trusted root
                 certificates. You should specify private CA certificates in your
                 target system. There should be no need to use the public CA
@@ -274,7 +274,7 @@ class COSEKeyInterface(CBORProcessor):
         length: int,
         material: bytes = b"",
         info: bytes = b"",
-        public_key: Optional[Any] = None,
+        public_key: Any | None = None,
     ) -> bytes:
         """
         Derives a byte string with a key material or key exchange.

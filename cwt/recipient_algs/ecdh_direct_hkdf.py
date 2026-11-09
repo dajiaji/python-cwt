@@ -1,5 +1,5 @@
 from secrets import token_bytes
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 from ..algs.ec2 import EC2Key
 from ..algs.okp import OKPKey
@@ -18,13 +18,13 @@ class ECDH_DirectHKDF(Direct):
 
     def __init__(
         self,
-        protected: Dict[Union[str, int], Any],
-        unprotected: Dict[Union[str, int], Any],
+        protected: dict[str | int, Any],
+        unprotected: dict[str | int, Any],
         ciphertext: bytes = b"",
-        recipients: List[Any] = [],
-        sender_key: Optional[COSEKeyInterface] = None,
-        recipient_key: Optional[COSEKeyInterface] = None,
-        context: List[Any] = [],
+        recipients: list[Any] = [],
+        sender_key: COSEKeyInterface | None = None,
+        recipient_key: COSEKeyInterface | None = None,
+        context: list[Any] = [],
     ):
         super().__init__(protected, unprotected, ciphertext, recipients)
         self._sender_public_key: Any = None
@@ -60,7 +60,7 @@ class ECDH_DirectHKDF(Direct):
         if self._context[2][1]:
             self._unprotected[-25] = self._context[2][1]
 
-    def encode(self, plaintext: bytes = b"", aad: bytes = b"") -> Tuple[List[Any], Optional[COSEKeyInterface]]:
+    def encode(self, plaintext: bytes = b"", aad: bytes = b"") -> tuple[list[Any], COSEKeyInterface | None]:
         if not self._recipient_key:
             raise ValueError("recipient_key should be set in advance.")
 
@@ -97,7 +97,7 @@ class ECDH_DirectHKDF(Direct):
         aad: bytes = b"",
         alg: int = 0,
         as_cose_key: bool = False,
-    ) -> Union[bytes, COSEKeyInterface]:
+    ) -> bytes | COSEKeyInterface:
         if not self._sender_public_key:
             raise ValueError("sender_public_key should be set.")
         try:

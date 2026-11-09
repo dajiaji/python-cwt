@@ -1,5 +1,5 @@
 from secrets import token_bytes
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
@@ -19,9 +19,9 @@ class DirectHKDF(Direct):
 
     def __init__(
         self,
-        protected: Dict[Union[str, int], Any] = {},
-        unprotected: Dict[Union[str, int], Any] = {},
-        context: List[Any] = [],
+        protected: dict[str | int, Any] = {},
+        unprotected: dict[str | int, Any] = {},
+        context: list[Any] = [],
     ):
         super().__init__(protected, unprotected, b"", [])
 
@@ -68,7 +68,7 @@ class DirectHKDF(Direct):
             raise VerifyError("Failed to verify key.") from err
         return
 
-    def encode(self, plaintext: bytes = b"", aad: bytes = b"") -> Tuple[List[Any], Optional[COSEKeyInterface]]:
+    def encode(self, plaintext: bytes = b"", aad: bytes = b"") -> tuple[list[Any], COSEKeyInterface | None]:
         try:
             hkdf = HKDF(
                 algorithm=self._hash_alg,
@@ -83,7 +83,7 @@ class DirectHKDF(Direct):
 
     def decode(
         self, key: COSEKeyInterface, aad: bytes = b"", alg: int = 0, as_cose_key: bool = False
-    ) -> Union[bytes, COSEKeyInterface]:
+    ) -> bytes | COSEKeyInterface:
         try:
             hkdf = HKDF(
                 algorithm=self._hash_alg,

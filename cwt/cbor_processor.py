@@ -1,4 +1,4 @@
-from typing import Any, Dict, Union
+from typing import Any
 
 from cbor2 import dumps, loads
 
@@ -12,7 +12,7 @@ class CBORProcessor:
         except Exception as err:
             raise EncodeError("Failed to encode.") from err
 
-    def _loads(self, s: bytes) -> Dict[Union[str, int], Any]:
+    def _loads(self, s: bytes) -> dict[str | int, Any]:
         try:
             return loads(s)
         except Exception as err:

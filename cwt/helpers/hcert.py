@@ -1,4 +1,4 @@
-from typing import Any, Dict, Union
+from typing import Any
 
 from cryptography import x509
 from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePublicKey
@@ -18,7 +18,7 @@ def _generate_kid(cert: bytes) -> bytes:
     return fp[0:8]
 
 
-def load_pem_hcert_dsc(cert: Union[str, bytes]) -> COSEKeyInterface:
+def load_pem_hcert_dsc(cert: str | bytes) -> COSEKeyInterface:
     """
     Loads PEM-formatted DSC (Digital Signing Certificate) issued by CSCA
     (Certificate Signing Certificate Authority) as a COSEKey. At this time,
@@ -38,7 +38,7 @@ def load_pem_hcert_dsc(cert: Union[str, bytes]) -> COSEKeyInterface:
         k = x509.load_pem_x509_certificate(cert).public_key()
     else:
         raise ValueError("Invalid PEM data.")
-    params: Dict[int, Any] = {}
+    params: dict[int, Any] = {}
     params[2] = _generate_kid(cert)
 
     if isinstance(k, RSAPublicKey):

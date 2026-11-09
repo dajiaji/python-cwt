@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, List, Self, Union
+from typing import Any, Self
 
 from .const import CWT_CLAIM_NAMES
 from .cose_key import COSEKey
@@ -12,8 +12,8 @@ class Claims:
 
     def __init__(
         self,
-        claims: Dict[int, Any],
-        claim_names: Dict[str, int] = CWT_CLAIM_NAMES,
+        claims: dict[int, Any],
+        claim_names: dict[str, int] = CWT_CLAIM_NAMES,
     ):
         if -260 in claims and not isinstance(claims[-260], dict):
             raise ValueError("hcert(-260) should be map.")
@@ -61,13 +61,13 @@ class Claims:
         return
 
     @classmethod
-    def new(cls, claims: Dict[int, Any], private_claim_names: Dict[str, int] = {}) -> Self:
+    def new(cls, claims: dict[int, Any], private_claim_names: dict[str, int] = {}) -> Self:
         """
-        Creates a Claims object from a CBOR-like(Dict[int, Any]) claim object.
+        Creates a Claims object from a CBOR-like(dict[int, Any]) claim object.
 
         Args:
-            claims (Dict[str, Any]): A CBOR-like(Dict[int, Any]) claim object.
-            private_claim_names (Dict[str, int]): A set of private claim definitions which
+            claims (dict[str, Any]): A CBOR-like(dict[int, Any]) claim object.
+            private_claim_names (dict[str, int]): A set of private claim definitions which
                 consist of a readable claim name(str) and a claim key(int).
                 The claim key should be less than -65536 but you  can use the
                 numbers other than pre-registered numbers listed in
@@ -90,8 +90,8 @@ class Claims:
     @classmethod
     def from_json(
         cls,
-        claims: Union[str, bytes, Dict[str, Any]],
-        private_claim_names: Dict[str, int] = {},
+        claims: str | bytes | dict[str, Any],
+        private_claim_names: dict[str, int] = {},
     ) -> Self:
         """
         Converts a JWT claims object into a CWT claims object which has numeric
@@ -99,9 +99,9 @@ class Claims:
         it will be skipped.
 
         Args:
-            claims (Union[str, bytes, Dict[str, Any]]): A JWT claims object
+            claims (str | bytes | dict[str, Any]): A JWT claims object
                 to be converted.
-            private_claim_names (Dict[str, int]): A set of private claim definitions which
+            private_claim_names (dict[str, int]): A set of private claim definitions which
                 consist of a readable claim name(str) and a claim key(int).
                 The claim key should be less than -65536 but you  can use the
                 numbers other than pre-registered numbers listed in
@@ -113,7 +113,7 @@ class Claims:
         Raises:
             ValueError: Invalid arguments.
         """
-        json_claims: Dict[str, Any] = {}
+        json_claims: dict[str, Any] = {}
         if isinstance(claims, str) or isinstance(claims, bytes):
             json_claims = json.loads(claims)
         else:
@@ -125,7 +125,7 @@ class Claims:
             raise ValueError("It is already CBOR-like format.")
 
         # Convert JSON to CBOR (Convert the type of key from str to int).
-        cbor_claims: Dict[int, Any] = {}
+        cbor_claims: dict[int, Any] = {}
         for k, v in json_claims.items():
             if k not in CWT_CLAIM_NAMES:
                 if k in private_claim_names:
@@ -155,12 +155,12 @@ class Claims:
         return cls.new(cbor_claims, private_claim_names)
 
     @classmethod
-    def validate(cls, claims: Dict[int, Any]):
+    def validate(cls, claims: dict[int, Any]):
         """
         Validates a CWT claims object.
 
         Args:
-            claims (Dict[int, Any]): A CWT claims object to be validated.
+            claims (dict[int, Any]): A CWT claims object to be validated.
 
         Raises:
             ValueError: Failed to verify.
@@ -169,58 +169,58 @@ class Claims:
         return
 
     @property
-    def iss(self) -> Union[str, None]:
+    def iss(self) -> str | None:
         return self._claims.get(1, None)
 
     @property
-    def sub(self) -> Union[str, None]:
+    def sub(self) -> str | None:
         return self._claims.get(2, None)
 
     @property
-    def aud(self) -> Union[str, None]:
+    def aud(self) -> str | None:
         return self._claims.get(3, None)
 
     @property
-    def exp(self) -> Union[int, None]:
+    def exp(self) -> int | None:
         return self._claims.get(4, None)
 
     @property
-    def nbf(self) -> Union[int, None]:
+    def nbf(self) -> int | None:
         return self._claims.get(5, None)
 
     @property
-    def iat(self) -> Union[int, None]:
+    def iat(self) -> int | None:
         return self._claims.get(6, None)
 
     @property
-    def cti(self) -> Union[str, None]:
+    def cti(self) -> str | None:
         if 7 not in self._claims:
             return None
         return self._claims[7].decode("utf-8")
 
     @property
-    def hcert(self) -> Union[dict, None]:
+    def hcert(self) -> dict | None:
         return self._claims.get(-260, None)
 
     @property
-    def cnf(self) -> Union[Dict[int, Any], List[Any], str, None]:
+    def cnf(self) -> dict[int, Any] | list[Any] | str | None:
         if 8 not in self._claims:
             return None
         if 1 in self._claims[8]:
-            key: Dict[int, Any] = self._claims[8][1]
+            key: dict[int, Any] = self._claims[8][1]
             return key
         if 2 in self._claims[8]:
-            eck: List[Any] = self._claims[8][2]
+            eck: list[Any] = self._claims[8][2]
             return eck
         kid: bytes = self._claims[8][3]
         return kid.decode("utf-8")
 
-    def get(self, key: Union[str, int]) -> Any:
+    def get(self, key: str | int) -> Any:
         """
         Gets a claim value with a claim key.
 
         Args:
-            key (Union[str, int]): A claim key.
+            key (str | int): A claim key.
         Returns:
             Any: The value of the claim.
         """
@@ -231,7 +231,7 @@ class Claims:
             int_key = key
         return self._claims.get(int_key, None) if int_key != 0 else None
 
-    def to_dict(self) -> Dict[int, Any]:
+    def to_dict(self) -> dict[int, Any]:
         """
         Returns a raw claim object.
 

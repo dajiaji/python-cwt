@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePublicKey
 from cryptography.hazmat.primitives.asymmetric.x448 import X448PublicKey
@@ -17,20 +17,20 @@ class RecipientInterface(CBORProcessor):
 
     def __init__(
         self,
-        protected: Optional[Dict[Union[str, int], Any]] = None,
-        unprotected: Optional[Dict[Union[str, int], Any]] = None,
+        protected: dict[str | int, Any] | None = None,
+        unprotected: dict[str | int, Any] | None = None,
         ciphertext: bytes = b"",
-        recipients: List[Any] = [],
-        key_ops: List[int] = [],
+        recipients: list[Any] = [],
+        key_ops: list[int] = [],
         key: bytes = b"",
     ):
         """
         Constructor.
 
         Args:
-            protected (Optional[Dict[int, Any]]): Parameters that are to be cryptographically
+            protected (dict[int, Any] | None): Parameters that are to be cryptographically
                 protected.
-            unprotected (Optional[Dict[int, Any]]): Parameters that are not cryptographically
+            unprotected (dict[int, Any] | None): Parameters that are not cryptographically
                 protected.
             ciphertext: A ciphertext encoded as bytes.
             recipients: A list of recipient information structures.
@@ -74,15 +74,15 @@ class RecipientInterface(CBORProcessor):
             if not isinstance(unprotected[5], bytes):
                 raise ValueError("unprotected[5](iv) should be bytes.")
 
-        self._b_protected: Optional[bytes] = None
+        self._b_protected: bytes | None = None
         self._protected = protected
         self._unprotected = unprotected
         self._ciphertext = ciphertext
         self._key = key
-        self._context: List[Any] = [0, [None, None, None], [None, None, None], [None, None]]
+        self._context: list[Any] = [0, [None, None, None], [None, None, None], [None, None]]
 
         # Validate recipients
-        self._recipients: List[RecipientInterface] = []
+        self._recipients: list[RecipientInterface] = []
         if not recipients:
             return
         for recipient in recipients:
@@ -106,7 +106,7 @@ class RecipientInterface(CBORProcessor):
         return self._alg
 
     @property
-    def protected(self) -> Dict[Union[str, int], Any]:
+    def protected(self) -> dict[str | int, Any]:
         """
         The parameters that are to be cryptographically protected.
         """
@@ -122,7 +122,7 @@ class RecipientInterface(CBORProcessor):
         return self._b_protected
 
     @property
-    def unprotected(self) -> Dict[Union[str, int], Any]:
+    def unprotected(self) -> dict[str | int, Any]:
         """
         The parameters that are not cryptographically protected.
         """
@@ -136,29 +136,29 @@ class RecipientInterface(CBORProcessor):
         return self._ciphertext
 
     @property
-    def recipients(self) -> List[Any]:
+    def recipients(self) -> list[Any]:
         """
         The list of recipient information structures.
         """
         return self._recipients
 
     @property
-    def context(self) -> List[Any]:
+    def context(self) -> list[Any]:
         """
         The recipient context information.
         """
         return self._context
 
-    def to_list(self) -> List[Any]:
+    def to_list(self) -> list[Any]:
         """
         Returns the recipient information as a COSE recipient structure.
 
         Returns:
-            List[Any]: The recipient structure.
+            list[Any]: The recipient structure.
         """
         b_protected = self._dumps(self._protected) if self._protected else b""
         b_ciphertext = self._ciphertext if self._ciphertext else b""
-        res: List[Any] = [b_protected, self._unprotected, b_ciphertext]
+        res: list[Any] = [b_protected, self._unprotected, b_ciphertext]
         if not self._recipients:
             return res
 
@@ -172,7 +172,7 @@ class RecipientInterface(CBORProcessor):
         self,
         plaintext: bytes = b"",
         aad: bytes = b"",
-    ) -> Tuple[List[Any], Optional[COSEKeyInterface]]:
+    ) -> tuple[list[Any], COSEKeyInterface | None]:
         """
         Encrypts a specified plaintext to the ciphertext in the COSE_Recipient
         structure with the recipient-specific method (e.g., key wrapping, key
@@ -189,7 +189,7 @@ class RecipientInterface(CBORProcessor):
             aad_context (bytes): An additional authenticated data context to build
                 an Enc_structure internally.
         Returns:
-            Tuple[List[Any], Optional[COSEKeyInterface]]: The encoded COSE_Recipient structure
+            tuple[list[Any], COSEKeyInterface | None]: The encoded COSE_Recipient structure
                 and a derived key.
         Raises:
             ValueError: Invalid arguments.
@@ -203,7 +203,7 @@ class RecipientInterface(CBORProcessor):
         aad: bytes = b"",
         alg: int = 0,
         as_cose_key: bool = False,
-    ) -> Union[bytes, COSEKeyInterface]:
+    ) -> bytes | COSEKeyInterface:
         """
         Decrypts the ciphertext in the COSE_Recipient structure with the
         recipient-specific method (e.g., key wrapping, key agreement,
@@ -222,7 +222,7 @@ class RecipientInterface(CBORProcessor):
             as_cose_key (bool): The indicator whether the output will be returned
                 as a COSEKey or not.
         Returns:
-            Union[bytes, COSEKeyInterface]: The decrypted ciphertext field or The COSEKey
+            bytes | COSEKeyInterface: The decrypted ciphertext field or The COSEKey
                 converted from the decrypted ciphertext.
         Raises:
             ValueError: Invalid arguments.
@@ -230,7 +230,7 @@ class RecipientInterface(CBORProcessor):
         """
         raise NotImplementedError
 
-    def _to_cose_key(self, k: Union[EllipticCurvePublicKey, X25519PublicKey, X448PublicKey]) -> Dict[int, Any]:
+    def _to_cose_key(self, k: EllipticCurvePublicKey | X25519PublicKey | X448PublicKey) -> dict[int, Any]:
         if isinstance(k, EllipticCurvePublicKey):
             return EC2Key.to_cose_key(k)
         return OKPKey.to_cose_key(k)

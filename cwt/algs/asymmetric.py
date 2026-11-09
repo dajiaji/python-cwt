@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any
 
 from cryptography.x509 import Certificate, DNSName, load_der_x509_certificate
 from cryptography.x509.oid import NameOID
@@ -9,12 +9,12 @@ from ..exceptions import VerifyError
 
 
 class AsymmetricKey(COSEKeyInterface):
-    def __init__(self, params: Dict[int, Any]):
+    def __init__(self, params: dict[int, Any]):
         super().__init__(params)
 
         self._key: Any = b""
         self._cert: Certificate = None
-        self._intermediates: List[Certificate] = []
+        self._intermediates: list[Certificate] = []
 
         if 33 in params:
             if not isinstance(params[33], (bytes, list)):
@@ -26,7 +26,7 @@ class AsymmetricKey(COSEKeyInterface):
                     self._intermediates.append(load_der_x509_certificate(c))
             return
 
-    def validate_certificate(self, ca_certs: List[Certificate]) -> bool:
+    def validate_certificate(self, ca_certs: list[Certificate]) -> bool:
         if not ca_certs:
             raise ValueError("ca_certs should be set.")
         if not self._cert:

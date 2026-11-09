@@ -1,7 +1,7 @@
 import hashlib
 import hmac
 from secrets import token_bytes
-from typing import Any, Dict, Optional
+from typing import Any
 
 from cryptography.hazmat.primitives.ciphers.aead import AESCCM, AESGCM, ChaCha20Poly1305
 from cryptography.hazmat.primitives.keywrap import aes_key_unwrap, aes_key_wrap
@@ -20,7 +20,7 @@ _CWT_NONCE_SIZE_AES = 16
 
 
 class SymmetricKey(COSEKeyInterface):
-    def __init__(self, params: Dict[int, Any]):
+    def __init__(self, params: dict[int, Any]):
         super().__init__(params)
 
         self._key: bytes = b""
@@ -46,7 +46,7 @@ class SymmetricKey(COSEKeyInterface):
     def to_bytes(self) -> bytes:
         return self._key
 
-    def to_dict(self) -> Dict[int, Any]:
+    def to_dict(self) -> dict[int, Any]:
         res = super().to_dict()
         res[-1] = self._key
         return res
@@ -58,7 +58,7 @@ class MACAuthenticationKey(SymmetricKey):
         COSE_KEY_OPERATION_VALUES["MAC verify"],
     ]
 
-    def __init__(self, params: Dict[int, Any]):
+    def __init__(self, params: dict[int, Any]):
         super().__init__(params)
 
         # Validate key_opt.
@@ -78,7 +78,7 @@ class ContentEncryptionKey(SymmetricKey):
         COSE_KEY_OPERATION_VALUES["unwrap key"],
     ]
 
-    def __init__(self, params: Dict[int, Any]):
+    def __init__(self, params: dict[int, Any]):
         super().__init__(params)
 
         # Validate key_opt.
@@ -93,7 +93,7 @@ class ContentEncryptionKey(SymmetricKey):
 class HMACKey(MACAuthenticationKey):
     """ """
 
-    def __init__(self, params: Dict[int, Any]):
+    def __init__(self, params: dict[int, Any]):
         """ """
         super().__init__(params)
 
@@ -139,7 +139,7 @@ class HMACKey(MACAuthenticationKey):
 class AESCCMKey(ContentEncryptionKey):
     """ """
 
-    def __init__(self, params: Dict[int, Any]):
+    def __init__(self, params: dict[int, Any]):
         """ """
         super().__init__(params)
 
@@ -209,7 +209,7 @@ class AESCCMKey(ContentEncryptionKey):
     def generate_nonce(self):
         return token_bytes(self._nonce_len)
 
-    def encrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
+    def encrypt(self, msg: bytes, nonce: bytes, aad: bytes | None = None) -> bytes:
         """ """
         if len(nonce) != self._nonce_len:
             raise ValueError("The length of nonce should be %d bytes." % self._nonce_len)
@@ -218,7 +218,7 @@ class AESCCMKey(ContentEncryptionKey):
         except Exception as err:
             raise EncodeError("Failed to encrypt.") from err
 
-    def decrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
+    def decrypt(self, msg: bytes, nonce: bytes, aad: bytes | None = None) -> bytes:
         """ """
         if len(nonce) != self._nonce_len:
             raise ValueError("The length of nonce should be %d bytes." % self._nonce_len)
@@ -231,7 +231,7 @@ class AESCCMKey(ContentEncryptionKey):
 class AESGCMKey(ContentEncryptionKey):
     """ """
 
-    def __init__(self, params: Dict[int, Any]):
+    def __init__(self, params: dict[int, Any]):
         """ """
         super().__init__(params)
 
@@ -262,14 +262,14 @@ class AESGCMKey(ContentEncryptionKey):
     def generate_nonce(self):
         return token_bytes(_CWT_NONCE_SIZE_AESGCM)
 
-    def encrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
+    def encrypt(self, msg: bytes, nonce: bytes, aad: bytes | None = None) -> bytes:
         """ """
         try:
             return self._cipher.encrypt(nonce, msg, aad)
         except Exception as err:
             raise EncodeError("Failed to encrypt.") from err
 
-    def decrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
+    def decrypt(self, msg: bytes, nonce: bytes, aad: bytes | None = None) -> bytes:
         """ """
         try:
             return self._cipher.decrypt(nonce, msg, aad)
@@ -278,7 +278,7 @@ class AESGCMKey(ContentEncryptionKey):
 
 
 class ChaCha20Key(ContentEncryptionKey):
-    def __init__(self, params: Dict[int, Any]):
+    def __init__(self, params: dict[int, Any]):
         super().__init__(params)
 
         # Validate alg.
@@ -295,13 +295,13 @@ class ChaCha20Key(ContentEncryptionKey):
     def generate_nonce(self):
         return token_bytes(_CWT_NONCE_SIZE_CHACHA20_POLY1305)
 
-    def encrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
+    def encrypt(self, msg: bytes, nonce: bytes, aad: bytes | None = None) -> bytes:
         try:
             return self._cipher.encrypt(nonce, msg, aad)
         except Exception as err:
             raise EncodeError("Failed to encrypt.") from err
 
-    def decrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
+    def decrypt(self, msg: bytes, nonce: bytes, aad: bytes | None = None) -> bytes:
         try:
             return self._cipher.decrypt(nonce, msg, aad)
         except Exception as err:
@@ -314,7 +314,7 @@ class AESKeyWrap(SymmetricKey):
         COSE_KEY_OPERATION_VALUES["unwrapKey"],
     ]
 
-    def __init__(self, params: Dict[int, Any]):
+    def __init__(self, params: dict[int, Any]):
         super().__init__(params)
 
         # Validate alg.
@@ -360,7 +360,7 @@ class AESKeyWrap(SymmetricKey):
 class AESCTRKey(ContentEncryptionKey):
     """ """
 
-    def __init__(self, params: Dict[int, Any]):
+    def __init__(self, params: dict[int, Any]):
         """ """
         super().__init__(params)
 
@@ -391,14 +391,14 @@ class AESCTRKey(ContentEncryptionKey):
     def generate_nonce(self):
         return token_bytes(_CWT_NONCE_SIZE_AES)
 
-    def encrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
+    def encrypt(self, msg: bytes, nonce: bytes, aad: bytes | None = None) -> bytes:
         """ """
         try:
             return self._cipher.encrypt(nonce, msg)
         except Exception as err:
             raise EncodeError("Failed to encrypt.") from err
 
-    def decrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
+    def decrypt(self, msg: bytes, nonce: bytes, aad: bytes | None = None) -> bytes:
         """ """
         try:
             return self._cipher.decrypt(nonce, msg)
@@ -409,7 +409,7 @@ class AESCTRKey(ContentEncryptionKey):
 class AESCBCKey(ContentEncryptionKey):
     """ """
 
-    def __init__(self, params: Dict[int, Any]):
+    def __init__(self, params: dict[int, Any]):
         """ """
         super().__init__(params)
 
@@ -440,7 +440,7 @@ class AESCBCKey(ContentEncryptionKey):
     def generate_nonce(self):
         return token_bytes(_CWT_NONCE_SIZE_AES)
 
-    def encrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
+    def encrypt(self, msg: bytes, nonce: bytes, aad: bytes | None = None) -> bytes:
         """ """
         try:
             # Add padding (see RFC 9459 and 5652)
@@ -451,7 +451,7 @@ class AESCBCKey(ContentEncryptionKey):
         except Exception as err:
             raise EncodeError("Failed to encrypt.") from err
 
-    def decrypt(self, msg: bytes, nonce: bytes, aad: Optional[bytes] = None) -> bytes:
+    def decrypt(self, msg: bytes, nonce: bytes, aad: bytes | None = None) -> bytes:
         """ """
         try:
             decrypted = self._cipher.decrypt(nonce, msg)

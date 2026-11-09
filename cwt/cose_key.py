@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import cbor2
 from cryptography import x509
@@ -45,12 +45,12 @@ class COSEKey:
     """
 
     @staticmethod
-    def new(params: Dict[int, Any]) -> COSEKeyInterface:
+    def new(params: dict[int, Any]) -> COSEKeyInterface:
         """
         Creates a COSE_Key object from a COSE_Key structure, which is a dictionary with numeric keys.
 
         Args:
-            params (Dict[int, Any]): A dictionary with numeric keys of a COSE key.
+            params (dict[int, Any]): A dictionary with numeric keys of a COSE key.
         Returns:
             COSEKeyInterface: A COSE key object.
         Raises:
@@ -93,19 +93,19 @@ class COSEKey:
     @classmethod
     def generate_symmetric_key(
         cls,
-        alg: Union[int, str] = "",
-        kid: Union[bytes, str] = b"",
-        key_ops: Optional[Union[List[int], List[str]]] = None,
+        alg: int | str = "",
+        kid: bytes | str = b"",
+        key_ops: list[int] | list[str] | None = None,
     ) -> COSEKeyInterface:
         """
         Generates a symmetric COSE key from from a randomly genarated byte string.
 
         Args:
-            alg (Union[int, str]): An algorithm label(int) or name(str).
+            alg (int | str): An algorithm label(int) or name(str).
                 Supported ``alg`` are listed in
                 `Supported COSE Algorithms <https://python-cwt.readthedocs.io/en/stable/algorithms.html>`_.
-            kid (Union[bytes, str]): A key identifier.
-            key_ops (Union[List[int], List[str]]): A list of key operation values.
+            kid (bytes | str): A key identifier.
+            key_ops (list[int] | list[str]): A list of key operation values.
                 Following values can be used:
                 ``1("sign")``, ``2("verify")``, ``3("encrypt")``, ``4("decrypt")``, ``5("wrap key")``,
                 ``6("unwrap key")``, ``7("derive key")``, ``8("derive bits")``,
@@ -120,21 +120,21 @@ class COSEKey:
     @classmethod
     def from_symmetric_key(
         cls,
-        key: Union[bytes, str] = b"",
-        alg: Union[int, str] = "",
-        kid: Union[bytes, str] = b"",
-        key_ops: Optional[Union[List[int], List[str]]] = None,
+        key: bytes | str = b"",
+        alg: int | str = "",
+        kid: bytes | str = b"",
+        key_ops: list[int] | list[str] | None = None,
     ) -> COSEKeyInterface:
         """
         Creates a COSE key from a symmetric key.
 
         Args:
-            key (Union[bytes, str]): A key bytes or string.
-            alg (Union[int, str]): An algorithm label(int) or name(str).
+            key (bytes | str): A key bytes or string.
+            alg (int | str): An algorithm label(int) or name(str).
                 Supported ``alg`` are listed in
                 `Supported COSE Algorithms <https://python-cwt.readthedocs.io/en/stable/algorithms.html>`_.
-            kid (Union[bytes, str]): A key identifier.
-            key_ops (Union[List[int], List[str]]): A list of key operation values.
+            kid (bytes | str): A key identifier.
+            key_ops (list[int] | list[str]): A list of key operation values.
                 Following values can be used:
                 ``1("sign")``, ``2("verify")``, ``3("encrypt")``, ``4("decrypt")``, ``5("wrap key")``,
                 ``6("unwrap key")``, ``7("derive key")``, ``8("derive bits")``,
@@ -152,7 +152,7 @@ class COSEKey:
         if alg_id == 0:
             raise ValueError(f"Unsupported or unknown alg(3): {alg}.")
 
-        params: Dict[int, Any] = {
+        params: dict[int, Any] = {
             COSEKeyParams.KTY: 4,  # kty: 'Symmetric'
             COSEKeyParams.ALG: alg_id,  # alg: int
             COSEKeyParams.K: key,  # k: bstr
@@ -162,7 +162,7 @@ class COSEKey:
         if kid:
             params[2] = kid
 
-        key_ops_labels: List[int] = []
+        key_ops_labels: list[int] = []
         if key_ops and isinstance(key_ops, list):
             try:
                 for ops in key_ops:
@@ -192,12 +192,12 @@ class COSEKey:
         return cls.new(params)
 
     @classmethod
-    def from_jwk(cls, data: Union[str, bytes, Dict[str, Any]]) -> COSEKeyInterface:
+    def from_jwk(cls, data: str | bytes | dict[str, Any]) -> COSEKeyInterface:
         """
         Creates a COSE key from JWK (JSON Web Key).
 
         Args:
-            jwk (Union[str, bytes, Dict[str, Any]]): JWK-formatted key data.
+            jwk (str | bytes | dict[str, Any]): JWK-formatted key data.
         Returns:
             COSEKeyInterface: A COSE key object.
         Raises:
@@ -209,21 +209,21 @@ class COSEKey:
     @classmethod
     def from_pem(
         cls,
-        key_data: Union[str, bytes],
-        alg: Union[int, str] = "",
-        kid: Union[bytes, str] = b"",
-        key_ops: Optional[Union[List[int], List[str]]] = None,
+        key_data: str | bytes,
+        alg: int | str = "",
+        kid: bytes | str = b"",
+        key_ops: list[int] | list[str] | None = None,
     ) -> COSEKeyInterface:
         """
         Creates a COSE key from PEM-formatted key data.
 
         Args:
             key_data (bytes): A PEM-formatted key data.
-            alg (Union[int, str]): An algorithm label(int) or name(str).
+            alg (int | str): An algorithm label(int) or name(str).
                 Different from ::func::`cwt.COSEKey.from_symmetric_key`, it is only used when an algorithm
                 cannot be specified by the PEM data, such as RSA family algorithms.
-            kid (Union[bytes, str]): A key identifier.
-            key_ops (Union[List[int], List[str]]): A list of key operation values. Following values can be used:
+            kid (bytes | str): A key identifier.
+            key_ops (list[int] | list[str]): A list of key operation values. Following values can be used:
                 ``1("sign")``, ``2("verify")``, ``3("encrypt")``, ``4("decrypt")``, ``5("wrap key")``,
                 ``6("unwrap key")``, ``7("derive key")``, ``8("derive bits")``,
                 ``9("MAC create")``, ``10("MAC verify")``
@@ -248,13 +248,13 @@ class COSEKey:
         else:
             raise ValueError("Failed to decode PEM.")
 
-        params: Dict[int, Any] = {}
+        params: dict[int, Any] = {}
         if isinstance(kid, str):
             kid = kid.encode("utf-8")
         if kid:
             params[2] = kid
 
-        key_ops_labels: List[int] = []
+        key_ops_labels: list[int] = []
         if key_ops and isinstance(key_ops, list):
             try:
                 for ops in key_ops:

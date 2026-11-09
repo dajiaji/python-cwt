@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any, Dict, List, Optional, Self, Tuple, Union
+from typing import Any, Self
 
 from cbor2 import CBORTag, loads
 
@@ -18,13 +18,13 @@ class COSEMessage(CBORProcessor):
     The COSE message.
     """
 
-    def __init__(self, type: COSETypes, msg: Union[List[Any], Tuple[Any, ...]]):
+    def __init__(self, type: COSETypes, msg: list[Any] | tuple[Any, ...]):
         """
         Constructor.
 
         Args:
-            type (List[Any]): A type of the COSE message.
-            msg (Union[List[Any], Tuple[Any, ...]]): A COSE message as a CBOR array.
+            type (list[Any]): A type of the COSE message.
+            msg (list[Any] | tuple[Any, ...]): A COSE message as a CBOR array.
         """
         self._validate_cose_message(msg)
         self._msg = msg if isinstance(msg, list) else list(msg)
@@ -32,9 +32,9 @@ class COSEMessage(CBORProcessor):
         self._protected = msg[0]
         self._unprotected = msg[1]
         # self._payload = msg[2]  # msg[2] is mutable and has no readable alias to avoid complexity.
-        self._other_fields: List[bytes] = []
-        self._recipients: List[List[Any]] = []
-        self._signatures: List[List[Any]] = []
+        self._other_fields: list[bytes] = []
+        self._recipients: list[list[Any]] = []
+        self._signatures: list[list[Any]] = []
 
         if self._type == COSETypes.ENCRYPT0:
             if len(self._msg) != 3:
@@ -125,11 +125,11 @@ class COSEMessage(CBORProcessor):
         return cls(type, tagged.value)
 
     @classmethod
-    def from_cose_signature(cls, signature: Union[List[Any], Tuple[Any, ...]]) -> Self:
+    def from_cose_signature(cls, signature: list[Any] | tuple[Any, ...]) -> Self:
         return cls(COSETypes.SIGNATURE, signature)
 
     @classmethod
-    def from_cose_recipient(cls, recipient: Union[List[Any], Tuple[Any, ...]]) -> Self:
+    def from_cose_recipient(cls, recipient: list[Any] | tuple[Any, ...]) -> Self:
         return cls(COSETypes.RECIPIENT, recipient)
 
     @property
@@ -140,14 +140,14 @@ class COSEMessage(CBORProcessor):
         return self._type
 
     @property
-    def protected(self) -> Dict[Union[str, int], Any]:
+    def protected(self) -> dict[str | int, Any]:
         """
         The protected headers as a CBOR object.
         """
         return self._loads(self._protected)
 
     @property
-    def unprotected(self) -> Dict[Union[str, int], Any]:
+    def unprotected(self) -> dict[str | int, Any]:
         """
         The unprotected headers as a CBOR object.
         """
@@ -161,21 +161,21 @@ class COSEMessage(CBORProcessor):
         return self._msg[2]
 
     @property
-    def other_fields(self) -> List[bytes]:
+    def other_fields(self) -> list[bytes]:
         """
         The list of other fields of the COSE message.
         """
         return self._other_fields
 
     @property
-    def signatures(self) -> List[List[Any]]:
+    def signatures(self) -> list[list[Any]]:
         """
         The list of signatures of the COSE message.
         """
         return self._signatures
 
     @property
-    def recipients(self) -> List[List[Any]]:
+    def recipients(self) -> list[list[Any]]:
         """
         The list of recipients of the COSE message.
         """
@@ -194,7 +194,7 @@ class COSEMessage(CBORProcessor):
         aad: bytes = b"",
         abbreviated: bool = False,
         tagged: bool = False,
-        detached_payload: Optional[bytes] = None,
+        detached_payload: bytes | None = None,
     ) -> COSEMessage:
         """
         Countersigns to the COSE message with the signer specified.
@@ -204,7 +204,7 @@ class COSEMessage(CBORProcessor):
             aad (bytes): The application supplied additional authenticated data.
             abbreviated(bool): The type of the countersignature (abbreviated or not).
             tagged(bool): The indicator whether the countersignature is tagged or not.
-            detached_payload (Optional[bytes]): The detached payload that should be
+            detached_payload (bytes | None): The detached payload that should be
                 countersigned with the COSEMessage.
         Returns:
             COSEMessage: The COSE message (self).
@@ -255,18 +255,18 @@ class COSEMessage(CBORProcessor):
         self,
         key: COSEKeyInterface,
         aad: bytes = b"",
-        detached_payload: Optional[bytes] = None,
-    ) -> Optional[List[Any]]:
+        detached_payload: bytes | None = None,
+    ) -> list[Any] | None:
         """
         Verifies a countersignature in the COSE message with the verification key specified.
 
         Args:
             key(COSEKeyInterface): A COSEKey that is used to verify a signature in the COSE message.
             aad (bytes): The application supplied additional authenticated data.
-            detached_payload (Optional[bytes]): The detached payload that should be
+            detached_payload (bytes | None): The detached payload that should be
                 counterverified with the COSEMessage.
         Returns:
-            Optional[List[Any]]: The COSE signature verified.
+            list[Any] | None: The COSE signature verified.
         Raises:
             ValueError: Invalid arguments.
             VerifyError: Failed to verify.
@@ -325,7 +325,7 @@ class COSEMessage(CBORProcessor):
                 err = e
         raise err
 
-    def _validate_cose_message(self, msg: Union[List[Any], Tuple[Any, ...]]):
+    def _validate_cose_message(self, msg: list[Any] | tuple[Any, ...]):
         if not isinstance(msg, (list, tuple)) or len(msg) < 3:
             raise ValueError("Invalid COSE message.")
         if not isinstance(msg[0], bytes):
@@ -350,16 +350,16 @@ class COSEMessage(CBORProcessor):
             self._validate_cose_message(cs)
         return
 
-    def _get_kid(self, sig: list) -> Optional[bytes]:
+    def _get_kid(self, sig: list) -> bytes | None:
         kid = sig[1].get(4, None)
         return kid if kid else self._loads(sig[0]).get(4, None)
 
-    def detach_payload(self) -> Tuple[COSEMessage, bytes]:
+    def detach_payload(self) -> tuple[COSEMessage, bytes]:
         """
         Detach a payload from the COSE message
 
         Returns:
-            Tuple[COSEMessage, bytes]: The COSE message (self),
+            tuple[COSEMessage, bytes]: The COSE message (self),
             and a byte string of the detached payload.
         Raises:
             ValueError: The payload does not exist.

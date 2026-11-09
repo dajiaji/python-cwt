@@ -1,7 +1,7 @@
 import json
 import os
 import zlib
-from typing import Any, Dict, Union
+from typing import Any
 
 import jwt
 import requests
@@ -59,7 +59,7 @@ class SwedishVerifier:
             json.dump(self._trustlist, f, indent=4)
         return
 
-    def verify_and_decode(self, eudcc: bytes) -> Union[Dict[Union[str, int], Any], bytes]:
+    def verify_and_decode(self, eudcc: bytes) -> dict[str | int, Any] | bytes:
         if eudcc.startswith(b"HC1:"):
             # Decode Base45 data.
             eudcc = b45decode(eudcc[4:])
