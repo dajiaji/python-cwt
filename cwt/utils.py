@@ -2,7 +2,7 @@ import base64
 import copy
 import json
 from collections.abc import Mapping
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import cbor2
 
@@ -25,7 +25,7 @@ from .const import (
 
 def to_mutable(obj: Any, *, preserve_mutable: bool = False) -> Any:
     """Convert containers, preserving shared references, byte strings and map keys."""
-    memo: Dict[int, Any] = {}
+    memo: dict[int, Any] = {}
 
     def convert(value: Any) -> Any:
         if not isinstance(value, (Mapping, list, tuple)):
@@ -35,13 +35,13 @@ def to_mutable(obj: Any, *, preserve_mutable: bool = False) -> Any:
             return memo[id(value)]
 
         if isinstance(value, Mapping):
-            result: Dict[Any, Any] = value if preserve_mutable and isinstance(value, dict) else {}
+            result: dict[Any, Any] = value if preserve_mutable and isinstance(value, dict) else {}
             memo[id(value)] = result
             for key, item in value.items():
                 result[key] = convert(item)
             return result
 
-        items: List[Any] = value if preserve_mutable and isinstance(value, list) else []
+        items: list[Any] = value if preserve_mutable and isinstance(value, list) else []
         memo[id(value)] = items
         for i, item in enumerate(value):
             if items is value:
@@ -100,7 +100,7 @@ def base64url_decode(v: str) -> bytes:
 
 
 def parse_apu(context: dict) -> list:
-    apu: List[Any] = [None, None, None]
+    apu: list[Any] = [None, None, None]
     if "apu" not in context:
         return apu
     if not isinstance(context["apu"], dict):
@@ -124,7 +124,7 @@ def parse_apu(context: dict) -> list:
 
 
 def parse_apv(context: dict) -> list:
-    apv: List[Any] = [None, None, None]
+    apv: list[Any] = [None, None, None]
     if "apv" not in context:
         return apv
     if not isinstance(context["apv"], dict):
@@ -147,8 +147,8 @@ def parse_apv(context: dict) -> list:
     return apv
 
 
-def to_cis(context: Dict[str, Any], recipient_alg: Optional[int] = None) -> List[Any]:
-    res: List[Any] = []
+def to_cis(context: dict[str, Any], recipient_alg: int | None = None) -> list[Any]:
+    res: list[Any] = []
 
     # AlgorithmID
     if "alg" not in context:
@@ -170,7 +170,7 @@ def to_cis(context: Dict[str, Any], recipient_alg: Optional[int] = None) -> List
     res.append(parse_apv(context))
 
     # SuppPubInfo
-    supp_pub: List[Any] = [None, None]
+    supp_pub: list[Any] = [None, None]
     protected = {}
     if "supp_pub" in context:
         if not isinstance(context["supp_pub"], dict):
@@ -205,7 +205,7 @@ class ResolvedHeader:
     nor value encoding to bstr, and can be passed directly to the CBOR encoding logic.
     """
 
-    def __init__(self, params: Dict[Union[str, int], Any]):
+    def __init__(self, params: dict[str | int, Any]):
         self.params = params
 
 
@@ -213,14 +213,14 @@ class ResolvedHeader:
 _COSE_HEADER_TSTR_PARAMS = {"cty", "content type", "x5u"}
 
 
-def to_cose_header(data: Optional[Union[dict, ResolvedHeader]] = None, algs: Dict[str, int] = {}) -> Dict[Union[str, int], Any]:
+def to_cose_header(data: dict | ResolvedHeader | None = None, algs: dict[str, int] = {}) -> dict[str | int, Any]:
     if data is None:
         return {}
     if isinstance(data, ResolvedHeader):
         return data.params
     if len(data) == 0 or not isinstance(list(data.keys())[0], str):
         return data
-    res: Dict[Union[str, int], Any] = {}
+    res: dict[str | int, Any] = {}
     if not algs:
         algs = COSE_NAMED_ALGORITHMS_SUPPORTED
     for k, v in data.items():
@@ -250,11 +250,11 @@ def to_cose_header(data: Optional[Union[dict, ResolvedHeader]] = None, algs: Dic
     return res
 
 
-def jwk_to_cose_key_params(data: Union[str, bytes, Dict[str, Any]]) -> Dict[int, Any]:
-    cose_key: Dict[int, Any] = {}
+def jwk_to_cose_key_params(data: str | bytes | dict[str, Any]) -> dict[int, Any]:
+    cose_key: dict[int, Any] = {}
 
     # kty
-    jwk: Dict[str, Any]
+    jwk: dict[str, Any]
     if not isinstance(data, dict):
         jwk = json.loads(data)
     else:
@@ -356,7 +356,7 @@ def jwk_to_cose_key_params(data: Union[str, bytes, Dict[str, Any]]) -> Dict[int,
     return cose_key
 
 
-def _validate_context(context: List[Any]) -> List[Any]:
+def _validate_context(context: list[Any]) -> list[Any]:
     if len(context) != 4 and len(context) != 5:
         raise ValueError("Invalid context information.")
     # AlgorithmID
@@ -376,8 +376,8 @@ def _validate_context(context: List[Any]) -> List[Any]:
     return context
 
 
-def to_recipient_context(alg: int, u: Dict[Union[str, int], Any], context: Union[List[Any], Dict[str, Any]]) -> List[Any]:
-    ctx: List[Any] = [
+def to_recipient_context(alg: int, u: dict[str | int, Any], context: list[Any] | dict[str, Any]) -> list[Any]:
+    ctx: list[Any] = [
         None,
         [
             u[-21] if -21 in u else None,
@@ -406,5 +406,5 @@ def to_recipient_context(alg: int, u: Dict[Union[str, int], Any], context: Union
     return ctx
 
 
-def sort_keys_for_deterministic_encoding(d: Dict[Union[str, int], Any]) -> Dict[Union[str, int], Any]:
+def sort_keys_for_deterministic_encoding(d: dict[str | int, Any]) -> dict[str | int, Any]:
     return {k: v for k, v in sorted(d.items(), key=lambda kv: cbor2.dumps(kv[0]))}

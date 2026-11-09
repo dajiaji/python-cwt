@@ -1,10 +1,10 @@
-from typing import Any, Dict
+from typing import Any
 
 from ..cose_key_interface import COSEKeyInterface
 
 
 class RawKey(COSEKeyInterface):
-    def __init__(self, params: Dict[int, Any]):
+    def __init__(self, params: dict[int, Any]):
         super().__init__(params)
 
         self._key: bytes = b""
@@ -28,7 +28,7 @@ class RawKey(COSEKeyInterface):
     def to_bytes(self) -> bytes:
         return self._key
 
-    def to_dict(self) -> Dict[int, Any]:
+    def to_dict(self) -> dict[int, Any]:
         res = super().to_dict()
         res[-1] = self._key
         return res

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Union
+from typing import Any
 
 import cbor2
 from cbor2 import CBORTag
@@ -20,7 +20,7 @@ class EncryptedCOSEKey(CBORProcessor):
         encryption_key: COSEKeyInterface,
         nonce: bytes = b"",
         tagged: bool = False,
-    ) -> Union[List[Any], bytes]:
+    ) -> list[Any] | bytes:
         """
         Returns an encrypted COSE key formatted to COSE_Encrypt0 structure.
 
@@ -32,13 +32,13 @@ class EncryptedCOSEKey(CBORProcessor):
             tagged (bool): An indicator whether the response is wrapped by CWT
                 tag(61) or not.
         Returns:
-            Union[List[Any], bytes]: A COSE_Encrypt0 structure of the target COSE key.
+            list[Any] | bytes: A COSE_Encrypt0 structure of the target COSE key.
         Raises:
             ValueError: Invalid arguments.
             EncodeError: Failed to encrypt the COSE key.
         """
-        protected: Dict[int, Any] = {1: encryption_key.alg}
-        unprotected: Dict[int, Any] = {4: encryption_key.kid} if encryption_key.kid else {}
+        protected: dict[int, Any] = {1: encryption_key.alg}
+        unprotected: dict[int, Any] = {4: encryption_key.kid} if encryption_key.kid else {}
         if not nonce:
             try:
                 nonce = encryption_key.generate_nonce()
@@ -56,7 +56,7 @@ class EncryptedCOSEKey(CBORProcessor):
         return res.value
 
     @staticmethod
-    def to_cose_key(key: List[Any], encryption_key: COSEKeyInterface) -> COSEKeyInterface:
+    def to_cose_key(key: list[Any], encryption_key: COSEKeyInterface) -> COSEKeyInterface:
         """
         Returns an decrypted COSE key.
 

@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import cbor2
 
@@ -32,14 +32,14 @@ class Recipient:
     @classmethod
     def new(
         cls,
-        protected: Union[dict, ResolvedHeader] = {},
-        unprotected: Union[dict, ResolvedHeader] = {},
+        protected: dict | ResolvedHeader = {},
+        unprotected: dict | ResolvedHeader = {},
         ciphertext: bytes = b"",
-        recipients: List[Any] = [],
-        sender_key: Optional[COSEKeyInterface] = None,
-        recipient_key: Optional[COSEKeyInterface] = None,
-        hpke_psk: Optional[bytes] = None,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
+        recipients: list[Any] = [],
+        sender_key: COSEKeyInterface | None = None,
+        recipient_key: COSEKeyInterface | None = None,
+        hpke_psk: bytes | None = None,
+        context: list[Any] | dict[str, Any] | None = None,
         extra_info: bytes = b"",
         hpke_aad: bytes = b"",
     ) -> RecipientInterface:
@@ -47,12 +47,12 @@ class Recipient:
         Creates a recipient from a CBOR-like dictionary with numeric keys.
 
         Args:
-            protected (Union[dict, ResolvedHeader]): Parameters that are to be cryptographically protected.
-            unprotected (Union[dict, ResolvedHeader]): Parameters that are not cryptographically protected.
-            ciphertext (List[Any]): A cipher text.
-            sender_key (Optional[COSEKeyInterface]): A sender private key as COSEKey.
-            recipient_key (Optional[COSEKeyInterface]): A recipient public key as COSEKey.
-            context (Optional[Union[List[Any], Dict[str, Any]]]): Context
+            protected (dict | ResolvedHeader): Parameters that are to be cryptographically protected.
+            unprotected (dict | ResolvedHeader): Parameters that are not cryptographically protected.
+            ciphertext (list[Any]): A cipher text.
+            sender_key (COSEKeyInterface | None): A sender private key as COSEKey.
+            recipient_key (COSEKeyInterface | None): A recipient public key as COSEKey.
+            context (list[Any] | dict[str, Any] | None): Context
                 information structure.
         Returns:
             RecipientInterface: A recipient object.
@@ -109,9 +109,9 @@ class Recipient:
     @classmethod
     def from_list(
         cls,
-        recipient: Union[List[Any], Tuple[Any, ...]],
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
-        hpke_psk: Optional[bytes] = None,
+        recipient: list[Any] | tuple[Any, ...],
+        context: list[Any] | dict[str, Any] | None = None,
+        hpke_psk: bytes | None = None,
         extra_info: bytes = b"",
         hpke_aad: bytes = b"",
     ) -> RecipientInterface:
@@ -119,7 +119,7 @@ class Recipient:
         Creates a recipient from a raw COSE array data.
 
         Args:
-            recipient (Union[List[Any], Tuple[Any, ...]]): A raw COSE recipient array.
+            recipient (list[Any] | tuple[Any, ...]): A raw COSE recipient array.
         Returns:
             RecipientInterface: A recipient object.
         Raises:
@@ -150,7 +150,7 @@ class Recipient:
             return rec
         if not isinstance(recipient[3], (list, tuple)):
             raise ValueError("recipients should be list.")
-        recipients: List[RecipientInterface] = []
+        recipients: list[RecipientInterface] = []
         for r in recipient[3]:
             recipients.append(cls.from_list(r, hpke_psk=hpke_psk, extra_info=extra_info, hpke_aad=hpke_aad))
         rec = cls.new(

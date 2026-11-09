@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
@@ -23,7 +23,7 @@ class RSAKey(AsymmetricKey):
         COSE_KEY_OPERATION_VALUES["verify"],
     ]
 
-    def __init__(self, params: Dict[int, Any]):
+    def __init__(self, params: dict[int, Any]):
         super().__init__(params)
 
         self._key: Any = None
@@ -115,7 +115,7 @@ class RSAKey(AsymmetricKey):
         self._key = private_numbers.private_key()
         return
 
-    def to_dict(self) -> Dict[int, Any]:
+    def to_dict(self) -> dict[int, Any]:
         return self._dict
 
     def sign(self, msg: bytes) -> bytes:

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 from cryptography.hazmat.primitives.keywrap import aes_key_unwrap, aes_key_wrap
 
@@ -18,13 +18,13 @@ class ECDH_AESKeyWrap(RecipientInterface):
 
     def __init__(
         self,
-        protected: Dict[Union[str, int], Any],
-        unprotected: Dict[Union[str, int], Any],
+        protected: dict[str | int, Any],
+        unprotected: dict[str | int, Any],
         ciphertext: bytes = b"",
-        recipients: List[Any] = [],
-        sender_key: Optional[COSEKeyInterface] = None,
-        recipient_key: Optional[COSEKeyInterface] = None,
-        context: List[Any] = [],
+        recipients: list[Any] = [],
+        sender_key: COSEKeyInterface | None = None,
+        recipient_key: COSEKeyInterface | None = None,
+        context: list[Any] = [],
     ):
         super().__init__(protected, unprotected, ciphertext, recipients)
         self._sender_public_key: Any = None
@@ -43,7 +43,7 @@ class ECDH_AESKeyWrap(RecipientInterface):
         else:
             raise ValueError(f"Unknown alg(1) for ECDH with key wrap: {self._alg}.")
 
-    def encode(self, plaintext: bytes = b"", aad: bytes = b"") -> Tuple[List[Any], Optional[COSEKeyInterface]]:
+    def encode(self, plaintext: bytes = b"", aad: bytes = b"") -> tuple[list[Any], COSEKeyInterface | None]:
         if not self._recipient_key:
             raise ValueError("recipient_key should be set in advance.")
         if not self._context:
@@ -77,7 +77,7 @@ class ECDH_AESKeyWrap(RecipientInterface):
 
     def decode(
         self, key: COSEKeyInterface, aad: bytes = b"", alg: int = 0, as_cose_key: bool = False
-    ) -> Union[bytes, COSEKeyInterface]:
+    ) -> bytes | COSEKeyInterface:
         if not self._context:
             raise ValueError("context should be set.")
         if not self._sender_public_key:

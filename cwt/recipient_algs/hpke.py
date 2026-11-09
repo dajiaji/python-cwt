@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 from pyhpke import AEADId, CipherSuite, KDFId, KEMId, KEMKey, KEMKeyInterface
 
@@ -35,7 +35,7 @@ _HPKE_SUITES = {
 }
 
 
-def to_hpke_ciphersuites(alg: int) -> Tuple[int, int, int]:
+def to_hpke_ciphersuites(alg: int) -> tuple[int, int, int]:
     base_alg = _KE_TO_BASE.get(alg, alg)
     if base_alg in _HPKE_SUITES:
         return _HPKE_SUITES[base_alg]
@@ -49,12 +49,12 @@ def is_hpke_ke(alg: int) -> bool:
 class HPKE(RecipientInterface):
     def __init__(
         self,
-        protected: Dict[Union[str, int], Any],
-        unprotected: Dict[Union[str, int], Any],
+        protected: dict[str | int, Any],
+        unprotected: dict[str | int, Any],
         ciphertext: bytes = b"",
-        recipients: List[Any] = [],
-        recipient_key: Optional[COSEKeyInterface] = None,
-        psk: Optional[bytes] = None,
+        recipients: list[Any] = [],
+        recipient_key: COSEKeyInterface | None = None,
+        psk: bytes | None = None,
         content_alg: int = 0,
         extra_info: bytes = b"",
         hpke_info: bytes = b"",
@@ -97,7 +97,7 @@ class HPKE(RecipientInterface):
         ]
         return self._dumps(recipient_structure)
 
-    def encode(self, plaintext: bytes = b"", aad: bytes = b"") -> Tuple[List[Any], Optional[COSEKeyInterface]]:
+    def encode(self, plaintext: bytes = b"", aad: bytes = b"") -> tuple[list[Any], COSEKeyInterface | None]:
         if self._recipient_key is None:
             raise ValueError("recipient_key should be set in advance.")
         self._kem_key = self._to_kem_key(self._recipient_key)
@@ -139,7 +139,7 @@ class HPKE(RecipientInterface):
         aad: bytes = b"",
         alg: int = 0,
         as_cose_key: bool = False,
-    ) -> Union[bytes, COSEKeyInterface]:
+    ) -> bytes | COSEKeyInterface:
         ek = self._unprotected.get(-4, None)
         if ek is None and isinstance(self._protected, dict):
             ek = self._protected.get(-4, None)

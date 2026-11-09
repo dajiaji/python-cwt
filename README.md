@@ -1323,7 +1323,7 @@ except Exception as err:
     print(err)
 ```
 
-A raw CWT structure (Dict[int, Any]) can also be used as follows:
+A raw CWT structure (dict[int, Any]) can also be used as follows:
 
 ```py
 import cwt

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Self, Tuple, Union
+from typing import Any, Self
 
 from .cbor_processor import CBORProcessor
 from .cose_key import COSEKey
@@ -12,7 +12,7 @@ class Recipients(CBORProcessor):
     A Set of COSE Recipients.
     """
 
-    def __init__(self, recipients: List[RecipientInterface], verify_kid: bool = False):
+    def __init__(self, recipients: list[RecipientInterface], verify_kid: bool = False):
         self._recipients = recipients
         self._verify_kid = verify_kid
         return
@@ -20,22 +20,22 @@ class Recipients(CBORProcessor):
     @classmethod
     def from_list(
         cls,
-        recipients: Union[List[Any], Tuple[Any, ...]],
+        recipients: list[Any] | tuple[Any, ...],
         verify_kid: bool = False,
-        context: Optional[Union[List[Any], Dict[str, Any]]] = None,
-        hpke_psk: Optional[bytes] = None,
+        context: list[Any] | dict[str, Any] | None = None,
+        hpke_psk: bytes | None = None,
         extra_info: bytes = b"",
         hpke_aad: bytes = b"",
     ) -> Self:
         """
         Create Recipients from a CBOR-like list.
         """
-        res: List[RecipientInterface] = []
+        res: list[RecipientInterface] = []
         for r in recipients:
             res.append(Recipient.from_list(r, context, hpke_psk=hpke_psk, extra_info=extra_info, hpke_aad=hpke_aad))
         return cls(res, verify_kid)
 
-    def derive_key(self, keys: List[COSEKeyInterface], alg: int, external_aad: bytes, content_aad: str) -> COSEKeyInterface:
+    def derive_key(self, keys: list[COSEKeyInterface], alg: int, external_aad: bytes, content_aad: str) -> COSEKeyInterface:
         """
         Decodes an appropriate key from recipients or keys provided as a parameter ``keys``.
         """

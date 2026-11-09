@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any
 
 import cryptography
 from cryptography.hazmat.primitives import hashes
@@ -46,7 +46,7 @@ class OKPKey(AsymmetricKey):
         COSE_KEY_OPERATION_VALUES["deriveBits"],
     ]
 
-    def __init__(self, params: Dict[int, Any]):
+    def __init__(self, params: dict[int, Any]):
         super().__init__(params)
         self._public_key: Any = None
         self._private_key: Any = None
@@ -90,16 +90,16 @@ class OKPKey(AsymmetricKey):
 
         # Validate alg and key_ops.
         if self._key_ops:
-            if set(self._key_ops) & set([3, 4, 5, 6, 9, 10]):
+            if set(self._key_ops) & {3, 4, 5, 6, 9, 10}:
                 raise ValueError("Unknown or not permissible key_ops(4) for OKP.")
         if self._alg:
             if self._alg in COSE_ALGORITHMS_SIG_OKP.values():
                 if self._key_ops:
                     if -4 in params:
                         # private key for signing.
-                        if not (set(self._key_ops) & set([1, 2])):
+                        if not (set(self._key_ops) & {1, 2}):
                             raise ValueError("Invalid key_ops for signing key.")
-                        if set(self._key_ops) & set([7, 8]):
+                        if set(self._key_ops) & {7, 8}:
                             raise ValueError("Signing key should not be used for key derivation.")
                     else:
                         # public key for signing.
@@ -124,9 +124,9 @@ class OKPKey(AsymmetricKey):
                 if self._key_ops:
                     if -4 in params:
                         # private key for key derivation.
-                        if not (set(self._key_ops) & set([7, 8])):
+                        if not (set(self._key_ops) & {7, 8}):
                             raise ValueError("Invalid key_ops for key derivation.")
-                        if set(self._key_ops) & set([1, 2]):
+                        if set(self._key_ops) & {1, 2}:
                             raise ValueError("Private key for ECDHE should not be used for signing.")
                     else:
                         # public key for key derivation.
@@ -140,17 +140,17 @@ class OKPKey(AsymmetricKey):
                 if self._crv in [4, 5]:  # X25519/X448
                     if self._key_ops:
                         # private key for key derivation.
-                        if not (set(self._key_ops) & set([7, 8])):
+                        if not (set(self._key_ops) & {7, 8}):
                             raise ValueError("Invalid key_ops for X25519/448 private key.")
-                        if set(self._key_ops) & set([1, 2]):
+                        if set(self._key_ops) & {1, 2}:
                             raise ValueError("Invalid key_ops for X25519/448 private key.")
                     else:
                         self._key_ops = [7, 8]
                 else:  # Ed25519/Ed448
                     if self._key_ops:
-                        if not (set(self._key_ops) & set([1, 2])):
+                        if not (set(self._key_ops) & {1, 2}):
                             raise ValueError("Invalid key_ops for Ed25519/448 private key.")
-                        if set(self._key_ops) & set([7, 8]):
+                        if set(self._key_ops) & {7, 8}:
                             raise ValueError("Invalid key_ops for Ed25519/448 private key.")
                     else:
                         self._key_ops = [1, 2]
@@ -213,18 +213,18 @@ class OKPKey(AsymmetricKey):
 
     @staticmethod
     def to_cose_key(
-        k: Union[
-            Ed448PrivateKey,
-            Ed448PublicKey,
-            Ed25519PrivateKey,
-            Ed25519PublicKey,
-            X448PrivateKey,
-            X448PublicKey,
-            X25519PrivateKey,
-            X25519PublicKey,
-        ],
-    ) -> Dict[int, Any]:
-        cose_key: Dict[int, Any] = {}
+        k: (
+            Ed448PrivateKey
+            | Ed448PublicKey
+            | Ed25519PrivateKey
+            | Ed25519PublicKey
+            | X448PrivateKey
+            | X448PublicKey
+            | X25519PrivateKey
+            | X25519PublicKey
+        ),
+    ) -> dict[int, Any]:
+        cose_key: dict[int, Any] = {}
 
         cose_key[1] = COSE_KEY_TYPES["OKP"]
         cose_key[-1] = 6  # Ed25519
@@ -263,23 +263,23 @@ class OKPKey(AsymmetricKey):
     @property
     def key(
         self,
-    ) -> Union[
-        Ed448PrivateKey,
-        Ed448PublicKey,
-        Ed25519PrivateKey,
-        Ed25519PublicKey,
-        X448PrivateKey,
-        X448PublicKey,
-        X25519PrivateKey,
-        X25519PublicKey,
-    ]:
+    ) -> (
+        Ed448PrivateKey
+        | Ed448PublicKey
+        | Ed25519PrivateKey
+        | Ed25519PublicKey
+        | X448PrivateKey
+        | X448PublicKey
+        | X25519PrivateKey
+        | X25519PublicKey
+    ):
         return self._key
 
     @property
     def crv(self) -> int:
         return self._crv
 
-    def to_dict(self) -> Dict[int, Any]:
+    def to_dict(self) -> dict[int, Any]:
         res = super().to_dict()
         res[-1] = self._crv
         res[-2] = self._x
@@ -304,7 +304,7 @@ class OKPKey(AsymmetricKey):
         except cryptography.exceptions.InvalidSignature as err:
             raise VerifyError("Failed to verify.") from err
 
-    def derive_bytes(self, length: int, material: bytes = b"", info: bytes = b"", public_key: Optional[Any] = None) -> bytes:
+    def derive_bytes(self, length: int, material: bytes = b"", info: bytes = b"", public_key: Any | None = None) -> bytes:
         if self._public_key:
             raise ValueError("Public key cannot be used for key derivation.")
         if not public_key:
