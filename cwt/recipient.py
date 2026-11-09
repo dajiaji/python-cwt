@@ -130,7 +130,7 @@ class Recipient:
             raise ValueError("Invalid recipient format.")
         if not isinstance(recipient[0], bytes):
             raise ValueError("protected header should be bytes.")
-        protected = {} if not recipient[0] else cbor2.loads(recipient[0])
+        protected = {} if not recipient[0] else cbor2.loads(recipient[0], allow_duplicate_keys=False)
         if not isinstance(recipient[1], Mapping):
             raise ValueError("unprotected header should be dict.")
         unprotected = to_mutable(recipient[1])

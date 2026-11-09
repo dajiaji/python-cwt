@@ -116,7 +116,7 @@ class COSEMessage(CBORProcessor):
 
     @classmethod
     def loads(cls, msg: bytes) -> Self:
-        tagged = loads(msg)
+        tagged = loads(msg, allow_duplicate_keys=False)
         if not isinstance(tagged, CBORTag):
             raise ValueError("Invalid COSE format.")
         type = COSE_TAG_TO_TYPE.get(tagged.tag, None)

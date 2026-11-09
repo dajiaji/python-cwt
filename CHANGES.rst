@@ -6,6 +6,8 @@ Unreleased
 
 - **Breaking change**: Drop support for Python 3.10.
 - Add support for Python 3.15.
+- **Breaking change**: Reject CBOR maps with duplicate keys on decoding (e.g. COSE header maps, COSE_Key and CWT claims) instead of silently keeping the last value, as RFC 9052 Section 3 requires for COSE header parameters.
+    - Bump the minimum supported version of cbor2 to 6.1.0, which provides ``allow_duplicate_keys``.
 - Correct COSE signing header annotations to accept dictionaries and ResolvedHeader in strict type checkers.
 - Annotate factory class methods (``COSE.new``, ``CWT.new``, ``Claims.new``, ``Claims.from_json``, ``Signer.new``, ``Signer.from_jwk``, ``Signer.from_pem``, ``COSEMessage.loads``, etc.) to return ``Self`` for strict type checkers.
 - Modernize type annotations to PEP 604/585 syntax (e.g. ``X | None``, ``dict[str, Any]``) and add pyupgrade (``--py311-plus``) to pre-commit.

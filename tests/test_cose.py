@@ -1143,11 +1143,6 @@ class TestCOSE:
                 "The alg(4) in the headers does not match the alg(5) in the populated key.",
             ),
             # (
-            #     {COSEHeaders.ALG: COSEAlgs.HS256_64, COSEHeaders.ALG: COSEAlgs.HS256},
-            #     {},
-            #     "The protected header has duplicated keys.",
-            # ),
-            # (
             #     {},
             #     {COSEHeaders.ALG: COSEAlgs.HS256_64, COSEHeaders.ALG: COSEAlgs.HS256},
             #     "Unsupported or unknown alg: xxx.",

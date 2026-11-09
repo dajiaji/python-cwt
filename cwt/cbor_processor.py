@@ -14,6 +14,6 @@ class CBORProcessor:
 
     def _loads(self, s: bytes) -> dict[str | int, Any]:
         try:
-            return loads(s)
+            return loads(s, allow_duplicate_keys=False)
         except Exception as err:
             raise DecodeError("Failed to decode.") from err
