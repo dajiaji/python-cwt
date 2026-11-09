@@ -5,6 +5,7 @@ Unreleased
 ----------
 
 - **Breaking change**: Drop support for Python 3.10.
+- Add support for Python 3.15.
 - Correct COSE signing header annotations to accept dictionaries and ResolvedHeader in strict type checkers.
 - Annotate factory class methods (``COSE.new``, ``CWT.new``, ``Claims.new``, ``Claims.from_json``, ``Signer.new``, ``Signer.from_jwk``, ``Signer.from_pem``, ``COSEMessage.loads``, etc.) to return ``Self`` for strict type checkers.
 - Modernize type annotations to PEP 604/585 syntax (e.g. ``X | None``, ``dict[str, Any]``) and add pyupgrade (``--py311-plus``) to pre-commit.
