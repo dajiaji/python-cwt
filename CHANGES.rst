@@ -4,6 +4,7 @@ Changes
 Unreleased
 ----------
 
+- **Breaking change**: Drop support for Python 3.10.
 - Correct COSE signing header annotations to accept dictionaries and ResolvedHeader in strict type checkers.
 - Follow RFC 9597 (CWT Claims in COSE Headers), which supersedes draft-ietf-cose-cwt-claims-in-headers-06.
     - **Breaking change**: ``COSEHeaders.CWT_CLAIMS`` is now ``15``, the label assigned by IANA in RFC 9597 (it was ``13``, the label requested by draft-06). IANA assigned ``13`` to the unrelated ``kcwt`` header parameter (RFC 9528), so ``13`` is no longer interpreted as CWT Claims. Tokens using the draft label are no longer cross-checked by ``CWT.decode()``.
