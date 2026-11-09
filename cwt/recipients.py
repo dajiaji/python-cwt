@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Self, Tuple, Union
 
 from .cbor_processor import CBORProcessor
 from .cose_key import COSEKey
@@ -26,7 +26,7 @@ class Recipients(CBORProcessor):
         hpke_psk: Optional[bytes] = None,
         extra_info: bytes = b"",
         hpke_aad: bytes = b"",
-    ):
+    ) -> Self:
         """
         Create Recipients from a CBOR-like list.
         """
@@ -35,7 +35,7 @@ class Recipients(CBORProcessor):
             res.append(Recipient.from_list(r, context, hpke_psk=hpke_psk, extra_info=extra_info, hpke_aad=hpke_aad))
         return cls(res, verify_kid)
 
-    def derive_key(self, keys: List[COSEKeyInterface], alg: int, external_aad: bytes, content_aad: bytes) -> COSEKeyInterface:
+    def derive_key(self, keys: List[COSEKeyInterface], alg: int, external_aad: bytes, content_aad: str) -> COSEKeyInterface:
         """
         Decodes an appropriate key from recipients or keys provided as a parameter ``keys``.
         """

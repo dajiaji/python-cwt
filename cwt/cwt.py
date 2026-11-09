@@ -1,7 +1,7 @@
 from calendar import timegm
 from collections.abc import Mapping
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Self, Tuple, Union
 
 from cbor2 import CBORTag, dumps
 
@@ -61,7 +61,7 @@ class CWT(CBORProcessor):
         expires_in: int = CWT_DEFAULT_EXPIRES_IN,
         leeway: int = CWT_DEFAULT_LEEWAY,
         ca_certs: str = "",
-    ):
+    ) -> Self:
         """
         Constructor.
 

@@ -1,4 +1,4 @@
-from typing import Any, Dict, Union
+from typing import Any, Dict, Self, Union
 
 from .cbor_processor import CBORProcessor
 from .const import COSE_ALGORITHMS_SIGNATURE
@@ -63,7 +63,7 @@ class Signer(CBORProcessor):
         protected: Union[dict, bytes, ResolvedHeader] = {},
         unprotected: Union[dict, ResolvedHeader] = {},
         signature: bytes = b"",
-    ):
+    ) -> Self:
         """
         Creates a signer information object (COSE_Signature).
 
@@ -85,7 +85,7 @@ class Signer(CBORProcessor):
         return cls(cose_key, p, u, signature)
 
     @classmethod
-    def from_jwk(cls, data: Union[str, bytes, Dict[str, Any]]):
+    def from_jwk(cls, data: Union[str, bytes, Dict[str, Any]]) -> Self:
         """
         Creates a signer information object (COSE_Signature) from JWK.
         The ``alg`` in the JWK will be included in the protected header,
@@ -122,7 +122,7 @@ class Signer(CBORProcessor):
         data: Union[str, bytes],
         alg: Union[int, str] = "",
         kid: Union[bytes, str] = b"",
-    ):
+    ) -> Self:
         """
         Creates a signer information object (COSE_Signature) from PEM-formatted key.
         The ``alg`` in the JWK will be included in the protected header,
