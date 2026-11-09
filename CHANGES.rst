@@ -4,22 +4,30 @@ Changes
 Unreleased
 ----------
 
-- **Breaking change**: Drop support for Python 3.10.
-- Add support for Python 3.15.
-- **Breaking change**: Reject CBOR maps with duplicate keys on decoding (e.g. COSE header maps, COSE_Key and CWT claims) instead of silently keeping the last value, as RFC 9052 Section 3 requires for COSE header parameters.
+Version 4.0.0
+-------------
+
+Released 2026-11-09
+
+- **Breaking change**: Reject CBOR maps with duplicate keys on decoding (e.g. COSE header maps, COSE_Key and CWT claims) instead of silently keeping the last value, as RFC 9052 Section 3 requires for COSE header parameters. `#718 <https://github.com/dajiaji/python-cwt/pull/718>`__
     - Bump the minimum supported version of cbor2 to 6.1.0, which provides ``allow_duplicate_keys``.
-- Correct COSE signing header annotations to accept dictionaries and ResolvedHeader in strict type checkers.
-- Annotate factory class methods (``COSE.new``, ``CWT.new``, ``Claims.new``, ``Claims.from_json``, ``Signer.new``, ``Signer.from_jwk``, ``Signer.from_pem``, ``COSEMessage.loads``, etc.) to return ``Self`` for strict type checkers.
-- Modernize type annotations to PEP 604/585 syntax (e.g. ``X | None``, ``dict[str, Any]``) and add pyupgrade (``--py311-plus``) to pre-commit.
-- Follow RFC 9597 (CWT Claims in COSE Headers), which supersedes draft-ietf-cose-cwt-claims-in-headers-06.
+- Add support for Python 3.15. `#717 <https://github.com/dajiaji/python-cwt/pull/717>`__
+- Modernize type annotations to PEP 604/585 syntax (e.g. ``X | None``, ``dict[str, Any]``) and add pyupgrade (``--py311-plus``) to pre-commit. `#716 <https://github.com/dajiaji/python-cwt/pull/716>`__
+- Annotate factory class methods (``COSE.new``, ``CWT.new``, ``Claims.new``, ``Claims.from_json``, ``Signer.new``, ``Signer.from_jwk``, ``Signer.from_pem``, ``COSEMessage.loads``, etc.) to return ``Self`` for strict type checkers. `#715 <https://github.com/dajiaji/python-cwt/pull/715>`__
+- **Breaking change**: Drop support for Python 3.10. `#714 <https://github.com/dajiaji/python-cwt/pull/714>`__
+- Follow RFC 9864 (Fully-Specified Algorithms for JOSE and COSE), formerly draft-ietf-jose-fully-specified-algorithms-13. `#709 <https://github.com/dajiaji/python-cwt/pull/709>`__
+    - Add Ed25519 and Ed448 to supported JOSE algorithms.
+    - Mark EdDSA, ES256, ES384 and ES512 as deprecated in docs.
+    - Use Ed25519 instead of EdDSA in README examples.
+- Follow RFC 9597 (CWT Claims in COSE Headers), which supersedes draft-ietf-cose-cwt-claims-in-headers-06. `#708 <https://github.com/dajiaji/python-cwt/pull/708>`__
     - **Breaking change**: ``COSEHeaders.CWT_CLAIMS`` is now ``15``, the label assigned by IANA in RFC 9597 (it was ``13``, the label requested by draft-06). IANA assigned ``13`` to the unrelated ``kcwt`` header parameter (RFC 9528), so ``13`` is no longer interpreted as CWT Claims. Tokens using the draft label are no longer cross-checked by ``CWT.decode()``.
     - ``CWT.decode()`` now checks the CWT Claims header parameter in unprotected headers and in every COSE layer of a nested CWT, not only in the protected header of the innermost layer.
     - ``CWT.decode()`` now requires header and payload claim values to be identical CBOR data items (e.g. ``1``, ``1.0`` and ``True`` no longer compare equal), as RFC 9597 requires.
     - ``CWT.decode()`` now raises ``ValueError`` if the CWT Claims header parameter is not a map or occurs in both the protected and unprotected headers.
-- Follow RFC 9864 (Fully-Specified Algorithms for JOSE and COSE), formerly draft-ietf-jose-fully-specified-algorithms-13.
-    - Add Ed25519 and Ed448 to supported JOSE algorithms.
-    - Mark EdDSA, ES256, ES384 and ES512 as deprecated in docs.
-    - Use Ed25519 instead of EdDSA in README examples.
+- Correct COSE signing header annotations to accept dictionaries and ResolvedHeader in strict type checkers. `#707 <https://github.com/dajiaji/python-cwt/pull/707>`__
+- Add support for cbor2 6. `#705 <https://github.com/dajiaji/python-cwt/pull/705>`__
+- Update dependencies.
+    - Bump cryptography to 50.0.0. `#682 <https://github.com/dajiaji/python-cwt/pull/682>`__
 
 Version 3.3.0
 -------------
