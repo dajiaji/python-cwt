@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Self, Tuple, Union
 
 from cbor2 import CBORTag
 from cryptography.x509 import load_pem_x509_certificates
@@ -76,7 +76,7 @@ class COSE(CBORProcessor):
         verify_kid: bool = False,
         ca_certs: str = "",
         deterministic_header: bool = False,
-    ):
+    ) -> Self:
         """
         Constructor.
 

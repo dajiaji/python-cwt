@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Self, Tuple, Union
 
 from cbor2 import CBORTag, loads
 
@@ -115,7 +115,7 @@ class COSEMessage(CBORProcessor):
         return not self.__eq__(other)
 
     @classmethod
-    def loads(cls, msg: bytes):
+    def loads(cls, msg: bytes) -> Self:
         tagged = loads(msg)
         if not isinstance(tagged, CBORTag):
             raise ValueError("Invalid COSE format.")
@@ -125,11 +125,11 @@ class COSEMessage(CBORProcessor):
         return cls(type, tagged.value)
 
     @classmethod
-    def from_cose_signature(cls, signature: Union[List[Any], Tuple[Any, ...]]):
+    def from_cose_signature(cls, signature: Union[List[Any], Tuple[Any, ...]]) -> Self:
         return cls(COSETypes.SIGNATURE, signature)
 
     @classmethod
-    def from_cose_recipient(cls, recipient: Union[List[Any], Tuple[Any, ...]]):
+    def from_cose_recipient(cls, recipient: Union[List[Any], Tuple[Any, ...]]) -> Self:
         return cls(COSETypes.RECIPIENT, recipient)
 
     @property

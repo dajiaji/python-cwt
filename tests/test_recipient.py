@@ -573,7 +573,7 @@ class TestRecipients:
     def test_recipients_constructor_with_recipient_alg_direct(self):
         key = COSEKey.from_symmetric_key("mysecret", alg="HMAC 256/64", kid="our-secret")
         r = Recipients([Recipient.new(unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: b"our-secret"})])
-        key = r.derive_key([key], key.alg, b"", b"")
+        key = r.derive_key([key], key.alg, b"", "Enc_Recipient")
         assert key.kty == 4
         assert key.alg == COSEAlgs.HS256_64
         assert key.kid == b"our-secret"
@@ -581,7 +581,7 @@ class TestRecipients:
     def test_recipients_derive_key_without_key(self):
         r = Recipients([RecipientInterface(unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: b"our-secret"})])
         with pytest.raises(ValueError) as err:
-            r.derive_key([], 0, b"", b"")
+            r.derive_key([], 0, b"", "Enc_Recipient")
             pytest.fail("derive_key() should fail.")
         assert "key is not found." in str(err.value)
 
@@ -602,7 +602,7 @@ class TestRecipients:
     def test_recipients_derive_key_with_empty_recipients(self, material, context):
         r = Recipients([])
         with pytest.raises(ValueError) as err:
-            r.derive_key([material], 0, b"", b"")
+            r.derive_key([material], 0, b"", "Enc_Recipient")
             pytest.fail("derive_key() should fail.")
         assert "No recipients." in str(err.value)
 
@@ -671,7 +671,7 @@ class TestRecipients:
         key = COSEKey.from_symmetric_key("mysecret", alg="HMAC 256/64", kid="our-secret")
         r = Recipients([RecipientInterface(unprotected={COSEHeaders.ALG: COSEAlgs.DIRECT, COSEHeaders.KID: b"your-secret"})])
         with pytest.raises(ValueError) as err:
-            r.derive_key([key], key.alg, b"", b"")
+            r.derive_key([key], key.alg, b"", "Enc_Recipient")
             pytest.fail("derive_key() should fail.")
         assert "key is not found." in str(err.value)
 
@@ -747,14 +747,14 @@ class TestRecipients:
         )
         rs = Recipients([r])
         with pytest.raises(ValueError) as err:
-            rs.derive_key([], 0, b"", b"")
+            rs.derive_key([], 0, b"", "Enc_Recipient")
             pytest.fail("open() should fail.")
         assert "key is not found." in str(err.value)
 
     def test_recipients_open_with_empty_recipients(self, rsk1):
         rs = Recipients([])
         with pytest.raises(ValueError) as err:
-            rs.derive_key([rsk1], 0, b"", b"")
+            rs.derive_key([rsk1], 0, b"", "Enc_Recipient")
             pytest.fail("open() should fail.")
         assert "No recipients." in str(err.value)
 
